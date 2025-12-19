@@ -1,265 +1,275 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "wouter";
+import { Link, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { 
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
-  ArrowUpRight, ArrowDownRight, Activity
+  ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight
 } from "lucide-react";
-import { useState } from "react";
 
-// Types for Dashboard Roles
-type Role = 'admin' | 'advertiser' | 'publisher' | null;
+// Mock Data for "High Density" feel
+const MOCK_CAMPAIGNS = [
+  { id: 1024, name: "US_Sweepstakes_Main", status: "active", clicks: "45,201", conv: "1,204", revenue: "$4,214.00", roi: "142%" },
+  { id: 1025, name: "DE_Dating_Smartlink", status: "active", clicks: "12,100", conv: "854", revenue: "$2,989.00", roi: "210%" },
+  { id: 1026, name: "Crypto_Push_WW", status: "paused", clicks: "5,400", conv: "12", revenue: "$450.00", roi: "-20%" },
+  { id: 1027, name: "Gambling_Tier1_iOS", status: "active", clicks: "8,900", conv: "410", revenue: "$8,200.00", roi: "340%" },
+  { id: 1028, name: "Nutra_Keto_FR", status: "active", clicks: "3,200", conv: "98", revenue: "$1,100.00", roi: "85%" },
+];
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const [activeRole, setActiveRole] = useState<Role>(null);
+  
+  // Simple routing for prototype separation
+  const [match, params] = useRoute("/dashboard/:role");
+  const role = params?.role;
 
-  // Role Configurations
-  const roleConfig = {
-    admin: {
-      color: "text-orange-500",
-      bg: "bg-orange-500/10",
-      border: "hover:border-orange-500/50",
-      menu: [
-        { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
-        { icon: Users, label: t('dashboard.menu.users') },
-        { icon: DollarSign, label: t('dashboard.menu.finance') },
-        { icon: Shield, label: "Anti-Fraud" },
-        { icon: Settings, label: t('dashboard.menu.settings') },
-      ]
-    },
-    advertiser: {
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
-      border: "hover:border-blue-500/50",
-      menu: [
-        { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
-        { icon: Target, label: t('dashboard.menu.offers') },
-        { icon: BarChart2, label: t('dashboard.menu.reports') },
-        { icon: Settings, label: t('dashboard.menu.settings') },
-      ]
-    },
-    publisher: {
-      color: "text-purple-500",
-      bg: "bg-purple-500/10",
-      border: "hover:border-purple-500/50",
-      menu: [
-        { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
-        { icon: LinkIcon, label: t('dashboard.menu.links') },
-        { icon: BarChart2, label: t('dashboard.menu.reports') },
-        { icon: Wallet, label: t('dashboard.menu.payouts') },
-      ]
-    }
-  };
-
-  const rolesList = [
-    { id: "admin", label: t('dashboard.roles.admin'), icon: Shield, desc: t('dashboard.roles.adminDesc'), ...roleConfig.admin },
-    { id: "advertiser", label: t('dashboard.roles.advertiser'), icon: Briefcase, desc: t('dashboard.roles.advertiserDesc'), ...roleConfig.advertiser },
-    { id: "publisher", label: t('dashboard.roles.publisher'), icon: User, desc: t('dashboard.roles.publisherDesc'), ...roleConfig.publisher }
-  ];
-
-  if (!activeRole) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-        <header className="h-16 border-b border-border bg-white dark:bg-slate-900 flex items-center justify-between px-6">
-           <Link href="/">
-            <a className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">P</div>
-              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">{t('brand')}</span>
-            </a>
-           </Link>
-           <Link href="/">
-             <Button variant="ghost">{t('nav.exit')}</Button>
-           </Link>
-        </header>
-        
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className="text-center mb-12 max-w-lg">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">{t('dashboard.welcome')}</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-lg">{t('dashboard.selectRole')}</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl w-full">
-             {rolesList.map((role) => (
-               <Card 
-                 key={role.id} 
-                 className={`cursor-pointer transition-all duration-300 hover:shadow-xl border-border ${role.border} bg-white dark:bg-slate-900`}
-                 onClick={() => setActiveRole(role.id as Role)}
-               >
-                 <CardHeader>
-                   <div className={`w-12 h-12 rounded-lg ${role.bg} ${role.color} flex items-center justify-center mb-4`}>
-                     <role.icon className="h-6 w-6" />
-                   </div>
-                   <CardTitle className="text-xl">{role.label}</CardTitle>
-                   <CardDescription className="text-base mt-2">{role.desc}</CardDescription>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 group">
-                     {t('dashboard.roles.enter')} <ArrowUpRight className="ml-1 w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-          </div>
-        </div>
-      </div>
-    );
+  if (!role) {
+    return <RoleSelectionScreen t={t} />;
   }
 
-  // Active Dashboard View
-  const activeConfig = roleConfig[activeRole];
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-white dark:bg-slate-900 hidden md:flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-border">
-           <div className="flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
-             <div className={`w-2 h-8 rounded-full ${activeConfig.bg.replace('10', '100')} ${activeConfig.color.replace('text-', 'bg-')}`} />
-             {rolesList.find(r => r.id === activeRole)?.label}
-           </div>
-        </div>
-        
-        <div className="p-4 flex-1">
-          <nav className="space-y-1">
-            {activeConfig.menu.map((link, i) => (
-              <button 
-                key={i}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  i === 0
-                    ? `bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white` 
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-                }`}
-              >
-                <link.icon className={`h-4 w-4 ${i === 0 ? activeConfig.color : ''}`} />
-                {link.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="p-4 border-t border-border">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-              onClick={() => setActiveRole(null)}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {t('dashboard.menu.logout')}
-            </Button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        <header className="h-16 border-b border-border bg-white dark:bg-slate-900 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-           <h1 className="font-bold text-lg text-slate-900 dark:text-white">{t('dashboard.menu.overview')}</h1>
-           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full border border-border">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">System Online</span>
-             </div>
-             <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 border border-border flex items-center justify-center text-xs font-bold text-slate-500">
-               {activeRole.charAt(0).toUpperCase()}
-             </div>
-           </div>
-        </header>
-
-        <div className="p-8 max-w-7xl mx-auto w-full">
-           {/* Stats Cards - Dynamic based on role */}
-           <div className="grid md:grid-cols-4 gap-6 mb-8">
-             {activeRole === 'admin' && (
-               <>
-                 <StatCard title={t('dashboard.stats.revenue')} value="$1,240,500" change="+12.5%" positive />
-                 <StatCard title={t('dashboard.stats.profit')} value="$342,100" change="+8.2%" positive />
-                 <StatCard title={t('dashboard.stats.activeAffiliates')} value="1,204" change="+24" positive />
-                 <StatCard title="Blocked Bots" value="842k" change="-2.1%" positive={false} />
-               </>
-             )}
-             {activeRole === 'advertiser' && (
-               <>
-                 <StatCard title="Total Spend" value="$12,500" change="+5.2%" positive={false} />
-                 <StatCard title={t('dashboard.stats.clicksToday')} value="45,200" change="+18%" positive />
-                 <StatCard title="Conversions" value="842" change="+3.4%" positive />
-                 <StatCard title="ROI" value="145%" change="+1.2%" positive />
-               </>
-             )}
-             {activeRole === 'publisher' && (
-               <>
-                 <StatCard title="Your Earnings" value="$4,250" change="+15%" positive />
-                 <StatCard title="Pending Payout" value="$1,200" change="Processing" neutral />
-                 <StatCard title={t('dashboard.stats.clicksToday')} value="12,500" change="+5%" positive />
-                 <StatCard title="EPC" value="$0.34" change="+0.02" positive />
-               </>
-             )}
-           </div>
-
-           {/* Main Chart Area */}
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="col-span-2 border-border shadow-sm">
-                <CardHeader>
-                  <CardTitle>{t('dashboard.menu.reports')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-lg border border-dashed border-slate-200 dark:border-slate-800 text-slate-400">
-                    <Activity className="w-8 h-8 mb-2 opacity-50" />
-                    <span className="text-sm">Traffic Volume Chart</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Activity Feed */}
-              <Card className="border-border shadow-sm">
-                <CardHeader>
-                  <CardTitle>{t('dashboard.stats.recentActivity')}</CardTitle>
-                  <CardDescription>{t('dashboard.stats.salesMonth')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {[1, 2, 3, 4, 5].map((_, i) => (
-                      <div key={i} className="flex items-start gap-4">
-                         <div className={`w-2 h-2 mt-2 rounded-full ${i % 2 === 0 ? 'bg-green-500' : 'bg-blue-500'}`} />
-                         <div className="space-y-1">
-                           <p className="text-sm font-medium leading-none text-slate-900 dark:text-white">
-                             {activeRole === 'admin' ? 'New Tenant Registered' : activeRole === 'advertiser' ? 'Campaign "US_Dating" Approved' : 'Payout Processed'}
-                           </p>
-                           <p className="text-xs text-slate-500">
-                             {i * 12} minutes ago
-                           </p>
-                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-           </div>
-        </div>
-      </main>
+    <div className="min-h-screen bg-[#09090b] text-white font-sans flex flex-col md:flex-row overflow-hidden">
+      <Sidebar role={role} t={t} />
+      <MainContent role={role} t={t} />
     </div>
   );
 }
 
-function StatCard({ title, value, change, positive, neutral }: { title: string, value: string, change: string, positive?: boolean, neutral?: boolean }) {
+function RoleSelectionScreen({ t }: { t: any }) {
+  const roles = [
+    { id: "admin", label: t('dashboard.roles.admin'), icon: Shield, color: "text-red-500", border: "hover:border-red-500/50" },
+    { id: "advertiser", label: t('dashboard.roles.advertiser'), icon: Briefcase, color: "text-blue-500", border: "hover:border-blue-500/50" },
+    { id: "publisher", label: t('dashboard.roles.publisher'), icon: User, color: "text-emerald-500", border: "hover:border-emerald-500/50" }
+  ];
+
   return (
-    <Card className="border-border shadow-sm">
-      <CardContent className="p-6">
-        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{title}</div>
-        <div className="flex items-baseline justify-between">
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
-          <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-            neutral 
-              ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              : positive 
-                ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' 
-                : 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'
-          }`}>
-            {change}
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+      <div className="max-w-4xl w-full">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-mono font-bold text-white mb-2">{t('dashboard.welcome')}</h1>
+          <p className="text-slate-500 font-mono text-sm">{t('dashboard.selectRole')}</p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-6">
+          {roles.map((r) => (
+            <Link key={r.id} href={`/dashboard/${r.id}`}>
+              <div className={`bg-[#0A0A0A] border border-white/10 p-8 rounded cursor-pointer transition-all hover:-translate-y-1 ${r.border} group`}>
+                <div className={`w-12 h-12 rounded bg-white/5 flex items-center justify-center mb-6 ${r.color} group-hover:bg-white/10`}>
+                  <r.icon className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">{r.label}</h3>
+                <div className="flex items-center text-xs text-slate-500 font-mono group-hover:text-white transition-colors">
+                  {t('dashboard.roles.enter')} <ArrowRight className="w-3 h-3 ml-2" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        
+        <div className="mt-12 text-center">
+          <Link href="/">
+            <Button variant="link" className="text-slate-500 hover:text-white font-mono text-xs">
+              ← {t('nav.exit')}
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Sidebar({ role, t }: { role: string, t: any }) {
+  const menus = {
+    admin: [
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
+      { icon: Users, label: t('dashboard.menu.users') },
+      { icon: Shield, label: t('hero.specs.antifraud') },
+      { icon: DollarSign, label: t('dashboard.menu.finance') },
+      { icon: Settings, label: t('dashboard.menu.settings') },
+    ],
+    advertiser: [
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
+      { icon: Target, label: t('dashboard.menu.campaigns') },
+      { icon: BarChart2, label: t('dashboard.menu.reports') },
+      { icon: Wallet, label: t('dashboard.menu.finance') },
+    ],
+    publisher: [
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
+      { icon: LinkIcon, label: t('dashboard.menu.links') },
+      { icon: Activity, label: t('dashboard.menu.reports') },
+      { icon: DollarSign, label: t('dashboard.menu.payouts') },
+    ]
+  };
+
+  const currentMenu = menus[role as keyof typeof menus] || menus.publisher;
+  const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
+
+  return (
+    <aside className="w-64 bg-[#0A0A0A] border-r border-white/10 flex-shrink-0 hidden md:flex flex-col">
+      <div className="h-14 flex items-center px-4 border-b border-white/10">
+        <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
+        <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
+      </div>
+
+      <nav className="p-2 space-y-1 flex-1">
+        {currentMenu.map((item, i) => (
+          <button key={i} className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === 0 ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+            <item.icon className="w-4 h-4" />
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className="p-4 border-t border-white/10">
+        <Link href="/dashboard">
+          <button className="flex items-center gap-2 text-xs font-mono text-slate-500 hover:text-white transition-colors w-full">
+            <LogOut className="w-3 h-3" />
+            {t('dashboard.menu.logout')}
+          </button>
+        </Link>
+      </div>
+    </aside>
+  )
+}
+
+function MainContent({ role, t }: { role: string, t: any }) {
+  return (
+    <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      {/* Top Bar */}
+      <header className="h-14 bg-[#0A0A0A] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
+        <div className="flex items-center gap-4">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
+          <div className="h-4 w-px bg-white/10" />
+          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {t('dashboard.liveStream')}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-4">
+          <div className="text-xs font-mono text-slate-500">{t('dashboard.server')}: US-EAST-1</div>
+          <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
+            {role.charAt(0)}
+          </div>
+        </div>
+      </header>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-auto p-6">
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <StatBox label={t('stats.revenue')} value="$12,450.00" trend="+12%" color="text-emerald-500" />
+          <StatBox label={t('stats.clicks')} value="145,200" trend="+5%" color="text-blue-500" />
+          <StatBox label={t('stats.conversions')} value="3,204" trend="+8%" color="text-purple-500" />
+          <StatBox label={t('stats.roi')} value="165%" trend="-2%" color="text-yellow-500" />
+        </div>
+
+        {/* Charts & Graphs Area */}
+        <div className="grid grid-cols-3 gap-6 mb-6">
+          <div className="col-span-2 bg-[#0A0A0A] border border-white/10 rounded p-4 h-[300px] relative overflow-hidden">
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xs font-bold uppercase text-slate-400">{t('dashboard.trafficVol')}</h3>
+                <div className="flex gap-2">
+                   <Button size="sm" variant="outline" className="h-6 text-[10px] border-white/10 bg-transparent">1H</Button>
+                   <Button size="sm" variant="outline" className="h-6 text-[10px] border-white/10 bg-white/5">24H</Button>
+                </div>
+             </div>
+             {/* Mock Chart Visualization */}
+             <div className="absolute inset-x-0 bottom-0 h-48 flex items-end justify-between px-4 gap-1 opacity-50">
+                {Array.from({ length: 40 }).map((_, i) => (
+                  <div key={i} className="w-full bg-emerald-500/20 hover:bg-emerald-500/50 transition-colors rounded-t-sm" style={{ height: `${Math.random() * 100}%` }} />
+                ))}
+             </div>
+             <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-slate-600 font-mono text-xs">[LIVE CHART VISUALIZATION LAYER]</div>
+             </div>
+          </div>
+
+          <div className="col-span-1 bg-[#0A0A0A] border border-white/10 rounded p-4 h-[300px]">
+             <h3 className="text-xs font-bold uppercase text-slate-400 mb-4">{t('dashboard.topGeos')}</h3>
+             <div className="space-y-3">
+               {[
+                 { code: "US", name: "United States", val: "45%" },
+                 { code: "DE", name: "Germany", val: "22%" },
+                 { code: "GB", name: "Great Britain", val: "15%" },
+                 { code: "FR", name: "France", val: "8%" },
+               ].map((geo, i) => (
+                 <div key={i} className="flex items-center justify-between text-sm">
+                   <div className="flex items-center gap-2">
+                     <span className="font-mono text-slate-500">{geo.code}</span>
+                     <span className="text-slate-300">{geo.name}</span>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                       <div className="h-full bg-blue-500" style={{ width: geo.val }} />
+                     </div>
+                     <span className="font-mono text-xs w-8 text-right">{geo.val}</span>
+                   </div>
+                 </div>
+               ))}
+             </div>
+          </div>
+        </div>
+
+        {/* Dense Data Table */}
+        <div className="bg-[#0A0A0A] border border-white/10 rounded overflow-hidden">
+           <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Activity className="w-4 h-4 text-slate-500" />
+                {t('dashboard.activeCampaigns')}
+              </h3>
+              <div className="flex gap-2">
+                 <Button size="icon" variant="ghost" className="h-6 w-6"><Filter className="w-3 h-3" /></Button>
+                 <Button size="icon" variant="ghost" className="h-6 w-6"><RefreshCw className="w-3 h-3" /></Button>
+              </div>
+           </div>
+           <div className="overflow-x-auto">
+             <table className="w-full text-left text-xs font-mono">
+               <thead>
+                 <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+                   <th className="px-4 py-3 font-medium">{t('dashboard.table.id')}</th>
+                   <th className="px-4 py-3 font-medium">{t('dashboard.table.name')}</th>
+                   <th className="px-4 py-3 font-medium">{t('dashboard.table.status')}</th>
+                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.clicks')}</th>
+                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.conv')}</th>
+                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.revenue')}</th>
+                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.roi')}</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-white/5">
+                 {MOCK_CAMPAIGNS.map((row) => (
+                   <tr key={row.id} className="hover:bg-white/5 transition-colors cursor-pointer group">
+                     <td className="px-4 py-3 text-slate-500">#{row.id}</td>
+                     <td className="px-4 py-3 font-medium text-white group-hover:text-emerald-400 transition-colors">{row.name}</td>
+                     <td className="px-4 py-3">
+                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${row.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
+                         {row.status}
+                       </span>
+                     </td>
+                     <td className="px-4 py-3 text-right text-slate-300">{row.clicks}</td>
+                     <td className="px-4 py-3 text-right text-slate-300">{row.conv}</td>
+                     <td className="px-4 py-3 text-right text-white font-bold">{row.revenue}</td>
+                     <td className={`px-4 py-3 text-right font-bold ${row.roi.includes('-') ? 'text-red-500' : 'text-emerald-500'}`}>{row.roi}</td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function StatBox({ label, value, trend, color }: any) {
+  return (
+    <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded hover:border-white/20 transition-colors">
+      <div className="text-xs text-slate-500 font-mono uppercase mb-1">{label}</div>
+      <div className="flex items-end justify-between">
+        <div className="text-2xl font-bold text-white font-mono">{value}</div>
+        <div className={`text-xs font-bold ${color} bg-white/5 px-1.5 py-0.5 rounded`}>{trend}</div>
+      </div>
+    </div>
   )
 }

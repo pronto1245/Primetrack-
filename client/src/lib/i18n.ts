@@ -15,17 +15,26 @@ const resources = {
         exit: "Exit Demo"
       },
       hero: {
-        badge: "New: Version 3.0 Release",
+        badge: "SYSTEM OPERATIONAL v3.2.1",
         title: "The Ultimate Ad Tracker for Media Buying Teams",
         subtitle: "Track, optimize, and automate your affiliate campaigns with the fastest self-hosted tracker on the market. Zero redirect lag. Real-time data.",
         cta: "Get Started Free",
         demo: "Live Demo",
-        trust: "Trusted by 15,000+ affiliates worldwide"
+        specs: {
+          selfHosted: "Self-Hosted",
+          latency: "5ms Latency",
+          antifraud: "Anti-Fraud"
+        },
+        rps: "RPS (Req/Sec)"
       },
       stats: {
-        clicks: "Daily Clicks Processed",
-        uptime: "Server Uptime",
-        speed: "Redirect Speed"
+        clicks: "Clicks",
+        uptime: "Uptime",
+        speed: "Speed",
+        nodes: "Active Nodes",
+        revenue: "Revenue (Today)",
+        conversions: "Conversions",
+        roi: "ROI"
       },
       features: {
         title: "Everything you need to scale",
@@ -63,16 +72,30 @@ const resources = {
       },
       dashboard: {
         title: "Dashboard",
-        welcome: "Welcome back",
-        selectRole: "Select a role to access the workspace.",
+        welcome: "SYSTEM ACCESS",
+        selectRole: "Select your secure portal gateway",
+        server: "SERVER",
+        liveStream: "LIVE DATA STREAM",
+        trafficVol: "Traffic Volume (24h)",
+        topGeos: "Top Geos",
+        activeCampaigns: "Active Campaigns",
+        table: {
+          id: "ID",
+          name: "Campaign Name",
+          status: "Status",
+          clicks: "Clicks",
+          conv: "Conv.",
+          revenue: "Revenue",
+          roi: "ROI"
+        },
         menu: {
           overview: "Overview",
           reports: "Reports",
           links: "Links",
           finance: "Finance",
           settings: "Settings",
-          logout: "Log Out",
-          users: "User Management",
+          logout: "DISCONNECT",
+          users: "Tenant Management",
           offers: "Offers",
           campaigns: "Campaigns",
           payouts: "Payouts"
@@ -85,7 +108,7 @@ const resources = {
           publisher: "Publisher",
           publisherDesc: "Get links, view stats, and check payouts.",
           view: "View as {{role}}",
-          enter: "Enter Dashboard"
+          enter: "ENTER PORTAL"
         },
         stats: {
           recentActivity: "Recent Activity",
@@ -114,23 +137,32 @@ const resources = {
         features: "Возможности",
         pricing: "Тарифы",
         integrations: "Интеграции",
-        login: "Войти",
+        login: "ВХОД",
         dashboard: "Личный кабинет",
-        getStarted: "Попробовать бесплатно",
-        exit: "Выйти"
+        getStarted: "НАЧАТЬ БЕСПЛАТНО",
+        exit: "ВЫХОД"
       },
       hero: {
-        badge: "Обновление: Версия 3.0",
+        badge: "СИСТЕМА АКТИВНА v3.2.1",
         title: "Профессиональный трекер для арбитража трафика",
         subtitle: "Трекайте, оптимизируйте и масштабируйте рекламные кампании с самым быстрым self-hosted трекером. Мгновенные редиректы. Данные в реальном времени.",
-        cta: "Начать бесплатно",
-        demo: "Демо версия",
-        trust: "Нам доверяют более 15,000 вебмастеров"
+        cta: "НАЧАТЬ РАБОТУ",
+        demo: "ДЕМО ВЕРСИЯ",
+        specs: {
+          selfHosted: "Self-Hosted",
+          latency: "Задержка 5мс",
+          antifraud: "Антифрод"
+        },
+        rps: "RPS (Запр/сек)"
       },
       stats: {
-        clicks: "Кликов в сутки",
-        uptime: "Uptime серверов",
-        speed: "Скорость редиректа"
+        clicks: "Клики",
+        uptime: "Uptime",
+        speed: "Скорость",
+        nodes: "Активные узлы",
+        revenue: "Доход (Сегодня)",
+        conversions: "Конверсии",
+        roi: "ROI"
       },
       features: {
         title: "Всё для масштабирования связок",
@@ -168,16 +200,30 @@ const resources = {
       },
       dashboard: {
         title: "Личный кабинет",
-        welcome: "Добро пожаловать",
-        selectRole: "Выберите роль для доступа к рабочему пространству.",
+        welcome: "ДОСТУП К СИСТЕМЕ",
+        selectRole: "Выберите шлюз для входа",
+        server: "СЕРВЕР",
+        liveStream: "ПОТОК ДАННЫХ LIVE",
+        trafficVol: "Объем трафика (24ч)",
+        topGeos: "Топ ГЕО",
+        activeCampaigns: "Активные кампании",
+        table: {
+          id: "ID",
+          name: "Кампания",
+          status: "Статус",
+          clicks: "Клики",
+          conv: "Конв.",
+          revenue: "Доход",
+          roi: "ROI"
+        },
         menu: {
           overview: "Обзор",
           reports: "Отчеты",
           links: "Ссылки",
           finance: "Финансы",
           settings: "Настройки",
-          logout: "Выйти",
-          users: "Пользователи",
+          logout: "ОТКЛЮЧИТЬСЯ",
+          users: "Управление тенантами",
           offers: "Офферы",
           campaigns: "Кампании",
           payouts: "Выплаты"
@@ -190,7 +236,7 @@ const resources = {
           publisher: "Вебмастер",
           publisherDesc: "Получение ссылок, статистика переходов и выплаты.",
           view: "Режим: {{role}}",
-          enter: "Войти в кабинет"
+          enter: "ВОЙТИ В ПОРТАЛ"
         },
         stats: {
           recentActivity: "Последняя активность",
