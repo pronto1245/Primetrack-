@@ -1,17 +1,20 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { useTranslation } from "react-i18next";
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
-  Plus, Search
+  Plus, Search, Loader2
 } from "lucide-react";
 import { AdvertiserOffers } from "@/components/dashboard/AdvertiserOffers";
 import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
 import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
+import { useState, useEffect } from "react";
 
 // Mock Data for "High Density" feel
 const MOCK_CAMPAIGNS = [
@@ -42,37 +45,109 @@ export default function Dashboard() {
 }
 
 function RoleSelectionScreen({ t }: { t: any }) {
-  const roles = [
-    { id: "admin", label: t('dashboard.roles.admin'), icon: Shield, color: "text-red-500", border: "hover:border-red-500/50" },
-    { id: "advertiser", label: t('dashboard.roles.advertiser'), icon: Briefcase, color: "text-blue-500", border: "hover:border-blue-500/50" },
-    { id: "publisher", label: t('dashboard.roles.publisher'), icon: User, color: "text-emerald-500", border: "hover:border-emerald-500/50" }
+  const [, setLocation] = useLocation();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const testUsers = [
+    { username: "admin", password: "admin123", role: "admin", label: t('dashboard.roles.admin'), icon: Shield, color: "bg-red-500", hoverColor: "hover:bg-red-600" },
+    { username: "advertiser", password: "adv123", role: "advertiser", label: t('dashboard.roles.advertiser'), icon: Briefcase, color: "bg-blue-500", hoverColor: "hover:bg-blue-600" },
+    { username: "publisher", password: "pub123", role: "publisher", label: t('dashboard.roles.publisher'), icon: User, color: "bg-emerald-500", hoverColor: "hover:bg-emerald-600" },
   ];
+
+  const handleLogin = async (user: string, pass: string) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLocation(`/dashboard/${data.role}`);
+      } else {
+        setError(t('dashboard.loginError') || "Invalid credentials");
+      }
+    } catch {
+      setError(t('dashboard.loginError') || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-mono font-bold text-white mb-2">{t('dashboard.welcome')}</h1>
-          <p className="text-slate-500 font-mono text-sm">{t('dashboard.selectRole')}</p>
+      <div className="max-w-md w-full">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold font-mono text-2xl mx-auto mb-4 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+            PT
+          </div>
+          <h1 className="text-2xl font-mono font-bold text-white mb-2">{t('dashboard.welcome')}</h1>
+          <p className="text-slate-500 font-mono text-sm">{t('dashboard.loginPrompt') || "Enter credentials or use quick login"}</p>
         </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {roles.map((r) => (
-            <Link key={r.id} href={`/dashboard/${r.id}`}>
-              <div className={`bg-[#0A0A0A] border border-white/10 p-8 rounded cursor-pointer transition-all hover:-translate-y-1 ${r.border} group`}>
-                <div className={`w-12 h-12 rounded bg-white/5 flex items-center justify-center mb-6 ${r.color} group-hover:bg-white/10`}>
-                  <r.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">{r.label}</h3>
-                <div className="flex items-center text-xs text-slate-500 font-mono group-hover:text-white transition-colors">
-                  {t('dashboard.roles.enter')} <ArrowRight className="w-3 h-3 ml-2" />
-                </div>
+
+        <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="username" className="text-slate-400 font-mono text-xs">{t('dashboard.username') || "USERNAME"}</Label>
+              <Input
+                id="username"
+                data-testid="input-username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="mt-1 bg-[#111] border-white/10 text-white font-mono"
+                placeholder="admin"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password" className="text-slate-400 font-mono text-xs">{t('dashboard.password') || "PASSWORD"}</Label>
+              <Input
+                id="password"
+                data-testid="input-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 bg-[#111] border-white/10 text-white font-mono"
+                placeholder="••••••"
+              />
+            </div>
+            {error && <p className="text-red-500 text-xs font-mono">{error}</p>}
+            <Button
+              data-testid="button-login"
+              onClick={() => handleLogin(username, password)}
+              disabled={loading || !username || !password}
+              className="w-full bg-white text-black hover:bg-slate-200 font-mono font-bold"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (t('dashboard.login') || "LOGIN")}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-center text-slate-500 font-mono text-xs uppercase tracking-wider">{t('dashboard.quickLogin') || "Quick Login"}</p>
+          {testUsers.map((user) => (
+            <button
+              key={user.role}
+              data-testid={`button-quick-login-${user.role}`}
+              onClick={() => handleLogin(user.username, user.password)}
+              disabled={loading}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg ${user.color} ${user.hoverColor} transition-all hover:-translate-y-0.5 disabled:opacity-50`}
+            >
+              <user.icon className="w-5 h-5 text-white" />
+              <div className="flex-1 text-left">
+                <div className="text-white font-bold text-sm">{user.label}</div>
+                <div className="text-white/70 font-mono text-xs">{user.username} / {user.password}</div>
               </div>
-            </Link>
+              <ArrowRight className="w-4 h-4 text-white/70" />
+            </button>
           ))}
         </div>
         
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <Link href="/">
             <Button variant="link" className="text-slate-500 hover:text-white font-mono text-xs">
               ← {t('nav.exit')}

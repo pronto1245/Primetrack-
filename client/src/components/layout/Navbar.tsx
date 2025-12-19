@@ -32,15 +32,13 @@ export function Navbar() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         
         {/* Brand - Tech/Terminal Style */}
-        <Link href="/">
-          <a className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-white font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
-              PT
-            </div>
-            <span className="font-bold text-lg tracking-tight text-white group-hover:text-emerald-400 transition-colors font-mono">
-              PrimeTrack_
-            </span>
-          </a>
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-white font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
+            PT
+          </div>
+          <span className="font-bold text-lg tracking-tight text-white group-hover:text-emerald-400 transition-colors font-mono">
+            PrimeTrack_
+          </span>
         </Link>
 
         {/* Desktop Menu - Minimal */}
