@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { ArrowRight, Terminal, Cpu, ShieldCheck, Activity, ChevronRight, Check } from "lucide-react";
-import heroImage from "@assets/generated_images/dark_high_tech_dashboard_ui.png";
+import heroImage from "@assets/generated_images/dark_high-tech_dashboard_ui.png";
 
 export default function Home() {
   const { t } = useTranslation();
