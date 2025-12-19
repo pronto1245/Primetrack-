@@ -61,6 +61,44 @@ const resources = {
           support: "Priority Support"
         }
       },
+      dashboard: {
+        title: "Dashboard",
+        welcome: "Welcome back",
+        selectRole: "Select a role to access the workspace.",
+        menu: {
+          overview: "Overview",
+          reports: "Reports",
+          links: "Links",
+          finance: "Finance",
+          settings: "Settings",
+          logout: "Log Out",
+          users: "User Management",
+          offers: "Offers",
+          campaigns: "Campaigns",
+          payouts: "Payouts"
+        },
+        roles: {
+          admin: "Administrator",
+          adminDesc: "Full system control, tenant management, and global finance.",
+          advertiser: "Advertiser",
+          advertiserDesc: "Create offers, manage budgets, and track performance.",
+          publisher: "Publisher",
+          publisherDesc: "Get links, view stats, and check payouts.",
+          view: "View as {{role}}",
+          enter: "Enter Dashboard"
+        },
+        stats: {
+          recentActivity: "Recent Activity",
+          salesMonth: "Sales this month",
+          newLead: "New Lead",
+          converted: "converted from",
+          revenue: "Total Revenue",
+          profit: "Net Profit",
+          activeOffers: "Active Offers",
+          activeAffiliates: "Active Affiliates",
+          clicksToday: "Clicks Today"
+        }
+      },
       footer: {
         rights: "All rights reserved.",
         terms: "Terms of Service",
@@ -126,6 +164,44 @@ const resources = {
           domains: "Кастомные домены",
           users: "Пользователей",
           support: "Приоритетная поддержка"
+        }
+      },
+      dashboard: {
+        title: "Личный кабинет",
+        welcome: "Добро пожаловать",
+        selectRole: "Выберите роль для доступа к рабочему пространству.",
+        menu: {
+          overview: "Обзор",
+          reports: "Отчеты",
+          links: "Ссылки",
+          finance: "Финансы",
+          settings: "Настройки",
+          logout: "Выйти",
+          users: "Пользователи",
+          offers: "Офферы",
+          campaigns: "Кампании",
+          payouts: "Выплаты"
+        },
+        roles: {
+          admin: "Администратор",
+          adminDesc: "Полный контроль системы, управление тенантами и финансами.",
+          advertiser: "Рекламодатель",
+          advertiserDesc: "Создание офферов, управление бюджетами и отслеживание ROI.",
+          publisher: "Вебмастер",
+          publisherDesc: "Получение ссылок, статистика переходов и выплаты.",
+          view: "Режим: {{role}}",
+          enter: "Войти в кабинет"
+        },
+        stats: {
+          recentActivity: "Последняя активность",
+          salesMonth: "Продаж в этом месяце",
+          newLead: "Новый лид",
+          converted: "конверсия",
+          revenue: "Общий доход",
+          profit: "Чистая прибыль",
+          activeOffers: "Активные офферы",
+          activeAffiliates: "Активные вебмастера",
+          clicksToday: "Кликов сегодня"
         }
       },
       footer: {
