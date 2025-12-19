@@ -1,7 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertClickSchema, insertConversionSchema } from "@shared/schema";
+import crypto from "crypto";
 import session from "express-session";
 import MemoryStore from "memorystore";
 
@@ -114,6 +115,228 @@ export async function registerRoutes(
       role: user.role,
       email: user.email 
     });
+  });
+
+  // Middleware для проверки аутентификации
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    next();
+  };
+
+  const requireRole = (...roles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+      if (!req.session.role || !roles.includes(req.session.role)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      next();
+    };
+  };
+
+  // OFFERS API
+  // Получить офферы текущего advertiser
+  app.get("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const offers = await storage.getOffersByAdvertiser(req.session.userId!);
+      res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch offers" });
+    }
+  });
+
+  // Создать оффер
+  app.post("/api/offers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const result = insertOfferSchema.safeParse({
+        ...req.body,
+        advertiserId: req.session.userId,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid offer data", errors: result.error.issues });
+      }
+
+      const offer = await storage.createOffer(result.data);
+      res.status(201).json(offer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create offer" });
+    }
+  });
+
+  // Получить один оффер
+  app.get("/api/offers/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      res.json(offer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch offer" });
+    }
+  });
+
+  // Обновить оффер
+  app.put("/api/offers/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      if (offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updated = await storage.updateOffer(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update offer" });
+    }
+  });
+
+  // MARKETPLACE API - все активные офферы для publishers
+  app.get("/api/marketplace", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const offers = await storage.getActiveOffers();
+      res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch marketplace" });
+    }
+  });
+
+  // TRACKING API
+  // Записать клик
+  app.post("/api/clicks", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const clickId = crypto.randomUUID();
+      const result = insertClickSchema.safeParse({
+        offerId: req.body.offerId,
+        publisherId: req.session.userId,
+        clickId,
+        ip: req.ip || req.headers["x-forwarded-for"]?.toString() || null,
+        userAgent: req.headers["user-agent"] || null,
+        geo: req.body.geo || null,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid click data", errors: result.error.issues });
+      }
+
+      const click = await storage.createClick(result.data);
+      res.status(201).json(click);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to record click" });
+    }
+  });
+
+  // Получить клики publisher
+  app.get("/api/clicks", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const clicks = await storage.getClicksByPublisher(req.session.userId!);
+      res.json(clicks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch clicks" });
+    }
+  });
+
+  // Postback для конверсий (вызывается advertiser)
+  app.post("/api/conversions", async (req: Request, res: Response) => {
+    try {
+      const { clickId, payout } = req.body;
+      
+      if (!clickId) {
+        return res.status(400).json({ message: "clickId is required" });
+      }
+
+      const click = await storage.getClickByClickId(clickId);
+      if (!click) {
+        return res.status(404).json({ message: "Click not found" });
+      }
+
+      const result = insertConversionSchema.safeParse({
+        clickId: click.id,
+        offerId: click.offerId,
+        publisherId: click.publisherId,
+        payout: payout || "0",
+        status: "pending",
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid conversion data" });
+      }
+
+      const conversion = await storage.createConversion(result.data);
+      res.status(201).json(conversion);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to record conversion" });
+    }
+  });
+
+  // Получить конверсии publisher
+  app.get("/api/conversions", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const conversions = await storage.getConversionsByPublisher(req.session.userId!);
+      res.json(conversions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch conversions" });
+    }
+  });
+
+  // Статистика для publisher
+  app.get("/api/stats/publisher", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const clicks = await storage.getClicksByPublisher(req.session.userId!);
+      const conversions = await storage.getConversionsByPublisher(req.session.userId!);
+      
+      const totalClicks = clicks.length;
+      const totalConversions = conversions.length;
+      const totalEarnings = conversions.reduce((sum, c) => sum + parseFloat(c.payout), 0);
+      const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+      const epc = totalClicks > 0 ? totalEarnings / totalClicks : 0;
+
+      res.json({
+        totalClicks,
+        totalConversions,
+        totalEarnings,
+        cr: cr.toFixed(2),
+        epc: epc.toFixed(2),
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Статистика для advertiser
+  app.get("/api/stats/advertiser", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const offers = await storage.getOffersByAdvertiser(req.session.userId!);
+      
+      let totalClicks = 0;
+      let totalConversions = 0;
+      let totalSpent = 0;
+
+      for (const offer of offers) {
+        const clicks = await storage.getClicksByOffer(offer.id);
+        const convs = await storage.getConversionsByOffer(offer.id);
+        totalClicks += clicks.length;
+        totalConversions += convs.length;
+        totalSpent += convs.reduce((sum, c) => sum + parseFloat(c.payout), 0);
+      }
+
+      const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+
+      res.json({
+        totalOffers: offers.length,
+        totalClicks,
+        totalConversions,
+        totalSpent,
+        cr: cr.toFixed(2),
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
   });
 
   return httpServer;

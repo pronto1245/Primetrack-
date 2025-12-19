@@ -28,9 +28,13 @@ const MOCK_CAMPAIGNS = [
 export default function Dashboard() {
   const { t } = useTranslation();
   
-  // Simple routing for prototype separation
-  const [match, params] = useRoute("/dashboard/:role");
-  const role = params?.role;
+  // Match multiple route patterns
+  const [matchBase, paramsBase] = useRoute("/dashboard/:role");
+  const [matchSub, paramsSub] = useRoute("/dashboard/:role/:section");
+  const [matchSubSub, paramsSubSub] = useRoute("/dashboard/:role/:section/:action");
+  
+  // Extract role from any matching route
+  const role = paramsSubSub?.role || paramsSub?.role || paramsBase?.role;
 
   if (!role) {
     return <RoleSelectionScreen t={t} />;
