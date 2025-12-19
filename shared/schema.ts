@@ -25,11 +25,35 @@ export const offers = pgTable("offers", {
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  payout: numeric("payout", { precision: 10, scale: 2 }).notNull(),
-  payoutType: text("payout_type").notNull().default("CPA"),
+  logoUrl: text("logo_url"),
+  
+  // Pricing
+  partnerPayout: numeric("partner_payout", { precision: 10, scale: 2 }).notNull(),
+  internalCost: numeric("internal_cost", { precision: 10, scale: 2 }),
+  payoutModel: text("payout_model").notNull().default("CPA"),
+  currency: text("currency").notNull().default("USD"),
+  
+  // Targeting
   geo: text("geo").array().notNull(),
   category: text("category").notNull(),
+  
+  // Traffic Sources (Facebook, Google, TikTok, UAC, PPC, etc.)
+  trafficSources: text("traffic_sources").array().notNull().default(sql`ARRAY[]::text[]`),
+  
+  // App Types (PWA, WebView, iOS, Android, etc.)
+  appTypes: text("app_types").array().notNull().default(sql`ARRAY[]::text[]`),
+  
+  // KPI, Rules, Conditions
+  kpi: text("kpi"),
+  rules: text("rules"),
+  conditions: text("conditions"),
+  
+  // Creative Links (Google/Yandex disk links)
+  creativeLinks: text("creative_links").array().notNull().default(sql`ARRAY[]::text[]`),
+  
+  // Tracking
   trackingUrl: text("tracking_url").notNull(),
+  
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -41,6 +65,28 @@ export const insertOfferSchema = createInsertSchema(offers).omit({
 
 export type InsertOffer = z.infer<typeof insertOfferSchema>;
 export type Offer = typeof offers.$inferSelect;
+
+// Offer without internal cost for publishers
+export type PublisherOffer = Omit<Offer, 'internalCost'>;
+
+// Offer landings - each offer can have multiple landings with different geo/prices
+export const offerLandings = pgTable("offer_landings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  geo: text("geo").notNull(),
+  landingName: text("landing_name"),
+  landingUrl: text("landing_url").notNull(),
+  partnerPayout: numeric("partner_payout", { precision: 10, scale: 2 }).notNull(),
+  internalCost: numeric("internal_cost", { precision: 10, scale: 2 }),
+  currency: text("currency").notNull().default("USD"),
+});
+
+export const insertOfferLandingSchema = createInsertSchema(offerLandings).omit({
+  id: true,
+});
+
+export type InsertOfferLanding = z.infer<typeof insertOfferLandingSchema>;
+export type OfferLanding = typeof offerLandings.$inferSelect;
 
 export const clicks = pgTable("clicks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

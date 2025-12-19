@@ -1,6 +1,7 @@
 import { 
   type User, type InsertUser, users,
   type Offer, type InsertOffer, offers,
+  type OfferLanding, type InsertOfferLanding, offerLandings,
   type Click, type InsertClick, clicks,
   type Conversion, type InsertConversion, conversions
 } from "@shared/schema";
@@ -21,6 +22,11 @@ export interface IStorage {
   getActiveOffers(): Promise<Offer[]>;
   createOffer(offer: InsertOffer): Promise<Offer>;
   updateOffer(id: string, offer: Partial<InsertOffer>): Promise<Offer | undefined>;
+  
+  // Offer Landings
+  getOfferLandings(offerId: string): Promise<OfferLanding[]>;
+  createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding>;
+  deleteOfferLandings(offerId: string): Promise<void>;
   
   // Clicks
   getClick(id: string): Promise<Click | undefined>;
@@ -96,6 +102,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(offers.id, id))
       .returning();
     return offer;
+  }
+
+  // Offer Landings
+  async getOfferLandings(offerId: string): Promise<OfferLanding[]> {
+    return db.select().from(offerLandings).where(eq(offerLandings.offerId, offerId));
+  }
+
+  async createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding> {
+    const [result] = await db.insert(offerLandings).values(landing).returning();
+    return result;
+  }
+
+  async deleteOfferLandings(offerId: string): Promise<void> {
+    await db.delete(offerLandings).where(eq(offerLandings.offerId, offerId));
   }
 
   // Clicks
