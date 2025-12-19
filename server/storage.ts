@@ -6,6 +6,7 @@ import {
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Users
@@ -54,8 +55,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      password: hashedPassword,
+    }).returning();
     return user;
+  }
+
+  async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
 
   // Offers
