@@ -228,6 +228,28 @@ const resources = {
           campaigns: "Кампании",
           payouts: "Выплаты"
         },
+        offers: {
+          title: "Мои офферы",
+          subtitle: "Управление вашими офферами и рекламными кампаниями",
+          create: "Создать оффер",
+          createNew: "Новый оффер",
+          createNewDesc: "Заполните детали оффера для публикации в партнерской сети",
+          marketplace: "Маркетплейс Офферов",
+          marketplaceDesc: "Доступные офферы от всех рекламодателей",
+          searchPlaceholder: "Поиск по названию, ID или тегу...",
+          filter: "Фильтры",
+          name: "Название",
+          category: "Категория",
+          geo: "ГЕО",
+          payout: "Выплата",
+          cr: "CR",
+          status: "Статус",
+          form: {
+            title: "Название оффера",
+            description: "Описание и условия",
+            trackingUrl: "Tracking URL (Лендинг)",
+          }
+        },
         roles: {
           admin: "Администратор",
           adminDesc: "Полный контроль системы, управление тенантами и финансами.",

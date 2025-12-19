@@ -6,8 +6,12 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { 
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
-  ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight
+  ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
+  Plus, Search
 } from "lucide-react";
+import { AdvertiserOffers } from "@/components/dashboard/AdvertiserOffers";
+import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
+import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
 
 // Mock Data for "High Density" feel
 const MOCK_CAMPAIGNS = [
@@ -83,23 +87,23 @@ function RoleSelectionScreen({ t }: { t: any }) {
 function Sidebar({ role, t }: { role: string, t: any }) {
   const menus = {
     admin: [
-      { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
-      { icon: Users, label: t('dashboard.menu.users') },
-      { icon: Shield, label: t('hero.specs.antifraud') },
-      { icon: DollarSign, label: t('dashboard.menu.finance') },
-      { icon: Settings, label: t('dashboard.menu.settings') },
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
+      { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users` },
+      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud` },
+      { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings` },
     ],
     advertiser: [
-      { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
-      { icon: Target, label: t('dashboard.menu.campaigns') },
-      { icon: BarChart2, label: t('dashboard.menu.reports') },
-      { icon: Wallet, label: t('dashboard.menu.finance') },
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
+      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers` },
+      { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
+      { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
     ],
     publisher: [
-      { icon: LayoutDashboard, label: t('dashboard.menu.overview') },
-      { icon: LinkIcon, label: t('dashboard.menu.links') },
-      { icon: Activity, label: t('dashboard.menu.reports') },
-      { icon: DollarSign, label: t('dashboard.menu.payouts') },
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
+      { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links` },
+      { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
+      { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts` },
     ]
   };
 
@@ -115,10 +119,12 @@ function Sidebar({ role, t }: { role: string, t: any }) {
 
       <nav className="p-2 space-y-1 flex-1">
         {currentMenu.map((item, i) => (
-          <button key={i} className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === 0 ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-            <item.icon className="w-4 h-4" />
-            {item.label}
-          </button>
+          <Link key={i} href={item.path}>
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+              <item.icon className="w-4 h-4" />
+              {item.label}
+            </button>
+          </Link>
         ))}
       </nav>
 
@@ -135,28 +141,31 @@ function Sidebar({ role, t }: { role: string, t: any }) {
 }
 
 function MainContent({ role, t }: { role: string, t: any }) {
-  return (
-    <main className="flex-1 flex flex-col h-screen overflow-hidden">
-      {/* Top Bar */}
-      <header className="h-14 bg-[#0A0A0A] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            {t('dashboard.liveStream')}
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-xs font-mono text-slate-500">{t('dashboard.server')}: US-EAST-1</div>
-          <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
-            {role.charAt(0)}
-          </div>
-        </div>
-      </header>
+  // Handle sub-routes for "Offers" section manually for this prototype
+  // In a real app with more complex routing, we might use nested routes properly
+  const [matchOffers] = useRoute("/dashboard/:role/offers");
+  const [matchCreateOffer] = useRoute("/dashboard/:role/offers/new");
+  const [matchLinks] = useRoute("/dashboard/:role/links"); // Alias for publisher offers
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-auto p-6">
+  const showOffers = matchOffers || (role === 'publisher' && matchLinks);
+  const showCreateOffer = matchCreateOffer;
+
+  const renderContent = () => {
+    if (showCreateOffer && role === 'advertiser') {
+      return <CreateOfferForm role={role} />;
+    }
+
+    if (showOffers) {
+      if (role === 'advertiser') {
+        return <AdvertiserOffers role={role} />;
+      } else if (role === 'publisher') {
+        return <PublisherOffers role={role} />;
+      }
+    }
+
+    // Default Overview Dashboard
+    return (
+      <>
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <StatBox label={t('stats.revenue')} value="$12,450.00" trend="+12%" color="text-emerald-500" />
@@ -257,6 +266,33 @@ function MainContent({ role, t }: { role: string, t: any }) {
              </table>
            </div>
         </div>
+      </>
+    );
+  };
+
+  return (
+    <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      {/* Top Bar */}
+      <header className="h-14 bg-[#0A0A0A] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
+        <div className="flex items-center gap-4">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
+          <div className="h-4 w-px bg-white/10" />
+          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {t('dashboard.liveStream')}
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-xs font-mono text-slate-500">{t('dashboard.server')}: US-EAST-1</div>
+          <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
+            {role.charAt(0)}
+          </div>
+        </div>
+      </header>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-auto p-6">
+        {renderContent()}
       </div>
     </main>
   );
