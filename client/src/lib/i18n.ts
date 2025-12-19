@@ -4,155 +4,135 @@ import { initReactI18next } from "react-i18next";
 const resources = {
   en: {
     translation: {
+      brand: "PrimeTrack",
       nav: {
-        features: "Platform",
-        solutions: "Solutions",
-        developers: "Developers",
+        features: "Features",
+        pricing: "Pricing",
+        integrations: "Integrations",
         login: "Log In",
         dashboard: "Dashboard",
-        getStarted: "Get Started",
-        exit: "Exit"
+        getStarted: "Start Free Trial",
+        exit: "Exit Demo"
       },
       hero: {
-        badge: "v2.0 Orchestrator Live",
-        titleLine1: "Total Control.",
-        titleLine2: "Zero Friction.",
-        subtitle: "The first centralized orchestrator for serious affiliate networks. Mini-tracker, Anti-fraud, and Finance—unified in one beautiful OS.",
-        cta: "Start Orchestrating",
-        docs: "Documentation",
-        core: "Orchestrator Core",
-        waiting: "Waiting for incoming events..."
+        badge: "New: Version 3.0 Release",
+        title: "The Ultimate Ad Tracker for Media Buying Teams",
+        subtitle: "Track, optimize, and automate your affiliate campaigns with the fastest self-hosted tracker on the market. Zero redirect lag. Real-time data.",
+        cta: "Get Started Free",
+        demo: "Live Demo",
+        trust: "Trusted by 15,000+ affiliates worldwide"
+      },
+      stats: {
+        clicks: "Daily Clicks Processed",
+        uptime: "Server Uptime",
+        speed: "Redirect Speed"
       },
       features: {
-        titleLine1: "Built for scale.",
-        titleLine2: "Designed for control.",
-        traffic: {
-          title: "Centralized Traffic Control",
-          desc: "Route every click through a single, powerful orchestrator. Filter bot traffic, manage redirects, and optimize yield in real-time.",
-          sample: "US Traffic → Offer A",
-          sampleBot: "Bot → Trash"
+        title: "Everything you need to scale",
+        subtitle: "Built by affiliates, for affiliates. We know what matters.",
+        reporting: {
+          title: "Real-time Reporting",
+          desc: "Drill down into 30+ metrics instantly. Group data by any parameter to find profitable segments."
         },
-        fraud: {
-          title: "Native Anti-Fraud",
-          desc: "Block proxy, VPN, and bot traffic before it hits your offers."
+        automation: {
+          title: "Smart Rotation",
+          desc: "Distribute traffic automatically based on rules, paths, and landing page performance."
         },
-        finance: {
-          title: "Real-time Finance",
-          desc: "Live ROI, P&L, and margin analysis per click."
+        protection: {
+          title: "Bot Protection",
+          desc: "Advanced anti-fraud system filters out bot traffic before it reaches your offers."
+        },
+        integration: {
+          title: "100+ Integrations",
+          desc: "Pre-configured templates for all major traffic sources and affiliate networks."
         }
       },
-      dashboard: {
-        title: "Dashboard",
-        welcome: "Welcome back, User",
-        selectRole: "Select a role to view the dashboard as different user types.",
-        menu: {
-          overview: "Overview",
-          reports: "Reports",
-          links: "Links",
-          finance: "Finance",
-          settings: "Settings",
-          logout: "Log Out"
-        },
-        roles: {
-          admin: "Admin",
-          adminDesc: "Full System Access",
-          advertiser: "Advertiser",
-          advertiserDesc: "Manage Offers & Campaigns",
-          publisher: "Publisher",
-          publisherDesc: "Track Traffic & Earnings",
-          enter: "Enter as {{role}}",
-          view: "{{role}} View"
-        },
-        stats: {
-          recentActivity: "Recent Activity",
-          salesMonth: "You made 265 sales this month.",
-          newLead: "New Lead Generated",
-          converted: "converted from"
+      pricing: {
+        title: "Simple, Transparent Pricing",
+        subtitle: "No hidden fees. No traffic limits on self-hosted plans.",
+        starter: "Starter",
+        pro: "Professional",
+        business: "Business",
+        month: "/mo",
+        features: {
+          clicks: "Unlimited Clicks",
+          domains: "Custom Domains",
+          users: "Team Members",
+          support: "Priority Support"
         }
       },
-      marquee: "Powering Next-Gen Ad Networks",
       footer: {
-        privacy: "Privacy",
-        terms: "Terms",
-        api: "API",
-        status: "SYSTEM STATUS: ONLINE"
+        rights: "All rights reserved.",
+        terms: "Terms of Service",
+        privacy: "Privacy Policy",
+        contacts: "Contacts"
       }
     }
   },
   ru: {
     translation: {
+      brand: "PrimeTrack",
       nav: {
-        features: "Платформа",
-        solutions: "Решения",
-        developers: "Разработчикам",
+        features: "Возможности",
+        pricing: "Тарифы",
+        integrations: "Интеграции",
         login: "Войти",
-        dashboard: "Дашборд",
-        getStarted: "Начать",
+        dashboard: "Личный кабинет",
+        getStarted: "Попробовать бесплатно",
         exit: "Выйти"
       },
       hero: {
-        badge: "v2.0 Оркестратор Live",
-        titleLine1: "Полный Контроль.",
-        titleLine2: "Абсолютная Свобода.",
-        subtitle: "Первый централизованный оркестратор для серьезных партнерских сетей. Мини-трекер, Антифрод и Финансы — единая экосистема.",
-        cta: "Начать Работу",
-        docs: "Документация",
-        core: "Ядро Оркестратора",
-        waiting: "Ожидание входящих событий..."
+        badge: "Обновление: Версия 3.0",
+        title: "Профессиональный трекер для арбитража трафика",
+        subtitle: "Трекайте, оптимизируйте и масштабируйте рекламные кампании с самым быстрым self-hosted трекером. Мгновенные редиректы. Данные в реальном времени.",
+        cta: "Начать бесплатно",
+        demo: "Демо версия",
+        trust: "Нам доверяют более 15,000 вебмастеров"
+      },
+      stats: {
+        clicks: "Кликов в сутки",
+        uptime: "Uptime серверов",
+        speed: "Скорость редиректа"
       },
       features: {
-        titleLine1: "Создан для масштаба.",
-        titleLine2: "Спроектирован для контроля.",
-        traffic: {
-          title: "Управление Трафиком",
-          desc: "Направляйте каждый клик через единый мощный оркестратор. Фильтруйте ботов, управляйте редиректами и оптимизируйте доход в реальном времени.",
-          sample: "US Трафик → Оффер А",
-          sampleBot: "Бот → Корзина"
+        title: "Всё для масштабирования связок",
+        subtitle: "Создано арбитражниками для арбитражников. Мы понимаем, что важно для профита.",
+        reporting: {
+          title: "Отчеты в реальном времени",
+          desc: "Глубокая аналитика по 30+ метрикам. Группировка данных по любым параметрам для поиска профитных связок."
         },
-        fraud: {
-          title: "Встроенный Антифрод",
-          desc: "Блокировка Proxy, VPN и бот-трафика до того, как они попадут на оффер."
+        automation: {
+          title: "Умная ротация",
+          desc: "Автоматическое распределение трафика на основе правил, путей и конверсии лендингов."
         },
-        finance: {
-          title: "Финансы Real-time",
-          desc: "Live ROI, P&L и анализ маржи за каждый клик в реальном времени."
+        protection: {
+          title: "Защита от ботов",
+          desc: "Продвинутая система антифрода фильтрует ботный трафик до того, как он попадет на оффер."
+        },
+        integration: {
+          title: "100+ Интеграций",
+          desc: "Готовые шаблоны для всех популярных источников трафика и партнерских сетей."
         }
       },
-      dashboard: {
-        title: "Дашборд",
-        welcome: "С возвращением, Пользователь",
-        selectRole: "Выберите роль для входа в систему.",
-        menu: {
-          overview: "Обзор",
-          reports: "Отчеты",
-          links: "Ссылки",
-          finance: "Финансы",
-          settings: "Настройки",
-          logout: "Выйти"
-        },
-        roles: {
-          admin: "Администратор",
-          adminDesc: "Полный доступ к системе",
-          advertiser: "Рекламодатель",
-          advertiserDesc: "Управление офферами",
-          publisher: "Вебмастер",
-          publisherDesc: "Статистика и выплаты",
-          enter: "Войти как {{role}}",
-          view: "Режим: {{role}}"
-        },
-        stats: {
-          recentActivity: "Последняя активность",
-          salesMonth: "265 продаж за этот месяц.",
-          newLead: "Новый лид",
-          converted: "конверсия из"
+      pricing: {
+        title: "Простые и честные тарифы",
+        subtitle: "Никаких скрытых платежей. Безлимитный трафик на self-hosted решениях.",
+        starter: "Стартовый",
+        pro: "Профессионал",
+        business: "Бизнес",
+        month: "/мес",
+        features: {
+          clicks: "Безлимитные клики",
+          domains: "Кастомные домены",
+          users: "Пользователей",
+          support: "Приоритетная поддержка"
         }
       },
-      marquee: "Движок для рекламных сетей нового поколения",
       footer: {
-        privacy: "Конфиденциальность",
-        terms: "Условия",
-        api: "API",
-        status: "СТАТУС СИСТЕМЫ: ОНЛАЙН"
+        rights: "Все права защищены.",
+        terms: "Условия использования",
+        privacy: "Политика конфиденциальности",
+        contacts: "Контакты"
       }
     }
   }
@@ -162,7 +142,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: "ru", // EXPLICITLY SET RUSSIAN AS DEFAULT
+    lng: "ru", 
     fallbackLng: "ru",
     interpolation: {
       escapeValue: false
