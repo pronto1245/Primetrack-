@@ -5,6 +5,7 @@ import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertCl
 import crypto from "crypto";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
 declare module "express-session" {
   interface SessionData {
@@ -56,6 +57,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   await setupAuth(app);
   await seedUsers();
+  registerObjectStorageRoutes(app);
 
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {

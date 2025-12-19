@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Plus, Trash2, Globe, DollarSign, Tag, Link as LinkIcon, Smartphone, Megaphone, FileText } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Globe, DollarSign, Tag, Link as LinkIcon, Smartphone, Megaphone, FileText, Upload, Image } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
+import { useUpload } from "@/hooks/use-upload";
 
 const TRAFFIC_SOURCES = ["Facebook", "Google", "TikTok", "UAC", "PPC", "Push", "Native", "Email", "SEO", "Telegram", "Instagram", "YouTube"];
 const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"];
@@ -27,6 +28,19 @@ export function CreateOfferForm({ role }: { role: string }) {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  const { uploadFile, isUploading, progress } = useUpload({
+    onSuccess: (response) => {
+      setFormData(prev => ({ ...prev, logoUrl: response.objectPath }));
+    },
+  });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await uploadFile(file);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -177,14 +191,50 @@ export function CreateOfferForm({ role }: { role: string }) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">URL логотипа</Label>
-                <Input 
-                  data-testid="input-logo-url"
-                  className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500" 
-                  placeholder="https://..."
-                  value={formData.logoUrl}
-                  onChange={e => setFormData(prev => ({ ...prev, logoUrl: e.target.value }))}
-                />
+                <Label className="text-slate-300 text-xs font-mono uppercase">Логотип</Label>
+                <div className="flex items-center gap-4">
+                  {formData.logoUrl ? (
+                    <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-white/10">
+                      <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center border border-white/10">
+                      <Image className="w-6 h-6 text-slate-500" />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                      id="logo-upload"
+                      disabled={isUploading}
+                      data-testid="input-logo-file"
+                    />
+                    <label htmlFor="logo-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-white/10 text-slate-300 cursor-pointer hover:bg-white/5"
+                        disabled={isUploading}
+                        asChild
+                      >
+                        <span>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {isUploading ? `Загрузка ${progress}%` : 'Загрузить с компьютера'}
+                        </span>
+                      </Button>
+                    </label>
+                    <Input 
+                      data-testid="input-logo-url"
+                      className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500 text-xs h-8" 
+                      placeholder="или вставьте URL"
+                      value={formData.logoUrl}
+                      onChange={e => setFormData(prev => ({ ...prev, logoUrl: e.target.value }))}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
