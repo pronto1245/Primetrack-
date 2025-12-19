@@ -14,6 +14,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/dashboard/:role" component={Dashboard} />
+      <Route path="/dashboard/:role/*" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );
