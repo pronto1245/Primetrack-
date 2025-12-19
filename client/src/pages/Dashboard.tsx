@@ -14,6 +14,7 @@ import {
 import { AdvertiserOffers } from "@/components/dashboard/AdvertiserOffers";
 import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
 import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
+import { OfferDetail } from "@/components/dashboard/OfferDetail";
 import { useState, useEffect } from "react";
 
 // Mock Data for "High Density" feel
@@ -220,16 +221,20 @@ function Sidebar({ role, t }: { role: string, t: any }) {
 }
 
 function MainContent({ role, t }: { role: string, t: any }) {
-  // Handle sub-routes for "Offers" section manually for this prototype
-  // In a real app with more complex routing, we might use nested routes properly
   const [matchOffers] = useRoute("/dashboard/:role/offers");
   const [matchCreateOffer] = useRoute("/dashboard/:role/offers/new");
-  const [matchLinks] = useRoute("/dashboard/:role/links"); // Alias for publisher offers
+  const [matchLinks] = useRoute("/dashboard/:role/links");
+  const [matchOfferDetail, offerDetailParams] = useRoute("/dashboard/:role/offer/:offerId");
 
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
   const showCreateOffer = matchCreateOffer;
+  const showOfferDetail = matchOfferDetail;
 
   const renderContent = () => {
+    if (showOfferDetail && offerDetailParams?.offerId) {
+      return <OfferDetail offerId={offerDetailParams.offerId} role={role} />;
+    }
+
     if (showCreateOffer && role === 'advertiser') {
       return <CreateOfferForm role={role} />;
     }
