@@ -48,8 +48,6 @@ export function CreateOfferForm({ role }: { role: string }) {
     logoUrl: "",
     payoutModel: "CPA",
     category: "Gambling",
-    partnerPayout: "",
-    internalCost: "",
     currency: "USD",
     trafficSources: [] as string[],
     appTypes: [] as string[],
@@ -489,42 +487,6 @@ export function CreateOfferForm({ role }: { role: string }) {
               >
                 <Plus className="w-3 h-3 mr-2" /> Добавить ссылку
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#0A0A0A] border-white/10">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-2">
-                Базовые цены (по умолчанию)
-              </h3>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <Label className="text-slate-400 text-xs font-mono">Цена партнеру</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                    <Input
-                      data-testid="input-base-partner-payout"
-                      className="bg-[#050505] border-white/10 text-white font-mono pl-6"
-                      placeholder="0.00"
-                      value={formData.partnerPayout}
-                      onChange={e => setFormData(prev => ({ ...prev, partnerPayout: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-slate-400 text-xs font-mono">Цена для себя</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                    <Input
-                      data-testid="input-base-internal-cost"
-                      className="bg-[#050505] border-white/10 text-white font-mono pl-6"
-                      placeholder="0.00"
-                      value={formData.internalCost}
-                      onChange={e => setFormData(prev => ({ ...prev, internalCost: e.target.value }))}
-                    />
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
