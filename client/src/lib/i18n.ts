@@ -161,7 +161,12 @@ const resources = {
         login: "Log In"
       },
       common: {
-        retry: "Retry"
+        retry: "Retry",
+        copied: "Copied!"
+      },
+      tracking: {
+        generator: "Link Generator",
+        copyLink: "Copy Affiliate Link"
       },
       publisherDashboard: {
         totalPayout: "Total Payout",
@@ -214,7 +219,8 @@ const resources = {
           roi: "ROI",
           leads: "Leads",
           sales: "Sales",
-          conv: "Conv."
+          conv: "Conv.",
+          clicks: "Clicks"
         }
       },
       errors: {
@@ -407,7 +413,12 @@ const resources = {
         login: "Войти"
       },
       common: {
-        retry: "Повторить"
+        retry: "Повторить",
+        copied: "Скопировано!"
+      },
+      tracking: {
+        generator: "Генератор ссылок",
+        copyLink: "Копировать ссылку"
       },
       publisherDashboard: {
         totalPayout: "Общая выплата",
@@ -460,7 +471,8 @@ const resources = {
           roi: "ROI",
           leads: "Лиды",
           sales: "Продажи",
-          conv: "Конв."
+          conv: "Конв.",
+          clicks: "Клики"
         }
       },
       errors: {

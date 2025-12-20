@@ -70,8 +70,7 @@ export function Reports({ role }: ReportsProps) {
       const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch grouped data");
       return res.json();
-    },
-    enabled: activeTab === "grouped"
+    }
   });
 
   const handleRefresh = () => {
@@ -189,6 +188,8 @@ export function Reports({ role }: ReportsProps) {
         </CardContent>
       </Card>
 
+      <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-[#0A0A0A] border border-white/10">
           <TabsTrigger value="clicks" className="data-[state=active]:bg-white/10" data-testid="tab-clicks">
@@ -238,6 +239,105 @@ export function Reports({ role }: ReportsProps) {
           />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function SummaryCards({ data, loading, role, t }: any) {
+  const rows = data?.rows || [];
+  const isAdvertiser = role === "advertiser";
+  const isPublisher = role === "publisher";
+  
+  const totals = rows.reduce((acc: any, row: any) => ({
+    clicks: acc.clicks + (row.clicks || 0),
+    uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
+    conversions: acc.conversions + (row.conversions || 0),
+    leads: acc.leads + (row.leads || 0),
+    sales: acc.sales + (row.sales || 0),
+    payout: acc.payout + (row.payout || 0),
+    cost: acc.cost + (row.cost || 0),
+  }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+
+  const margin = totals.cost - totals.payout;
+  const roi = totals.cost > 0 ? ((margin / totals.cost) * 100) : 0;
+  const cr = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="bg-[#0A0A0A] border-white/10 animate-pulse">
+            <CardContent className="p-4 h-20" />
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <Card className="bg-[#0A0A0A] border-white/10">
+        <CardContent className="p-4">
+          <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.clicks') || 'Clicks'}</div>
+          <div className="text-xl font-bold text-white">{totals.clicks.toLocaleString()}</div>
+          <div className="text-[10px] text-slate-500">{totals.uniqueClicks.toLocaleString()} unique</div>
+        </CardContent>
+      </Card>
+      <Card className="bg-[#0A0A0A] border-white/10">
+        <CardContent className="p-4">
+          <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.conversions') || 'Conv'}</div>
+          <div className="text-xl font-bold text-emerald-400">{totals.conversions}</div>
+          <div className="text-[10px] text-yellow-400">CR: {cr.toFixed(2)}%</div>
+        </CardContent>
+      </Card>
+      <Card className="bg-[#0A0A0A] border-white/10">
+        <CardContent className="p-4">
+          <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
+          <div className="text-xl font-bold text-emerald-400">${totals.payout.toFixed(2)}</div>
+        </CardContent>
+      </Card>
+      {isAdvertiser && (
+        <>
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardContent className="p-4">
+              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.advertiserCost') || 'Cost'}</div>
+              <div className="text-xl font-bold text-blue-400">${totals.cost.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardContent className="p-4">
+              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.margin') || 'Margin'}</div>
+              <div className={`text-xl font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                ${margin.toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardContent className="p-4">
+              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.roi') || 'ROI'}</div>
+              <div className={`text-xl font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {roi.toFixed(1)}%
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+      {isPublisher && (
+        <>
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardContent className="p-4">
+              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.leads') || 'Leads'}</div>
+              <div className="text-xl font-bold text-purple-400">{totals.leads}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardContent className="p-4">
+              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.sales') || 'Sales'}</div>
+              <div className="text-xl font-bold text-orange-400">{totals.sales}</div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
