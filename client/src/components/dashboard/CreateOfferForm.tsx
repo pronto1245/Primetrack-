@@ -46,7 +46,6 @@ export function CreateOfferForm({ role }: { role: string }) {
     name: "",
     description: "",
     logoUrl: "",
-    trackingUrl: "",
     payoutModel: "CPA",
     category: "Gambling",
     currency: "USD",
@@ -259,17 +258,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">URL для постбэков (опционально)</Label>
-                <Input 
-                  data-testid="input-tracking-url"
-                  className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500" 
-                  placeholder="https://your-domain.com/postback?click={click_id}&..."
-                  value={formData.trackingUrl}
-                  onChange={e => setFormData(prev => ({ ...prev, trackingUrl: e.target.value }))}
-                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
