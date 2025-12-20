@@ -126,7 +126,8 @@ const resources = {
           users: "Tenant Management",
           offers: "Offers",
           campaigns: "Campaigns",
-          payouts: "Payouts"
+          payouts: "Payouts",
+          partners: "Partners"
         },
         offers: {
           all: "All Offers"
@@ -312,7 +313,8 @@ const resources = {
           users: "Управление тенантами",
           offers: "Офферы",
           campaigns: "Кампании",
-          payouts: "Выплаты"
+          payouts: "Выплаты",
+          partners: "Партнёры"
         },
         offers: {
           all: "Все офферы",
