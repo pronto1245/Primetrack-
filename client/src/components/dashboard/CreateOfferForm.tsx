@@ -112,26 +112,13 @@ export function CreateOfferForm({ role }: { role: string }) {
   const isFormValid = () => {
     const hasName = formData.name && formData.name.trim().length > 0;
     const hasDescription = formData.description && formData.description.trim().length > 0;
-    const hasTrackingUrl = formData.trackingUrl && formData.trackingUrl.trim().length > 0;
     const validLandings = landings.filter(l => 
       l.geo && l.geo.trim() && 
       l.landingUrl && l.landingUrl.trim() && 
       l.partnerPayout && l.partnerPayout.toString().trim()
     );
     
-    console.log("Form validation:", {
-      hasName,
-      hasDescription,
-      hasTrackingUrl,
-      validLandingsCount: validLandings.length,
-      landings: landings.map(l => ({
-        geo: l.geo,
-        url: l.landingUrl,
-        payout: l.partnerPayout
-      }))
-    });
-    
-    return hasName && hasDescription && hasTrackingUrl && validLandings.length > 0;
+    return hasName && hasDescription && validLandings.length > 0;
   };
 
   const handleSubmit = async () => {
