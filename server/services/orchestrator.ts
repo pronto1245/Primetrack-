@@ -64,6 +64,9 @@ export class Orchestrator {
     
     const conversion = await storage.createConversion(conversionData);
     
+    // Increment offer caps stats
+    await storage.incrementOfferCapsStats(click.offerId);
+    
     postbackSender.sendPostback(conversion.id).catch((error) => {
       console.error(`[Orchestrator] Postback send failed for conversion ${conversion.id}:`, error);
     });
@@ -129,7 +132,12 @@ export class Orchestrator {
   }
   
   async rejectConversion(conversionId: string): Promise<void> {
+    const conversion = await storage.getConversion(conversionId);
     await storage.updateConversionStatus(conversionId, "rejected");
+    // Decrement caps when conversion is rejected (using conversion date)
+    if (conversion) {
+      await storage.decrementOfferCapsStats(conversion.offerId, conversion.createdAt);
+    }
   }
   
   async holdConversion(conversionId: string, holdDays: number): Promise<void> {

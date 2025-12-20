@@ -550,6 +550,12 @@ export async function registerRoutes(
       });
 
       if (result.isBlocked) {
+        if (result.capReached) {
+          return res.status(410).json({ 
+            error: "Offer cap reached", 
+            reason: "cap_exceeded"
+          });
+        }
         return res.status(403).json({ 
           error: "Traffic blocked", 
           reason: "fraud_detected",
@@ -890,6 +896,81 @@ export async function registerRoutes(
   });
 
   // Get all publishers for advertiser (for filter dropdown)
+  // Get all partner relations for advertiser with status filter
+  app.get("/api/advertiser/partners", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { status } = req.query;
+      const relations = await storage.getPublisherAdvertiserRelations(
+        req.session.userId!, 
+        status as string | undefined
+      );
+      
+      // Get stats for each publisher
+      const result = await Promise.all(relations.map(async (rel) => {
+        const stats = await storage.getPublisherStatsForAdvertiser(rel.publisherId, req.session.userId!);
+        return {
+          id: rel.id,
+          publisherId: rel.publisherId,
+          username: rel.publisher.username,
+          email: rel.publisher.email,
+          status: rel.status,
+          createdAt: rel.createdAt,
+          clicks: stats.clicks,
+          conversions: stats.conversions,
+          payout: stats.payout
+        };
+      }));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch partners" });
+    }
+  });
+
+  // Update partner status (approve, block, pause)
+  app.put("/api/advertiser/partners/:id/status", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!["pending", "active", "paused", "blocked"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const updated = await storage.updatePublisherAdvertiserStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({ message: "Partner relation not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update partner status" });
+    }
+  });
+
+  // Get/Generate registration link for advertiser
+  app.get("/api/advertiser/registration-link", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      let referralCode = await storage.getAdvertiserReferralCode(req.session.userId!);
+      
+      if (!referralCode) {
+        // Generate a new referral code
+        referralCode = `ref_${req.session.userId!.slice(0, 8)}_${Date.now().toString(36)}`;
+        await storage.setAdvertiserReferralCode(req.session.userId!, referralCode);
+      }
+      
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+        : 'http://localhost:5000';
+      const registrationLink = `${baseUrl}/register?ref=${referralCode}`;
+      
+      res.json({ referralCode, registrationLink });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get registration link" });
+    }
+  });
+
+  // Legacy endpoint for backwards compatibility
   app.get("/api/advertiser/publishers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const publishers = await storage.getPublishersForAdvertiser(req.session.userId!);
@@ -1015,6 +1096,72 @@ export async function registerRoutes(
       res.send(csvContent);
     } catch (error) {
       res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
+  // Get offer caps status
+  app.get("/api/offers/:id/caps", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const offer = await storage.getOffer(id);
+      
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      // Verify ownership (unless admin)
+      const user = await storage.getUser(req.session.userId!);
+      if (user?.role !== "admin" && offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const capsCheck = await storage.checkOfferCaps(id);
+      const today = new Date().toISOString().split('T')[0];
+      const todayStats = await storage.getOfferCapsStats(id, today);
+      const totalConversions = await storage.getOfferTotalConversions(id);
+      
+      res.json({
+        dailyCap: offer.dailyCap,
+        totalCap: offer.totalCap,
+        capReachedAction: offer.capReachedAction,
+        capRedirectUrl: offer.capRedirectUrl,
+        dailyConversions: todayStats?.dailyConversions || 0,
+        totalConversions,
+        dailyCapReached: capsCheck.dailyCapReached,
+        totalCapReached: capsCheck.totalCapReached
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch offer caps" });
+    }
+  });
+
+  // Update offer caps
+  app.put("/api/offers/:id/caps", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { dailyCap, totalCap, capReachedAction, capRedirectUrl } = req.body;
+      
+      const offer = await storage.getOffer(id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      // Verify ownership (unless admin)
+      const user = await storage.getUser(req.session.userId!);
+      if (user?.role !== "admin" && offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updated = await storage.updateOffer(id, {
+        dailyCap: dailyCap !== undefined ? dailyCap : offer.dailyCap,
+        totalCap: totalCap !== undefined ? totalCap : offer.totalCap,
+        capReachedAction: capReachedAction || offer.capReachedAction,
+        capRedirectUrl: capRedirectUrl !== undefined ? capRedirectUrl : offer.capRedirectUrl
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update offer caps" });
     }
   });
 

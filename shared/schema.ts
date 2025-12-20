@@ -32,7 +32,7 @@ export const publisherAdvertisers = pgTable("publisher_advertisers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   publisherId: varchar("publisher_id").notNull().references(() => users.id),
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
-  status: text("status").notNull().default("active"), // active, paused, blocked
+  status: text("status").notNull().default("pending"), // pending, active, paused, blocked
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -78,6 +78,13 @@ export const offers = pgTable("offers", {
   creativeLinks: text("creative_links").array().notNull().default(sql`ARRAY[]::text[]`),
   
   status: text("status").notNull().default("active"), // active, paused, draft
+  
+  // Caps/Limits
+  dailyCap: integer("daily_cap"), // Daily conversions limit (null = unlimited)
+  totalCap: integer("total_cap"), // Total conversions limit (null = unlimited)
+  capReachedAction: text("cap_reached_action").notNull().default("block"), // block, redirect
+  capRedirectUrl: text("cap_redirect_url"), // URL to redirect when cap reached
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -301,3 +308,23 @@ export const insertPublisherOfferSchema = createInsertSchema(publisherOffers).om
 
 export type InsertPublisherOffer = z.infer<typeof insertPublisherOfferSchema>;
 export type PublisherOfferAccess = typeof publisherOffers.$inferSelect;
+
+// ============================================
+// OFFER CAPS STATS (Daily counters for caps)
+// ============================================
+export const offerCapsStats = pgTable("offer_caps_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  date: text("date").notNull(), // YYYY-MM-DD format for daily tracking
+  dailyConversions: integer("daily_conversions").notNull().default(0),
+  totalConversions: integer("total_conversions").notNull().default(0),
+}, (table) => ({
+  offerDateUnique: sql`CREATE UNIQUE INDEX IF NOT EXISTS offer_caps_stats_offer_date_idx ON offer_caps_stats(offer_id, date)`,
+}));
+
+export const insertOfferCapsStatsSchema = createInsertSchema(offerCapsStats).omit({
+  id: true,
+});
+
+export type InsertOfferCapsStats = z.infer<typeof insertOfferCapsStatsSchema>;
+export type OfferCapsStats = typeof offerCapsStats.$inferSelect;

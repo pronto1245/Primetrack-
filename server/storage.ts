@@ -8,7 +8,8 @@ import {
   type AdvertiserSettings, type InsertAdvertiserSettings, advertiserSettings,
   type OfferAccessRequest, type InsertOfferAccessRequest, offerAccessRequests,
   type PublisherOfferAccess, type InsertPublisherOffer, publisherOffers,
-  type PublisherAdvertiser, publisherAdvertisers
+  type PublisherAdvertiser, publisherAdvertisers,
+  type OfferCapsStats, type InsertOfferCapsStats, offerCapsStats
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
@@ -182,6 +183,13 @@ export interface IStorage {
   // Publisher-Advertiser relationships
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
   addPublisherToAdvertiser(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser>;
+  
+  // Offer Caps Stats
+  getOfferCapsStats(offerId: string, date: string): Promise<OfferCapsStats | undefined>;
+  getOfferTotalConversions(offerId: string): Promise<number>;
+  incrementOfferCapsStats(offerId: string): Promise<OfferCapsStats>;
+  decrementOfferCapsStats(offerId: string, conversionDate?: Date): Promise<void>;
+  checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -477,7 +485,7 @@ export class DatabaseStorage implements IStorage {
     const [relation] = await db.insert(publisherAdvertisers).values({
       publisherId,
       advertiserId,
-      status: "active"
+      status: "pending" // Рекламодатель должен одобрить партнёра
     }).returning();
     return relation;
   }
@@ -1013,6 +1021,163 @@ export class DatabaseStorage implements IStorage {
       }
     }
     return result;
+  }
+
+  // Offer Caps Stats
+  async getOfferCapsStats(offerId: string, date: string): Promise<OfferCapsStats | undefined> {
+    const [stats] = await db.select().from(offerCapsStats)
+      .where(and(
+        eq(offerCapsStats.offerId, offerId),
+        eq(offerCapsStats.date, date)
+      ));
+    return stats;
+  }
+
+  async getOfferTotalConversions(offerId: string): Promise<number> {
+    const allStats = await db.select().from(offerCapsStats)
+      .where(eq(offerCapsStats.offerId, offerId));
+    return allStats.reduce((sum, s) => sum + s.dailyConversions, 0);
+  }
+
+  async incrementOfferCapsStats(offerId: string): Promise<OfferCapsStats> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Atomic UPSERT - only track daily_conversions, total is computed via SUM
+    const result = await db.execute(sql`
+      INSERT INTO offer_caps_stats (id, offer_id, date, daily_conversions, total_conversions)
+      VALUES (gen_random_uuid(), ${offerId}, ${today}, 1, 0)
+      ON CONFLICT (offer_id, date) 
+      DO UPDATE SET daily_conversions = offer_caps_stats.daily_conversions + 1
+      RETURNING *
+    `);
+    
+    const rows = result.rows as OfferCapsStats[];
+    return rows[0];
+  }
+
+  async decrementOfferCapsStats(offerId: string, conversionDate?: Date): Promise<void> {
+    // Target the correct date (conversion date or today as fallback)
+    const targetDate = conversionDate 
+      ? conversionDate.toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
+    
+    // Atomic decrement for the specific date
+    await db.execute(sql`
+      UPDATE offer_caps_stats 
+      SET daily_conversions = GREATEST(daily_conversions - 1, 0),
+          total_conversions = GREATEST(total_conversions - 1, 0)
+      WHERE offer_id = ${offerId} AND date = ${targetDate}
+    `);
+  }
+
+  async checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }> {
+    const offer = await this.getOffer(offerId);
+    if (!offer) {
+      return { dailyCapReached: false, totalCapReached: false, offer: undefined };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = await this.getOfferCapsStats(offerId, today);
+    
+    // Calculate total via SQL SUM for accuracy
+    const totalResult = await db.execute(sql`
+      SELECT COALESCE(SUM(daily_conversions), 0) as total 
+      FROM offer_caps_stats 
+      WHERE offer_id = ${offerId}
+    `);
+    const totalConversions = parseInt((totalResult.rows[0] as any)?.total || '0', 10);
+
+    const dailyConversions = todayStats?.dailyConversions || 0;
+    
+    const dailyCapReached = offer.dailyCap !== null && dailyConversions >= offer.dailyCap;
+    const totalCapReached = offer.totalCap !== null && totalConversions >= offer.totalCap;
+
+    return { dailyCapReached, totalCapReached, offer };
+  }
+
+  // ============================================
+  // ADVERTISER PARTNER MANAGEMENT
+  // ============================================
+  
+  async getPublisherAdvertiserRelations(advertiserId: string, statusFilter?: string): Promise<(PublisherAdvertiser & { publisher: User })[]> {
+    let query = db.select().from(publisherAdvertisers)
+      .where(eq(publisherAdvertisers.advertiserId, advertiserId));
+    
+    const relations = await query.orderBy(desc(publisherAdvertisers.createdAt));
+    
+    const result: (PublisherAdvertiser & { publisher: User })[] = [];
+    for (const rel of relations) {
+      if (statusFilter && rel.status !== statusFilter) continue;
+      const publisher = await this.getUser(rel.publisherId);
+      if (publisher) {
+        result.push({ ...rel, publisher });
+      }
+    }
+    return result;
+  }
+
+  async getPublisherAdvertiserRelation(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser | undefined> {
+    const [relation] = await db.select().from(publisherAdvertisers)
+      .where(and(
+        eq(publisherAdvertisers.publisherId, publisherId),
+        eq(publisherAdvertisers.advertiserId, advertiserId)
+      ));
+    return relation;
+  }
+
+  async updatePublisherAdvertiserStatus(relationId: string, status: string): Promise<PublisherAdvertiser | undefined> {
+    const [updated] = await db.update(publisherAdvertisers)
+      .set({ status })
+      .where(eq(publisherAdvertisers.id, relationId))
+      .returning();
+    return updated;
+  }
+
+  async createPublisherAdvertiserRelation(publisherId: string, advertiserId: string, status: string = "pending"): Promise<PublisherAdvertiser> {
+    const [relation] = await db.insert(publisherAdvertisers)
+      .values({ publisherId, advertiserId, status })
+      .returning();
+    return relation;
+  }
+
+  async getAdvertiserReferralCode(advertiserId: string): Promise<string | null> {
+    const user = await this.getUser(advertiserId);
+    return user?.referralCode || null;
+  }
+
+  async setAdvertiserReferralCode(advertiserId: string, referralCode: string): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ referralCode })
+      .where(eq(users.id, advertiserId))
+      .returning();
+    return updated;
+  }
+
+  async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.referralCode, referralCode));
+    return user;
+  }
+
+  async getPublisherStatsForAdvertiser(publisherId: string, advertiserId: string): Promise<{ clicks: number; conversions: number; payout: number }> {
+    const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
+    const offerIds = advertiserOffers.map(o => o.id);
+    
+    let totalClicks = 0;
+    let totalConversions = 0;
+    let totalPayout = 0;
+    
+    for (const offerId of offerIds) {
+      const offerClicks = await db.select().from(clicks)
+        .where(and(eq(clicks.offerId, offerId), eq(clicks.publisherId, publisherId)));
+      totalClicks += offerClicks.length;
+      
+      const offerConvs = await db.select().from(conversions)
+        .where(and(eq(conversions.offerId, offerId), eq(conversions.publisherId, publisherId)));
+      totalConversions += offerConvs.length;
+      totalPayout += offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+    }
+    
+    return { clicks: totalClicks, conversions: totalConversions, payout: totalPayout };
   }
 }
 

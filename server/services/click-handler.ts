@@ -21,6 +21,8 @@ interface ClickResult {
   redirectUrl: string;
   fraudScore: number;
   isBlocked: boolean;
+  capReached?: boolean;
+  capRedirectUrl?: string;
 }
 
 export class ClickHandler {
@@ -34,6 +36,32 @@ export class ClickHandler {
     
     if (offer.status !== "active") {
       throw new Error("Offer is not active");
+    }
+    
+    // Check caps/limits
+    const capsCheck = await storage.checkOfferCaps(params.offerId);
+    if (capsCheck.dailyCapReached || capsCheck.totalCapReached) {
+      const capAction = offer.capReachedAction || "block";
+      
+      if (capAction === "redirect" && offer.capRedirectUrl) {
+        return {
+          clickId,
+          redirectUrl: offer.capRedirectUrl,
+          fraudScore: 0,
+          isBlocked: false,
+          capReached: true,
+          capRedirectUrl: offer.capRedirectUrl
+        };
+      } else {
+        // Return blocked result instead of throwing
+        return {
+          clickId,
+          redirectUrl: "",
+          fraudScore: 0,
+          isBlocked: true,
+          capReached: true
+        };
+      }
     }
     
     const landings = await storage.getOfferLandings(params.offerId);
