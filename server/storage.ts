@@ -1153,11 +1153,6 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.referralCode, referralCode));
-    return user;
-  }
-
   async getPublisherStatsForAdvertiser(publisherId: string, advertiserId: string): Promise<{ clicks: number; conversions: number; payout: number }> {
     const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
     const offerIds = advertiserOffers.map(o => o.id);
@@ -1178,6 +1173,97 @@ export class DatabaseStorage implements IStorage {
     }
     
     return { clicks: totalClicks, conversions: totalConversions, payout: totalPayout };
+  }
+
+  // ============================================
+  // ADMIN USER MANAGEMENT
+  // ============================================
+
+  async getAllUsers(filters?: { role?: string; status?: string; search?: string }): Promise<User[]> {
+    let query = db.select().from(users);
+    
+    const conditions: any[] = [];
+    
+    if (filters?.role) {
+      conditions.push(eq(users.role, filters.role));
+    }
+    if (filters?.status) {
+      conditions.push(eq(users.status, filters.status));
+    }
+    
+    let result: User[];
+    if (conditions.length > 0) {
+      result = await query.where(and(...conditions)).orderBy(desc(users.createdAt));
+    } else {
+      result = await query.orderBy(desc(users.createdAt));
+    }
+    
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      result = result.filter(u => 
+        u.username.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search)
+      );
+    }
+    
+    return result;
+  }
+
+  async updateUserStatus(userId: string, status: string): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ status })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
+  async getAllPublishersWithAdvertiser(): Promise<(User & { advertiserId?: string; advertiserName?: string })[]> {
+    const publishers = await db.select().from(users).where(eq(users.role, "publisher"));
+    
+    const result: (User & { advertiserId?: string; advertiserName?: string })[] = [];
+    for (const pub of publishers) {
+      const relations = await db.select().from(publisherAdvertisers)
+        .where(eq(publisherAdvertisers.publisherId, pub.id));
+      
+      if (relations.length > 0) {
+        const advertiser = await this.getUser(relations[0].advertiserId);
+        result.push({
+          ...pub,
+          advertiserId: relations[0].advertiserId,
+          advertiserName: advertiser?.username
+        });
+      } else {
+        result.push(pub);
+      }
+    }
+    
+    return result;
+  }
+
+  async getAdminStats(): Promise<{
+    totalAdvertisers: number;
+    pendingAdvertisers: number;
+    totalPublishers: number;
+    totalOffers: number;
+    totalClicks: number;
+    totalConversions: number;
+  }> {
+    const allUsers = await db.select().from(users);
+    const advertisers = allUsers.filter(u => u.role === "advertiser");
+    const publishers = allUsers.filter(u => u.role === "publisher");
+    
+    const allOffers = await db.select().from(offers);
+    const allClicks = await db.select().from(clicks);
+    const allConversions = await db.select().from(conversions);
+    
+    return {
+      totalAdvertisers: advertisers.length,
+      pendingAdvertisers: advertisers.filter(a => a.status === "pending").length,
+      totalPublishers: publishers.length,
+      totalOffers: allOffers.length,
+      totalClicks: allClicks.length,
+      totalConversions: allConversions.length
+    };
   }
 }
 

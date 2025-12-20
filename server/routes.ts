@@ -1282,5 +1282,96 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // ADMIN ROUTES
+  // ============================================
+
+  // Get all users with filters
+  app.get("/api/admin/users", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { role, status, search } = req.query;
+      const filters: { role?: string; status?: string; search?: string } = {};
+      
+      if (role && role !== "all") filters.role = role as string;
+      if (status && status !== "all") filters.status = status as string;
+      if (search) filters.search = search as string;
+      
+      const users = await storage.getAllUsers(filters);
+      
+      // Don't return passwords
+      const safeUsers = users.map(u => ({
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        createdAt: u.createdAt
+      }));
+      
+      res.json(safeUsers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Update user status (approve, block)
+  app.put("/api/admin/users/:id/status", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!["pending", "active", "blocked"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const updated = await storage.updateUserStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({
+        id: updated.id,
+        username: updated.username,
+        email: updated.email,
+        role: updated.role,
+        status: updated.status,
+        createdAt: updated.createdAt
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Get all publishers with their advertisers
+  app.get("/api/admin/publishers", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const publishers = await storage.getAllPublishersWithAdvertiser();
+      
+      const safePublishers = publishers.map(p => ({
+        id: p.id,
+        username: p.username,
+        email: p.email,
+        status: p.status,
+        createdAt: p.createdAt,
+        advertiserId: p.advertiserId,
+        advertiserName: p.advertiserName
+      }));
+      
+      res.json(safePublishers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch publishers" });
+    }
+  });
+
+  // Admin stats
+  app.get("/api/admin/stats", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
   return httpServer;
 }

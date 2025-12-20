@@ -18,6 +18,7 @@ import { OfferDetail } from "@/components/dashboard/OfferDetail";
 import { AdvertiserDashboard } from "@/components/dashboard/AdvertiserDashboard";
 import { PublisherDashboard } from "@/components/dashboard/PublisherDashboard";
 import { AdvertiserPartners } from "@/components/dashboard/AdvertiserPartners";
+import { AdminUsers } from "@/components/dashboard/AdminUsers";
 import { useState, useEffect } from "react";
 
 // Mock Data for "High Density" feel
@@ -230,13 +231,19 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchLinks] = useRoute("/dashboard/:role/links");
   const [matchOfferDetail, offerDetailParams] = useRoute("/dashboard/:role/offer/:offerId");
   const [matchPartners] = useRoute("/dashboard/:role/partners");
+  const [matchUsers] = useRoute("/dashboard/:role/users");
 
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
   const showCreateOffer = matchCreateOffer;
   const showOfferDetail = matchOfferDetail;
   const showPartners = matchPartners && role === 'advertiser';
+  const showUsers = matchUsers && role === 'admin';
 
   const renderContent = () => {
+    if (showUsers) {
+      return <AdminUsers />;
+    }
+
     if (showOfferDetail && offerDetailParams?.offerId) {
       return <OfferDetail offerId={offerDetailParams.offerId} role={role} />;
     }

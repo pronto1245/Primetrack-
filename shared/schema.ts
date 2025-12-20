@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("publisher"), // admin, advertiser, publisher, partner-manager
   email: text("email").notNull().unique(),
   referralCode: text("referral_code").unique(),
+  status: text("status").notNull().default("active"), // pending, active, blocked (advertisers start as pending)
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
