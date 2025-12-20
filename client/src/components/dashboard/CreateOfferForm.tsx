@@ -109,6 +109,31 @@ export function CreateOfferForm({ role }: { role: string }) {
     setFormData(prev => ({ ...prev, creativeLinks: updated }));
   };
 
+  const isFormValid = () => {
+    const hasName = formData.name && formData.name.trim().length > 0;
+    const hasDescription = formData.description && formData.description.trim().length > 0;
+    const hasTrackingUrl = formData.trackingUrl && formData.trackingUrl.trim().length > 0;
+    const validLandings = landings.filter(l => 
+      l.geo && l.geo.trim() && 
+      l.landingUrl && l.landingUrl.trim() && 
+      l.partnerPayout && l.partnerPayout.toString().trim()
+    );
+    
+    console.log("Form validation:", {
+      hasName,
+      hasDescription,
+      hasTrackingUrl,
+      validLandingsCount: validLandings.length,
+      landings: landings.map(l => ({
+        geo: l.geo,
+        url: l.landingUrl,
+        payout: l.partnerPayout
+      }))
+    });
+    
+    return hasName && hasDescription && hasTrackingUrl && validLandings.length > 0;
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
@@ -584,9 +609,9 @@ export function CreateOfferForm({ role }: { role: string }) {
               Черновик
             </Button>
             <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-mono"
+              className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-mono disabled:opacity-50"
               onClick={handleSubmit}
-              disabled={loading || !formData.name || !formData.description || !formData.trackingUrl || !landings.some(l => l.geo && l.landingUrl && l.partnerPayout)}
+              disabled={loading || !isFormValid()}
               data-testid="button-publish-offer"
             >
               <Save className="w-4 h-4 mr-2" />
