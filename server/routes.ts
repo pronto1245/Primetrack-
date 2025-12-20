@@ -308,14 +308,17 @@ export async function registerRoutes(
         const { internalCost, ...safeOffer } = offer;
         
         if (!hasAccess) {
+          // Проверяем статус заявки
+          const accessRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, req.session.userId!);
+          const accessStatus = accessRequest?.status || null;
           // Без доступа - возвращаем оффер БЕЗ лендингов
-          return res.json({ ...safeOffer, landings: [], hasAccess: false });
+          return res.json({ ...safeOffer, landings: [], hasAccess: false, accessStatus });
         }
         
         // С доступом - показываем лендинги (без internalCost)
         const landings = await storage.getOfferLandings(offer.id);
         const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
-        return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true });
+        return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
       }
       
       // Для advertiser/admin - полная информация
