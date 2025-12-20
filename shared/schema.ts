@@ -27,8 +27,8 @@ export const offers = pgTable("offers", {
   description: text("description").notNull(),
   logoUrl: text("logo_url"),
   
-  // Pricing
-  partnerPayout: numeric("partner_payout", { precision: 10, scale: 2 }).notNull(),
+  // Pricing (per-landing prices are the source of truth)
+  partnerPayout: numeric("partner_payout", { precision: 10, scale: 2 }),
   internalCost: numeric("internal_cost", { precision: 10, scale: 2 }),
   payoutModel: text("payout_model").notNull().default("CPA"),
   currency: text("currency").notNull().default("USD"),
