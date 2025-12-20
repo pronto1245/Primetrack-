@@ -315,15 +315,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findClickByIpOfferPublisherToday(ip: string, offerId: string, publisherId: string): Promise<Click | undefined> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
+    // Check if there's ANY click from this IP for this offer+publisher (no date limit)
     const [click] = await db.select().from(clicks)
       .where(and(
         eq(clicks.ip, ip),
         eq(clicks.offerId, offerId),
-        eq(clicks.publisherId, publisherId),
-        gte(clicks.createdAt, today)
+        eq(clicks.publisherId, publisherId)
       ))
       .limit(1);
     
