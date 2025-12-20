@@ -589,6 +589,24 @@ export async function registerRoutes(
     }
   });
 
+  // Publisher's advertisers (for multi-advertiser context switcher)
+  app.get("/api/publisher/advertisers", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const advertisers = await storage.getAdvertisersForPublisher(req.session.userId!);
+      const safeAdvertisers = advertisers.map(({ advertiser, ...rel }) => ({
+        id: rel.id,
+        advertiserId: advertiser.id,
+        advertiserName: advertiser.username,
+        advertiserEmail: advertiser.email,
+        status: rel.status,
+        createdAt: rel.createdAt
+      }));
+      res.json(safeAdvertisers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch advertisers" });
+    }
+  });
+
   // Publisher's access requests history
   app.get("/api/publisher/access-requests", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
@@ -899,7 +917,7 @@ export async function registerRoutes(
   // Publisher statistics with filters
   app.get("/api/publisher/stats", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
-      const { dateFrom, dateTo, offerIds, geo, status } = req.query;
+      const { dateFrom, dateTo, offerIds, geo, status, advertiserId } = req.query;
       
       const filters: any = {};
       if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
@@ -907,6 +925,7 @@ export async function registerRoutes(
       if (offerIds) filters.offerIds = (offerIds as string).split(',');
       if (geo) filters.geo = (geo as string).split(',');
       if (status) filters.status = (status as string).split(',');
+      if (advertiserId) filters.advertiserId = advertiserId as string;
 
       const stats = await storage.getPublisherStats(req.session.userId!, filters);
       res.json(stats);
@@ -954,7 +973,8 @@ export async function registerRoutes(
   // Publisher offers list (for filter dropdown)
   app.get("/api/publisher/offers-list", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
-      const offers = await storage.getOffersForPublisher(req.session.userId!);
+      const { advertiserId } = req.query;
+      const offers = await storage.getOffersForPublisher(req.session.userId!, advertiserId as string | undefined);
       res.json(offers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch offers" });
@@ -964,13 +984,14 @@ export async function registerRoutes(
   // Publisher export CSV (NO advertiser_cost)
   app.get("/api/publisher/export/csv", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
-      const { type, dateFrom, dateTo, offerIds, status } = req.query;
+      const { type, dateFrom, dateTo, offerIds, status, advertiserId } = req.query;
       
       const filters: any = {};
       if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
       if (dateTo) filters.dateTo = new Date(dateTo as string);
       if (offerIds) filters.offerIds = (offerIds as string).split(',');
       if (status) filters.status = (status as string).split(',');
+      if (advertiserId) filters.advertiserId = advertiserId as string;
 
       let csvContent = '';
       let filename = 'export.csv';

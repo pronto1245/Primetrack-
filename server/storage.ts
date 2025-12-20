@@ -7,7 +7,8 @@ import {
   type PostbackLog, type InsertPostbackLog, postbackLogs,
   type AdvertiserSettings, type InsertAdvertiserSettings, advertiserSettings,
   type OfferAccessRequest, type InsertOfferAccessRequest, offerAccessRequests,
-  type PublisherOfferAccess, type InsertPublisherOffer, publisherOffers
+  type PublisherOfferAccess, type InsertPublisherOffer, publisherOffers,
+  type PublisherAdvertiser, publisherAdvertisers
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
@@ -74,6 +75,7 @@ export interface PublisherStatsFilters {
   offerIds?: string[];
   geo?: string[];
   status?: string[];
+  advertiserId?: string;
 }
 
 export interface PublisherStatsResult {
@@ -173,6 +175,10 @@ export interface IStorage {
   getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]>;
   createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
   hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
+  
+  // Publisher-Advertiser relationships
+  getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
+  addPublisherToAdvertiser(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -419,6 +425,45 @@ export class DatabaseStorage implements IStorage {
   async hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean> {
     const access = await this.getPublisherOffer(offerId, publisherId);
     return !!access;
+  }
+
+  // Publisher-Advertiser relationships
+  async getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]> {
+    const relations = await db.select()
+      .from(publisherAdvertisers)
+      .where(and(
+        eq(publisherAdvertisers.publisherId, publisherId),
+        eq(publisherAdvertisers.status, "active")
+      ));
+    
+    const result: (PublisherAdvertiser & { advertiser: User })[] = [];
+    for (const rel of relations) {
+      const advertiser = await this.getUser(rel.advertiserId);
+      if (advertiser) {
+        result.push({ ...rel, advertiser });
+      }
+    }
+    return result;
+  }
+
+  async addPublisherToAdvertiser(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser> {
+    const existing = await db.select()
+      .from(publisherAdvertisers)
+      .where(and(
+        eq(publisherAdvertisers.publisherId, publisherId),
+        eq(publisherAdvertisers.advertiserId, advertiserId)
+      ));
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    
+    const [relation] = await db.insert(publisherAdvertisers).values({
+      publisherId,
+      advertiserId,
+      status: "active"
+    }).returning();
+    return relation;
   }
 
   // Advanced Advertiser Statistics with Filters
@@ -697,6 +742,13 @@ export class DatabaseStorage implements IStorage {
     let allClicks = await db.select().from(clicks)
       .where(eq(clicks.publisherId, publisherId));
 
+    // Filter by advertiser if specified
+    if (filters.advertiserId) {
+      const advertiserOffers = await this.getOffersByAdvertiser(filters.advertiserId);
+      const advertiserOfferIds = advertiserOffers.map(o => o.id);
+      allClicks = allClicks.filter(c => advertiserOfferIds.includes(c.offerId));
+    }
+
     // Filter by offers if specified
     if (filters.offerIds?.length) {
       allClicks = allClicks.filter(c => filters.offerIds!.includes(c.offerId));
@@ -714,6 +766,13 @@ export class DatabaseStorage implements IStorage {
     // Get conversions for this publisher
     let allConversions = await db.select().from(conversions)
       .where(eq(conversions.publisherId, publisherId));
+
+    // Filter by advertiser if specified
+    if (filters.advertiserId) {
+      const advertiserOffers = await this.getOffersByAdvertiser(filters.advertiserId);
+      const advertiserOfferIds = advertiserOffers.map(o => o.id);
+      allConversions = allConversions.filter(c => advertiserOfferIds.includes(c.offerId));
+    }
 
     if (filters.offerIds?.length) {
       allConversions = allConversions.filter(c => filters.offerIds!.includes(c.offerId));
@@ -925,12 +984,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Get offers for publisher (ones they have access to)
-  async getOffersForPublisher(publisherId: string): Promise<Array<{ id: string; name: string }>> {
+  async getOffersForPublisher(publisherId: string, advertiserId?: string): Promise<Array<{ id: string; name: string }>> {
     const publisherOfferAccess = await this.getPublisherOffersByPublisher(publisherId);
     const result: Array<{ id: string; name: string }> = [];
     for (const po of publisherOfferAccess) {
       const offer = await this.getOffer(po.offerId);
       if (offer) {
+        if (advertiserId && offer.advertiserId !== advertiserId) {
+          continue;
+        }
         result.push({ id: offer.id, name: offer.name });
       }
     }

@@ -10,6 +10,7 @@ import {
   RefreshCw, Loader2, Filter, X, Clock, CheckCircle
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AdvertiserSwitcher } from "./AdvertiserSwitcher";
 
 interface PublisherStatsData {
   totalClicks: number;
@@ -65,6 +66,14 @@ export function PublisherDashboard() {
   const [dateTo, setDateTo] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<string | null>(() => {
+    return localStorage.getItem("selectedAdvertiserId") || null;
+  });
+
+  const handleAdvertiserChange = (advId: string | null) => {
+    setSelectedAdvertiserId(advId);
+    setSelectedOffer("all");
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -74,10 +83,11 @@ export function PublisherDashboard() {
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
       if (selectedOffer && selectedOffer !== "all") params.append("offerIds", selectedOffer);
+      if (selectedAdvertiserId) params.append("advertiserId", selectedAdvertiserId);
 
       const [statsRes, offersRes] = await Promise.all([
         fetch(`/api/publisher/stats?${params}`),
-        fetch("/api/publisher/offers-list")
+        fetch(`/api/publisher/offers-list${selectedAdvertiserId ? `?advertiserId=${selectedAdvertiserId}` : ""}`)
       ]);
 
       if (statsRes.status === 401 || offersRes.status === 401) {
@@ -102,7 +112,7 @@ export function PublisherDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedAdvertiserId]);
 
   const applyFilters = () => {
     fetchData();
@@ -125,6 +135,7 @@ export function PublisherDashboard() {
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
       if (selectedOffer && selectedOffer !== "all") params.append("offerIds", selectedOffer);
+      if (selectedAdvertiserId) params.append("advertiserId", selectedAdvertiserId);
 
       const res = await fetch(`/api/publisher/export/csv?${params}`);
       if (!res.ok) {
@@ -167,7 +178,13 @@ export function PublisherDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">{t('dashboard.overview')}</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-bold text-white">{t('dashboard.overview')}</h2>
+          <AdvertiserSwitcher 
+            selectedAdvertiserId={selectedAdvertiserId}
+            onSelect={handleAdvertiserChange}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Button
             data-testid="button-toggle-filters"
