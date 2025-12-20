@@ -96,14 +96,34 @@ export class ClickHandler {
   }
   
   private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams): string {
-    const url = new URL(baseUrl);
+    let urlString = baseUrl;
+    urlString = urlString.replace(/\{click_id\}/gi, clickId);
+    urlString = urlString.replace(/\{sub1\}/gi, params.sub1 || "");
+    urlString = urlString.replace(/\{sub2\}/gi, params.sub2 || "");
+    urlString = urlString.replace(/\{sub3\}/gi, params.sub3 || "");
+    urlString = urlString.replace(/\{sub4\}/gi, params.sub4 || "");
+    urlString = urlString.replace(/\{sub5\}/gi, params.sub5 || "");
     
-    url.searchParams.set("click_id", clickId);
-    if (params.sub1) url.searchParams.set("sub1", params.sub1);
-    if (params.sub2) url.searchParams.set("sub2", params.sub2);
-    if (params.sub3) url.searchParams.set("sub3", params.sub3);
-    if (params.sub4) url.searchParams.set("sub4", params.sub4);
-    if (params.sub5) url.searchParams.set("sub5", params.sub5);
+    const url = new URL(urlString);
+    
+    if (!url.searchParams.has("click_id")) {
+      url.searchParams.set("click_id", clickId);
+    }
+    if (params.sub1 && !url.searchParams.has("sub1")) {
+      url.searchParams.set("sub1", params.sub1);
+    }
+    if (params.sub2 && !url.searchParams.has("sub2")) {
+      url.searchParams.set("sub2", params.sub2);
+    }
+    if (params.sub3 && !url.searchParams.has("sub3")) {
+      url.searchParams.set("sub3", params.sub3);
+    }
+    if (params.sub4 && !url.searchParams.has("sub4")) {
+      url.searchParams.set("sub4", params.sub4);
+    }
+    if (params.sub5 && !url.searchParams.has("sub5")) {
+      url.searchParams.set("sub5", params.sub5);
+    }
     
     return url.toString();
   }

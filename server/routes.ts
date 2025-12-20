@@ -6,6 +6,11 @@ import crypto from "crypto";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { ClickHandler } from "./services/click-handler";
+import { Orchestrator } from "./services/orchestrator";
+
+const clickHandler = new ClickHandler();
+const orchestrator = new Orchestrator();
 
 declare module "express-session" {
   interface SessionData {
@@ -376,6 +381,104 @@ export async function registerRoutes(
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // ============================================
+  // MINI-TRACKER ENDPOINTS
+  // ============================================
+
+  // Click tracking endpoint (public, no auth required)
+  // Usage: /api/click?offer_id=XXX&partner_id=YYY&sub1=...&sub2=...
+  app.get("/api/click", async (req: Request, res: Response) => {
+    try {
+      const { offer_id, partner_id, sub1, sub2, sub3, sub4, sub5 } = req.query;
+
+      if (!offer_id || !partner_id) {
+        return res.status(400).json({ 
+          error: "Missing required parameters", 
+          required: ["offer_id", "partner_id"] 
+        });
+      }
+
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
+                 req.socket.remoteAddress || 
+                 "unknown";
+      const userAgent = req.headers["user-agent"] || "";
+      const referer = req.headers["referer"] || "";
+
+      const result = await clickHandler.processClick({
+        offerId: offer_id as string,
+        partnerId: partner_id as string,
+        sub1: sub1 as string,
+        sub2: sub2 as string,
+        sub3: sub3 as string,
+        sub4: sub4 as string,
+        sub5: sub5 as string,
+        ip,
+        userAgent,
+        referer,
+      });
+
+      if (result.isBlocked) {
+        return res.status(403).json({ 
+          error: "Traffic blocked", 
+          reason: "fraud_detected",
+          fraudScore: result.fraudScore 
+        });
+      }
+
+      res.redirect(302, result.redirectUrl);
+    } catch (error: any) {
+      console.error("Click handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process click" 
+      });
+    }
+  });
+
+  // Postback endpoint (public, called by advertiser systems)
+  // Usage: /api/postback?click_id=XXX&status=lead|sale|install&sum=123.45&external_id=YYY
+  app.get("/api/postback", async (req: Request, res: Response) => {
+    try {
+      const { click_id, status, sum, external_id } = req.query;
+
+      if (!click_id) {
+        return res.status(400).json({ 
+          error: "Missing required parameter: click_id" 
+        });
+      }
+
+      const validStatuses = ["lead", "sale", "install"];
+      const conversionStatus = (status as string)?.toLowerCase() || "lead";
+      
+      if (!validStatuses.includes(conversionStatus)) {
+        return res.status(400).json({ 
+          error: "Invalid status", 
+          validStatuses 
+        });
+      }
+
+      const result = await orchestrator.processConversion({
+        clickId: click_id as string,
+        status: conversionStatus as "lead" | "sale" | "install",
+        sum: sum ? parseFloat(sum as string) : undefined,
+        externalId: external_id as string,
+      });
+
+      res.json({
+        success: true,
+        conversionId: result.id,
+        clickId: result.clickId,
+        status: result.status,
+        advertiserCost: result.advertiserCost,
+        publisherPayout: result.publisherPayout,
+      });
+    } catch (error: any) {
+      console.error("Postback handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process postback" 
+      });
     }
   });
 
