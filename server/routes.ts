@@ -120,8 +120,81 @@ export async function registerRoutes(
       id: user.id, 
       username: user.username, 
       role: user.role,
-      email: user.email 
+      email: user.email,
+      referralCode: user.referralCode
     });
+  });
+
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    try {
+      const { username, password, email, referralCode } = req.body;
+
+      if (!username || !password || !email) {
+        return res.status(400).json({ message: "Username, password and email are required" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      let advertiserId: string | null = null;
+      if (referralCode) {
+        const advertiser = await storage.getUserByReferralCode(referralCode);
+        if (!advertiser || advertiser.role !== "advertiser") {
+          return res.status(400).json({ message: "Invalid referral code" });
+        }
+        advertiserId = advertiser.id;
+      }
+
+      const newUser = await storage.createUser({
+        username,
+        password,
+        email,
+        role: "publisher",
+      });
+
+      if (advertiserId) {
+        await storage.addPublisherToAdvertiser(newUser.id, advertiserId);
+      }
+
+      req.session.userId = newUser.id;
+      req.session.role = newUser.role;
+
+      res.json({
+        id: newUser.id,
+        username: newUser.username,
+        role: newUser.role,
+        email: newUser.email,
+        linkedAdvertiserId: advertiserId,
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.get("/api/auth/validate-referral/:code", async (req: Request, res: Response) => {
+    try {
+      const { code } = req.params;
+      const advertiser = await storage.getUserByReferralCode(code);
+      
+      if (!advertiser || advertiser.role !== "advertiser") {
+        return res.status(404).json({ valid: false, message: "Invalid referral code" });
+      }
+
+      res.json({
+        valid: true,
+        advertiserName: advertiser.username,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Validation failed" });
+    }
   });
 
   // Middleware для проверки аутентификации
@@ -140,6 +213,41 @@ export async function registerRoutes(
       next();
     };
   };
+
+  // REFERRAL CODE API
+  app.post("/api/advertiser/referral-code", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.referralCode) {
+        return res.json({ referralCode: user.referralCode });
+      }
+
+      const referralCode = crypto.randomBytes(6).toString("hex").toUpperCase();
+      const updatedUser = await storage.updateUserReferralCode(user.id, referralCode);
+
+      res.json({ referralCode: updatedUser?.referralCode });
+    } catch (error) {
+      console.error("Generate referral code error:", error);
+      res.status(500).json({ message: "Failed to generate referral code" });
+    }
+  });
+
+  app.get("/api/advertiser/referral-code", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ referralCode: user.referralCode || null });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get referral code" });
+    }
+  });
 
   // OFFERS API
   // Получить офферы текущего advertiser

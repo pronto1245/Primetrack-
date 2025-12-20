@@ -6,12 +6,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard";
+import Register from "@/pages/Register";
 import "./lib/i18n"; // Import i18n configuration
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/register" component={Register} />
+      <Route path="/register/:ref" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/dashboard/:role" component={Dashboard} />
       <Route path="/dashboard/:role/*" component={Dashboard} />

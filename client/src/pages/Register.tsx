@@ -1,0 +1,216 @@
+import { useState, useEffect } from "react";
+import { useLocation, useParams } from "wouter";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, CheckCircle, XCircle, User, Mail, Lock } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+
+export default function Register() {
+  const [, setLocation] = useLocation();
+  const params = useParams<{ ref?: string }>();
+  const referralCode = params.ref || new URLSearchParams(window.location.search).get("ref") || "";
+
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+
+  const { data: referralData, isLoading: isValidating } = useQuery({
+    queryKey: ["validate-referral", referralCode],
+    queryFn: async () => {
+      if (!referralCode) return null;
+      const response = await fetch(`/api/auth/validate-referral/${referralCode}`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!referralCode,
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (data: typeof formData & { referralCode?: string }) => {
+      const response = await apiRequest("POST", "/api/auth/register", {
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        referralCode: data.referralCode,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setLocation("/dashboard/publisher");
+    },
+    onError: (error: Error) => {
+      setError(error.message || "Registration failed");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!formData.username || !formData.email || !formData.password) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    registerMutation.mutate({
+      ...formData,
+      referralCode: referralCode || undefined,
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[310px] w-[310px] rounded-full bg-emerald-500 opacity-10 blur-[100px]" />
+
+      <Card className="w-full max-w-md bg-[#0A0A0A] border-white/10 relative z-10">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-white">Create Account</CardTitle>
+          <CardDescription className="text-slate-400">
+            Register as a publisher to start earning
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {referralCode && (
+            <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+              {isValidating ? (
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Validating referral code...</span>
+                </div>
+              ) : referralData?.valid ? (
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Joining advertiser: <strong>{referralData.advertiserName}</strong></span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-red-400">
+                  <XCircle className="w-4 h-4" />
+                  <span>Invalid referral code</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-slate-300">Username</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  id="username"
+                  data-testid="input-username"
+                  type="text"
+                  placeholder="Enter username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-slate-300">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  id="email"
+                  data-testid="input-email"
+                  type="email"
+                  placeholder="Enter email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  id="password"
+                  data-testid="input-password"
+                  type="password"
+                  placeholder="Enter password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-slate-300">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  id="confirmPassword"
+                  data-testid="input-confirm-password"
+                  type="password"
+                  placeholder="Confirm password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              data-testid="button-register"
+              disabled={registerMutation.isPending || (!!referralCode && !referralData?.valid)}
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+            >
+              {registerMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                "Create Account"
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center text-sm text-slate-500">
+            Already have an account?{" "}
+            <button
+              onClick={() => setLocation("/")}
+              className="text-emerald-400 hover:text-emerald-300"
+              data-testid="link-login"
+            >
+              Sign in
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

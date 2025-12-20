@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   role: text("role").notNull().default("publisher"), // admin, advertiser, publisher, partner-manager
   email: text("email").notNull().unique(),
+  referralCode: text("referral_code").unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -124,7 +124,10 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByReferralCode(referralCode: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserReferralCode(userId: string, referralCode: string): Promise<User | undefined>;
+  verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
   
   // Offers
   getOffer(id: string): Promise<Offer | undefined>;
@@ -198,12 +201,25 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.referralCode, referralCode));
+    return user;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const [user] = await db.insert(users).values({
       ...insertUser,
       password: hashedPassword,
     }).returning();
+    return user;
+  }
+
+  async updateUserReferralCode(userId: string, referralCode: string): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({ referralCode })
+      .where(eq(users.id, userId))
+      .returning();
     return user;
   }
 
