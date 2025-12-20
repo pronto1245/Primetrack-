@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,7 +43,6 @@ export function AdvertiserOffers({ role }: { role: string }) {
   const [selectedGeo, setSelectedGeo] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const queryClient = useQueryClient();
 
   const { data: offers, isLoading, error } = useQuery<Offer[]>({
     queryKey: ["/api/offers"],
