@@ -801,8 +801,8 @@ export async function registerRoutes(
       const requestId = req.params.id;
       const { action, rejectionReason } = req.body;
 
-      if (!action || !["approve", "reject"].includes(action)) {
-        return res.status(400).json({ message: "Invalid action. Use 'approve' or 'reject'" });
+      if (!action || !["approve", "reject", "revoke"].includes(action)) {
+        return res.status(400).json({ message: "Invalid action. Use 'approve', 'reject', or 'revoke'" });
       }
 
       const request = await storage.getOfferAccessRequest(requestId);
@@ -810,7 +810,11 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Access request not found" });
       }
 
-      if (request.status !== "pending") {
+      if (action === "revoke" && request.status !== "approved") {
+        return res.status(400).json({ message: "Can only revoke approved requests" });
+      }
+
+      if (action !== "revoke" && request.status !== "pending" && request.status !== "revoked") {
         return res.status(400).json({ message: "Request already processed" });
       }
 
@@ -828,6 +832,11 @@ export async function registerRoutes(
         });
         
         res.json({ message: "Access request approved" });
+      } else if (action === "revoke") {
+        await storage.deletePublisherOffer(request.offerId, request.publisherId);
+        await storage.updateOfferAccessRequest(requestId, { status: "revoked" });
+        
+        res.json({ message: "Access revoked" });
       } else {
         await storage.updateOfferAccessRequest(requestId, { 
           status: "rejected",

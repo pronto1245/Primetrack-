@@ -179,6 +179,7 @@ export interface IStorage {
   getPublisherOffersByPublisher(publisherId: string): Promise<PublisherOfferAccess[]>;
   getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]>;
   createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
+  deletePublisherOffer(offerId: string, publisherId: string): Promise<void>;
   hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
   
   // Publisher-Advertiser relationships
@@ -463,6 +464,14 @@ export class DatabaseStorage implements IStorage {
   async createPublisherOffer(data: InsertPublisherOffer): Promise<PublisherOfferAccess> {
     const [result] = await db.insert(publisherOffers).values(data).returning();
     return result;
+  }
+
+  async deletePublisherOffer(offerId: string, publisherId: string): Promise<void> {
+    await db.delete(publisherOffers)
+      .where(and(
+        eq(publisherOffers.offerId, offerId),
+        eq(publisherOffers.publisherId, publisherId)
+      ));
   }
 
   async hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean> {

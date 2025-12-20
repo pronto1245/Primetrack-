@@ -49,7 +49,7 @@ export function AccessRequests() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ requestId, action, reason }: { requestId: string; action: "approve" | "reject"; reason?: string }) => {
+    mutationFn: async ({ requestId, action, reason }: { requestId: string; action: "approve" | "reject" | "revoke"; reason?: string }) => {
       const res = await fetch(`/api/advertiser/access-requests/${requestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -112,6 +112,13 @@ export function AccessRequests() {
           <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-500">
             <XCircle className="w-3 h-3" />
             Rejected
+          </span>
+        );
+      case "revoked":
+        return (
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-orange-500/20 text-orange-500">
+            <XCircle className="w-3 h-3" />
+            Revoked
           </span>
         );
       default:
@@ -252,7 +259,7 @@ export function AccessRequests() {
                       {getStatusBadge(req.status)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {req.status === "pending" ? (
+                      {req.status === "pending" && (
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             size="sm"
@@ -280,7 +287,33 @@ export function AccessRequests() {
                             Reject
                           </Button>
                         </div>
-                      ) : (
+                      )}
+                      {req.status === "approved" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-3 border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+                          onClick={() => updateMutation.mutate({ requestId: req.id, action: "revoke" })}
+                          disabled={updateMutation.isPending}
+                          data-testid={`button-revoke-${req.id}`}
+                        >
+                          <X className="w-3 h-3 mr-1" />
+                          Revoke
+                        </Button>
+                      )}
+                      {req.status === "revoked" && (
+                        <Button
+                          size="sm"
+                          className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-white"
+                          onClick={() => updateMutation.mutate({ requestId: req.id, action: "approve" })}
+                          disabled={updateMutation.isPending}
+                          data-testid={`button-reapprove-${req.id}`}
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Re-Approve
+                        </Button>
+                      )}
+                      {req.status === "rejected" && (
                         <span className="text-slate-500">-</span>
                       )}
                     </td>
