@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, Filter, Eye, Loader2, Tag } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -31,21 +32,45 @@ interface MarketplaceOffer {
   appTypes: string[];
   status: string;
   landings: OfferLanding[];
+  hasAccess?: boolean;
+  accessStatus?: string | null;
 }
 
 export function PublisherOffers({ role }: { role: string }) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedGeo, setSelectedGeo] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("all");
+  const [showMyOffers, setShowMyOffers] = useState<boolean>(false);
 
   const { data: offers, isLoading, error } = useQuery<MarketplaceOffer[]>({
-    queryKey: ["/api/marketplace"],
+    queryKey: ["/api/marketplace/offers"],
     queryFn: async () => {
-      const res = await fetch("/api/marketplace", { credentials: "include" });
+      const res = await fetch("/api/marketplace/offers", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch marketplace");
       return res.json();
     },
   });
+
+  const categories = useMemo(() => {
+    if (!offers) return [];
+    return [...new Set(offers.map(o => o.category).filter(Boolean))];
+  }, [offers]);
+
+  const allGeos = useMemo(() => {
+    if (!offers) return [];
+    const geos = new Set<string>();
+    offers.forEach(o => o.geo.forEach(g => geos.add(g)));
+    return [...geos].sort();
+  }, [offers]);
+
+  const allSources = useMemo(() => {
+    if (!offers) return [];
+    const sources = new Set<string>();
+    offers.forEach(o => o.trafficSources?.forEach(s => sources.add(s)));
+    return [...sources].sort();
+  }, [offers]);
 
   const filteredOffers = useMemo(() => {
     if (!offers) return [];
@@ -54,15 +79,13 @@ export function PublisherOffers({ role }: { role: string }) {
         offer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.geo.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory = !selectedCategory || offer.category.toLowerCase() === selectedCategory.toLowerCase();
-      return matchesSearch && matchesCategory;
+      const matchesCategory = selectedCategory === "all" || offer.category.toLowerCase() === selectedCategory.toLowerCase();
+      const matchesGeo = selectedGeo === "all" || offer.geo.includes(selectedGeo);
+      const matchesSource = selectedSource === "all" || offer.trafficSources?.includes(selectedSource);
+      const matchesMyOffers = !showMyOffers || offer.hasAccess === true;
+      return matchesSearch && matchesCategory && matchesGeo && matchesSource && matchesMyOffers;
     });
-  }, [offers, searchQuery, selectedCategory]);
-
-  const categories = useMemo(() => {
-    if (!offers) return [];
-    return [...new Set(offers.map(o => o.category))];
-  }, [offers]);
+  }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, showMyOffers]);
 
   const getMaxPayout = (offer: MarketplaceOffer) => {
     if (offer.landings && offer.landings.length > 0) {
@@ -70,6 +93,26 @@ export function PublisherOffers({ role }: { role: string }) {
       return max.toFixed(2);
     }
     return offer.partnerPayout;
+  };
+
+  const getAccessBadge = (offer: MarketplaceOffer) => {
+    if (offer.hasAccess) {
+      return (
+        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-500">
+          <CheckCircle className="w-3 h-3" />
+          Доступ
+        </span>
+      );
+    }
+    if (offer.accessStatus === "pending") {
+      return (
+        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-500">
+          <Clock className="w-3 h-3" />
+          Ожидание
+        </span>
+      );
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -88,6 +131,8 @@ export function PublisherOffers({ role }: { role: string }) {
     );
   }
 
+  const myOffersCount = offers?.filter(o => o.hasAccess).length || 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -99,48 +144,87 @@ export function PublisherOffers({ role }: { role: string }) {
         </div>
       </div>
 
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className={`font-mono ${!showMyOffers ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' : 'text-slate-300 border-white/10'}`}
+          onClick={() => setShowMyOffers(false)}
+          data-testid="button-all-offers"
+        >
+          Все офферы
+        </Button>
+        <Button
+          variant="outline"
+          className={`font-mono ${showMyOffers ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' : 'text-slate-300 border-white/10'}`}
+          onClick={() => setShowMyOffers(true)}
+          data-testid="button-my-offers"
+        >
+          Мои офферы ({myOffersCount})
+        </Button>
+      </div>
+
       <Card className="bg-[#0A0A0A] border-white/10">
-        <div className="p-4 border-b border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder={t('dashboard.offers.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
-              data-testid="input-search-offers"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className={`border-white/10 font-mono ${!selectedCategory ? 'text-emerald-400 border-emerald-500/50 bg-emerald-500/10' : 'text-slate-300'}`}
-              onClick={() => setSelectedCategory(null)}
-              data-testid="button-filter-all"
-            >
-              All
-            </Button>
-            {categories.map((cat) => (
-              <Button 
-                key={cat}
-                variant="outline" 
-                size="sm"
-                className={`border-white/10 font-mono ${selectedCategory === cat ? 'text-emerald-400 border-emerald-500/50 bg-emerald-500/10' : 'text-slate-300'}`}
-                onClick={() => setSelectedCategory(cat)}
-                data-testid={`button-filter-${cat.toLowerCase()}`}
-              >
-                {cat}
-              </Button>
-            ))}
+        <div className="p-4 border-b border-white/10 flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input 
+                type="text" 
+                placeholder={t('dashboard.offers.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                data-testid="input-search-offers"
+              />
+            </div>
+
+            <div className="flex gap-3 flex-wrap">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-white font-mono text-xs" data-testid="select-category">
+                  <Tag className="w-3 h-3 mr-2 text-slate-500" />
+                  <SelectValue placeholder="Категория" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                  <SelectItem value="all" className="font-mono text-xs">Все категории</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat} className="font-mono text-xs">{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedGeo} onValueChange={setSelectedGeo}>
+                <SelectTrigger className="w-[120px] bg-white/5 border-white/10 text-white font-mono text-xs" data-testid="select-geo">
+                  <Globe className="w-3 h-3 mr-2 text-slate-500" />
+                  <SelectValue placeholder="ГЕО" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0A0A0A] border-white/10 max-h-[300px]">
+                  <SelectItem value="all" className="font-mono text-xs">Все ГЕО</SelectItem>
+                  {allGeos.map((geo) => (
+                    <SelectItem key={geo} value={geo} className="font-mono text-xs">{geo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedSource} onValueChange={setSelectedSource}>
+                <SelectTrigger className="w-[150px] bg-white/5 border-white/10 text-white font-mono text-xs" data-testid="select-source">
+                  <Megaphone className="w-3 h-3 mr-2 text-slate-500" />
+                  <SelectValue placeholder="Источник" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                  <SelectItem value="all" className="font-mono text-xs">Все источники</SelectItem>
+                  {allSources.map((source) => (
+                    <SelectItem key={source} value={source} className="font-mono text-xs">{source}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         
         {filteredOffers.length === 0 ? (
           <div className="text-center py-12">
             <Tag className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500">No offers found</p>
+            <p className="text-slate-500">Офферы не найдены</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -153,8 +237,7 @@ export function PublisherOffers({ role }: { role: string }) {
                   <th className="px-4 py-3 font-medium">{t('dashboard.offers.geo')}</th>
                   <th className="px-4 py-3 font-medium">Payout</th>
                   <th className="px-4 py-3 font-medium">Model</th>
-                  <th className="px-4 py-3 font-medium">Landings</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.status')}</th>
+                  <th className="px-4 py-3 font-medium">Доступ</th>
                   <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
@@ -181,13 +264,8 @@ export function PublisherOffers({ role }: { role: string }) {
                       <td className="px-4 py-3 text-slate-300 uppercase">
                         {offer.payoutModel}
                       </td>
-                      <td className="px-4 py-3 text-slate-300">
-                        {offer.landings?.length || 0}
-                      </td>
                       <td className="px-4 py-3">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${offer.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
-                          {offer.status}
-                        </span>
+                        {getAccessBadge(offer)}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>

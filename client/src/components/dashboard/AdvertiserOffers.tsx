@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Search, Filter, Edit, Trash, Eye, Loader2, Tag } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, Edit, Trash, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -38,6 +39,10 @@ interface Offer {
 export function AdvertiserOffers({ role }: { role: string }) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedGeo, setSelectedGeo] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const queryClient = useQueryClient();
 
   const { data: offers, isLoading, error } = useQuery<Offer[]>({
@@ -49,14 +54,39 @@ export function AdvertiserOffers({ role }: { role: string }) {
     },
   });
 
+  const categories = useMemo(() => {
+    if (!offers) return [];
+    return Array.from(new Set(offers.map(o => o.category).filter(Boolean)));
+  }, [offers]);
+
+  const allGeos = useMemo(() => {
+    if (!offers) return [];
+    const geos = new Set<string>();
+    offers.forEach(o => o.geo.forEach(g => geos.add(g)));
+    return Array.from(geos).sort();
+  }, [offers]);
+
+  const allSources = useMemo(() => {
+    if (!offers) return [];
+    const sources = new Set<string>();
+    offers.forEach(o => o.trafficSources?.forEach(s => sources.add(s)));
+    return Array.from(sources).sort();
+  }, [offers]);
+
   const filteredOffers = useMemo(() => {
     if (!offers) return [];
-    if (!searchQuery) return offers;
-    return offers.filter((offer) =>
-      offer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      offer.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [offers, searchQuery]);
+    return offers.filter((offer) => {
+      const matchesSearch = searchQuery === "" || 
+        offer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        offer.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        offer.geo.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCategory = selectedCategory === "all" || offer.category.toLowerCase() === selectedCategory.toLowerCase();
+      const matchesGeo = selectedGeo === "all" || offer.geo.includes(selectedGeo);
+      const matchesSource = selectedSource === "all" || offer.trafficSources?.includes(selectedSource);
+      const matchesStatus = selectedStatus === "all" || offer.status === selectedStatus;
+      return matchesSearch && matchesCategory && matchesGeo && matchesSource && matchesStatus;
+    });
+  }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, selectedStatus]);
 
   if (isLoading) {
     return (
@@ -92,22 +122,89 @@ export function AdvertiserOffers({ role }: { role: string }) {
       </div>
 
       <Card className="bg-[#0A0A0A] border-white/10">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder={t('dashboard.offers.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
-              data-testid="input-search-offers"
-            />
+        <div className="p-4 border-b border-white/10 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input 
+                type="text" 
+                placeholder={t('dashboard.offers.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
+                data-testid="input-search-offers"
+              />
+            </div>
           </div>
-          <Button variant="outline" size="sm" className="border-white/10 text-slate-300 font-mono" data-testid="button-filter">
-            <Filter className="w-4 h-4 mr-2" />
-            {t('dashboard.offers.filter')}
-          </Button>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <Select value={selectedGeo} onValueChange={setSelectedGeo}>
+              <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-white font-mono text-xs h-8" data-testid="select-geo">
+                <Globe className="w-3 h-3 mr-1 text-slate-400" />
+                <SelectValue placeholder="ГЕО" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1a1a1a] border-white/10">
+                <SelectItem value="all" className="text-white font-mono text-xs">Все ГЕО</SelectItem>
+                {allGeos.map(geo => (
+                  <SelectItem key={geo} value={geo} className="text-white font-mono text-xs">{geo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-white font-mono text-xs h-8" data-testid="select-category">
+                <FolderOpen className="w-3 h-3 mr-1 text-slate-400" />
+                <SelectValue placeholder="Категория" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1a1a1a] border-white/10">
+                <SelectItem value="all" className="text-white font-mono text-xs">Все категории</SelectItem>
+                {categories.map(cat => (
+                  <SelectItem key={cat} value={cat} className="text-white font-mono text-xs">{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedSource} onValueChange={setSelectedSource}>
+              <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-white font-mono text-xs h-8" data-testid="select-source">
+                <Megaphone className="w-3 h-3 mr-1 text-slate-400" />
+                <SelectValue placeholder="Источник" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1a1a1a] border-white/10">
+                <SelectItem value="all" className="text-white font-mono text-xs">Все источники</SelectItem>
+                {allSources.map(src => (
+                  <SelectItem key={src} value={src} className="text-white font-mono text-xs">{src}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[130px] bg-white/5 border-white/10 text-white font-mono text-xs h-8" data-testid="select-status">
+                <SelectValue placeholder="Статус" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1a1a1a] border-white/10">
+                <SelectItem value="all" className="text-white font-mono text-xs">Все статусы</SelectItem>
+                <SelectItem value="active" className="text-white font-mono text-xs">Active</SelectItem>
+                <SelectItem value="paused" className="text-white font-mono text-xs">Paused</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {(selectedGeo !== "all" || selectedCategory !== "all" || selectedSource !== "all" || selectedStatus !== "all") && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setSelectedGeo("all");
+                  setSelectedCategory("all");
+                  setSelectedSource("all");
+                  setSelectedStatus("all");
+                }}
+                className="text-slate-400 hover:text-white text-xs h-8"
+                data-testid="button-clear-filters"
+              >
+                Сбросить
+              </Button>
+            )}
+          </div>
         </div>
         
         {filteredOffers.length === 0 ? (
