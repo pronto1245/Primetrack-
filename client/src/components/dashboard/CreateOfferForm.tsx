@@ -57,7 +57,6 @@ export function CreateOfferForm({ role }: { role: string }) {
     rules: "",
     conditions: "",
     creativeLinks: [""],
-    trackingUrl: "",
     geo: [] as string[],
   });
 
@@ -533,22 +532,6 @@ export function CreateOfferForm({ role }: { role: string }) {
               >
                 <Plus className="w-3 h-3 mr-2" /> Добавить ссылку
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#0A0A0A] border-white/10">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-2">
-                Tracking URL
-              </h3>
-              <Input
-                data-testid="input-tracking-url"
-                className="bg-[#050505] border-white/10 text-white font-mono text-sm"
-                placeholder="https://track.example.com/?click_id={click_id}"
-                value={formData.trackingUrl}
-                onChange={e => setFormData(prev => ({ ...prev, trackingUrl: e.target.value }))}
-              />
-              <p className="text-[10px] text-slate-500">Используйте {"{click_id}"} для передачи ID клика</p>
             </CardContent>
           </Card>
 

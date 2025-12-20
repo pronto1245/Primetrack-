@@ -51,9 +51,6 @@ export const offers = pgTable("offers", {
   // Creative Links (Google/Yandex disk links)
   creativeLinks: text("creative_links").array().notNull().default(sql`ARRAY[]::text[]`),
   
-  // Tracking
-  trackingUrl: text("tracking_url").notNull(),
-  
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
