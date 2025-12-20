@@ -297,7 +297,9 @@ export async function registerRoutes(
         clickId: click.id,
         offerId: click.offerId,
         publisherId: click.publisherId,
-        payout: payout || "0",
+        advertiserCost: payout || "0",
+        publisherPayout: payout || "0",
+        conversionType: "lead",
         status: "pending",
       });
 
@@ -330,7 +332,7 @@ export async function registerRoutes(
       
       const totalClicks = clicks.length;
       const totalConversions = conversions.length;
-      const totalEarnings = conversions.reduce((sum, c) => sum + parseFloat(c.payout), 0);
+      const totalEarnings = conversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
       const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
       const epc = totalClicks > 0 ? totalEarnings / totalClicks : 0;
 
@@ -360,7 +362,7 @@ export async function registerRoutes(
         const convs = await storage.getConversionsByOffer(offer.id);
         totalClicks += clicks.length;
         totalConversions += convs.length;
-        totalSpent += convs.reduce((sum, c) => sum + parseFloat(c.payout), 0);
+        totalSpent += convs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
       }
 
       const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
