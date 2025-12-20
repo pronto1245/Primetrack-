@@ -166,8 +166,25 @@ export function CreateOfferForm({ role }: { role: string }) {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-6">
+      <div className="flex gap-4">
+        <Button 
+          className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-mono"
+          disabled={loading}
+        >
+          Черновик
+        </Button>
+        <Button 
+          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-mono disabled:opacity-50"
+          onClick={handleSubmit}
+          disabled={loading || !isFormValid()}
+          data-testid="button-publish-offer"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {loading ? "..." : "Опубликовать"}
+        </Button>
+      </div>
+
+      <div className="space-y-6">
           <Card className="bg-[#0A0A0A] border-white/10">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-sm font-bold text-white uppercase font-mono mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
@@ -443,9 +460,6 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
-        </div>
-
-        <div className="space-y-6">
           <Card className="bg-[#0A0A0A] border-white/10">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-sm font-bold text-white uppercase font-mono mb-2 flex items-center gap-2">
@@ -490,7 +504,7 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
-          <div className="flex gap-4 sticky top-6">
+          <div className="flex gap-4">
             <Button 
               className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-mono"
               disabled={loading}
@@ -507,7 +521,6 @@ export function CreateOfferForm({ role }: { role: string }) {
               {loading ? "..." : "Опубликовать"}
             </Button>
           </div>
-        </div>
       </div>
     </div>
   );
