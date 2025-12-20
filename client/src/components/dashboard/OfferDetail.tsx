@@ -14,6 +14,14 @@ import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
 
+function getCountryFlag(code: string): string {
+  const codePoints = code
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
 interface OfferLanding {
   id: string;
   geo: string;
@@ -91,11 +99,11 @@ function LandingsGroupedByGeo({
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center border border-blue-500/20">
-                      <span className="text-sm font-bold text-blue-400">{geo}</span>
+                      <span className="text-2xl">{getCountryFlag(geo)}</span>
                     </div>
                     <div>
                       <div className="text-sm font-medium text-white">
-                        {geo} <span className="text-slate-500">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
+                        {getCountryFlag(geo)} {geo} <span className="text-slate-500">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
                       </div>
                       <div className="text-xs text-emerald-400 font-medium">
                         {getPayoutRange(geoLandings)}
