@@ -162,6 +162,21 @@ const resources = {
       common: {
         retry: "Retry"
       },
+      publisherDashboard: {
+        totalPayout: "Total Payout",
+        hold: "Hold",
+        epc: "EPC",
+        apply: "Apply",
+        noData: "No data for selected period",
+        noGeoData: "No GEO data",
+        noOffersData: "No offers data",
+        statusApproved: "Approved",
+        statusHold: "Hold",
+        statusRejected: "Rejected",
+        statusPending: "Pending",
+        exportConversions: "Export Conversions",
+        exportClicks: "Export Clicks"
+      },
       errors: {
         sessionExpired: "Session expired. Please log in again."
       },
@@ -352,6 +367,21 @@ const resources = {
       },
       common: {
         retry: "Повторить"
+      },
+      publisherDashboard: {
+        totalPayout: "Общая выплата",
+        hold: "В холде",
+        epc: "EPC",
+        apply: "Применить",
+        noData: "Нет данных за выбранный период",
+        noGeoData: "Нет данных по ГЕО",
+        noOffersData: "Нет данных по офферам",
+        statusApproved: "Одобрено",
+        statusHold: "В холде",
+        statusRejected: "Отклонено",
+        statusPending: "На рассмотрении",
+        exportConversions: "Экспорт конверсий",
+        exportClicks: "Экспорт кликов"
       },
       errors: {
         sessionExpired: "Сессия истекла. Пожалуйста, войдите снова."

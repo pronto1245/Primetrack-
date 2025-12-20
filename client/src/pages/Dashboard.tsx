@@ -16,6 +16,7 @@ import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
 import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
 import { OfferDetail } from "@/components/dashboard/OfferDetail";
 import { AdvertiserDashboard } from "@/components/dashboard/AdvertiserDashboard";
+import { PublisherDashboard } from "@/components/dashboard/PublisherDashboard";
 import { useState, useEffect } from "react";
 
 // Mock Data for "High Density" feel
@@ -248,12 +249,16 @@ function MainContent({ role, t }: { role: string, t: any }) {
       }
     }
 
-    // Default Overview Dashboard - use real data for advertiser
+    // Default Overview Dashboard - use real data
     if (role === 'advertiser') {
       return <AdvertiserDashboard />;
     }
 
-    // Mock dashboard for other roles (publisher, admin)
+    if (role === 'publisher') {
+      return <PublisherDashboard />;
+    }
+
+    // Mock dashboard for admin role
     return (
       <>
         {/* Stats Row */}

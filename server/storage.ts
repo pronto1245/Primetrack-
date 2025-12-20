@@ -68,6 +68,55 @@ export interface AdvertiserStatsResult {
   }>;
 }
 
+export interface PublisherStatsFilters {
+  dateFrom?: Date;
+  dateTo?: Date;
+  offerIds?: string[];
+  geo?: string[];
+  status?: string[];
+}
+
+export interface PublisherStatsResult {
+  totalClicks: number;
+  totalLeads: number;
+  totalSales: number;
+  totalConversions: number;
+  totalPayout: number;
+  holdPayout: number;
+  approvedPayout: number;
+  cr: number;
+  epc: number;
+  byOffer: Array<{
+    offerId: string;
+    offerName: string;
+    clicks: number;
+    leads: number;
+    sales: number;
+    payout: number;
+    holdPayout: number;
+    approvedPayout: number;
+    cr: number;
+    status: string;
+  }>;
+  byDate: Array<{
+    date: string;
+    clicks: number;
+    conversions: number;
+    payout: number;
+  }>;
+  byGeo: Array<{
+    geo: string;
+    clicks: number;
+    conversions: number;
+    payout: number;
+  }>;
+  byStatus: Array<{
+    status: string;
+    count: number;
+    payout: number;
+  }>;
+}
+
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
@@ -640,6 +689,252 @@ export class DatabaseStorage implements IStorage {
     }
 
     return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Publisher Statistics (NO advertiser_cost, NO antifraud data)
+  async getPublisherStats(publisherId: string, filters: PublisherStatsFilters = {}): Promise<PublisherStatsResult> {
+    // Get all clicks for this publisher
+    let allClicks = await db.select().from(clicks)
+      .where(eq(clicks.publisherId, publisherId));
+
+    // Filter by offers if specified
+    if (filters.offerIds?.length) {
+      allClicks = allClicks.filter(c => filters.offerIds!.includes(c.offerId));
+    }
+    if (filters.dateFrom) {
+      allClicks = allClicks.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+    }
+    if (filters.dateTo) {
+      allClicks = allClicks.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+    }
+    if (filters.geo?.length) {
+      allClicks = allClicks.filter(c => c.geo && filters.geo!.includes(c.geo));
+    }
+
+    // Get conversions for this publisher
+    let allConversions = await db.select().from(conversions)
+      .where(eq(conversions.publisherId, publisherId));
+
+    if (filters.offerIds?.length) {
+      allConversions = allConversions.filter(c => filters.offerIds!.includes(c.offerId));
+    }
+    if (filters.dateFrom) {
+      allConversions = allConversions.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+    }
+    if (filters.dateTo) {
+      allConversions = allConversions.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+    }
+    if (filters.status?.length) {
+      allConversions = allConversions.filter(c => filters.status!.includes(c.status));
+    }
+
+    // Calculate totals
+    const totalClicks = allClicks.length;
+    const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
+    const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
+    const totalConversions = allConversions.length;
+    const totalPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+    const holdPayout = allConversions.filter(c => c.status === 'hold' || c.status === 'pending')
+      .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+    const approvedPayout = allConversions.filter(c => c.status === 'approved')
+      .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+    const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+    const epc = totalClicks > 0 ? totalPayout / totalClicks : 0;
+
+    // Group by offer
+    const offerIds = [...new Set(allClicks.map(c => c.offerId))];
+    const byOffer = await Promise.all(offerIds.map(async (offerId) => {
+      const offer = await this.getOffer(offerId);
+      const offerClicks = allClicks.filter(c => c.offerId === offerId);
+      const offerConvs = allConversions.filter(c => c.offerId === offerId);
+      const offerPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+      const offerHoldPayout = offerConvs.filter(c => c.status === 'hold' || c.status === 'pending')
+        .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+      const offerApprovedPayout = offerConvs.filter(c => c.status === 'approved')
+        .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+      return {
+        offerId,
+        offerName: offer?.name || 'Unknown',
+        clicks: offerClicks.length,
+        leads: offerConvs.filter(c => c.conversionType === 'lead').length,
+        sales: offerConvs.filter(c => c.conversionType === 'sale').length,
+        payout: offerPayout,
+        holdPayout: offerHoldPayout,
+        approvedPayout: offerApprovedPayout,
+        cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0,
+        status: offer?.status || 'unknown'
+      };
+    }));
+
+    // Group by date
+    const dateMap = new Map<string, { clicks: number; conversions: number; payout: number }>();
+    allClicks.forEach(c => {
+      const date = new Date(c.createdAt).toISOString().split('T')[0];
+      const existing = dateMap.get(date) || { clicks: 0, conversions: 0, payout: 0 };
+      existing.clicks++;
+      dateMap.set(date, existing);
+    });
+    allConversions.forEach(c => {
+      const date = new Date(c.createdAt).toISOString().split('T')[0];
+      const existing = dateMap.get(date) || { clicks: 0, conversions: 0, payout: 0 };
+      existing.conversions++;
+      existing.payout += parseFloat(c.publisherPayout);
+      dateMap.set(date, existing);
+    });
+    const byDate = Array.from(dateMap.entries())
+      .map(([date, stats]) => ({ date, ...stats }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Group by GEO
+    const geoMap = new Map<string, { clicks: number; conversions: number; payout: number }>();
+    allClicks.forEach(c => {
+      const geo = c.geo || 'Unknown';
+      const existing = geoMap.get(geo) || { clicks: 0, conversions: 0, payout: 0 };
+      existing.clicks++;
+      geoMap.set(geo, existing);
+    });
+    allConversions.forEach(c => {
+      const click = allClicks.find(cl => cl.id === c.clickId);
+      const geo = click?.geo || 'Unknown';
+      const existing = geoMap.get(geo) || { clicks: 0, conversions: 0, payout: 0 };
+      existing.conversions++;
+      existing.payout += parseFloat(c.publisherPayout);
+      geoMap.set(geo, existing);
+    });
+    const byGeo = Array.from(geoMap.entries())
+      .map(([geo, stats]) => ({ geo, ...stats }))
+      .sort((a, b) => b.clicks - a.clicks);
+
+    // Group by status
+    const statusMap = new Map<string, { count: number; payout: number }>();
+    allConversions.forEach(c => {
+      const existing = statusMap.get(c.status) || { count: 0, payout: 0 };
+      existing.count++;
+      existing.payout += parseFloat(c.publisherPayout);
+      statusMap.set(c.status, existing);
+    });
+    const byStatus = Array.from(statusMap.entries())
+      .map(([status, stats]) => ({ status, ...stats }));
+
+    return {
+      totalClicks, totalLeads, totalSales, totalConversions,
+      totalPayout, holdPayout, approvedPayout, cr, epc,
+      byOffer, byDate, byGeo, byStatus
+    };
+  }
+
+  // Get conversions for publisher (NO advertiser_cost, NO antifraud)
+  async getConversionsForPublisher(publisherId: string, filters: PublisherStatsFilters = {}): Promise<Array<{
+    id: string;
+    clickId: string;
+    offerId: string;
+    offerName: string;
+    conversionType: string;
+    payout: number;
+    status: string;
+    createdAt: Date;
+    geo: string | null;
+    sub1: string | null;
+    sub2: string | null;
+    sub3: string | null;
+  }>> {
+    let allConversions = await db.select().from(conversions)
+      .where(eq(conversions.publisherId, publisherId))
+      .orderBy(desc(conversions.createdAt));
+
+    if (filters.offerIds?.length) {
+      allConversions = allConversions.filter(c => filters.offerIds!.includes(c.offerId));
+    }
+    if (filters.dateFrom) {
+      allConversions = allConversions.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+    }
+    if (filters.dateTo) {
+      allConversions = allConversions.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+    }
+    if (filters.status?.length) {
+      allConversions = allConversions.filter(c => filters.status!.includes(c.status));
+    }
+
+    const result = await Promise.all(allConversions.map(async (conv) => {
+      const offer = await this.getOffer(conv.offerId);
+      const click = await this.getClick(conv.clickId);
+      return {
+        id: conv.id,
+        clickId: conv.clickId,
+        offerId: conv.offerId,
+        offerName: offer?.name || 'Unknown',
+        conversionType: conv.conversionType,
+        payout: parseFloat(conv.publisherPayout),
+        status: conv.status,
+        createdAt: conv.createdAt,
+        geo: click?.geo || null,
+        sub1: click?.sub1 || null,
+        sub2: click?.sub2 || null,
+        sub3: click?.sub3 || null,
+      };
+    }));
+
+    return result;
+  }
+
+  // Get clicks for publisher (NO antifraud data)
+  async getClicksForPublisher(publisherId: string, filters: PublisherStatsFilters = {}): Promise<Array<{
+    id: string;
+    clickId: string;
+    offerId: string;
+    offerName: string;
+    geo: string | null;
+    sub1: string | null;
+    sub2: string | null;
+    sub3: string | null;
+    createdAt: Date;
+  }>> {
+    let allClicks = await db.select().from(clicks)
+      .where(eq(clicks.publisherId, publisherId))
+      .orderBy(desc(clicks.createdAt));
+
+    if (filters.offerIds?.length) {
+      allClicks = allClicks.filter(c => filters.offerIds!.includes(c.offerId));
+    }
+    if (filters.dateFrom) {
+      allClicks = allClicks.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+    }
+    if (filters.dateTo) {
+      allClicks = allClicks.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+    }
+    if (filters.geo?.length) {
+      allClicks = allClicks.filter(c => c.geo && filters.geo!.includes(c.geo));
+    }
+
+    const result = await Promise.all(allClicks.map(async (click) => {
+      const offer = await this.getOffer(click.offerId);
+      return {
+        id: click.id,
+        clickId: click.clickId,
+        offerId: click.offerId,
+        offerName: offer?.name || 'Unknown',
+        geo: click.geo,
+        sub1: click.sub1,
+        sub2: click.sub2,
+        sub3: click.sub3,
+        createdAt: click.createdAt,
+      };
+    }));
+
+    return result;
+  }
+
+  // Get offers for publisher (ones they have access to)
+  async getOffersForPublisher(publisherId: string): Promise<Array<{ id: string; name: string }>> {
+    const publisherOfferAccess = await this.getPublisherOffersByPublisher(publisherId);
+    const result: Array<{ id: string; name: string }> = [];
+    for (const po of publisherOfferAccess) {
+      const offer = await this.getOffer(po.offerId);
+      if (offer) {
+        result.push({ id: offer.id, name: offer.name });
+      }
+    }
+    return result;
   }
 }
 
