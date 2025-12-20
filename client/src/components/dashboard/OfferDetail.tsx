@@ -14,77 +14,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
 
-function TrackingLinkGenerator({ offerId, baseUrl }: { offerId: string; baseUrl: string }) {
-  const { t } = useTranslation();
-  const [subs, setSubs] = useState({ sub1: '', sub2: '', sub3: '', sub4: '', sub5: '' });
-  const [copied, setCopied] = useState(false);
-
-  const generatedUrl = useMemo(() => {
-    const params = new URLSearchParams();
-    if (subs.sub1) params.set('sub1', subs.sub1);
-    if (subs.sub2) params.set('sub2', subs.sub2);
-    if (subs.sub3) params.set('sub3', subs.sub3);
-    if (subs.sub4) params.set('sub4', subs.sub4);
-    if (subs.sub5) params.set('sub5', subs.sub5);
-    const paramStr = params.toString();
-    return paramStr ? `${baseUrl}&${paramStr}` : baseUrl;
-  }, [baseUrl, subs]);
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(generatedUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <Card className="bg-[#0A0A0A] border-white/10">
-      <CardContent className="p-6">
-        <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
-          <Link2 className="w-4 h-4" />
-          {t('tracking.generator') || 'Link Generator'}
-        </h3>
-        
-        <div className="space-y-3 mb-4">
-          {(['sub1', 'sub2', 'sub3', 'sub4', 'sub5'] as const).map((key) => (
-            <div key={key}>
-              <Label className="text-xs text-slate-500 uppercase">{key}</Label>
-              <Input
-                placeholder={`{${key}}`}
-                value={subs[key]}
-                onChange={(e) => setSubs(prev => ({ ...prev, [key]: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white text-sm h-8"
-                data-testid={`input-${key}`}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-white/5 rounded p-3 mb-3">
-          <code className="text-xs text-emerald-400 break-all" data-testid="text-generated-url">{generatedUrl}</code>
-        </div>
-
-        <Button
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold"
-          onClick={copyLink}
-          data-testid="button-copy-generated"
-        >
-          {copied ? (
-            <>
-              <CheckCircle className="w-4 h-4 mr-2" />
-              {t('common.copied') || 'Copied!'}
-            </>
-          ) : (
-            <>
-              <Copy className="w-4 h-4 mr-2" />
-              {t('tracking.copyLink') || 'Copy Affiliate Link'}
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 interface OfferLanding {
   id: string;
   geo: string;
@@ -678,40 +607,6 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
             </Card>
           )}
 
-          {canSeeLinks && (
-            <Card className="bg-[#0A0A0A] border-white/10">
-              <CardContent className="p-6">
-                <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
-                  <Link2 className="w-4 h-4" />
-                  Tracking URL
-                </h3>
-                <div className="bg-white/5 rounded-lg p-3 mb-3 border border-white/10">
-                  <code className="text-xs text-emerald-400 break-all" data-testid="text-tracking-url">{offer.trackingUrl}</code>
-                </div>
-                <Button
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
-                  onClick={() => copyToClipboard(offer.trackingUrl, 'tracking')}
-                  data-testid="button-copy-tracking"
-                >
-                  {copiedUrl === 'tracking' ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Скопировано!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Копировать URL
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {isPublisher && hasAccess && (
-            <TrackingLinkGenerator offerId={offer.id} baseUrl={offer.trackingUrl} />
-          )}
         </div>
       </div>
     </div>
