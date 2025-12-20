@@ -188,8 +188,6 @@ export function Reports({ role }: ReportsProps) {
         </CardContent>
       </Card>
 
-      <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} />
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-[#0A0A0A] border border-white/10">
           <TabsTrigger value="clicks" className="data-[state=active]:bg-white/10" data-testid="tab-clicks">
@@ -206,7 +204,8 @@ export function Reports({ role }: ReportsProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="clicks" className="mt-0">
+        <TabsContent value="clicks" className="mt-0 space-y-4">
+          <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} />
           <ClicksTable 
             data={clicksData} 
             loading={clicksLoading} 
@@ -217,7 +216,8 @@ export function Reports({ role }: ReportsProps) {
           />
         </TabsContent>
 
-        <TabsContent value="conversions" className="mt-0">
+        <TabsContent value="conversions" className="mt-0 space-y-4">
+          <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} />
           <ConversionsTable 
             data={conversionsData} 
             loading={conversionsLoading} 
@@ -367,11 +367,7 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                 <th className="px-4 py-3 font-medium">{t('reports.table.offer') || 'Offer'}</th>
                 {role !== "publisher" && <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>}
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
-                <th className="px-4 py-3 font-medium">{t('reports.table.device') || 'Device'}</th>
-                <th className="px-4 py-3 font-medium">{t('reports.table.os') || 'OS'}</th>
-                <th className="px-4 py-3 font-medium">{t('reports.table.browser') || 'Browser'}</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
-                <th className="px-4 py-3 font-medium text-center">{t('reports.table.geoMatch') || 'GEO Match'}</th>
                 <th className="px-4 py-3 font-medium">Sub1</th>
                 <th className="px-4 py-3 font-medium">Sub2</th>
                 <th className="px-4 py-3 font-medium">Sub3</th>
@@ -382,7 +378,7 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
             <tbody className="divide-y divide-white/5">
               {clicks.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={11} className="px-4 py-8 text-center text-slate-500">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -402,21 +398,11 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                         {click.geo || 'N/A'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{click.device || 'N/A'}</td>
-                    <td className="px-4 py-3 text-slate-400">{click.os || 'N/A'}</td>
-                    <td className="px-4 py-3 text-slate-400">{click.browser || 'N/A'}</td>
                     <td className="px-4 py-3 text-center">
                       {click.isUnique ? (
                         <span className="text-emerald-500">✓</span>
                       ) : (
                         <span className="text-slate-600">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {click.isGeoMatch ? (
-                        <span className="text-emerald-500">✓</span>
-                      ) : (
-                        <span className="text-red-500">✗</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-slate-500">{click.sub1 || '-'}</td>
