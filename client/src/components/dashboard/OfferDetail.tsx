@@ -15,8 +15,12 @@ import { Link } from "wouter";
 import { useState, useMemo } from "react";
 
 function getCountryFlag(code: string): string {
-  const codePoints = code
-    .toUpperCase()
+  const codeMap: Record<string, string> = {
+    'UK': 'GB',
+    'EN': 'GB',
+  };
+  const mappedCode = codeMap[code.toUpperCase()] || code.toUpperCase();
+  const codePoints = mappedCode
     .split('')
     .map(char => 127397 + char.charCodeAt(0));
   return String.fromCodePoint(...codePoints);
