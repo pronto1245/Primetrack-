@@ -212,6 +212,7 @@ export function Reports({ role }: ReportsProps) {
             page={page} 
             setPage={setPage}
             role={role}
+            groupedData={groupedData}
             t={t}
           />
         </TabsContent>
@@ -342,7 +343,7 @@ function SummaryCards({ data, loading, role, t }: any) {
   );
 }
 
-function ClicksTable({ data, loading, page, setPage, role, t }: any) {
+function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -354,6 +355,26 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
   const clicks = data?.clicks || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / 50);
+  
+  const isAdvertiser = role === "advertiser" || role === "admin";
+  const isPublisher = role === "publisher";
+  
+  const rows = groupedData?.rows || [];
+  const totals = rows.reduce((acc: any, row: any) => ({
+    clicks: acc.clicks + (row.clicks || 0),
+    uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
+    conversions: acc.conversions + (row.conversions || 0),
+    leads: acc.leads + (row.leads || 0),
+    sales: acc.sales + (row.sales || 0),
+    payout: acc.payout + (row.payout || 0),
+    cost: acc.cost + (row.cost || 0),
+  }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+  
+  const cr = totals.clicks > 0 ? (totals.conversions / totals.clicks * 100) : 0;
+  const margin = totals.cost - totals.payout;
+  const roi = totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0;
+
+  const colSpan = role !== "publisher" ? 16 : 15;
 
   return (
     <Card className="bg-[#0A0A0A] border-white/10">
@@ -368,6 +389,15 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                 {role !== "publisher" && <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>}
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
+                <th className="px-4 py-3 font-medium text-right">CR%</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
+                {isAdvertiser && (
+                  <>
+                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
+                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
+                    <th className="px-4 py-3 font-medium text-right">ROI%</th>
+                  </>
+                )}
                 <th className="px-4 py-3 font-medium">Sub1</th>
                 <th className="px-4 py-3 font-medium">Sub2</th>
                 <th className="px-4 py-3 font-medium">Sub3</th>
@@ -378,7 +408,7 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
             <tbody className="divide-y divide-white/5">
               {clicks.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={colSpan} className="px-4 py-8 text-center text-slate-500">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -405,6 +435,15 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                         <span className="text-slate-600">-</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-right text-slate-600">-</td>
+                    <td className="px-4 py-3 text-right text-slate-600">-</td>
+                    {isAdvertiser && (
+                      <>
+                        <td className="px-4 py-3 text-right text-slate-600">-</td>
+                        <td className="px-4 py-3 text-right text-slate-600">-</td>
+                        <td className="px-4 py-3 text-right text-slate-600">-</td>
+                      </>
+                    )}
                     <td className="px-4 py-3 text-slate-500">{click.sub1 || '-'}</td>
                     <td className="px-4 py-3 text-slate-500">{click.sub2 || '-'}</td>
                     <td className="px-4 py-3 text-slate-500">{click.sub3 || '-'}</td>
@@ -414,6 +453,27 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                 ))
               )}
             </tbody>
+            <tfoot>
+              <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
+                <td colSpan={6} className="px-4 py-3 text-slate-300 uppercase text-[10px]">
+                  {t('reports.total') || 'Total'}
+                </td>
+                <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>
+                <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
+                {isAdvertiser && (
+                  <>
+                    <td className="px-4 py-3 text-right text-red-400">${totals.cost.toFixed(2)}</td>
+                    <td className={`px-4 py-3 text-right ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      ${margin.toFixed(2)}
+                    </td>
+                    <td className={`px-4 py-3 text-right ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {roi.toFixed(1)}%
+                    </td>
+                  </>
+                )}
+                <td colSpan={5} className="px-4 py-3"></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
         
