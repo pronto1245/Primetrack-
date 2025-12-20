@@ -346,10 +346,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
           </Card>
 
           {role === 'publisher' && (
-            <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3" data-testid="button-get-link">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              GET AFFILIATE LINK
-            </Button>
+            <TrackingLinkGenerator offerId={offer.id} baseUrl={offer.trackingUrl} />
           )}
         </div>
       </div>
