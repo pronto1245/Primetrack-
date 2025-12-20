@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, Globe, DollarSign, Tag, ExternalLink, Copy, 
   Smartphone, Monitor, Share2, FileText, Link2, CheckCircle,
-  Lock, Clock, Send, AlertCircle
+  Lock, Clock, Send, AlertCircle, ChevronDown, ChevronRight
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -79,6 +80,148 @@ function TrackingLinkGenerator({ offerId, baseUrl }: { offerId: string; baseUrl:
             </>
           )}
         </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface OfferLanding {
+  id: string;
+  geo: string;
+  landingName: string | null;
+  landingUrl: string;
+  partnerPayout: string;
+  currency: string;
+}
+
+function LandingsGroupedByGeo({ 
+  landings, 
+  copiedUrl, 
+  copyToClipboard 
+}: { 
+  landings: OfferLanding[]; 
+  copiedUrl: string | null; 
+  copyToClipboard: (url: string, id: string) => void;
+}) {
+  const [openGeos, setOpenGeos] = useState<Set<string>>(new Set());
+
+  const groupedByGeo = useMemo(() => {
+    const groups: Record<string, OfferLanding[]> = {};
+    landings.forEach(landing => {
+      if (!groups[landing.geo]) {
+        groups[landing.geo] = [];
+      }
+      groups[landing.geo].push(landing);
+    });
+    return Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+  }, [landings]);
+
+  const toggleGeo = (geo: string) => {
+    setOpenGeos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(geo)) {
+        newSet.delete(geo);
+      } else {
+        newSet.add(geo);
+      }
+      return newSet;
+    });
+  };
+
+  const getPayoutRange = (geoLandings: OfferLanding[]) => {
+    const payouts = geoLandings.map(l => parseFloat(l.partnerPayout));
+    const min = Math.min(...payouts);
+    const max = Math.max(...payouts);
+    const currency = geoLandings[0]?.currency === 'USD' ? '$' : geoLandings[0]?.currency || '';
+    if (min === max) {
+      return `${currency}${min}`;
+    }
+    return `${currency}${min} - ${currency}${max}`;
+  };
+
+  const totalGeos = groupedByGeo.length;
+
+  return (
+    <Card className="bg-[#0A0A0A] border-white/10">
+      <CardContent className="p-6">
+        <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
+          <Globe className="w-4 h-4" />
+          ГЕО / Лендинги ({landings.length} лендингов в {totalGeos} GEO)
+        </h3>
+        <div className="space-y-2">
+          {groupedByGeo.map(([geo, geoLandings]) => (
+            <Collapsible 
+              key={geo} 
+              open={openGeos.has(geo)}
+              onOpenChange={() => toggleGeo(geo)}
+            >
+              <CollapsibleTrigger asChild>
+                <div 
+                  className="w-full bg-white/5 hover:bg-white/10 rounded-xl p-4 flex items-center justify-between border border-white/5 hover:border-white/10 transition-all cursor-pointer"
+                  data-testid={`geo-group-${geo}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center border border-blue-500/20">
+                      <span className="text-sm font-bold text-blue-400">{geo}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white">
+                        {geo} <span className="text-slate-500">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
+                      </div>
+                      <div className="text-xs text-emerald-400 font-medium">
+                        {getPayoutRange(geoLandings)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {openGeos.has(geo) ? (
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-slate-400" />
+                    )}
+                  </div>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="ml-4 mt-2 space-y-2 border-l-2 border-blue-500/20 pl-4">
+                  {geoLandings.map((landing, index) => (
+                    <div 
+                      key={landing.id} 
+                      className="bg-white/[0.03] rounded-lg p-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+                      data-testid={`landing-row-${geo}-${index}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">
+                          {landing.landingName || `Landing ${index + 1}`}
+                        </div>
+                        <div className="text-xs text-slate-500 truncate">{landing.landingUrl}</div>
+                      </div>
+                      <div className="flex items-center gap-3 ml-4">
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-emerald-400">
+                            {landing.currency === 'USD' ? '$' : landing.currency}{landing.partnerPayout}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-slate-400 hover:text-white h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(landing.landingUrl, landing.id);
+                          }}
+                          data-testid={`button-copy-landing-${geo}-${index}`}
+                        >
+                          {copiedUrl === landing.id ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
@@ -398,48 +541,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
           </Card>
 
           {canSeeLinks && offer.landings && offer.landings.length > 0 && (
-            <Card className="bg-[#0A0A0A] border-white/10">
-              <CardContent className="p-6">
-                <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
-                  <Globe className="w-4 h-4" />
-                  ГЕО / Лендинги ({offer.landings.length})
-                </h3>
-                <div className="space-y-3">
-                  {offer.landings.map((landing, index) => (
-                    <div key={landing.id} className="bg-white/5 rounded-xl p-4 flex items-center justify-between border border-white/5 hover:border-white/10 transition-colors" data-testid={`landing-row-${index}`}>
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center border border-blue-500/20">
-                          <span className="text-sm font-bold text-blue-400">{landing.geo}</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-white mb-1">
-                            {landing.landingName || `Landing ${landing.geo}`}
-                          </div>
-                          <div className="text-xs text-slate-500 truncate max-w-[300px]">{landing.landingUrl}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-emerald-400">
-                            {landing.currency === 'USD' ? '$' : landing.currency}{landing.partnerPayout}
-                          </div>
-                          <div className="text-[10px] text-slate-500 uppercase">Выплата</div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-slate-400 hover:text-white h-8 w-8 p-0"
-                          onClick={() => copyToClipboard(landing.landingUrl, landing.id)}
-                          data-testid={`button-copy-landing-${index}`}
-                        >
-                          {copiedUrl === landing.id ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} />
           )}
 
           {!canSeeLinks && (
