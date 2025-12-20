@@ -27,6 +27,9 @@ export const offers = pgTable("offers", {
   description: text("description").notNull(),
   logoUrl: text("logo_url"),
   
+  // Tracking & Postbacks
+  trackingUrl: text("tracking_url").notNull().default(""),
+  
   // Pricing (per-landing prices are the source of truth)
   partnerPayout: numeric("partner_payout", { precision: 10, scale: 2 }),
   internalCost: numeric("internal_cost", { precision: 10, scale: 2 }),
