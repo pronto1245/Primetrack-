@@ -68,6 +68,15 @@ A global partner account can connect to multiple advertisers, with a context swi
 
 Advertisers can use their own domains, logos, colors, and branding, ensuring partners see the advertiser's brand, not the platform's. Automatic SSL is supported.
 
+**Кастомный домен для рекламодателя:**
+- Рекламодатель может привязать свой домен (например: tracking.mybrand.com)
+- Все трекинг-ссылки будут генерироваться с этого домена
+- Партнёры видят бренд рекламодателя, а не платформы
+- Автоматический SSL через Let's Encrypt
+- Настройки: домен, логотип, цвета, название компании
+
+**Таблица:** `advertiser_settings` - custom_domain, logo_url, brand_name, primary_color, etc.
+
 ### Anti-Fraud Mechanisms (ТОЛЬКО ДЛЯ ADVERTISER И ADMIN)
 
 **ВАЖНО: Партнёр (Publisher) НЕ имеет доступа к антифрод-данным!**
