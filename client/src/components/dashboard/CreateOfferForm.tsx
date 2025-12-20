@@ -586,7 +586,7 @@ export function CreateOfferForm({ role }: { role: string }) {
             <Button 
               className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-mono"
               onClick={handleSubmit}
-              disabled={loading || !formData.name || !formData.description || !formData.trackingUrl}
+              disabled={loading || !formData.name || !formData.description || !formData.trackingUrl || !landings.some(l => l.geo && l.landingUrl && l.partnerPayout)}
               data-testid="button-publish-offer"
             >
               <Save className="w-4 h-4 mr-2" />
