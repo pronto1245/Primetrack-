@@ -119,7 +119,7 @@ const resources = {
         menu: {
           overview: "Overview",
           reports: "Reports",
-          links: "Links",
+          links: "Offers",
           finance: "Finance",
           settings: "Settings",
           logout: "DISCONNECT",
@@ -352,7 +352,7 @@ const resources = {
         menu: {
           overview: "Обзор",
           reports: "Отчеты",
-          links: "Ссылки",
+          links: "Офферы",
           finance: "Финансы",
           settings: "Настройки",
           logout: "ОТКЛЮЧИТЬСЯ",
