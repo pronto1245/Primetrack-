@@ -3,7 +3,9 @@ import {
   type Offer, type InsertOffer, offers,
   type OfferLanding, type InsertOfferLanding, offerLandings,
   type Click, type InsertClick, clicks,
-  type Conversion, type InsertConversion, conversions
+  type Conversion, type InsertConversion, conversions,
+  type PostbackLog, type InsertPostbackLog, postbackLogs,
+  type AdvertiserSettings, type InsertAdvertiserSettings, advertiserSettings
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc } from "drizzle-orm";
@@ -41,6 +43,15 @@ export interface IStorage {
   getConversionsByPublisher(publisherId: string): Promise<Conversion[]>;
   createConversion(conversion: InsertConversion): Promise<Conversion>;
   updateConversionStatus(id: string, status: string): Promise<Conversion | undefined>;
+  
+  // Postback Logs
+  getPostbackLogsByConversion(conversionId: string): Promise<PostbackLog[]>;
+  createPostbackLog(log: InsertPostbackLog): Promise<PostbackLog>;
+  
+  // Advertiser Settings
+  getAdvertiserSettings(advertiserId: string): Promise<AdvertiserSettings | undefined>;
+  createAdvertiserSettings(settings: InsertAdvertiserSettings): Promise<AdvertiserSettings>;
+  updateAdvertiserSettings(advertiserId: string, settings: Partial<InsertAdvertiserSettings>): Promise<AdvertiserSettings | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -175,6 +186,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversions.id, id))
       .returning();
     return conversion;
+  }
+
+  // Postback Logs
+  async getPostbackLogsByConversion(conversionId: string): Promise<PostbackLog[]> {
+    return db.select().from(postbackLogs)
+      .where(eq(postbackLogs.conversionId, conversionId))
+      .orderBy(desc(postbackLogs.createdAt));
+  }
+
+  async createPostbackLog(log: InsertPostbackLog): Promise<PostbackLog> {
+    const [result] = await db.insert(postbackLogs).values(log).returning();
+    return result;
+  }
+
+  // Advertiser Settings
+  async getAdvertiserSettings(advertiserId: string): Promise<AdvertiserSettings | undefined> {
+    const [settings] = await db.select().from(advertiserSettings)
+      .where(eq(advertiserSettings.advertiserId, advertiserId));
+    return settings;
+  }
+
+  async createAdvertiserSettings(settings: InsertAdvertiserSettings): Promise<AdvertiserSettings> {
+    const [result] = await db.insert(advertiserSettings).values(settings).returning();
+    return result;
+  }
+
+  async updateAdvertiserSettings(advertiserId: string, data: Partial<InsertAdvertiserSettings>): Promise<AdvertiserSettings | undefined> {
+    const [result] = await db.update(advertiserSettings)
+      .set(data)
+      .where(eq(advertiserSettings.advertiserId, advertiserId))
+      .returning();
+    return result;
   }
 }
 

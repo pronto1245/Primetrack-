@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import type { InsertConversion } from "@shared/schema";
+import { postbackSender } from "./postback-sender";
 
 interface ConversionEvent {
   clickId: string;
@@ -62,6 +63,10 @@ export class Orchestrator {
     };
     
     const conversion = await storage.createConversion(conversionData);
+    
+    postbackSender.sendPostback(conversion.id).catch((error) => {
+      console.error(`[Orchestrator] Postback send failed for conversion ${conversion.id}:`, error);
+    });
     
     return {
       id: conversion.id,
