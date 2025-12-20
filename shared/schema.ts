@@ -138,8 +138,14 @@ export const clicks = pgTable("clicks", {
   // Tracking data
   ip: text("ip"),
   userAgent: text("user_agent"),
-  geo: text("geo"),
+  geo: text("geo"), // Country code (RU, US, etc.)
+  city: text("city"), // City name
   referer: text("referer"),
+  
+  // Device info (parsed from User-Agent)
+  device: text("device"), // mobile, desktop, tablet
+  os: text("os"), // Windows, iOS, Android, MacOS, Linux
+  browser: text("browser"), // Chrome, Safari, Firefox, Edge
   
   // Sub-IDs for partner tracking
   sub1: text("sub1"),
@@ -148,7 +154,12 @@ export const clicks = pgTable("clicks", {
   sub4: text("sub4"),
   sub5: text("sub5"),
   
-  // Anti-fraud data
+  // Click quality flags
+  isUnique: boolean("is_unique").default(true), // First click from this IP+offer+publisher today
+  isGeoMatch: boolean("is_geo_match").default(true), // GEO matches offer allowed GEOs
+  isBot: boolean("is_bot").default(false), // Detected as bot traffic
+  
+  // Anti-fraud data (visible only to advertiser/admin)
   fingerprint: text("fingerprint"),
   isProxy: boolean("is_proxy").default(false),
   isVpn: boolean("is_vpn").default(false),

@@ -25,6 +25,13 @@ interface ClickResult {
   capRedirectUrl?: string;
 }
 
+interface ParsedUA {
+  device: string;
+  os: string;
+  browser: string;
+  isBot: boolean;
+}
+
 export class ClickHandler {
   async processClick(params: ClickParams): Promise<ClickResult> {
     const clickId = this.generateClickId();
@@ -53,7 +60,6 @@ export class ClickHandler {
           capRedirectUrl: offer.capRedirectUrl
         };
       } else {
-        // Return blocked result instead of throwing
         return {
           clickId,
           redirectUrl: "",
@@ -71,6 +77,15 @@ export class ClickHandler {
       throw new Error("No landing available for this geo");
     }
     
+    // Parse User-Agent for device/os/browser/bot detection
+    const parsedUA = this.parseUserAgent(params.userAgent);
+    
+    // Check if GEO matches offer allowed GEOs
+    const isGeoMatch = this.checkGeoMatch(params.geo, offer.geo);
+    
+    // Check if this click is unique (first from this IP+offer+publisher today)
+    const isUnique = await this.checkUniqueness(params.ip, params.offerId, params.partnerId);
+    
     const fraudCheck = this.performBasicFraudCheck(params.ip, params.userAgent);
     
     const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params);
@@ -83,12 +98,19 @@ export class ClickHandler {
       ip: params.ip,
       userAgent: params.userAgent,
       geo: params.geo,
+      city: undefined, // Would require IP geolocation service
       referer: params.referer,
+      device: parsedUA.device,
+      os: parsedUA.os,
+      browser: parsedUA.browser,
       sub1: params.sub1,
       sub2: params.sub2,
       sub3: params.sub3,
       sub4: params.sub4,
       sub5: params.sub5,
+      isUnique,
+      isGeoMatch,
+      isBot: parsedUA.isBot,
       fraudScore: fraudCheck.score,
       isProxy: fraudCheck.isProxy,
       isVpn: fraudCheck.isVpn,
@@ -107,6 +129,88 @@ export class ClickHandler {
   
   private generateClickId(): string {
     return crypto.randomUUID();
+  }
+  
+  private parseUserAgent(userAgent?: string): ParsedUA {
+    if (!userAgent) {
+      return { device: "unknown", os: "unknown", browser: "unknown", isBot: false };
+    }
+    
+    const ua = userAgent.toLowerCase();
+    
+    // Detect device type
+    let device = "desktop";
+    if (/mobile|android.*mobile|iphone|ipod|blackberry|opera mini|iemobile/i.test(ua)) {
+      device = "mobile";
+    } else if (/tablet|ipad|android(?!.*mobile)/i.test(ua)) {
+      device = "tablet";
+    }
+    
+    // Detect OS
+    let os = "unknown";
+    if (/windows nt|windows/i.test(ua)) {
+      os = "Windows";
+    } else if (/iphone|ipad|ipod/i.test(ua)) {
+      os = "iOS";
+    } else if (/mac os x|macintosh/i.test(ua)) {
+      os = "MacOS";
+    } else if (/android/i.test(ua)) {
+      os = "Android";
+    } else if (/linux/i.test(ua)) {
+      os = "Linux";
+    } else if (/cros/i.test(ua)) {
+      os = "ChromeOS";
+    }
+    
+    // Detect browser
+    let browser = "unknown";
+    if (/edg\//i.test(ua)) {
+      browser = "Edge";
+    } else if (/chrome|crios/i.test(ua) && !/edg\//i.test(ua)) {
+      browser = "Chrome";
+    } else if (/safari/i.test(ua) && !/chrome|crios/i.test(ua)) {
+      browser = "Safari";
+    } else if (/firefox|fxios/i.test(ua)) {
+      browser = "Firefox";
+    } else if (/opera|opr\//i.test(ua)) {
+      browser = "Opera";
+    } else if (/msie|trident/i.test(ua)) {
+      browser = "IE";
+    }
+    
+    // Detect bot
+    const botPatterns = [
+      "bot", "crawler", "spider", "scraper", "curl", "wget",
+      "python", "java", "php", "perl", "ruby", "go-http",
+      "googlebot", "bingbot", "yandexbot", "baiduspider",
+      "facebookexternalhit", "twitterbot", "linkedinbot",
+      "slurp", "duckduckbot", "semrushbot", "ahrefsbot"
+    ];
+    const isBot = botPatterns.some(pattern => ua.includes(pattern));
+    
+    return { device, os, browser, isBot };
+  }
+  
+  private checkGeoMatch(clickGeo?: string, offerGeos?: string[]): boolean {
+    if (!offerGeos || offerGeos.length === 0) {
+      return true; // No GEO restrictions = all GEOs allowed
+    }
+    if (!clickGeo) {
+      return false; // Unknown GEO when GEO restrictions exist
+    }
+    
+    const normalizedClickGeo = clickGeo.toUpperCase();
+    return offerGeos.some(geo => geo.toUpperCase() === normalizedClickGeo);
+  }
+  
+  private async checkUniqueness(ip?: string, offerId?: string, publisherId?: string): Promise<boolean> {
+    if (!ip || !offerId || !publisherId) {
+      return true;
+    }
+    
+    // Check if there's already a click from this IP for this offer+publisher today
+    const existingClick = await storage.findClickByIpOfferPublisherToday(ip, offerId, publisherId);
+    return !existingClick;
   }
   
   private selectLanding(landings: any[], geo?: string) {

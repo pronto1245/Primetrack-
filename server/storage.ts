@@ -148,6 +148,7 @@ export interface IStorage {
   getClicksByOffer(offerId: string): Promise<Click[]>;
   getClicksByPublisher(publisherId: string): Promise<Click[]>;
   createClick(click: InsertClick): Promise<Click>;
+  findClickByIpOfferPublisherToday(ip: string, offerId: string, publisherId: string): Promise<Click | undefined>;
   
   // Conversions
   getConversion(id: string): Promise<Conversion | undefined>;
@@ -190,6 +191,11 @@ export interface IStorage {
   incrementOfferCapsStats(offerId: string): Promise<OfferCapsStats>;
   decrementOfferCapsStats(offerId: string, conversionDate?: Date): Promise<void>;
   checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }>;
+  
+  // Reports
+  getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number }>;
+  getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: Conversion[]; total: number; page: number; limit: number }>;
+  getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,6 +311,22 @@ export class DatabaseStorage implements IStorage {
 
   async createClick(insertClick: InsertClick): Promise<Click> {
     const [click] = await db.insert(clicks).values(insertClick).returning();
+    return click;
+  }
+
+  async findClickByIpOfferPublisherToday(ip: string, offerId: string, publisherId: string): Promise<Click | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const [click] = await db.select().from(clicks)
+      .where(and(
+        eq(clicks.ip, ip),
+        eq(clicks.offerId, offerId),
+        eq(clicks.publisherId, publisherId),
+        gte(clicks.createdAt, today)
+      ))
+      .limit(1);
+    
     return click;
   }
 
@@ -666,7 +688,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     const publishers: User[] = [];
-    for (const id of publisherIds) {
+    for (const id of Array.from(publisherIds)) {
       const user = await this.getUser(id);
       if (user) publishers.push(user);
     }
@@ -825,7 +847,7 @@ export class DatabaseStorage implements IStorage {
     const epc = totalClicks > 0 ? totalPayout / totalClicks : 0;
 
     // Group by offer
-    const offerIds = [...new Set(allClicks.map(c => c.offerId))];
+    const offerIds = Array.from(new Set(allClicks.map(c => c.offerId)));
     const byOffer = await Promise.all(offerIds.map(async (offerId) => {
       const offer = await this.getOffer(offerId);
       const offerClicks = allClicks.filter(c => c.offerId === offerId);
@@ -1264,6 +1286,246 @@ export class DatabaseStorage implements IStorage {
       totalClicks: allClicks.length,
       totalConversions: allConversions.length
     };
+  }
+
+  // ============================================
+  // REPORTS - Centralized statistics (primary source of truth)
+  // ============================================
+  
+  async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: Click[]; total: number; page: number; limit: number }> {
+    let query = db.select().from(clicks);
+    const conditions: any[] = [];
+    
+    if (filters.publisherId) conditions.push(eq(clicks.publisherId, filters.publisherId));
+    if (filters.offerId) conditions.push(eq(clicks.offerId, filters.offerId));
+    if (filters.offerIds?.length) conditions.push(inArray(clicks.offerId, filters.offerIds));
+    if (filters.dateFrom) conditions.push(gte(clicks.createdAt, filters.dateFrom));
+    if (filters.dateTo) conditions.push(lte(clicks.createdAt, filters.dateTo));
+    if (filters.geo) conditions.push(eq(clicks.geo, filters.geo));
+    if (filters.device) conditions.push(eq(clicks.device, filters.device));
+    if (filters.os) conditions.push(eq(clicks.os, filters.os));
+    if (filters.browser) conditions.push(eq(clicks.browser, filters.browser));
+    if (filters.isUnique !== undefined) conditions.push(eq(clicks.isUnique, filters.isUnique));
+    if (filters.isGeoMatch !== undefined) conditions.push(eq(clicks.isGeoMatch, filters.isGeoMatch));
+    if (filters.isBot !== undefined) conditions.push(eq(clicks.isBot, filters.isBot));
+    if (filters.sub1) conditions.push(eq(clicks.sub1, filters.sub1));
+    if (filters.sub2) conditions.push(eq(clicks.sub2, filters.sub2));
+    if (filters.sub3) conditions.push(eq(clicks.sub3, filters.sub3));
+    if (filters.sub4) conditions.push(eq(clicks.sub4, filters.sub4));
+    if (filters.sub5) conditions.push(eq(clicks.sub5, filters.sub5));
+    
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const allClicks = whereCondition 
+      ? await db.select().from(clicks).where(whereCondition).orderBy(desc(clicks.createdAt))
+      : await db.select().from(clicks).orderBy(desc(clicks.createdAt));
+    
+    const total = allClicks.length;
+    const offset = (page - 1) * limit;
+    const paginatedClicks = allClicks.slice(offset, offset + limit);
+    
+    return { clicks: paginatedClicks, total, page, limit };
+  }
+
+  async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: Conversion[]; total: number; page: number; limit: number }> {
+    const conditions: any[] = [];
+    
+    if (filters.publisherId) conditions.push(eq(conversions.publisherId, filters.publisherId));
+    if (filters.offerId) conditions.push(eq(conversions.offerId, filters.offerId));
+    if (filters.offerIds?.length) conditions.push(inArray(conversions.offerId, filters.offerIds));
+    if (filters.dateFrom) conditions.push(gte(conversions.createdAt, filters.dateFrom));
+    if (filters.dateTo) conditions.push(lte(conversions.createdAt, filters.dateTo));
+    if (filters.status) conditions.push(eq(conversions.status, filters.status));
+    if (filters.conversionType) conditions.push(eq(conversions.conversionType, filters.conversionType));
+    
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const allConversions = whereCondition 
+      ? await db.select().from(conversions).where(whereCondition).orderBy(desc(conversions.createdAt))
+      : await db.select().from(conversions).orderBy(desc(conversions.createdAt));
+    
+    const total = allConversions.length;
+    const offset = (page - 1) * limit;
+    const paginatedConversions = allConversions.slice(offset, offset + limit);
+    
+    return { conversions: paginatedConversions, total, page, limit };
+  }
+
+  async getGroupedReport(filters: any, groupBy: string, role: string): Promise<any> {
+    // Get all clicks and conversions matching filters
+    const clickConditions: any[] = [];
+    const convConditions: any[] = [];
+    
+    if (filters.publisherId) {
+      clickConditions.push(eq(clicks.publisherId, filters.publisherId));
+      convConditions.push(eq(conversions.publisherId, filters.publisherId));
+    }
+    if (filters.offerId) {
+      clickConditions.push(eq(clicks.offerId, filters.offerId));
+      convConditions.push(eq(conversions.offerId, filters.offerId));
+    }
+    if (filters.offerIds?.length) {
+      clickConditions.push(inArray(clicks.offerId, filters.offerIds));
+      convConditions.push(inArray(conversions.offerId, filters.offerIds));
+    }
+    if (filters.dateFrom) {
+      clickConditions.push(gte(clicks.createdAt, filters.dateFrom));
+      convConditions.push(gte(conversions.createdAt, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      clickConditions.push(lte(clicks.createdAt, filters.dateTo));
+      convConditions.push(lte(conversions.createdAt, filters.dateTo));
+    }
+    
+    const clickWhere = clickConditions.length > 0 ? and(...clickConditions) : undefined;
+    const convWhere = convConditions.length > 0 ? and(...convConditions) : undefined;
+    
+    const allClicks = clickWhere 
+      ? await db.select().from(clicks).where(clickWhere)
+      : await db.select().from(clicks);
+    
+    const allConversions = convWhere 
+      ? await db.select().from(conversions).where(convWhere)
+      : await db.select().from(conversions);
+    
+    // Group data
+    const grouped: Record<string, { 
+      clicks: number; 
+      uniqueClicks: number;
+      leads: number; 
+      sales: number; 
+      conversions: number;
+      payout: number;
+      cost: number;
+      cr: number;
+    }> = {};
+    
+    for (const click of allClicks) {
+      let key: string;
+      switch (groupBy) {
+        case "date":
+          key = click.createdAt.toISOString().split("T")[0];
+          break;
+        case "geo":
+          key = click.geo || "unknown";
+          break;
+        case "publisher":
+          key = click.publisherId;
+          break;
+        case "offer":
+          key = click.offerId;
+          break;
+        case "device":
+          key = click.device || "unknown";
+          break;
+        case "os":
+          key = click.os || "unknown";
+          break;
+        case "browser":
+          key = click.browser || "unknown";
+          break;
+        case "sub1":
+          key = click.sub1 || "empty";
+          break;
+        case "sub2":
+          key = click.sub2 || "empty";
+          break;
+        case "sub3":
+          key = click.sub3 || "empty";
+          break;
+        case "sub4":
+          key = click.sub4 || "empty";
+          break;
+        case "sub5":
+          key = click.sub5 || "empty";
+          break;
+        default:
+          key = click.createdAt.toISOString().split("T")[0];
+      }
+      
+      if (!grouped[key]) {
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, cr: 0 };
+      }
+      grouped[key].clicks++;
+      if (click.isUnique) grouped[key].uniqueClicks++;
+    }
+    
+    for (const conv of allConversions) {
+      let key: string;
+      const click = allClicks.find(c => c.id === conv.clickId);
+      
+      switch (groupBy) {
+        case "date":
+          key = conv.createdAt.toISOString().split("T")[0];
+          break;
+        case "geo":
+          key = click?.geo || "unknown";
+          break;
+        case "publisher":
+          key = conv.publisherId;
+          break;
+        case "offer":
+          key = conv.offerId;
+          break;
+        case "device":
+          key = click?.device || "unknown";
+          break;
+        case "os":
+          key = click?.os || "unknown";
+          break;
+        case "browser":
+          key = click?.browser || "unknown";
+          break;
+        case "sub1":
+          key = click?.sub1 || "empty";
+          break;
+        case "sub2":
+          key = click?.sub2 || "empty";
+          break;
+        case "sub3":
+          key = click?.sub3 || "empty";
+          break;
+        case "sub4":
+          key = click?.sub4 || "empty";
+          break;
+        case "sub5":
+          key = click?.sub5 || "empty";
+          break;
+        default:
+          key = conv.createdAt.toISOString().split("T")[0];
+      }
+      
+      if (!grouped[key]) {
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, cr: 0 };
+      }
+      
+      grouped[key].conversions++;
+      if (conv.conversionType === "lead") grouped[key].leads++;
+      if (conv.conversionType === "sale") grouped[key].sales++;
+      grouped[key].payout += parseFloat(conv.publisherPayout);
+      if (role !== "publisher") {
+        grouped[key].cost += parseFloat(conv.advertiserCost);
+      }
+    }
+    
+    // Calculate CR
+    for (const key in grouped) {
+      if (grouped[key].clicks > 0) {
+        grouped[key].cr = (grouped[key].conversions / grouped[key].clicks) * 100;
+      }
+    }
+    
+    // Convert to array and sort
+    const result = Object.entries(grouped).map(([key, data]) => ({
+      groupKey: key,
+      groupBy: groupBy,
+      ...data
+    })).sort((a, b) => {
+      if (groupBy === "date") return b.groupKey.localeCompare(a.groupKey);
+      return b.clicks - a.clicks;
+    });
+    
+    return { data: result, groupBy };
   }
 }
 

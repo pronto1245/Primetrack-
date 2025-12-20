@@ -1373,5 +1373,190 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // DETAILED REPORTS API
+  // Full click/conversion logs with filters
+  // ============================================
+
+  // Detailed clicks report - for all roles with proper access control
+  app.get("/api/reports/clicks", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      
+      const {
+        offerId,
+        publisherId,
+        dateFrom,
+        dateTo,
+        geo,
+        device,
+        os,
+        browser,
+        isUnique,
+        isGeoMatch,
+        isBot,
+        sub1,
+        sub2,
+        sub3,
+        sub4,
+        sub5,
+        groupBy, // date, geo, publisher, offer, device, os, browser, sub1-5
+        page = "1",
+        limit = "50"
+      } = req.query;
+
+      const filters: any = {};
+      
+      // Role-based access control
+      if (role === "publisher") {
+        filters.publisherId = userId;
+        // Publisher gets their own advertiser from session or default
+      } else if (role === "advertiser") {
+        // Advertiser sees only clicks on their offers
+        const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+        filters.offerIds = advertiserOffers.map(o => o.id);
+      }
+      // Admin sees everything
+
+      if (offerId) filters.offerId = offerId as string;
+      if (publisherId && role !== "publisher") filters.publisherId = publisherId as string;
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (geo) filters.geo = geo as string;
+      if (device) filters.device = device as string;
+      if (os) filters.os = os as string;
+      if (browser) filters.browser = browser as string;
+      if (isUnique !== undefined) filters.isUnique = isUnique === "true";
+      if (isGeoMatch !== undefined) filters.isGeoMatch = isGeoMatch === "true";
+      if (isBot !== undefined) filters.isBot = isBot === "true";
+      if (sub1) filters.sub1 = sub1 as string;
+      if (sub2) filters.sub2 = sub2 as string;
+      if (sub3) filters.sub3 = sub3 as string;
+      if (sub4) filters.sub4 = sub4 as string;
+      if (sub5) filters.sub5 = sub5 as string;
+
+      const pageNum = parseInt(page as string);
+      const limitNum = Math.min(parseInt(limit as string), 1000);
+
+      const result = await storage.getClicksReport(filters, groupBy as string, pageNum, limitNum);
+      
+      // Remove anti-fraud data for publishers
+      if (role === "publisher") {
+        result.clicks = result.clicks.map((click: any) => {
+          const { fraudScore, isProxy, isVpn, fingerprint, ...safeClick } = click;
+          return safeClick;
+        });
+      }
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("Reports clicks error:", error);
+      res.status(500).json({ message: "Failed to fetch clicks report" });
+    }
+  });
+
+  // Detailed conversions report
+  app.get("/api/reports/conversions", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      
+      const {
+        offerId,
+        publisherId,
+        dateFrom,
+        dateTo,
+        status,
+        conversionType,
+        groupBy,
+        page = "1",
+        limit = "50"
+      } = req.query;
+
+      const filters: any = {};
+      
+      if (role === "publisher") {
+        filters.publisherId = userId;
+      } else if (role === "advertiser") {
+        const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+        filters.offerIds = advertiserOffers.map(o => o.id);
+      }
+
+      if (offerId) filters.offerId = offerId as string;
+      if (publisherId && role !== "publisher") filters.publisherId = publisherId as string;
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (status) filters.status = status as string;
+      if (conversionType) filters.conversionType = conversionType as string;
+
+      const pageNum = parseInt(page as string);
+      const limitNum = Math.min(parseInt(limit as string), 1000);
+
+      const result = await storage.getConversionsReport(filters, groupBy as string, pageNum, limitNum);
+      
+      // For publishers, hide all advertiser financial data - only show payout
+      if (role === "publisher") {
+        result.conversions = result.conversions.map((conv: any) => {
+          // Remove advertiserCost - publisher should only see their payout
+          const { advertiserCost, ...safeConv } = conv;
+          return safeConv;
+        });
+      }
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("Reports conversions error:", error);
+      res.status(500).json({ message: "Failed to fetch conversions report" });
+    }
+  });
+
+  // Grouped statistics report
+  app.get("/api/reports/grouped", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      
+      const {
+        offerId,
+        publisherId,
+        dateFrom,
+        dateTo,
+        groupBy = "date" // date, geo, publisher, offer, device, os, browser, sub1-5
+      } = req.query;
+
+      const filters: any = {};
+      
+      if (role === "publisher") {
+        filters.publisherId = userId;
+      } else if (role === "advertiser") {
+        const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+        filters.offerIds = advertiserOffers.map(o => o.id);
+      }
+
+      if (offerId) filters.offerId = offerId as string;
+      if (publisherId && role !== "publisher") filters.publisherId = publisherId as string;
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+
+      const result = await storage.getGroupedReport(filters, groupBy as string, role);
+      
+      // Remove all advertiser financial data for publisher - only show payout
+      if (role === "publisher") {
+        result.data = result.data.map((row: any) => {
+          // Publisher sees only: clicks, uniqueClicks, leads, sales, conversions, cr, payout
+          // Does NOT see: cost, margin, roi (all derived from advertiser data)
+          const { cost, ...safeRow } = row;
+          return safeRow;
+        });
+      }
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error("Grouped report error:", error);
+      res.status(500).json({ message: "Failed to fetch grouped report" });
+    }
+  });
+
   return httpServer;
 }
