@@ -738,5 +738,159 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // ADVERTISER DASHBOARD API (with filters)
+  // ============================================
+
+  // Advanced statistics with filters
+  app.get("/api/advertiser/stats", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { dateFrom, dateTo, offerIds, publisherIds, geo, status } = req.query;
+      
+      const filters: any = {};
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (offerIds) filters.offerIds = (offerIds as string).split(',');
+      if (publisherIds) filters.publisherIds = (publisherIds as string).split(',');
+      if (geo) filters.geo = (geo as string).split(',');
+      if (status) filters.status = (status as string).split(',');
+
+      const stats = await storage.getAdvertiserStats(req.session.userId!, filters);
+      res.json(stats);
+    } catch (error) {
+      console.error("Stats error:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Get all publishers for advertiser (for filter dropdown)
+  app.get("/api/advertiser/publishers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const publishers = await storage.getPublishersForAdvertiser(req.session.userId!);
+      res.json(publishers.map(p => ({ id: p.id, username: p.username, email: p.email })));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch publishers" });
+    }
+  });
+
+  // Get conversions with filters
+  app.get("/api/advertiser/conversions", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { dateFrom, dateTo, offerIds, publisherIds, geo, status } = req.query;
+      
+      const filters: any = {};
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (offerIds) filters.offerIds = (offerIds as string).split(',');
+      if (publisherIds) filters.publisherIds = (publisherIds as string).split(',');
+      if (geo) filters.geo = (geo as string).split(',');
+      if (status) filters.status = (status as string).split(',');
+
+      const conversions = await storage.getConversionsForAdvertiser(req.session.userId!, filters);
+      
+      const safeConversions = conversions.map(c => ({
+        id: c.id,
+        clickId: c.clickId,
+        offerId: c.offerId,
+        offerName: c.offer.name,
+        publisherId: c.publisherId,
+        publisherName: c.publisher.username,
+        conversionType: c.conversionType,
+        advertiserCost: c.advertiserCost,
+        publisherPayout: c.publisherPayout,
+        status: c.status,
+        geo: c.click.geo,
+        createdAt: c.createdAt,
+      }));
+      
+      res.json(safeConversions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch conversions" });
+    }
+  });
+
+  // Get clicks with filters
+  app.get("/api/advertiser/clicks", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { dateFrom, dateTo, offerIds, publisherIds, geo } = req.query;
+      
+      const filters: any = {};
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (offerIds) filters.offerIds = (offerIds as string).split(',');
+      if (publisherIds) filters.publisherIds = (publisherIds as string).split(',');
+      if (geo) filters.geo = (geo as string).split(',');
+
+      const clicks = await storage.getClicksForAdvertiser(req.session.userId!, filters);
+      
+      const safeClicks = clicks.map(c => ({
+        id: c.id,
+        clickId: c.clickId,
+        offerId: c.offerId,
+        offerName: c.offer.name,
+        publisherId: c.publisherId,
+        publisherName: c.publisher.username,
+        ip: c.ip,
+        geo: c.geo,
+        userAgent: c.userAgent,
+        sub1: c.sub1,
+        sub2: c.sub2,
+        sub3: c.sub3,
+        createdAt: c.createdAt,
+      }));
+      
+      res.json(safeClicks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch clicks" });
+    }
+  });
+
+  // Export stats to CSV
+  app.get("/api/advertiser/export/csv", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { type, dateFrom, dateTo, offerIds, publisherIds, geo, status } = req.query;
+      
+      const filters: any = {};
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (offerIds) filters.offerIds = (offerIds as string).split(',');
+      if (publisherIds) filters.publisherIds = (publisherIds as string).split(',');
+      if (geo) filters.geo = (geo as string).split(',');
+      if (status) filters.status = (status as string).split(',');
+
+      let csvContent = '';
+      let filename = 'export.csv';
+
+      if (type === 'conversions') {
+        const conversions = await storage.getConversionsForAdvertiser(req.session.userId!, filters);
+        csvContent = 'ID,Click ID,Offer,Publisher,Type,Advertiser Cost,Publisher Payout,Status,GEO,Date\n';
+        conversions.forEach(c => {
+          csvContent += `"${c.id}","${c.clickId}","${c.offer.name}","${c.publisher.username}","${c.conversionType}","${c.advertiserCost}","${c.publisherPayout}","${c.status}","${c.click.geo || ''}","${new Date(c.createdAt).toISOString()}"\n`;
+        });
+        filename = 'conversions.csv';
+      } else if (type === 'clicks') {
+        const clicks = await storage.getClicksForAdvertiser(req.session.userId!, filters);
+        csvContent = 'ID,Click ID,Offer,Publisher,IP,GEO,User Agent,Sub1,Sub2,Sub3,Date\n';
+        clicks.forEach(c => {
+          csvContent += `"${c.id}","${c.clickId}","${c.offer.name}","${c.publisher.username}","${c.ip || ''}","${c.geo || ''}","${(c.userAgent || '').replace(/"/g, '""')}","${c.sub1 || ''}","${c.sub2 || ''}","${c.sub3 || ''}","${new Date(c.createdAt).toISOString()}"\n`;
+        });
+        filename = 'clicks.csv';
+      } else {
+        const stats = await storage.getAdvertiserStats(req.session.userId!, filters);
+        csvContent = 'Offer,Clicks,Leads,Sales,Advertiser Cost,Publisher Payout,Margin,CR%\n';
+        stats.byOffer.forEach(o => {
+          csvContent += `"${o.offerName}","${o.clicks}","${o.leads}","${o.sales}","${o.advertiserCost.toFixed(2)}","${o.publisherPayout.toFixed(2)}","${o.margin.toFixed(2)}","${o.cr.toFixed(2)}"\n`;
+        });
+        filename = 'stats.csv';
+      }
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csvContent);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
   return httpServer;
 }

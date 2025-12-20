@@ -10,8 +10,63 @@ import {
   type PublisherOfferAccess, type InsertPublisherOffer, publisherOffers
 } from "@shared/schema";
 import { db } from "../db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
+
+export interface AdvertiserStatsFilters {
+  dateFrom?: Date;
+  dateTo?: Date;
+  offerIds?: string[];
+  publisherIds?: string[];
+  geo?: string[];
+  status?: string[];
+}
+
+export interface AdvertiserStatsResult {
+  totalClicks: number;
+  totalLeads: number;
+  totalSales: number;
+  totalConversions: number;
+  advertiserCost: number;
+  publisherPayout: number;
+  margin: number;
+  roi: number;
+  cr: number;
+  epc: number;
+  byOffer: Array<{
+    offerId: string;
+    offerName: string;
+    clicks: number;
+    leads: number;
+    sales: number;
+    advertiserCost: number;
+    publisherPayout: number;
+    margin: number;
+    cr: number;
+  }>;
+  byPublisher: Array<{
+    publisherId: string;
+    publisherName: string;
+    clicks: number;
+    conversions: number;
+    advertiserCost: number;
+    publisherPayout: number;
+    cr: number;
+  }>;
+  byDate: Array<{
+    date: string;
+    clicks: number;
+    conversions: number;
+    advertiserCost: number;
+    publisherPayout: number;
+  }>;
+  byGeo: Array<{
+    geo: string;
+    clicks: number;
+    conversions: number;
+    advertiserCost: number;
+  }>;
+}
 
 export interface IStorage {
   // Users
@@ -315,6 +370,276 @@ export class DatabaseStorage implements IStorage {
   async hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean> {
     const access = await this.getPublisherOffer(offerId, publisherId);
     return !!access;
+  }
+
+  // Advanced Advertiser Statistics with Filters
+  async getAdvertiserStats(advertiserId: string, filters: AdvertiserStatsFilters = {}): Promise<AdvertiserStatsResult> {
+    const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
+    const offerIds = advertiserOffers.map(o => o.id);
+    
+    if (offerIds.length === 0) {
+      return {
+        totalClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0,
+        advertiserCost: 0, publisherPayout: 0, margin: 0, roi: 0, cr: 0, epc: 0,
+        byOffer: [], byPublisher: [], byDate: [], byGeo: []
+      };
+    }
+
+    // Filter offer IDs if specified
+    const targetOfferIds = filters.offerIds?.length 
+      ? offerIds.filter(id => filters.offerIds!.includes(id))
+      : offerIds;
+
+    // Get all clicks for these offers
+    let allClicks: Click[] = [];
+    for (const offerId of targetOfferIds) {
+      const offerClicks = await db.select().from(clicks)
+        .where(eq(clicks.offerId, offerId));
+      allClicks = allClicks.concat(offerClicks);
+    }
+
+    // Apply filters
+    if (filters.dateFrom) {
+      allClicks = allClicks.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+    }
+    if (filters.dateTo) {
+      allClicks = allClicks.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+    }
+    if (filters.publisherIds?.length) {
+      allClicks = allClicks.filter(c => filters.publisherIds!.includes(c.publisherId));
+    }
+    if (filters.geo?.length) {
+      allClicks = allClicks.filter(c => c.geo && filters.geo!.includes(c.geo));
+    }
+
+    // Get conversions
+    let allConversions: Conversion[] = [];
+    for (const offerId of targetOfferIds) {
+      const offerConvs = await db.select().from(conversions)
+        .where(eq(conversions.offerId, offerId));
+      allConversions = allConversions.concat(offerConvs);
+    }
+
+    // Filter conversions by date and status
+    if (filters.dateFrom) {
+      allConversions = allConversions.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+    }
+    if (filters.dateTo) {
+      allConversions = allConversions.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+    }
+    if (filters.status?.length) {
+      allConversions = allConversions.filter(c => filters.status!.includes(c.status));
+    }
+    if (filters.publisherIds?.length) {
+      allConversions = allConversions.filter(c => filters.publisherIds!.includes(c.publisherId));
+    }
+
+    // Calculate totals
+    const totalClicks = allClicks.length;
+    const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
+    const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
+    const totalConversions = allConversions.length;
+    const advertiserCost = allConversions.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
+    const publisherPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+    const margin = advertiserCost - publisherPayout;
+    const roi = publisherPayout > 0 ? ((margin / publisherPayout) * 100) : 0;
+    const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+    const epc = totalClicks > 0 ? advertiserCost / totalClicks : 0;
+
+    // Group by offer
+    const byOffer = await Promise.all(targetOfferIds.map(async (offerId) => {
+      const offer = advertiserOffers.find(o => o.id === offerId)!;
+      const offerClicks = allClicks.filter(c => c.offerId === offerId);
+      const offerConvs = allConversions.filter(c => c.offerId === offerId);
+      const offerAdvCost = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
+      const offerPubPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+      return {
+        offerId,
+        offerName: offer.name,
+        clicks: offerClicks.length,
+        leads: offerConvs.filter(c => c.conversionType === 'lead').length,
+        sales: offerConvs.filter(c => c.conversionType === 'sale').length,
+        advertiserCost: offerAdvCost,
+        publisherPayout: offerPubPayout,
+        margin: offerAdvCost - offerPubPayout,
+        cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0
+      };
+    }));
+
+    // Group by publisher
+    const publisherMap = new Map<string, { clicks: number; conversions: number; advertiserCost: number; publisherPayout: number }>();
+    allClicks.forEach(c => {
+      const existing = publisherMap.get(c.publisherId) || { clicks: 0, conversions: 0, advertiserCost: 0, publisherPayout: 0 };
+      existing.clicks++;
+      publisherMap.set(c.publisherId, existing);
+    });
+    allConversions.forEach(c => {
+      const existing = publisherMap.get(c.publisherId) || { clicks: 0, conversions: 0, advertiserCost: 0, publisherPayout: 0 };
+      existing.conversions++;
+      existing.advertiserCost += parseFloat(c.advertiserCost);
+      existing.publisherPayout += parseFloat(c.publisherPayout);
+      publisherMap.set(c.publisherId, existing);
+    });
+
+    const byPublisher = await Promise.all(
+      Array.from(publisherMap.entries()).map(async ([publisherId, stats]) => {
+        const publisher = await this.getUser(publisherId);
+        return {
+          publisherId,
+          publisherName: publisher?.username || 'Unknown',
+          clicks: stats.clicks,
+          conversions: stats.conversions,
+          advertiserCost: stats.advertiserCost,
+          publisherPayout: stats.publisherPayout,
+          cr: stats.clicks > 0 ? (stats.conversions / stats.clicks) * 100 : 0
+        };
+      })
+    );
+
+    // Group by date
+    const dateMap = new Map<string, { clicks: number; conversions: number; advertiserCost: number; publisherPayout: number }>();
+    allClicks.forEach(c => {
+      const date = new Date(c.createdAt).toISOString().split('T')[0];
+      const existing = dateMap.get(date) || { clicks: 0, conversions: 0, advertiserCost: 0, publisherPayout: 0 };
+      existing.clicks++;
+      dateMap.set(date, existing);
+    });
+    allConversions.forEach(c => {
+      const date = new Date(c.createdAt).toISOString().split('T')[0];
+      const existing = dateMap.get(date) || { clicks: 0, conversions: 0, advertiserCost: 0, publisherPayout: 0 };
+      existing.conversions++;
+      existing.advertiserCost += parseFloat(c.advertiserCost);
+      existing.publisherPayout += parseFloat(c.publisherPayout);
+      dateMap.set(date, existing);
+    });
+
+    const byDate = Array.from(dateMap.entries())
+      .map(([date, stats]) => ({ date, ...stats }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Group by GEO
+    const geoMap = new Map<string, { clicks: number; conversions: number; advertiserCost: number }>();
+    allClicks.forEach(c => {
+      const geo = c.geo || 'Unknown';
+      const existing = geoMap.get(geo) || { clicks: 0, conversions: 0, advertiserCost: 0 };
+      existing.clicks++;
+      geoMap.set(geo, existing);
+    });
+
+    const byGeo = Array.from(geoMap.entries())
+      .map(([geo, stats]) => ({ geo, ...stats }))
+      .sort((a, b) => b.clicks - a.clicks);
+
+    return {
+      totalClicks, totalLeads, totalSales, totalConversions,
+      advertiserCost, publisherPayout, margin, roi, cr, epc,
+      byOffer, byPublisher, byDate, byGeo
+    };
+  }
+
+  // Get all publishers for advertiser (those who have clicks/conversions on their offers)
+  async getPublishersForAdvertiser(advertiserId: string): Promise<User[]> {
+    const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
+    const publisherIds = new Set<string>();
+    
+    for (const offer of advertiserOffers) {
+      const offerClicks = await this.getClicksByOffer(offer.id);
+      offerClicks.forEach(c => publisherIds.add(c.publisherId));
+    }
+    
+    const publishers: User[] = [];
+    for (const id of publisherIds) {
+      const user = await this.getUser(id);
+      if (user) publishers.push(user);
+    }
+    return publishers;
+  }
+
+  // Get conversions for advertiser with filters
+  async getConversionsForAdvertiser(advertiserId: string, filters: AdvertiserStatsFilters = {}): Promise<(Conversion & { click: Click; offer: Offer; publisher: User })[]> {
+    const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
+    const offerIds = filters.offerIds?.length 
+      ? advertiserOffers.filter(o => filters.offerIds!.includes(o.id)).map(o => o.id)
+      : advertiserOffers.map(o => o.id);
+
+    let result: (Conversion & { click: Click; offer: Offer; publisher: User })[] = [];
+    
+    for (const offerId of offerIds) {
+      let offerConvs = await db.select().from(conversions)
+        .where(eq(conversions.offerId, offerId))
+        .orderBy(desc(conversions.createdAt));
+      
+      // Apply filters
+      if (filters.dateFrom) {
+        offerConvs = offerConvs.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+      }
+      if (filters.dateTo) {
+        offerConvs = offerConvs.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+      }
+      if (filters.status?.length) {
+        offerConvs = offerConvs.filter(c => filters.status!.includes(c.status));
+      }
+      if (filters.publisherIds?.length) {
+        offerConvs = offerConvs.filter(c => filters.publisherIds!.includes(c.publisherId));
+      }
+
+      for (const conv of offerConvs) {
+        const click = await this.getClick(conv.clickId);
+        const offer = advertiserOffers.find(o => o.id === conv.offerId);
+        const publisher = await this.getUser(conv.publisherId);
+        
+        if (click && offer && publisher) {
+          // GEO filter from click
+          if (filters.geo?.length && click.geo && !filters.geo.includes(click.geo)) {
+            continue;
+          }
+          result.push({ ...conv, click, offer, publisher });
+        }
+      }
+    }
+
+    return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Get clicks for advertiser with filters
+  async getClicksForAdvertiser(advertiserId: string, filters: AdvertiserStatsFilters = {}): Promise<(Click & { offer: Offer; publisher: User })[]> {
+    const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
+    const offerIds = filters.offerIds?.length 
+      ? advertiserOffers.filter(o => filters.offerIds!.includes(o.id)).map(o => o.id)
+      : advertiserOffers.map(o => o.id);
+
+    let result: (Click & { offer: Offer; publisher: User })[] = [];
+    
+    for (const offerId of offerIds) {
+      let offerClicks = await db.select().from(clicks)
+        .where(eq(clicks.offerId, offerId))
+        .orderBy(desc(clicks.createdAt));
+      
+      // Apply filters
+      if (filters.dateFrom) {
+        offerClicks = offerClicks.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
+      }
+      if (filters.dateTo) {
+        offerClicks = offerClicks.filter(c => new Date(c.createdAt) <= filters.dateTo!);
+      }
+      if (filters.publisherIds?.length) {
+        offerClicks = offerClicks.filter(c => filters.publisherIds!.includes(c.publisherId));
+      }
+      if (filters.geo?.length) {
+        offerClicks = offerClicks.filter(c => c.geo && filters.geo!.includes(c.geo));
+      }
+
+      for (const click of offerClicks) {
+        const offer = advertiserOffers.find(o => o.id === click.offerId);
+        const publisher = await this.getUser(click.publisherId);
+        
+        if (offer && publisher) {
+          result.push({ ...click, offer, publisher });
+        }
+      }
+    }
+
+    return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 }
 

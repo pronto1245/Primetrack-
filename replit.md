@@ -68,9 +68,16 @@ A global partner account can connect to multiple advertisers, with a context swi
 
 Advertisers can use their own domains, logos, colors, and branding, ensuring partners see the advertiser's brand, not the platform's. Automatic SSL is supported.
 
-### Anti-Fraud Mechanisms
+### Anti-Fraud Mechanisms (ТОЛЬКО ДЛЯ ADVERTISER И ADMIN)
+
+**ВАЖНО: Партнёр (Publisher) НЕ имеет доступа к антифрод-данным!**
 
 Includes IP/subnet verification, proxy/VPN detection, fingerprint analysis, click-spam detection, duplicate lead detection, and Conversion Rate (CR) anomaly detection, with reactions like reject, hold, notify, or auto-ban.
+
+Доступ к антифроду:
+- ✅ Admin - полный доступ ко всем антифрод-данным
+- ✅ Advertiser - видит антифрод по своим офферам
+- ❌ Publisher - НЕ видит антифрод-данные (fraud_score, is_proxy, is_vpn и т.д.)
 
 ### Postback Logic
 

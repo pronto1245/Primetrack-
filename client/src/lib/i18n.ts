@@ -34,7 +34,13 @@ const resources = {
         nodes: "Active Nodes",
         revenue: "Revenue (Today)",
         conversions: "Conversions",
-        roi: "ROI"
+        roi: "ROI",
+        leads: "Leads",
+        sales: "Sales",
+        advertiserCost: "Cost",
+        publisherPayout: "Payout",
+        margin: "Margin",
+        cr: "CR%"
       },
       features: {
         title: "Everything you need to scale",
@@ -92,8 +98,24 @@ const resources = {
           clicks: "Clicks",
           conv: "Conv.",
           revenue: "Revenue",
-          roi: "ROI"
+          roi: "ROI",
+          offer: "Offer",
+          leads: "Leads",
+          sales: "Sales",
+          cost: "Cost",
+          payout: "Payout",
+          margin: "Margin",
+          cr: "CR%",
+          publisher: "Publisher",
+          conversions: "Conv."
         },
+        overview: "Dashboard Overview",
+        dailyStats: "Daily Statistics",
+        statsByOffer: "Statistics by Offer",
+        statsByPublisher: "Statistics by Publisher",
+        filters: "Filters",
+        dateFrom: "Date From",
+        dateTo: "Date To",
         menu: {
           overview: "Overview",
           reports: "Reports",
@@ -105,6 +127,12 @@ const resources = {
           offers: "Offers",
           campaigns: "Campaigns",
           payouts: "Payouts"
+        },
+        offers: {
+          all: "All Offers"
+        },
+        publishers: {
+          all: "All Publishers"
         },
         roles: {
           admin: "Administrator",
@@ -127,6 +155,15 @@ const resources = {
           activeAffiliates: "Active Affiliates",
           clicksToday: "Clicks Today"
         }
+      },
+      auth: {
+        login: "Log In"
+      },
+      common: {
+        retry: "Retry"
+      },
+      errors: {
+        sessionExpired: "Session expired. Please log in again."
       },
       footer: {
         rights: "All rights reserved.",
@@ -168,7 +205,13 @@ const resources = {
         nodes: "Активные узлы",
         revenue: "Доход (Сегодня)",
         conversions: "Конверсии",
-        roi: "ROI"
+        roi: "ROI",
+        leads: "Лиды",
+        sales: "Продажи",
+        advertiserCost: "Расход",
+        publisherPayout: "Выплата",
+        margin: "Маржа",
+        cr: "CR%"
       },
       features: {
         title: "Всё для масштабирования связок",
@@ -226,8 +269,24 @@ const resources = {
           clicks: "Клики",
           conv: "Конв.",
           revenue: "Доход",
-          roi: "ROI"
+          roi: "ROI",
+          offer: "Оффер",
+          leads: "Лиды",
+          sales: "Продажи",
+          cost: "Расход",
+          payout: "Выплата",
+          margin: "Маржа",
+          cr: "CR%",
+          publisher: "Вебмастер",
+          conversions: "Конв."
         },
+        overview: "Обзор",
+        dailyStats: "Статистика по дням",
+        statsByOffer: "Статистика по офферам",
+        statsByPublisher: "Статистика по вебмастерам",
+        filters: "Фильтры",
+        dateFrom: "Дата от",
+        dateTo: "Дата до",
         menu: {
           overview: "Обзор",
           reports: "Отчеты",
@@ -241,6 +300,7 @@ const resources = {
           payouts: "Выплаты"
         },
         offers: {
+          all: "Все офферы",
           title: "Мои офферы",
           subtitle: "Управление вашими офферами и рекламными кампаниями",
           create: "Создать оффер",
@@ -261,6 +321,9 @@ const resources = {
             description: "Описание и условия",
             trackingUrl: "Tracking URL (Лендинг)",
           }
+        },
+        publishers: {
+          all: "Все вебмастера"
         },
         roles: {
           admin: "Администратор",
@@ -283,6 +346,15 @@ const resources = {
           activeAffiliates: "Активные вебмастера",
           clicksToday: "Кликов сегодня"
         }
+      },
+      auth: {
+        login: "Войти"
+      },
+      common: {
+        retry: "Повторить"
+      },
+      errors: {
+        sessionExpired: "Сессия истекла. Пожалуйста, войдите снова."
       },
       footer: {
         rights: "Все права защищены.",
