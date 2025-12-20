@@ -105,7 +105,7 @@ function LandingsGroupedByGeo({
                     <span className="text-4xl">{getCountryFlag(geo)}</span>
                     <div>
                       <div className="text-sm font-medium text-white">
-                        {geo} <span className="text-slate-500">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
+                        {geo} <span className="text-slate-300 font-normal">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
                       </div>
                       <div className="text-xs text-emerald-400 font-medium">
                         {getPayoutRange(geoLandings)}
