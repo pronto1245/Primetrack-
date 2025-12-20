@@ -9,7 +9,7 @@ import {
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
-  Plus, Search, Loader2
+  Plus, Search, Loader2, UserPlus
 } from "lucide-react";
 import { AdvertiserOffers } from "@/components/dashboard/AdvertiserOffers";
 import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
@@ -20,6 +20,7 @@ import { PublisherDashboard } from "@/components/dashboard/PublisherDashboard";
 import { AdvertiserPartners } from "@/components/dashboard/AdvertiserPartners";
 import { AdminUsers } from "@/components/dashboard/AdminUsers";
 import { Reports } from "@/components/dashboard/Reports";
+import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { useState, useEffect } from "react";
 
 // Mock Data for "High Density" feel
@@ -181,6 +182,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
     advertiser: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
       { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers` },
+      { icon: UserPlus, label: t('dashboard.menu.requests') || 'Заявки', path: `/dashboard/${role}/requests` },
       { icon: Users, label: t('dashboard.menu.partners') || 'Partners', path: `/dashboard/${role}/partners` },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
@@ -234,6 +236,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchPartners] = useRoute("/dashboard/:role/partners");
   const [matchUsers] = useRoute("/dashboard/:role/users");
   const [matchReports] = useRoute("/dashboard/:role/reports");
+  const [matchRequests] = useRoute("/dashboard/:role/requests");
 
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
   const showCreateOffer = matchCreateOffer;
@@ -241,10 +244,15 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showPartners = matchPartners && role === 'advertiser';
   const showUsers = matchUsers && role === 'admin';
   const showReports = matchReports;
+  const showRequests = matchRequests && role === 'advertiser';
 
   const renderContent = () => {
     if (showUsers) {
       return <AdminUsers />;
+    }
+
+    if (showRequests) {
+      return <AccessRequests />;
     }
 
     if (showReports) {
