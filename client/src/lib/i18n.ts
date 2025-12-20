@@ -127,7 +127,8 @@ const resources = {
           offers: "Offers",
           campaigns: "Campaigns",
           payouts: "Payouts",
-          partners: "Partners"
+          partners: "Partners",
+          requests: "Requests"
         },
         offers: {
           all: "All Offers"
@@ -359,7 +360,8 @@ const resources = {
           offers: "Офферы",
           campaigns: "Кампании",
           payouts: "Выплаты",
-          partners: "Партнёры"
+          partners: "Партнёры",
+          requests: "Заявки"
         },
         offers: {
           all: "Все офферы",

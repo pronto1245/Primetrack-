@@ -182,8 +182,8 @@ function Sidebar({ role, t }: { role: string, t: any }) {
     advertiser: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
       { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers` },
-      { icon: UserPlus, label: t('dashboard.menu.requests') || 'Заявки', path: `/dashboard/${role}/requests` },
-      { icon: Users, label: t('dashboard.menu.partners') || 'Partners', path: `/dashboard/${role}/partners` },
+      { icon: UserPlus, label: t('dashboard.menu.requests'), path: `/dashboard/${role}/requests` },
+      { icon: Users, label: t('dashboard.menu.partners'), path: `/dashboard/${role}/partners` },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
     ],
