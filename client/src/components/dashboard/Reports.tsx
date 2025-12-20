@@ -143,12 +143,12 @@ export function Reports({ role }: ReportsProps) {
             </div>
             <div>
               <Label className="text-xs text-slate-400">{t('reports.device') || 'Device'}</Label>
-              <Select value={filters.device} onValueChange={(v) => setFilters(f => ({ ...f, device: v }))}>
+              <Select value={filters.device || "all"} onValueChange={(v) => setFilters(f => ({ ...f, device: v === "all" ? "" : v }))}>
                 <SelectTrigger className="mt-1 bg-[#111] border-white/10 text-white" data-testid="select-device">
                   <SelectValue placeholder={t('reports.all') || 'All'} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#111] border-white/10">
-                  <SelectItem value="">All</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                   <SelectItem value="mobile">Mobile</SelectItem>
                   <SelectItem value="desktop">Desktop</SelectItem>
                   <SelectItem value="tablet">Tablet</SelectItem>
@@ -407,9 +407,10 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
               ) : (
                 conversions.map((conv: any) => {
                   const payout = parseFloat(conv.publisherPayout) || 0;
-                  const cost = parseFloat(conv.advertiserCost) || 0;
-                  const margin = cost - payout;
-                  const roi = cost > 0 ? ((margin / cost) * 100) : 0;
+                  const hasCost = conv.advertiserCost !== undefined && conv.advertiserCost !== null;
+                  const cost = hasCost ? parseFloat(conv.advertiserCost) : 0;
+                  const margin = hasCost ? (cost - payout) : 0;
+                  const roi = hasCost && cost > 0 ? ((margin / cost) * 100) : 0;
                   
                   return (
                     <tr key={conv.id} className="hover:bg-white/5 transition-colors">
@@ -440,7 +441,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
                         ${payout.toFixed(2)}
                       </td>
-                      {isAdvertiser && (
+                      {isAdvertiser && hasCost && (
                         <>
                           <td className="px-4 py-3 text-right text-blue-400 font-bold">
                             ${cost.toFixed(2)}
@@ -560,8 +561,9 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                 </tr>
               ) : (
                 rows.map((row: any, i: number) => {
-                  const margin = (row.cost || 0) - (row.payout || 0);
-                  const roi = row.cost > 0 ? ((margin / row.cost) * 100) : 0;
+                  const hasCost = row.cost !== undefined && row.cost !== null;
+                  const margin = hasCost ? (row.cost - (row.payout || 0)) : 0;
+                  const roi = hasCost && row.cost > 0 ? ((margin / row.cost) * 100) : 0;
                   const cr = row.clicks > 0 ? ((row.conversions / row.clicks) * 100) : 0;
                   
                   return (
@@ -574,9 +576,9 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                       <td className="px-4 py-3 text-right text-white font-bold">{row.conversions || 0}</td>
                       <td className="px-4 py-3 text-right text-yellow-400">{cr.toFixed(2)}%</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">${(row.payout || 0).toFixed(2)}</td>
-                      {isAdvertiser && (
+                      {isAdvertiser && hasCost && (
                         <>
-                          <td className="px-4 py-3 text-right text-blue-400 font-bold">${(row.cost || 0).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right text-blue-400 font-bold">${row.cost.toFixed(2)}</td>
                           <td className={`px-4 py-3 text-right font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             ${margin.toFixed(2)}
                           </td>
