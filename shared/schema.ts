@@ -257,3 +257,46 @@ export const insertAdvertiserSettingsSchema = createInsertSchema(advertiserSetti
 
 export type InsertAdvertiserSettings = z.infer<typeof insertAdvertiserSettingsSchema>;
 export type AdvertiserSettings = typeof advertiserSettings.$inferSelect;
+
+// ============================================
+// OFFER ACCESS REQUESTS
+// Publisher requests access to an offer (sees offer without landing URLs)
+// ============================================
+export const offerAccessRequests = pgTable("offer_access_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  message: text("message"), // Optional message from publisher
+  rejectionReason: text("rejection_reason"), // Reason if rejected
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertOfferAccessRequestSchema = createInsertSchema(offerAccessRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertOfferAccessRequest = z.infer<typeof insertOfferAccessRequestSchema>;
+export type OfferAccessRequest = typeof offerAccessRequests.$inferSelect;
+
+// ============================================
+// PUBLISHER OFFERS (Approved Access)
+// Created when advertiser approves access request
+// ============================================
+export const publisherOffers = pgTable("publisher_offers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  approvedAt: timestamp("approved_at").notNull().defaultNow(),
+});
+
+export const insertPublisherOfferSchema = createInsertSchema(publisherOffers).omit({
+  id: true,
+  approvedAt: true,
+});
+
+export type InsertPublisherOffer = z.infer<typeof insertPublisherOfferSchema>;
+export type PublisherOfferAccess = typeof publisherOffers.$inferSelect;

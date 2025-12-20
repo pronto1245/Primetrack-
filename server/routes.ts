@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema } from "@shared/schema";
 import crypto from "crypto";
 import session from "express-session";
 import MemoryStore from "memorystore";
@@ -194,15 +194,24 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
       
-      const landings = await storage.getOfferLandings(offer.id);
-      
-      // Для publisher скрываем internalCost
+      // Для publisher проверяем доступ - БЕЗ доступа НЕ показываем landing URLs
       if (req.session.role === "publisher") {
+        const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, req.session.userId!);
         const { internalCost, ...safeOffer } = offer;
+        
+        if (!hasAccess) {
+          // Без доступа - возвращаем оффер БЕЗ лендингов
+          return res.json({ ...safeOffer, landings: [], hasAccess: false });
+        }
+        
+        // С доступом - показываем лендинги (без internalCost)
+        const landings = await storage.getOfferLandings(offer.id);
         const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
-        return res.json({ ...safeOffer, landings: safeLandings });
+        return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true });
       }
       
+      // Для advertiser/admin - полная информация
+      const landings = await storage.getOfferLandings(offer.id);
       res.json({ ...offer, landings });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch offer" });
@@ -228,16 +237,28 @@ export async function registerRoutes(
     }
   });
 
-  // MARKETPLACE API - все активные офферы для publishers (без internalCost)
+  // MARKETPLACE API - все активные офферы для publishers (без internalCost и landingUrl до одобрения)
   app.get("/api/marketplace", requireAuth, async (req: Request, res: Response) => {
     try {
       const offers = await storage.getActiveOffers();
+      const isPublisher = req.session.role === "publisher";
+      const publisherId = req.session.userId!;
       
-      // Получаем лендинги для каждого оффера и скрываем internalCost
       const offersWithLandings = await Promise.all(
         offers.map(async (offer) => {
-          const landings = await storage.getOfferLandings(offer.id);
           const { internalCost, ...safeOffer } = offer;
+          
+          // Для publisher проверяем доступ к офферу
+          if (isPublisher) {
+            const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, publisherId);
+            if (!hasAccess) {
+              // Без доступа - НЕ показываем landing URLs
+              return { ...safeOffer, landings: [] };
+            }
+          }
+          
+          // С доступом или для advertiser/admin - показываем лендинги
+          const landings = await storage.getOfferLandings(offer.id);
           const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
           return { ...safeOffer, landings: safeLandings };
         })
@@ -479,6 +500,241 @@ export async function registerRoutes(
       res.status(400).json({ 
         error: error.message || "Failed to process postback" 
       });
+    }
+  });
+
+  // ============================================
+  // OFFER ACCESS SYSTEM
+  // ============================================
+
+  // Marketplace for publishers - shows offers WITHOUT landing URLs
+  // Publishers must request access to see landing URLs
+  app.get("/api/marketplace/offers", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const offers = await storage.getActiveOffers();
+      const publisherId = req.session.userId!;
+      
+      const offersWithAccess = await Promise.all(
+        offers.map(async (offer) => {
+          const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, publisherId);
+          const existingRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, publisherId);
+          
+          const { internalCost, ...safeOffer } = offer;
+          
+          if (hasAccess) {
+            const landings = await storage.getOfferLandings(offer.id);
+            const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
+            return { 
+              ...safeOffer, 
+              landings: safeLandings,
+              accessStatus: "approved" as const,
+              hasAccess: true 
+            };
+          }
+          
+          return { 
+            ...safeOffer, 
+            landings: [],
+            accessStatus: existingRequest?.status || null,
+            hasAccess: false 
+          };
+        })
+      );
+      
+      res.json(offersWithAccess);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch marketplace offers" });
+    }
+  });
+
+  // Publisher requests access to an offer
+  app.post("/api/offers/:id/request-access", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const offerId = req.params.id;
+      const publisherId = req.session.userId!;
+      const { message } = req.body;
+
+      const offer = await storage.getOffer(offerId);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+
+      if (offer.status !== "active") {
+        return res.status(400).json({ message: "Offer is not active" });
+      }
+
+      const existingRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offerId, publisherId);
+      if (existingRequest) {
+        return res.status(400).json({ 
+          message: "Access request already exists", 
+          status: existingRequest.status 
+        });
+      }
+
+      const hasAccess = await storage.hasPublisherAccessToOffer(offerId, publisherId);
+      if (hasAccess) {
+        return res.status(400).json({ message: "You already have access to this offer" });
+      }
+
+      const request = await storage.createOfferAccessRequest({
+        offerId,
+        publisherId,
+        status: "pending",
+        message: message || null,
+      });
+
+      res.status(201).json(request);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create access request" });
+    }
+  });
+
+  // Publisher's access requests history
+  app.get("/api/publisher/access-requests", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const requests = await storage.getAccessRequestsByPublisher(req.session.userId!);
+      
+      const requestsWithOffers = await Promise.all(
+        requests.map(async (request) => {
+          const offer = await storage.getOffer(request.offerId);
+          return { ...request, offer: offer ? { id: offer.id, name: offer.name, category: offer.category } : null };
+        })
+      );
+      
+      res.json(requestsWithOffers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch access requests" });
+    }
+  });
+
+  // Publisher's approved offers (with landing URLs)
+  app.get("/api/publisher/offers", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherOffers = await storage.getPublisherOffersByPublisher(req.session.userId!);
+      
+      const offersWithDetails = await Promise.all(
+        publisherOffers.map(async (po) => {
+          const offer = await storage.getOffer(po.offerId);
+          if (!offer) return null;
+          
+          const landings = await storage.getOfferLandings(offer.id);
+          const { internalCost, ...safeOffer } = offer;
+          const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
+          
+          return { 
+            ...safeOffer, 
+            landings: safeLandings,
+            approvedAt: po.approvedAt 
+          };
+        })
+      );
+      
+      res.json(offersWithDetails.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch publisher offers" });
+    }
+  });
+
+  // Advertiser views access requests for their offers
+  app.get("/api/advertiser/access-requests", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const requests = await storage.getAccessRequestsByAdvertiser(req.session.userId!);
+      
+      const safeRequests = requests.map(r => ({
+        ...r,
+        publisher: {
+          id: r.publisher.id,
+          username: r.publisher.username,
+          email: r.publisher.email,
+        },
+        offer: {
+          id: r.offer.id,
+          name: r.offer.name,
+          category: r.offer.category,
+        },
+      }));
+      
+      res.json(safeRequests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch access requests" });
+    }
+  });
+
+  // Advertiser approves or rejects access request
+  app.put("/api/advertiser/access-requests/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const requestId = req.params.id;
+      const { action, rejectionReason } = req.body;
+
+      if (!action || !["approve", "reject"].includes(action)) {
+        return res.status(400).json({ message: "Invalid action. Use 'approve' or 'reject'" });
+      }
+
+      const request = await storage.getOfferAccessRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Access request not found" });
+      }
+
+      if (request.status !== "pending") {
+        return res.status(400).json({ message: "Request already processed" });
+      }
+
+      const offer = await storage.getOffer(request.offerId);
+      if (!offer || offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      if (action === "approve") {
+        await storage.updateOfferAccessRequest(requestId, { status: "approved" });
+        
+        await storage.createPublisherOffer({
+          offerId: request.offerId,
+          publisherId: request.publisherId,
+        });
+        
+        res.json({ message: "Access request approved" });
+      } else {
+        await storage.updateOfferAccessRequest(requestId, { 
+          status: "rejected",
+          rejectionReason: rejectionReason || null,
+        });
+        
+        res.json({ message: "Access request rejected" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to process access request" });
+    }
+  });
+
+  // Get publishers with access to a specific offer (for advertiser)
+  app.get("/api/offers/:id/publishers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+
+      if (offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const publisherOffers = await storage.getPublisherOffersByOffer(offer.id);
+      
+      const publishers = await Promise.all(
+        publisherOffers.map(async (po) => {
+          const user = await storage.getUser(po.publisherId);
+          return user ? {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            approvedAt: po.approvedAt,
+          } : null;
+        })
+      );
+
+      res.json(publishers.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch publishers" });
     }
   });
 

@@ -5,7 +5,9 @@ import {
   type Click, type InsertClick, clicks,
   type Conversion, type InsertConversion, conversions,
   type PostbackLog, type InsertPostbackLog, postbackLogs,
-  type AdvertiserSettings, type InsertAdvertiserSettings, advertiserSettings
+  type AdvertiserSettings, type InsertAdvertiserSettings, advertiserSettings,
+  type OfferAccessRequest, type InsertOfferAccessRequest, offerAccessRequests,
+  type PublisherOfferAccess, type InsertPublisherOffer, publisherOffers
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc } from "drizzle-orm";
@@ -52,6 +54,21 @@ export interface IStorage {
   getAdvertiserSettings(advertiserId: string): Promise<AdvertiserSettings | undefined>;
   createAdvertiserSettings(settings: InsertAdvertiserSettings): Promise<AdvertiserSettings>;
   updateAdvertiserSettings(advertiserId: string, settings: Partial<InsertAdvertiserSettings>): Promise<AdvertiserSettings | undefined>;
+  
+  // Offer Access Requests
+  getOfferAccessRequest(id: string): Promise<OfferAccessRequest | undefined>;
+  getOfferAccessRequestByOfferAndPublisher(offerId: string, publisherId: string): Promise<OfferAccessRequest | undefined>;
+  getAccessRequestsByAdvertiser(advertiserId: string): Promise<(OfferAccessRequest & { offer: Offer; publisher: User })[]>;
+  getAccessRequestsByPublisher(publisherId: string): Promise<OfferAccessRequest[]>;
+  createOfferAccessRequest(request: InsertOfferAccessRequest): Promise<OfferAccessRequest>;
+  updateOfferAccessRequest(id: string, data: Partial<InsertOfferAccessRequest>): Promise<OfferAccessRequest | undefined>;
+  
+  // Publisher Offers (Approved Access)
+  getPublisherOffer(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
+  getPublisherOffersByPublisher(publisherId: string): Promise<PublisherOfferAccess[]>;
+  getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]>;
+  createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
+  hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -218,6 +235,86 @@ export class DatabaseStorage implements IStorage {
       .where(eq(advertiserSettings.advertiserId, advertiserId))
       .returning();
     return result;
+  }
+
+  // Offer Access Requests
+  async getOfferAccessRequest(id: string): Promise<OfferAccessRequest | undefined> {
+    const [request] = await db.select().from(offerAccessRequests)
+      .where(eq(offerAccessRequests.id, id));
+    return request;
+  }
+
+  async getOfferAccessRequestByOfferAndPublisher(offerId: string, publisherId: string): Promise<OfferAccessRequest | undefined> {
+    const [request] = await db.select().from(offerAccessRequests)
+      .where(and(
+        eq(offerAccessRequests.offerId, offerId),
+        eq(offerAccessRequests.publisherId, publisherId)
+      ));
+    return request;
+  }
+
+  async getAccessRequestsByAdvertiser(advertiserId: string): Promise<(OfferAccessRequest & { offer: Offer; publisher: User })[]> {
+    const results = await db.select()
+      .from(offerAccessRequests)
+      .innerJoin(offers, eq(offerAccessRequests.offerId, offers.id))
+      .innerJoin(users, eq(offerAccessRequests.publisherId, users.id))
+      .where(eq(offers.advertiserId, advertiserId))
+      .orderBy(desc(offerAccessRequests.createdAt));
+    
+    return results.map(r => ({
+      ...r.offer_access_requests,
+      offer: r.offers,
+      publisher: r.users
+    }));
+  }
+
+  async getAccessRequestsByPublisher(publisherId: string): Promise<OfferAccessRequest[]> {
+    return db.select().from(offerAccessRequests)
+      .where(eq(offerAccessRequests.publisherId, publisherId))
+      .orderBy(desc(offerAccessRequests.createdAt));
+  }
+
+  async createOfferAccessRequest(request: InsertOfferAccessRequest): Promise<OfferAccessRequest> {
+    const [result] = await db.insert(offerAccessRequests).values(request).returning();
+    return result;
+  }
+
+  async updateOfferAccessRequest(id: string, data: Partial<InsertOfferAccessRequest>): Promise<OfferAccessRequest | undefined> {
+    const [result] = await db.update(offerAccessRequests)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(offerAccessRequests.id, id))
+      .returning();
+    return result;
+  }
+
+  // Publisher Offers (Approved Access)
+  async getPublisherOffer(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined> {
+    const [result] = await db.select().from(publisherOffers)
+      .where(and(
+        eq(publisherOffers.offerId, offerId),
+        eq(publisherOffers.publisherId, publisherId)
+      ));
+    return result;
+  }
+
+  async getPublisherOffersByPublisher(publisherId: string): Promise<PublisherOfferAccess[]> {
+    return db.select().from(publisherOffers)
+      .where(eq(publisherOffers.publisherId, publisherId));
+  }
+
+  async getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]> {
+    return db.select().from(publisherOffers)
+      .where(eq(publisherOffers.offerId, offerId));
+  }
+
+  async createPublisherOffer(data: InsertPublisherOffer): Promise<PublisherOfferAccess> {
+    const [result] = await db.insert(publisherOffers).values(data).returning();
+    return result;
+  }
+
+  async hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean> {
+    const access = await this.getPublisherOffer(offerId, publisherId);
+    return !!access;
   }
 }
 
