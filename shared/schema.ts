@@ -43,11 +43,6 @@ export const offers = pgTable("offers", {
   // App Types (PWA, WebView, iOS, Android, etc.)
   appTypes: text("app_types").array().notNull().default(sql`ARRAY[]::text[]`),
   
-  // KPI, Rules, Conditions
-  kpi: text("kpi"),
-  rules: text("rules"),
-  conditions: text("conditions"),
-  
   // Creative Links (Google/Yandex disk links)
   creativeLinks: text("creative_links").array().notNull().default(sql`ARRAY[]::text[]`),
   

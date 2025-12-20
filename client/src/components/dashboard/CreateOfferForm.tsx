@@ -53,9 +53,6 @@ export function CreateOfferForm({ role }: { role: string }) {
     currency: "USD",
     trafficSources: [] as string[],
     appTypes: [] as string[],
-    kpi: "",
-    rules: "",
-    conditions: "",
     creativeLinks: [""],
     geo: [] as string[],
   });
@@ -448,46 +445,6 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0A0A0A] border-white/10">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-4 border-b border-white/10 pb-2">
-                KPI, Правила и Условия
-              </h3>
-              
-              <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">KPI</Label>
-                <Textarea 
-                  data-testid="input-kpi"
-                  className="bg-[#050505] border-white/10 text-white font-mono min-h-[80px] focus:border-blue-500" 
-                  placeholder="Минимальные требования к качеству трафика..."
-                  value={formData.kpi}
-                  onChange={e => setFormData(prev => ({ ...prev, kpi: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">Правила</Label>
-                <Textarea 
-                  data-testid="input-rules"
-                  className="bg-[#050505] border-white/10 text-white font-mono min-h-[80px] focus:border-blue-500" 
-                  placeholder="Правила работы с оффером..."
-                  value={formData.rules}
-                  onChange={e => setFormData(prev => ({ ...prev, rules: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">Условия</Label>
-                <Textarea 
-                  data-testid="input-conditions"
-                  className="bg-[#050505] border-white/10 text-white font-mono min-h-[80px] focus:border-blue-500" 
-                  placeholder="Дополнительные условия..."
-                  value={formData.conditions}
-                  onChange={e => setFormData(prev => ({ ...prev, conditions: e.target.value }))}
-                />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">
