@@ -40,9 +40,9 @@ export function AccessRequests() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const { data: requests, isLoading, error } = useQuery<AccessRequestWithDetails[]>({
-    queryKey: ["/api/access-requests/advertiser"],
+    queryKey: ["/api/advertiser/access-requests"],
     queryFn: async () => {
-      const res = await fetch("/api/access-requests/advertiser", { credentials: "include" });
+      const res = await fetch("/api/advertiser/access-requests", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch access requests");
       return res.json();
     },
@@ -50,17 +50,17 @@ export function AccessRequests() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ requestId, action, reason }: { requestId: string; action: "approve" | "reject"; reason?: string }) => {
-      const res = await fetch(`/api/access-requests/${requestId}/${action}`, {
-        method: "POST",
+      const res = await fetch(`/api/advertiser/access-requests/${requestId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ action, reason }),
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update request");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/access-requests/advertiser"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/access-requests"] });
       toast({
         title: "Success",
         description: "Request updated successfully",
