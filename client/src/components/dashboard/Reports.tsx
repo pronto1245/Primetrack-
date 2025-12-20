@@ -372,13 +372,17 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                 <th className="px-4 py-3 font-medium">{t('reports.table.browser') || 'Browser'}</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.geoMatch') || 'GEO Match'}</th>
-                <th className="px-4 py-3 font-medium">{t('reports.table.sub1') || 'Sub1'}</th>
+                <th className="px-4 py-3 font-medium">Sub1</th>
+                <th className="px-4 py-3 font-medium">Sub2</th>
+                <th className="px-4 py-3 font-medium">Sub3</th>
+                <th className="px-4 py-3 font-medium">Sub4</th>
+                <th className="px-4 py-3 font-medium">Sub5</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {clicks.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={15} className="px-4 py-8 text-center text-slate-500">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -416,6 +420,10 @@ function ClicksTable({ data, loading, page, setPage, role, t }: any) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-slate-500">{click.sub1 || '-'}</td>
+                    <td className="px-4 py-3 text-slate-500">{click.sub2 || '-'}</td>
+                    <td className="px-4 py-3 text-slate-500">{click.sub3 || '-'}</td>
+                    <td className="px-4 py-3 text-slate-500">{click.sub4 || '-'}</td>
+                    <td className="px-4 py-3 text-slate-500">{click.sub5 || '-'}</td>
                   </tr>
                 ))
               )}
@@ -495,12 +503,17 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                 )}
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
+                <th className="px-4 py-3 font-medium">Sub1</th>
+                <th className="px-4 py-3 font-medium">Sub2</th>
+                <th className="px-4 py-3 font-medium">Sub3</th>
+                <th className="px-4 py-3 font-medium">Sub4</th>
+                <th className="px-4 py-3 font-medium">Sub5</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {conversions.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdvertiser ? 11 : 8} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={isAdvertiser ? 16 : 13} className="px-4 py-8 text-center text-slate-500">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -560,6 +573,11 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                           {conv.geo || 'N/A'}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-slate-500">{conv.sub1 || '-'}</td>
+                      <td className="px-4 py-3 text-slate-500">{conv.sub2 || '-'}</td>
+                      <td className="px-4 py-3 text-slate-500">{conv.sub3 || '-'}</td>
+                      <td className="px-4 py-3 text-slate-500">{conv.sub4 || '-'}</td>
+                      <td className="px-4 py-3 text-slate-500">{conv.sub5 || '-'}</td>
                     </tr>
                   );
                 })

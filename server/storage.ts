@@ -194,7 +194,7 @@ export interface IStorage {
   
   // Reports
   getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number }>;
-  getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: Conversion[]; total: number; page: number; limit: number }>;
+  getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: any[]; total: number; page: number; limit: number }>;
   getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
 }
 
@@ -1327,7 +1327,7 @@ export class DatabaseStorage implements IStorage {
     return { clicks: paginatedClicks, total, page, limit };
   }
 
-  async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: Conversion[]; total: number; page: number; limit: number }> {
+  async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: any[]; total: number; page: number; limit: number }> {
     const conditions: any[] = [];
     
     if (filters.publisherId) conditions.push(eq(conversions.publisherId, filters.publisherId));
@@ -1341,8 +1341,48 @@ export class DatabaseStorage implements IStorage {
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
     
     const allConversions = whereCondition 
-      ? await db.select().from(conversions).where(whereCondition).orderBy(desc(conversions.createdAt))
-      : await db.select().from(conversions).orderBy(desc(conversions.createdAt));
+      ? await db.select({
+          id: conversions.id,
+          clickId: conversions.clickId,
+          offerId: conversions.offerId,
+          publisherId: conversions.publisherId,
+          conversionType: conversions.conversionType,
+          advertiserCost: conversions.advertiserCost,
+          publisherPayout: conversions.publisherPayout,
+          transactionSum: conversions.transactionSum,
+          currency: conversions.currency,
+          status: conversions.status,
+          holdUntil: conversions.holdUntil,
+          externalId: conversions.externalId,
+          createdAt: conversions.createdAt,
+          sub1: clicks.sub1,
+          sub2: clicks.sub2,
+          sub3: clicks.sub3,
+          sub4: clicks.sub4,
+          sub5: clicks.sub5,
+          geo: clicks.geo,
+        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).where(whereCondition).orderBy(desc(conversions.createdAt))
+      : await db.select({
+          id: conversions.id,
+          clickId: conversions.clickId,
+          offerId: conversions.offerId,
+          publisherId: conversions.publisherId,
+          conversionType: conversions.conversionType,
+          advertiserCost: conversions.advertiserCost,
+          publisherPayout: conversions.publisherPayout,
+          transactionSum: conversions.transactionSum,
+          currency: conversions.currency,
+          status: conversions.status,
+          holdUntil: conversions.holdUntil,
+          externalId: conversions.externalId,
+          createdAt: conversions.createdAt,
+          sub1: clicks.sub1,
+          sub2: clicks.sub2,
+          sub3: clicks.sub3,
+          sub4: clicks.sub4,
+          sub5: clicks.sub5,
+          geo: clicks.geo,
+        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).orderBy(desc(conversions.createdAt));
     
     const total = allConversions.length;
     const offset = (page - 1) * limit;
