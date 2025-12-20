@@ -98,9 +98,7 @@ function LandingsGroupedByGeo({
                   data-testid={`geo-group-${geo}`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center border border-blue-500/20">
-                      <span className="text-2xl">{getCountryFlag(geo)}</span>
-                    </div>
+                    <span className="text-4xl">{getCountryFlag(geo)}</span>
                     <div>
                       <div className="text-sm font-medium text-white">
                         {getCountryFlag(geo)} {geo} <span className="text-slate-500">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
