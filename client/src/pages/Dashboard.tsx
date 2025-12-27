@@ -233,7 +233,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
 
       {/* Advertiser Card for Publisher */}
       {role === "publisher" && selectedAdvertiser && (
-        <div className="p-3 mb-8">
+        <div className="p-3 mb-16">
           <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-3 border border-white/10" data-testid="advertiser-card">
             <div className="flex items-center gap-3 mb-3">
               {selectedAdvertiser.logoUrl ? (
