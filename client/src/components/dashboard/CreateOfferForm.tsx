@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useUpload } from "@/hooks/use-upload";
+import { CountrySelector } from "./CountrySelector";
 
 const TRAFFIC_SOURCES = ["Facebook", "Google", "TikTok", "UAC", "PPC", "Push", "Native", "Email", "SEO", "Telegram", "Instagram", "YouTube"];
 const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"];
@@ -357,12 +358,10 @@ export function CreateOfferForm({ role }: { role: string }) {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-slate-400 text-[10px] font-mono uppercase">ГЕО (код страны) *</Label>
-                        <Input
-                          data-testid={`input-landing-geo-${index}`}
-                          className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm"
-                          placeholder="US, DE, FR..."
+                        <CountrySelector
                           value={landing.geo}
-                          onChange={e => updateLanding(index, "geo", e.target.value)}
+                          onChange={e => updateLanding(index, "geo", e)}
+                          testId={`input-landing-geo-${index}`}
                         />
                       </div>
                       <div className="space-y-1">
