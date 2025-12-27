@@ -725,10 +725,15 @@ export async function registerRoutes(
           const partnership = await storage.getPublisherAdvertiserRelation(publisherId, offer.advertiserId);
           const partnershipStatus = partnership?.status || null;
           
-          // Only grant access if partnership is active
+          // Only show offers if partnership is active - hide completely for pending/inactive
           const isPartnershipActive = partnershipStatus === "active";
           
-          const hasAccess = isPartnershipActive && await storage.hasPublisherAccessToOffer(offer.id, publisherId);
+          // If partnership is not active, return null to filter out
+          if (!isPartnershipActive) {
+            return null;
+          }
+          
+          const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, publisherId);
           const existingRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, publisherId);
           
           const { internalCost, ...safeOffer } = offer;
@@ -755,7 +760,8 @@ export async function registerRoutes(
         })
       );
       
-      res.json(offersWithAccess);
+      // Filter out null values (offers from non-active partnerships)
+      res.json(offersWithAccess.filter(o => o !== null));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch marketplace offers" });
     }
