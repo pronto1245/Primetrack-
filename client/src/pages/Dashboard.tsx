@@ -456,20 +456,16 @@ function MainContent({ role, t }: { role: string, t: any }) {
                 <DollarSign className="w-3 h-3 text-emerald-500" />
                 <span className="text-xs font-mono text-emerald-400" data-testid="header-available">${availableBalance.toFixed(2)}</span>
               </div>
-              {approvedAmount > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/10 border border-blue-500/20">
-                  <Wallet className="w-3 h-3 text-blue-500" />
-                  <span className="text-xs font-mono text-blue-400" data-testid="header-approved">${approvedAmount.toFixed(2)}</span>
-                  <span className="text-[10px] text-blue-400/60">одобр.</span>
-                </div>
-              )}
-              {holdBalance > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-yellow-500/10 border border-yellow-500/20">
-                  <Target className="w-3 h-3 text-yellow-500" />
-                  <span className="text-xs font-mono text-yellow-400" data-testid="header-hold">${holdBalance.toFixed(2)}</span>
-                  <span className="text-[10px] text-yellow-400/60">холд</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/10 border border-blue-500/20">
+                <Wallet className="w-3 h-3 text-blue-500" />
+                <span className="text-xs font-mono text-blue-400" data-testid="header-approved">${approvedAmount.toFixed(2)}</span>
+                <span className="text-[10px] text-blue-400/60">одобр.</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-yellow-500/10 border border-yellow-500/20">
+                <Target className="w-3 h-3 text-yellow-500" />
+                <span className="text-xs font-mono text-yellow-400" data-testid="header-hold">${holdBalance.toFixed(2)}</span>
+                <span className="text-[10px] text-yellow-400/60">холд</span>
+              </div>
               <div className="h-4 w-px bg-white/10" />
             </>
           )}
