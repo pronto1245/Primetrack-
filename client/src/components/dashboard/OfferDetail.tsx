@@ -307,6 +307,7 @@ interface OfferLanding {
   landingName: string | null;
   landingUrl: string;
   partnerPayout: string;
+  internalCost: string | null;
   currency: string;
 }
 
@@ -347,6 +348,22 @@ const CATEGORY_COLORS: Record<string, string> = {
   "utilities": "bg-cyan-500/20 text-cyan-400",
   "sweepstakes": "bg-amber-500/20 text-amber-400",
 };
+
+function getOfferPayoutPrice(offer: Offer): string {
+  if (offer.partnerPayout) return offer.partnerPayout;
+  if (offer.landings && offer.landings.length > 0) {
+    return offer.landings[0].partnerPayout;
+  }
+  return '';
+}
+
+function getOfferCostPrice(offer: Offer): string | null {
+  if (offer.internalCost) return offer.internalCost;
+  if (offer.landings && offer.landings.length > 0) {
+    return offer.landings[0].internalCost || null;
+  }
+  return null;
+}
 
 export function OfferDetail({ offerId, role }: { offerId: string; role: string }) {
   const { t } = useTranslation();
@@ -456,7 +473,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl p-4 border border-emerald-500/20">
                   <div className="text-[10px] uppercase text-emerald-400/70 mb-1 font-medium">Выплата</div>
                   <div className="text-xl font-bold text-emerald-400" data-testid="text-offer-payout">
-                    {offer.partnerPayout ? `${offer.currency === 'USD' ? '$' : offer.currency}${offer.partnerPayout}` : 'N/A'}
+                    {getOfferPayoutPrice(offer) ? `${offer.currency === 'USD' ? '$' : offer.currency}${getOfferPayoutPrice(offer)}` : 'N/A'}
                   </div>
                 </div>
                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -467,7 +484,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                   <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl p-4 border border-red-500/20">
                     <div className="text-[10px] uppercase text-red-400/70 mb-1 font-medium">Internal Cost</div>
                     <div className="text-xl font-bold text-red-400" data-testid="text-internal-cost">
-                      {offer.internalCost ? `${offer.currency === 'USD' ? '$' : offer.currency}${offer.internalCost}` : 'N/A'}
+                      {getOfferCostPrice(offer) ? `${offer.currency === 'USD' ? '$' : offer.currency}${getOfferCostPrice(offer)}` : 'N/A'}
                     </div>
                   </div>
                 )}
