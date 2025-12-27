@@ -31,6 +31,7 @@ import { Reports } from "@/components/dashboard/Reports";
 import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
+import { PublisherLinks } from "@/components/dashboard/PublisherLinks";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -204,6 +205,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
     ],
     publisher: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
+      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers` },
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links` },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts` },
@@ -346,7 +348,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
   };
 
-  const showOffers = matchOffers || (role === 'publisher' && matchLinks);
+  const showOffers = matchOffers;
+  const showLinks = matchLinks && role === 'publisher';
   const showCreateOffer = matchCreateOffer;
   const showOfferDetail = matchOfferDetail;
   const showPartners = matchPartners && role === 'advertiser';
@@ -387,6 +390,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showPartners) {
       return <AdvertiserPartners />;
+    }
+
+    if (showLinks) {
+      return <PublisherLinks />;
     }
 
     if (showOffers) {

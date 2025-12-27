@@ -908,6 +908,46 @@ export async function registerRoutes(
     }
   });
 
+  // Publisher's approved offers for link generation (with advertiser filter)
+  app.get("/api/publisher/offers-approved", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { advertiser_id } = req.query;
+      const publisherOffers = await storage.getPublisherOffersByPublisher(req.session.userId!);
+      
+      const offersWithDetails = await Promise.all(
+        publisherOffers.map(async (po) => {
+          const offer = await storage.getOffer(po.offerId);
+          if (!offer) return null;
+          
+          // Filter by advertiser if specified
+          if (advertiser_id && offer.advertiserId !== advertiser_id) return null;
+          
+          const landings = await storage.getOfferLandings(offer.id);
+          
+          return { 
+            id: offer.id,
+            name: offer.name,
+            category: offer.category,
+            payoutModel: offer.payoutModel,
+            landings: landings.map(l => ({
+              id: l.id,
+              offerId: l.offerId,
+              geo: l.geo,
+              landingName: l.landingName,
+              landingUrl: l.landingUrl,
+              partnerPayout: l.partnerPayout,
+              currency: l.currency,
+            })),
+          };
+        })
+      );
+      
+      res.json(offersWithDetails.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch approved offers" });
+    }
+  });
+
   // Advertiser views access requests for their offers
   app.get("/api/advertiser/access-requests", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
