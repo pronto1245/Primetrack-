@@ -24,6 +24,7 @@ import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 // Mock Data for "High Density" feel
 const MOCK_CAMPAIGNS = [
@@ -242,6 +243,33 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchFinance] = useRoute("/dashboard/:role/finance");
   const [matchPayouts] = useRoute("/dashboard/:role/payouts");
 
+  // Publisher: Get first advertiser for header balance display
+  const { data: advertisers = [] } = useQuery<any[]>({
+    queryKey: ["/api/publisher/advertisers"],
+    enabled: role === "publisher",
+  });
+  const firstAdvertiserId = advertisers[0]?.advertiserId || advertisers[0]?.id || "";
+
+  // Publisher balance for header
+  const { data: publisherBalance } = useQuery<any>({
+    queryKey: ["/api/publisher/balance", firstAdvertiserId],
+    enabled: role === "publisher" && !!firstAdvertiserId,
+  });
+
+  // Publisher payout requests for approved amount
+  const { data: publisherPayoutRequests = [] } = useQuery<any[]>({
+    queryKey: ["/api/publisher/payout-requests", firstAdvertiserId],
+    enabled: role === "publisher" && !!firstAdvertiserId,
+  });
+
+  // Calculate approved amount (approved but not yet paid)
+  const approvedAmount = publisherPayoutRequests
+    .filter((r: any) => r.status === "approved")
+    .reduce((sum: number, r: any) => sum + parseFloat(r.approvedAmount || r.requestedAmount || "0"), 0);
+
+  const holdBalance = publisherBalance?.hold || 0;
+  const availableBalance = publisherBalance?.available || 0;
+
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
   const showCreateOffer = matchCreateOffer;
   const showOfferDetail = matchOfferDetail;
@@ -422,6 +450,29 @@ function MainContent({ role, t }: { role: string, t: any }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          {role === "publisher" && (
+            <>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                <DollarSign className="w-3 h-3 text-emerald-500" />
+                <span className="text-xs font-mono text-emerald-400" data-testid="header-available">${availableBalance.toFixed(2)}</span>
+              </div>
+              {approvedAmount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/10 border border-blue-500/20">
+                  <Wallet className="w-3 h-3 text-blue-500" />
+                  <span className="text-xs font-mono text-blue-400" data-testid="header-approved">${approvedAmount.toFixed(2)}</span>
+                  <span className="text-[10px] text-blue-400/60">одобр.</span>
+                </div>
+              )}
+              {holdBalance > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-yellow-500/10 border border-yellow-500/20">
+                  <Target className="w-3 h-3 text-yellow-500" />
+                  <span className="text-xs font-mono text-yellow-400" data-testid="header-hold">${holdBalance.toFixed(2)}</span>
+                  <span className="text-[10px] text-yellow-400/60">холд</span>
+                </div>
+              )}
+              <div className="h-4 w-px bg-white/10" />
+            </>
+          )}
           <div className="text-xs font-mono text-slate-500">{t('dashboard.server')}: US-EAST-1</div>
           <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
             {role.charAt(0)}
