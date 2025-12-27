@@ -541,3 +541,33 @@ export const insertPublisherBalanceSchema = createInsertSchema(publisherBalances
 
 export type InsertPublisherBalance = z.infer<typeof insertPublisherBalanceSchema>;
 export type PublisherBalance = typeof publisherBalances.$inferSelect;
+
+// ============================================
+// OFFER POSTBACK SETTINGS (Per Offer override)
+// ============================================
+export const offerPostbackSettings = pgTable("offer_postback_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id).unique(),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Override postback URL (if empty, uses advertiser default)
+  postbackUrl: text("postback_url"),
+  httpMethod: text("http_method").default("GET"),
+  
+  // Override events
+  sendOnLead: boolean("send_on_lead").default(true),
+  sendOnSale: boolean("send_on_sale").default(true),
+  sendOnRejected: boolean("send_on_rejected").default(false),
+  
+  isActive: boolean("is_active").notNull().default(true),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertOfferPostbackSettingSchema = createInsertSchema(offerPostbackSettings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertOfferPostbackSetting = z.infer<typeof insertOfferPostbackSettingSchema>;
+export type OfferPostbackSetting = typeof offerPostbackSettings.$inferSelect;

@@ -10,7 +10,7 @@ import {
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
   Plus, Search, Loader2, UserPlus, ChevronDown, Building2,
-  Phone, Send
+  Phone, Send, Globe
 } from "lucide-react";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import {
@@ -31,6 +31,7 @@ import { Reports } from "@/components/dashboard/Reports";
 import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
+import { AdvertiserPostbacks } from "@/components/dashboard/AdvertiserPostbacks";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -201,6 +202,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Users, label: t('dashboard.menu.partners'), path: `/dashboard/${role}/partners` },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
     ],
     publisher: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
@@ -308,6 +310,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchRequests] = useRoute("/dashboard/:role/requests");
   const [matchFinance] = useRoute("/dashboard/:role/finance");
   const [matchPayouts] = useRoute("/dashboard/:role/payouts");
+  const [matchPostbacks] = useRoute("/dashboard/:role/postbacks");
 
   // Global advertiser context for publisher
   const { advertisers, selectedAdvertiserId, selectedAdvertiser, setSelectedAdvertiserId, isLoading: advertisersLoading } = useAdvertiserContext();
@@ -355,6 +358,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showRequests = matchRequests && role === 'advertiser';
   const showFinance = matchFinance && (role === 'advertiser' || role === 'admin');
   const showPayouts = matchPayouts && role === 'publisher';
+  const showPostbacks = matchPostbacks && role === 'advertiser';
 
   const renderContent = () => {
     if (showUsers) {
@@ -367,6 +371,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showFinance) {
       return <AdvertiserFinance />;
+    }
+
+    if (showPostbacks) {
+      return <AdvertiserPostbacks />;
     }
 
     if (showPayouts) {

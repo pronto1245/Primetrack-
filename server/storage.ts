@@ -14,7 +14,8 @@ import {
   type PublisherWallet, type InsertPublisherWallet, publisherWallets,
   type PayoutRequest, type InsertPayoutRequest, payoutRequests,
   type Payout, type InsertPayout, payouts,
-  type PublisherBalance, type InsertPublisherBalance, publisherBalances
+  type PublisherBalance, type InsertPublisherBalance, publisherBalances,
+  type OfferPostbackSetting, type InsertOfferPostbackSetting, offerPostbackSettings
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
@@ -236,6 +237,17 @@ export interface IStorage {
   getPublisherBalancesByAdvertiser(advertiserId: string): Promise<(PublisherBalance & { publisher: User })[]>;
   updatePublisherBalance(publisherId: string, advertiserId: string, data: Partial<InsertPublisherBalance>): Promise<PublisherBalance>;
   calculatePublisherBalance(publisherId: string, advertiserId: string): Promise<{ available: number; pending: number; hold: number; totalPaid: number }>;
+  
+  // Offer Postback Settings
+  getOfferPostbackSetting(offerId: string): Promise<OfferPostbackSetting | undefined>;
+  getOfferPostbackSettingsByAdvertiser(advertiserId: string): Promise<(OfferPostbackSetting & { offer: Offer })[]>;
+  createOfferPostbackSetting(setting: InsertOfferPostbackSetting): Promise<OfferPostbackSetting>;
+  updateOfferPostbackSetting(offerId: string, data: Partial<InsertOfferPostbackSetting>): Promise<OfferPostbackSetting | undefined>;
+  deleteOfferPostbackSetting(offerId: string): Promise<void>;
+  
+  // Postback Logs Extended
+  getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; limit?: number }): Promise<PostbackLog[]>;
+  updatePostbackLog(id: string, data: Partial<InsertPostbackLog>): Promise<PostbackLog | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1891,6 +1903,63 @@ export class DatabaseStorage implements IStorage {
     available = available - totalPaid;
     
     return { available: Math.max(0, available), pending, hold, totalPaid };
+  }
+  
+  // Offer Postback Settings
+  async getOfferPostbackSetting(offerId: string): Promise<OfferPostbackSetting | undefined> {
+    const [setting] = await db.select().from(offerPostbackSettings).where(eq(offerPostbackSettings.offerId, offerId));
+    return setting;
+  }
+  
+  async getOfferPostbackSettingsByAdvertiser(advertiserId: string): Promise<(OfferPostbackSetting & { offer: Offer })[]> {
+    const settings = await db.select().from(offerPostbackSettings)
+      .where(eq(offerPostbackSettings.advertiserId, advertiserId));
+    
+    const result = [];
+    for (const setting of settings) {
+      const offer = await this.getOffer(setting.offerId);
+      if (offer) {
+        result.push({ ...setting, offer });
+      }
+    }
+    return result;
+  }
+  
+  async createOfferPostbackSetting(setting: InsertOfferPostbackSetting): Promise<OfferPostbackSetting> {
+    const [created] = await db.insert(offerPostbackSettings).values(setting).returning();
+    return created;
+  }
+  
+  async updateOfferPostbackSetting(offerId: string, data: Partial<InsertOfferPostbackSetting>): Promise<OfferPostbackSetting | undefined> {
+    const [updated] = await db.update(offerPostbackSettings)
+      .set(data)
+      .where(eq(offerPostbackSettings.offerId, offerId))
+      .returning();
+    return updated;
+  }
+  
+  async deleteOfferPostbackSetting(offerId: string): Promise<void> {
+    await db.delete(offerPostbackSettings).where(eq(offerPostbackSettings.offerId, offerId));
+  }
+  
+  // Extended Postback Logs
+  async getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; limit?: number }): Promise<PostbackLog[]> {
+    let conditions = [];
+    
+    // Note: postbackLogs table has conversionId reference, we need to join to filter
+    const logs = await db.select().from(postbackLogs)
+      .orderBy(desc(postbackLogs.createdAt))
+      .limit(filters.limit || 100);
+    
+    return logs;
+  }
+  
+  async updatePostbackLog(id: string, data: Partial<InsertPostbackLog>): Promise<PostbackLog | undefined> {
+    const [updated] = await db.update(postbackLogs)
+      .set(data)
+      .where(eq(postbackLogs.id, id))
+      .returning();
+    return updated;
   }
 }
 

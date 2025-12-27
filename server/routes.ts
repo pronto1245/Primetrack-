@@ -948,6 +948,184 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // POSTBACK MANAGEMENT
+  // ============================================
+  
+  // Get advertiser's postback settings (global + per-offer)
+  app.get("/api/advertiser/postbacks", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      
+      // Get global settings from advertiser_settings
+      const advertiserSettings = await storage.getAdvertiserSettings(advertiserId);
+      
+      // Get per-offer postback settings
+      const offerSettings = await storage.getOfferPostbackSettingsByAdvertiser(advertiserId);
+      
+      // Get postback logs
+      const logs = await storage.getPostbackLogs({ limit: 50 });
+      
+      res.json({
+        globalSettings: advertiserSettings ? {
+          postbackUrl: advertiserSettings.postbackUrl,
+          postbackMethod: advertiserSettings.postbackMethod,
+        } : null,
+        offerSettings,
+        logs,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback settings" });
+    }
+  });
+  
+  // Update advertiser's global postback settings
+  app.put("/api/advertiser/postbacks/global", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { postbackUrl, postbackMethod } = req.body;
+      
+      const existing = await storage.getAdvertiserSettings(advertiserId);
+      
+      if (existing) {
+        const updated = await storage.updateAdvertiserSettings(advertiserId, {
+          postbackUrl,
+          postbackMethod,
+        });
+        res.json(updated);
+      } else {
+        const created = await storage.createAdvertiserSettings({
+          advertiserId,
+          postbackUrl,
+          postbackMethod,
+        });
+        res.json(created);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update global postback settings" });
+    }
+  });
+  
+  // Create/Update per-offer postback settings
+  app.put("/api/advertiser/postbacks/offer/:offerId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { offerId } = req.params;
+      const { postbackUrl, httpMethod, sendOnLead, sendOnSale, sendOnRejected, isActive } = req.body;
+      
+      // Verify offer belongs to advertiser
+      const offer = await storage.getOffer(offerId);
+      if (!offer || offer.advertiserId !== advertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const existing = await storage.getOfferPostbackSetting(offerId);
+      
+      if (existing) {
+        const updated = await storage.updateOfferPostbackSetting(offerId, {
+          postbackUrl,
+          httpMethod,
+          sendOnLead,
+          sendOnSale,
+          sendOnRejected,
+          isActive,
+        });
+        res.json(updated);
+      } else {
+        const created = await storage.createOfferPostbackSetting({
+          offerId,
+          advertiserId,
+          postbackUrl,
+          httpMethod,
+          sendOnLead,
+          sendOnSale,
+          sendOnRejected,
+          isActive,
+        });
+        res.json(created);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update offer postback settings" });
+    }
+  });
+  
+  // Delete per-offer postback settings
+  app.delete("/api/advertiser/postbacks/offer/:offerId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { offerId } = req.params;
+      
+      // Verify offer belongs to advertiser
+      const offer = await storage.getOffer(offerId);
+      if (!offer || offer.advertiserId !== advertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteOfferPostbackSetting(offerId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete offer postback settings" });
+    }
+  });
+  
+  // Get postback logs for advertiser
+  app.get("/api/advertiser/postbacks/logs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const logs = await storage.getPostbackLogs({ advertiserId, limit: 100 });
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback logs" });
+    }
+  });
+  
+  // Test postback URL
+  app.post("/api/advertiser/postbacks/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { url, method = "GET" } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ message: "URL is required" });
+      }
+      
+      // Replace test macros
+      const testUrl = url
+        .replace("{click_id}", "test_click_123")
+        .replace("{status}", "lead")
+        .replace("{sum}", "10.00")
+        .replace("{payout}", "5.00")
+        .replace("{sub1}", "test_sub1")
+        .replace("{sub2}", "test_sub2")
+        .replace("{sub3}", "test_sub3")
+        .replace("{sub4}", "test_sub4")
+        .replace("{sub5}", "test_sub5");
+      
+      const startTime = Date.now();
+      
+      try {
+        const response = await fetch(testUrl, { method });
+        const responseTime = Date.now() - startTime;
+        const responseText = await response.text();
+        
+        res.json({
+          success: response.ok,
+          url: testUrl,
+          status: response.status,
+          responseTime,
+          responseBody: responseText.substring(0, 500),
+        });
+      } catch (fetchError: any) {
+        res.json({
+          success: false,
+          url: testUrl,
+          error: fetchError.message,
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to test postback" });
+    }
+  });
+
   // Advertiser views access requests for their offers
   app.get("/api/advertiser/access-requests", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
