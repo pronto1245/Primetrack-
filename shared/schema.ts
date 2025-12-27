@@ -340,3 +340,200 @@ export const insertOfferCapsStatsSchema = createInsertSchema(offerCapsStats).omi
 
 export type InsertOfferCapsStats = z.infer<typeof insertOfferCapsStatsSchema>;
 export type OfferCapsStats = typeof offerCapsStats.$inferSelect;
+
+// ============================================
+// PAYMENT METHODS (Advertiser's payment options)
+// Advertiser configures how they pay publishers
+// ============================================
+export const paymentMethods = pgTable("payment_methods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Method type: crypto, bank_card, exchange, other
+  methodType: text("method_type").notNull(), // crypto, bank_card, exchange, other
+  
+  // Specific method: USDT_TRC20, USDT_ERC20, BTC, BANK_CARD, BINANCE, BYBIT, PAYPAL, etc.
+  methodName: text("method_name").notNull(),
+  
+  // Currency: USD, USDT, BTC, EUR, RUB, etc.
+  currency: text("currency").notNull(),
+  
+  // Min/max payout amounts
+  minPayout: numeric("min_payout", { precision: 10, scale: 2 }).notNull().default("0"),
+  maxPayout: numeric("max_payout", { precision: 10, scale: 2 }),
+  
+  // Processing fee (percentage or fixed)
+  feePercent: numeric("fee_percent", { precision: 5, scale: 2 }).default("0"),
+  feeFixed: numeric("fee_fixed", { precision: 10, scale: 2 }).default("0"),
+  
+  // Instructions for publisher (optional)
+  instructions: text("instructions"),
+  
+  // Active status
+  isActive: boolean("is_active").notNull().default(true),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+
+// ============================================
+// PUBLISHER WALLETS (Publisher's payment details)
+// Publisher specifies where to receive payments
+// ============================================
+export const publisherWallets = pgTable("publisher_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Links to advertiser's payment method
+  paymentMethodId: varchar("payment_method_id").notNull().references(() => paymentMethods.id),
+  
+  // Wallet address / card number / account details
+  walletAddress: text("wallet_address").notNull(),
+  
+  // Additional info (account name, bank name, etc.)
+  accountName: text("account_name"),
+  additionalInfo: text("additional_info"),
+  
+  // Verification status
+  isVerified: boolean("is_verified").notNull().default(false),
+  
+  // Default wallet for this payment method
+  isDefault: boolean("is_default").notNull().default(false),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPublisherWalletSchema = createInsertSchema(publisherWallets).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPublisherWallet = z.infer<typeof insertPublisherWalletSchema>;
+export type PublisherWallet = typeof publisherWallets.$inferSelect;
+
+// ============================================
+// PAYOUT REQUESTS (Publisher requests payment)
+// Publisher submits payout request based on earned balance
+// ============================================
+export const payoutRequests = pgTable("payout_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Payment details
+  walletId: varchar("wallet_id").notNull().references(() => publisherWallets.id),
+  paymentMethodId: varchar("payment_method_id").notNull().references(() => paymentMethods.id),
+  
+  // Amounts
+  requestedAmount: numeric("requested_amount", { precision: 10, scale: 2 }).notNull(),
+  approvedAmount: numeric("approved_amount", { precision: 10, scale: 2 }),
+  feeAmount: numeric("fee_amount", { precision: 10, scale: 2 }).default("0"),
+  currency: text("currency").notNull(),
+  
+  // Status: pending, approved, rejected, partial, paid
+  status: text("status").notNull().default("pending"),
+  
+  // Publisher's message
+  publisherNote: text("publisher_note"),
+  
+  // Advertiser's response
+  advertiserNote: text("advertiser_note"),
+  rejectionReason: text("rejection_reason"),
+  
+  // Payment info (after paid)
+  transactionId: text("transaction_id"),
+  paidAt: timestamp("paid_at"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertPayoutRequestSchema = createInsertSchema(payoutRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPayoutRequest = z.infer<typeof insertPayoutRequestSchema>;
+export type PayoutRequest = typeof payoutRequests.$inferSelect;
+
+// ============================================
+// PAYOUTS (Completed payments history)
+// Record of all completed payouts
+// ============================================
+export const payouts = pgTable("payouts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  payoutRequestId: varchar("payout_request_id").references(() => payoutRequests.id),
+  
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Payment details
+  paymentMethodId: varchar("payment_method_id").notNull().references(() => paymentMethods.id),
+  walletAddress: text("wallet_address").notNull(),
+  
+  // Amounts
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  feeAmount: numeric("fee_amount", { precision: 10, scale: 2 }).default("0"),
+  netAmount: numeric("net_amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull(),
+  
+  // Payout type: manual, auto, bonus
+  payoutType: text("payout_type").notNull().default("manual"),
+  
+  // Transaction info
+  transactionId: text("transaction_id"),
+  transactionHash: text("transaction_hash"),
+  
+  // Notes
+  note: text("note"),
+  
+  // Status: pending, processing, completed, failed
+  status: text("status").notNull().default("completed"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPayoutSchema = createInsertSchema(payouts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPayout = z.infer<typeof insertPayoutSchema>;
+export type Payout = typeof payouts.$inferSelect;
+
+// ============================================
+// PUBLISHER BALANCES (Cached balance per advertiser)
+// Updated on each conversion approval
+// ============================================
+export const publisherBalances = pgTable("publisher_balances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Balance amounts
+  availableBalance: numeric("available_balance", { precision: 10, scale: 2 }).notNull().default("0"),
+  pendingBalance: numeric("pending_balance", { precision: 10, scale: 2 }).notNull().default("0"),
+  holdBalance: numeric("hold_balance", { precision: 10, scale: 2 }).notNull().default("0"),
+  totalPaid: numeric("total_paid", { precision: 10, scale: 2 }).notNull().default("0"),
+  
+  currency: text("currency").notNull().default("USD"),
+  
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertPublisherBalanceSchema = createInsertSchema(publisherBalances).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPublisherBalance = z.infer<typeof insertPublisherBalanceSchema>;
+export type PublisherBalance = typeof publisherBalances.$inferSelect;
