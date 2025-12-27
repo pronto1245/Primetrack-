@@ -50,8 +50,8 @@ interface PostbackData {
 
 export function AdvertiserPostbacks() {
   const queryClient = useQueryClient();
-  const [globalUrl, setGlobalUrl] = useState("");
-  const [globalMethod, setGlobalMethod] = useState("GET");
+  const [globalUrl, setGlobalUrl] = useState<string | null>(null);
+  const [globalMethod, setGlobalMethod] = useState<string | null>(null);
   const [testUrl, setTestUrl] = useState("");
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
@@ -60,6 +60,9 @@ export function AdvertiserPostbacks() {
   const { data, isLoading } = useQuery<PostbackData>({
     queryKey: ["/api/advertiser/postbacks"],
   });
+  
+  const currentUrl = globalUrl !== null ? globalUrl : (data?.globalSettings?.postbackUrl || "");
+  const currentMethod = globalMethod !== null ? globalMethod : (data?.globalSettings?.postbackMethod || "GET");
 
   const { data: offers } = useQuery<any[]>({
     queryKey: ["/api/advertiser/offers"],
@@ -78,6 +81,8 @@ export function AdvertiserPostbacks() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/postbacks"] });
+      setGlobalUrl(null);
+      setGlobalMethod(null);
       toast.success("Глобальные настройки сохранены");
     },
     onError: () => {
@@ -185,7 +190,7 @@ export function AdvertiserPostbacks() {
             <Label className="text-xs text-slate-400 font-mono mb-2 block">Postback URL</Label>
             <Input
               placeholder="https://your-tracker.com/postback?click_id={click_id}&status={status}"
-              value={globalUrl || data?.globalSettings?.postbackUrl || ""}
+              value={currentUrl}
               onChange={(e) => setGlobalUrl(e.target.value)}
               className="bg-white/5 border-white/10 text-white font-mono text-sm"
               data-testid="input-global-postback-url"
@@ -194,7 +199,7 @@ export function AdvertiserPostbacks() {
           <div>
             <Label className="text-xs text-slate-400 font-mono mb-2 block">Метод</Label>
             <Select 
-              value={globalMethod || data?.globalSettings?.postbackMethod || "GET"} 
+              value={currentMethod} 
               onValueChange={setGlobalMethod}
             >
               <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-global-method">
@@ -210,8 +215,8 @@ export function AdvertiserPostbacks() {
         
         <Button
           onClick={() => updateGlobalMutation.mutate({ 
-            postbackUrl: globalUrl || data?.globalSettings?.postbackUrl || "", 
-            postbackMethod: globalMethod 
+            postbackUrl: currentUrl, 
+            postbackMethod: currentMethod 
           })}
           disabled={updateGlobalMutation.isPending}
           className="bg-blue-600 hover:bg-blue-700"
