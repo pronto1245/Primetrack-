@@ -53,6 +53,7 @@ export function CreateOfferForm({ role }: { role: string }) {
     appTypes: [] as string[],
     creativeLinks: [""],
     geo: [] as string[],
+    revSharePercent: "",
   });
 
   const [landings, setLandings] = useState<Landing[]>([
@@ -106,11 +107,17 @@ export function CreateOfferForm({ role }: { role: string }) {
   const isFormValid = () => {
     const hasName = formData.name && formData.name.trim().length > 0;
     const hasDescription = formData.description && formData.description.trim().length > 0;
-    const validLandings = landings.filter(l => 
-      l.geo && l.geo.trim() && 
-      l.landingUrl && l.landingUrl.trim() && 
-      l.partnerPayout && l.partnerPayout.toString().trim()
-    );
+    
+    // RevShare требует rev_share_percent, остальные требуют partner_payout в лендингах
+    const validLandings = landings.filter(l => {
+      const hasGeo = l.geo && l.geo.trim();
+      const hasUrl = l.landingUrl && l.landingUrl.trim();
+      
+      if (formData.payoutModel === "RevShare") {
+        return hasGeo && hasUrl && formData.revSharePercent;
+      }
+      return hasGeo && hasUrl && l.partnerPayout && l.partnerPayout.toString().trim();
+    });
     
     return hasName && hasDescription && validLandings.length > 0;
   };
@@ -288,6 +295,26 @@ export function CreateOfferForm({ role }: { role: string }) {
                   </select>
                 </div>
               </div>
+
+              {(formData.payoutModel === "RevShare" || formData.payoutModel === "Hybrid") && (
+                <div className="space-y-2">
+                  <Label className="text-slate-300 text-xs font-mono uppercase flex items-center gap-2">
+                    <DollarSign className="w-3 h-3" /> RevShare %
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      data-testid="input-rev-share-percent"
+                      className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500"
+                      placeholder="10.5"
+                      type="number"
+                      step="0.01"
+                      value={formData.revSharePercent}
+                      onChange={e => setFormData(prev => ({ ...prev, revSharePercent: e.target.value }))}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -361,33 +388,57 @@ export function CreateOfferForm({ role }: { role: string }) {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена партнеру *</Label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
-                          <Input
-                            data-testid={`input-landing-partner-payout-${index}`}
-                            className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
-                            placeholder="0.00"
-                            value={landing.partnerPayout}
-                            onChange={e => updateLanding(index, "partnerPayout", e.target.value)}
-                          />
+                    <div className={`grid gap-3 ${formData.payoutModel === "RevShare" ? "grid-cols-1" : "grid-cols-3"}`}>
+                      {formData.payoutModel !== "RevShare" && (
+                        <div className="space-y-1">
+                          <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена партнеру *</Label>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <Input
+                              data-testid={`input-landing-partner-payout-${index}`}
+                              className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
+                              placeholder="0.00"
+                              value={landing.partnerPayout}
+                              onChange={e => updateLanding(index, "partnerPayout", e.target.value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена для себя</Label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
-                          <Input
-                            data-testid={`input-landing-internal-cost-${index}`}
-                            className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
-                            placeholder="0.00"
-                            value={landing.internalCost}
-                            onChange={e => updateLanding(index, "internalCost", e.target.value)}
-                          />
+                      )}
+                      {formData.payoutModel !== "RevShare" && (
+                        <div className="space-y-1">
+                          <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена для себя</Label>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <Input
+                              data-testid={`input-landing-internal-cost-${index}`}
+                              className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
+                              placeholder="0.00"
+                              value={landing.internalCost}
+                              onChange={e => updateLanding(index, "internalCost", e.target.value)}
+                            />
+                          </div>
                         </div>
-                      </div>
+                      )}
+                      {formData.payoutModel === "RevShare" && (
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3">
+                          <p className="text-xs text-blue-400">RevShare рассчитывается по проценту: сумма × {formData.revSharePercent || "?"}%</p>
+                        </div>
+                      )}
+                      {formData.payoutModel === "Hybrid" && (
+                        <div className="space-y-1">
+                          <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена для себя</Label>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <Input
+                              data-testid={`input-landing-internal-cost-${index}`}
+                              className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
+                              placeholder="0.00"
+                              value={landing.internalCost}
+                              onChange={e => updateLanding(index, "internalCost", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
                       <div className="space-y-1">
                         <Label className="text-slate-400 text-[10px] font-mono uppercase">Валюта</Label>
                         <select
