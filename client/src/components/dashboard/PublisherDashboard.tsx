@@ -71,11 +71,6 @@ export function PublisherDashboard() {
   // Use global advertiser context
   const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
 
-  // Show pending overlay if partnership is not active
-  if (isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
-
   const handleAdvertiserChange = () => {
     setSelectedOffer("all");
   };
@@ -157,6 +152,11 @@ export function PublisherDashboard() {
       setExportError(err.message || "Export failed");
     }
   };
+
+  // Show pending overlay if partnership is not active (after all hooks)
+  if (isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
 
   if (loading) {
     return (

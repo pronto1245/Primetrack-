@@ -49,11 +49,6 @@ export function PublisherOffers({ role }: { role: string }) {
   // Use global advertiser context for filtering
   const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
 
-  // Show pending overlay if partnership is not active
-  if (isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
-
   const { data: offers, isLoading, error } = useQuery<MarketplaceOffer[]>({
     queryKey: ["/api/marketplace/offers", selectedAdvertiserId],
     queryFn: async () => {
@@ -126,6 +121,11 @@ export function PublisherOffers({ role }: { role: string }) {
     }
     return null;
   };
+
+  // Show pending overlay if partnership is not active (after all hooks)
+  if (isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
 
   if (isLoading) {
     return (

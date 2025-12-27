@@ -36,11 +36,6 @@ export function PublisherPayouts() {
   // Use global advertiser context
   const { selectedAdvertiserId: selectedAdvertiser, selectedAdvertiser: advertiserInfo, isPendingPartnership } = useAdvertiserContext();
   
-  // Show pending overlay if partnership is not active
-  if (isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
-  
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [showRequestPayout, setShowRequestPayout] = useState(false);
   const [requestAmount, setRequestAmount] = useState("");
@@ -138,6 +133,11 @@ export function PublisherPayouts() {
   const pendingBalance = balance?.pending || 0;
   const holdBalance = balance?.hold || 0;
   const totalPaid = balance?.totalPaid || 0;
+
+  // Show pending overlay if partnership is not active (after all hooks)
+  if (isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
 
   return (
     <div className="space-y-6">

@@ -36,11 +36,6 @@ export function Reports({ role }: ReportsProps) {
   // Use global advertiser context for publisher filtering
   const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
 
-  // Show pending overlay if partnership is not active (publisher only)
-  if (role === "publisher" && isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
-
   const queryParams = new URLSearchParams();
   if (filters.dateFrom) queryParams.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) queryParams.set("dateTo", filters.dateTo);
@@ -96,6 +91,11 @@ export function Reports({ role }: ReportsProps) {
   const isAdvertiser = role === "advertiser";
   const isAdmin = role === "admin";
   const showFinancials = isAdvertiser || isAdmin;
+
+  // Show pending overlay if partnership is not active (publisher only, after all hooks)
+  if (role === "publisher" && isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
 
   return (
     <div className="space-y-6">
