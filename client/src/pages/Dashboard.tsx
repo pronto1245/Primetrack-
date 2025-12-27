@@ -21,6 +21,8 @@ import { AdvertiserPartners } from "@/components/dashboard/AdvertiserPartners";
 import { AdminUsers } from "@/components/dashboard/AdminUsers";
 import { Reports } from "@/components/dashboard/Reports";
 import { AccessRequests } from "@/components/dashboard/AccessRequests";
+import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
+import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
 import { useState, useEffect } from "react";
 
 // Mock Data for "High Density" feel
@@ -237,6 +239,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchUsers] = useRoute("/dashboard/:role/users");
   const [matchReports] = useRoute("/dashboard/:role/reports");
   const [matchRequests] = useRoute("/dashboard/:role/requests");
+  const [matchFinance] = useRoute("/dashboard/:role/finance");
+  const [matchPayouts] = useRoute("/dashboard/:role/payouts");
 
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
   const showCreateOffer = matchCreateOffer;
@@ -245,6 +249,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showUsers = matchUsers && role === 'admin';
   const showReports = matchReports;
   const showRequests = matchRequests && role === 'advertiser';
+  const showFinance = matchFinance && (role === 'advertiser' || role === 'admin');
+  const showPayouts = matchPayouts && role === 'publisher';
 
   const renderContent = () => {
     if (showUsers) {
@@ -253,6 +259,14 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showRequests) {
       return <AccessRequests />;
+    }
+
+    if (showFinance) {
+      return <AdvertiserFinance />;
+    }
+
+    if (showPayouts) {
+      return <PublisherPayouts />;
     }
 
     if (showReports) {
