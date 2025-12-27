@@ -379,7 +379,6 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showPostbacks) {
       if (role === 'admin') return <AdminPostbacks />;
-      if (role === 'publisher') return <PublisherPostbacks />;
       return <AdvertiserPostbacks />;
     }
 

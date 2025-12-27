@@ -263,6 +263,11 @@ export const advertiserSettings = pgTable("advertiser_settings", {
   // Postback settings (global for all offers)
   postbackUrl: text("postback_url"),
   postbackMethod: text("postback_method").default("GET"),
+  // Separate postback URLs for different conversion types
+  leadPostbackUrl: text("lead_postback_url"),
+  leadPostbackMethod: text("lead_postback_method").default("GET"),
+  salePostbackUrl: text("sale_postback_url"),
+  salePostbackMethod: text("sale_postback_method").default("GET"),
   
   // White-label
   brandName: text("brand_name"),
@@ -571,3 +576,31 @@ export const insertOfferPostbackSettingSchema = createInsertSchema(offerPostback
 
 export type InsertOfferPostbackSetting = z.infer<typeof insertOfferPostbackSettingSchema>;
 export type OfferPostbackSetting = typeof offerPostbackSettings.$inferSelect;
+
+// ============================================
+// USER POSTBACK SETTINGS (Universal for all roles)
+// ============================================
+export const userPostbackSettings = pgTable("user_postback_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  
+  // Lead/Registration postback
+  leadPostbackUrl: text("lead_postback_url"),
+  leadPostbackMethod: text("lead_postback_method").default("GET"),
+  
+  // Sale/Deposit postback
+  salePostbackUrl: text("sale_postback_url"),
+  salePostbackMethod: text("sale_postback_method").default("GET"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertUserPostbackSettingSchema = createInsertSchema(userPostbackSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserPostbackSetting = z.infer<typeof insertUserPostbackSettingSchema>;
+export type UserPostbackSetting = typeof userPostbackSettings.$inferSelect;

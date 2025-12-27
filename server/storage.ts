@@ -15,7 +15,8 @@ import {
   type PayoutRequest, type InsertPayoutRequest, payoutRequests,
   type Payout, type InsertPayout, payouts,
   type PublisherBalance, type InsertPublisherBalance, publisherBalances,
-  type OfferPostbackSetting, type InsertOfferPostbackSetting, offerPostbackSettings
+  type OfferPostbackSetting, type InsertOfferPostbackSetting, offerPostbackSettings,
+  type UserPostbackSetting, type InsertUserPostbackSetting, userPostbackSettings
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
@@ -248,6 +249,10 @@ export interface IStorage {
   // Postback Logs Extended
   getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; limit?: number }): Promise<PostbackLog[]>;
   updatePostbackLog(id: string, data: Partial<InsertPostbackLog>): Promise<PostbackLog | undefined>;
+  
+  // User Postback Settings (universal for all roles)
+  getUserPostbackSettings(userId: string): Promise<UserPostbackSetting | undefined>;
+  upsertUserPostbackSettings(userId: string, settings: Partial<InsertUserPostbackSetting>): Promise<UserPostbackSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1960,6 +1965,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(postbackLogs.id, id))
       .returning();
     return updated;
+  }
+  
+  // User Postback Settings (universal for all roles)
+  async getUserPostbackSettings(userId: string): Promise<UserPostbackSetting | undefined> {
+    const [settings] = await db.select().from(userPostbackSettings)
+      .where(eq(userPostbackSettings.userId, userId));
+    return settings;
+  }
+  
+  async upsertUserPostbackSettings(userId: string, settings: Partial<InsertUserPostbackSetting>): Promise<UserPostbackSetting> {
+    const existing = await this.getUserPostbackSettings(userId);
+    
+    if (existing) {
+      const [updated] = await db.update(userPostbackSettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(userPostbackSettings.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(userPostbackSettings)
+        .values({ userId, ...settings })
+        .returning();
+      return created;
+    }
   }
 }
 
