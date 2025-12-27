@@ -54,6 +54,82 @@ async function seedUsers() {
       console.log(`Created test user: ${userData.username}`);
     }
   }
+
+  // Seed additional test advertisers with offers
+  const testAdvertisers = [
+    { username: "adv_casino", password: "adv123", role: "advertiser", email: "casino@primetrack.io", status: "active" },
+    { username: "adv_crypto", password: "adv123", role: "advertiser", email: "crypto@primetrack.io", status: "active" },
+    { username: "adv_dating", password: "adv123", role: "advertiser", email: "dating@primetrack.io", status: "active" },
+    { username: "adv_nutra", password: "adv123", role: "advertiser", email: "nutra@primetrack.io", status: "pending" },
+  ];
+
+  const publisher = await storage.getUserByUsername("publisher");
+  if (!publisher) return;
+
+  for (const advData of testAdvertisers) {
+    let advertiser = await storage.getUserByUsername(advData.username);
+    if (!advertiser) {
+      advertiser = await storage.createUser(advData);
+      console.log(`Created test advertiser: ${advData.username}`);
+    }
+
+    // Link publisher to advertiser
+    const existing = await storage.getAdvertisersForPublisher(publisher.id);
+    const alreadyLinked = existing.some(r => r.advertiserId === advertiser!.id);
+    if (!alreadyLinked) {
+      await storage.addPublisherToAdvertiser(publisher.id, advertiser.id);
+      console.log(`Linked publisher to ${advData.username}`);
+    }
+  }
+
+  // Create offers for each advertiser
+  const offerTemplates: Record<string, any[]> = {
+    "adv_casino": [
+      { name: "VulkanBet RU", description: "Казино для РФ", geo: ["RU"], category: "gambling", partnerPayout: "50", payoutModel: "CPA" },
+      { name: "JetCasino EU", description: "Европа казино", geo: ["DE", "FR", "ES"], category: "gambling", partnerPayout: "80", payoutModel: "CPA" },
+      { name: "SpinCity CIS", description: "СНГ казино", geo: ["RU", "UA", "KZ"], category: "gambling", partnerPayout: "45", payoutModel: "CPL" },
+    ],
+    "adv_crypto": [
+      { name: "BitExchange Pro", description: "Криптобиржа", geo: ["WW"], category: "crypto", partnerPayout: "100", payoutModel: "CPA" },
+      { name: "CryptoWallet App", description: "Криптокошелёк", geo: ["US", "GB"], category: "crypto", partnerPayout: "25", payoutModel: "CPI" },
+    ],
+    "adv_dating": [
+      { name: "LoveMatch RU", description: "Дейтинг РФ", geo: ["RU"], category: "dating", partnerPayout: "5", payoutModel: "CPL" },
+      { name: "DateNow EU", description: "Дейтинг Европа", geo: ["DE", "FR"], category: "dating", partnerPayout: "8", payoutModel: "CPL" },
+      { name: "FlirtZone", description: "Мировой дейтинг", geo: ["WW"], category: "dating", partnerPayout: "3", payoutModel: "CPL" },
+      { name: "PremiumDate", description: "Премиум дейтинг", geo: ["US", "GB", "AU"], category: "dating", partnerPayout: "15", payoutModel: "CPA" },
+    ],
+    "adv_nutra": [
+      { name: "SlimFit Keto", description: "Нутра похудение", geo: ["US"], category: "nutra", partnerPayout: "35", payoutModel: "CPS" },
+      { name: "VitaBoost", description: "Витамины", geo: ["RU", "UA"], category: "nutra", partnerPayout: "20", payoutModel: "CPA" },
+    ],
+  };
+
+  for (const [advUsername, offers] of Object.entries(offerTemplates)) {
+    const advertiser = await storage.getUserByUsername(advUsername);
+    if (!advertiser) continue;
+
+    const existingOffers = await storage.getOffersByAdvertiser(advertiser.id);
+    if (existingOffers.length === 0) {
+      for (const offerData of offers) {
+        const offer = await storage.createOffer({
+          ...offerData,
+          advertiserId: advertiser.id,
+          trafficSources: ["Facebook", "Google"],
+          appTypes: ["PWA"],
+          creativeLinks: [],
+          holdPeriodDays: Math.floor(Math.random() * 14),
+        });
+        console.log(`Created offer: ${offerData.name}`);
+
+        // Give publisher access to this offer
+        await storage.createPublisherOffer({
+          offerId: offer.id,
+          publisherId: publisher.id,
+        });
+      }
+    }
+  }
 }
 
 export async function registerRoutes(
