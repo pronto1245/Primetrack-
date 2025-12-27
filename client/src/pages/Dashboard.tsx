@@ -32,6 +32,8 @@ import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
 import { AdvertiserPostbacks } from "@/components/dashboard/AdvertiserPostbacks";
+import { PublisherPostbacks } from "@/components/dashboard/PublisherPostbacks";
+import { AdminPostbacks } from "@/components/dashboard/AdminPostbacks";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -193,6 +195,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users` },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud` },
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings` },
     ],
     advertiser: [
@@ -209,6 +212,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links` },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts` },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
     ]
   };
 
@@ -358,7 +362,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showRequests = matchRequests && role === 'advertiser';
   const showFinance = matchFinance && (role === 'advertiser' || role === 'admin');
   const showPayouts = matchPayouts && role === 'publisher';
-  const showPostbacks = matchPostbacks && role === 'advertiser';
+  const showPostbacks = matchPostbacks;
 
   const renderContent = () => {
     if (showUsers) {
@@ -374,6 +378,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
 
     if (showPostbacks) {
+      if (role === 'admin') return <AdminPostbacks />;
+      if (role === 'publisher') return <PublisherPostbacks />;
       return <AdvertiserPostbacks />;
     }
 

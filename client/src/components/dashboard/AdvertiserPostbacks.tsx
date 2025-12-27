@@ -9,7 +9,7 @@ import {
   Globe, Save, Play, CheckCircle, XCircle, Clock, 
   Loader2, ChevronDown, ChevronRight, RefreshCw, AlertCircle 
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface PostbackSetting {
@@ -61,8 +61,15 @@ export function AdvertiserPostbacks() {
     queryKey: ["/api/advertiser/postbacks"],
   });
   
-  const currentUrl = globalUrl !== null ? globalUrl : (data?.globalSettings?.postbackUrl || "");
-  const currentMethod = globalMethod !== null ? globalMethod : (data?.globalSettings?.postbackMethod || "GET");
+  useEffect(() => {
+    if (data?.globalSettings && globalUrl === null) {
+      setGlobalUrl(data.globalSettings.postbackUrl || "");
+      setGlobalMethod(data.globalSettings.postbackMethod || "GET");
+    }
+  }, [data]);
+  
+  const currentUrl = globalUrl ?? "";
+  const currentMethod = globalMethod ?? "GET";
 
   const { data: offers } = useQuery<any[]>({
     queryKey: ["/api/advertiser/offers"],
@@ -79,10 +86,14 @@ export function AdvertiserPostbacks() {
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/postbacks"] });
-      setGlobalUrl(null);
-      setGlobalMethod(null);
+      if (response?.postbackUrl !== undefined) {
+        setGlobalUrl(response.postbackUrl || "");
+      }
+      if (response?.postbackMethod !== undefined) {
+        setGlobalMethod(response.postbackMethod || "GET");
+      }
       toast.success("Глобальные настройки сохранены");
     },
     onError: () => {

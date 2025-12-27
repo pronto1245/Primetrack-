@@ -1079,6 +1079,27 @@ export async function registerRoutes(
     }
   });
   
+  // Publisher postback logs (read-only)
+  app.get("/api/publisher/postback-logs", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherId = req.session.userId!;
+      const logs = await storage.getPostbackLogs({ publisherId, limit: 50 });
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback logs" });
+    }
+  });
+  
+  // Admin postback logs (all logs)
+  app.get("/api/admin/postback-logs", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const logs = await storage.getPostbackLogs({ limit: 100 });
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback logs" });
+    }
+  });
+
   // Test postback URL
   app.post("/api/advertiser/postbacks/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
