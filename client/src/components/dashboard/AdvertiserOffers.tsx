@@ -248,7 +248,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                       {offer.geo.slice(0, 3).join(", ")}{offer.geo.length > 3 ? ` +${offer.geo.length - 3}` : ""}
                     </td>
                     <td className="px-4 py-3 text-emerald-400 font-bold">
-                      ${offer.partnerPayout || 'N/A'}
+                      {offer.partnerPayout ? `$${offer.partnerPayout}` : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-red-400 font-bold">
                       {offer.internalCost ? `$${offer.internalCost}` : 'N/A'}

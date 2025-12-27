@@ -456,7 +456,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl p-4 border border-emerald-500/20">
                   <div className="text-[10px] uppercase text-emerald-400/70 mb-1 font-medium">Выплата</div>
                   <div className="text-xl font-bold text-emerald-400" data-testid="text-offer-payout">
-                    {offer.currency === 'USD' ? '$' : offer.currency}{offer.partnerPayout || 'N/A'}
+                    {offer.partnerPayout ? `${offer.currency === 'USD' ? '$' : offer.currency}${offer.partnerPayout}` : 'N/A'}
                   </div>
                 </div>
                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -467,7 +467,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                   <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl p-4 border border-red-500/20">
                     <div className="text-[10px] uppercase text-red-400/70 mb-1 font-medium">Internal Cost</div>
                     <div className="text-xl font-bold text-red-400" data-testid="text-internal-cost">
-                      {offer.currency === 'USD' ? '$' : offer.currency}{offer.internalCost || 'N/A'}
+                      {offer.internalCost ? `${offer.currency === 'USD' ? '$' : offer.currency}${offer.internalCost}` : 'N/A'}
                     </div>
                   </div>
                 )}
