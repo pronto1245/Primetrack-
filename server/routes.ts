@@ -730,6 +730,36 @@ export async function registerRoutes(
     }
   });
 
+  // Publisher's advertisers extended (with offers count and partnership status)
+  app.get("/api/publisher/advertisers-extended", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherId = req.session.userId!;
+      const relationships = await storage.getAdvertisersForPublisher(publisherId);
+      
+      const extendedAdvertisers = await Promise.all(
+        relationships.map(async ({ advertiser, ...rel }) => {
+          const publisherOffers = await storage.getPublisherOffersByPublisher(publisherId);
+          const advertiserOffers = await storage.getOffersByAdvertiser(advertiser.id);
+          const offersCount = publisherOffers.filter(po => 
+            advertiserOffers.some(o => o.id === po.offerId)
+          ).length;
+          
+          return {
+            id: advertiser.id,
+            username: advertiser.username,
+            email: advertiser.email,
+            offersCount,
+            status: rel.status as "active" | "pending" | "inactive" | "rejected",
+          };
+        })
+      );
+      
+      res.json(extendedAdvertisers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch extended advertisers" });
+    }
+  });
+
   // Publisher's access requests history
   app.get("/api/publisher/access-requests", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {

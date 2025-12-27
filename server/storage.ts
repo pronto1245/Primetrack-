@@ -520,12 +520,10 @@ export class DatabaseStorage implements IStorage {
 
   // Publisher-Advertiser relationships
   async getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]> {
+    // Return all relationships, not just active - UI shows status
     const relations = await db.select()
       .from(publisherAdvertisers)
-      .where(and(
-        eq(publisherAdvertisers.publisherId, publisherId),
-        eq(publisherAdvertisers.status, "active")
-      ));
+      .where(eq(publisherAdvertisers.publisherId, publisherId));
     
     const result: (PublisherAdvertiser & { advertiser: User })[] = [];
     for (const rel of relations) {

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 
 const PAYMENT_ICONS: Record<string, any> = {
   crypto_usdt_trc20: { icon: Bitcoin, color: "text-green-500" },
@@ -30,16 +31,15 @@ export function PublisherPayouts() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedAdvertiser, setSelectedAdvertiser] = useState<string>("");
+  
+  // Use global advertiser context
+  const { selectedAdvertiserId: selectedAdvertiser, selectedAdvertiser: advertiserInfo } = useAdvertiserContext();
+  
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [showRequestPayout, setShowRequestPayout] = useState(false);
   const [requestAmount, setRequestAmount] = useState("");
   const [requestNote, setRequestNote] = useState("");
   const [selectedWallet, setSelectedWallet] = useState("");
-
-  const { data: advertisers = [] } = useQuery<any[]>({
-    queryKey: ["/api/publisher/advertisers"],
-  });
 
   const { data: balance } = useQuery<any>({
     queryKey: ["/api/publisher/balance", selectedAdvertiser],
@@ -128,10 +128,6 @@ export function PublisherPayouts() {
     });
   };
 
-  if (!selectedAdvertiser && advertisers.length > 0) {
-    setSelectedAdvertiser(advertisers[0]?.advertiserId || advertisers[0]?.id);
-  }
-
   const availableBalance = balance?.available || 0;
   const pendingBalance = balance?.pending || 0;
   const holdBalance = balance?.hold || 0;
@@ -142,22 +138,13 @@ export function PublisherPayouts() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Выплаты</h1>
-          <p className="text-slate-400 text-sm">Управление кошельками и запросы на выплату</p>
+          <p className="text-slate-400 text-sm">
+            Управление кошельками и запросы на выплату
+            {advertiserInfo && (
+              <span className="ml-2 text-blue-400">• {advertiserInfo.username}</span>
+            )}
+          </p>
         </div>
-        {advertisers.length > 1 && (
-          <Select value={selectedAdvertiser} onValueChange={setSelectedAdvertiser}>
-            <SelectTrigger className="w-[200px] bg-[#111] border-white/10">
-              <SelectValue placeholder="Выберите рекламодателя" />
-            </SelectTrigger>
-            <SelectContent>
-              {advertisers.map((adv: any) => (
-                <SelectItem key={adv.advertiserId || adv.id} value={adv.advertiserId || adv.id}>
-                  {adv.advertiser?.username || adv.username || "Advertiser"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
       </div>
 
       {!selectedAdvertiser ? (

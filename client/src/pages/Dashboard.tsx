@@ -9,8 +9,15 @@ import {
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
-  Plus, Search, Loader2, UserPlus
+  Plus, Search, Loader2, UserPlus, ChevronDown, Building2
 } from "lucide-react";
+import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AdvertiserOffers } from "@/components/dashboard/AdvertiserOffers";
 import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
 import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
@@ -51,10 +58,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans flex flex-col md:flex-row overflow-hidden">
-      <Sidebar role={role} t={t} />
-      <MainContent role={role} t={t} />
-    </div>
+    <AdvertiserProvider role={role}>
+      <div className="min-h-screen bg-[#09090b] text-white font-sans flex flex-col md:flex-row overflow-hidden">
+        <Sidebar role={role} t={t} />
+        <MainContent role={role} t={t} />
+      </div>
+    </AdvertiserProvider>
   );
 }
 
@@ -243,23 +252,19 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchFinance] = useRoute("/dashboard/:role/finance");
   const [matchPayouts] = useRoute("/dashboard/:role/payouts");
 
-  // Publisher: Get first advertiser for header balance display
-  const { data: advertisers = [] } = useQuery<any[]>({
-    queryKey: ["/api/publisher/advertisers"],
-    enabled: role === "publisher",
-  });
-  const firstAdvertiserId = advertisers[0]?.advertiserId || advertisers[0]?.id || "";
+  // Global advertiser context for publisher
+  const { advertisers, selectedAdvertiserId, selectedAdvertiser, setSelectedAdvertiserId, isLoading: advertisersLoading } = useAdvertiserContext();
 
-  // Publisher balance for header
+  // Publisher balance for header (using selected advertiser)
   const { data: publisherBalance } = useQuery<any>({
-    queryKey: ["/api/publisher/balance", firstAdvertiserId],
-    enabled: role === "publisher" && !!firstAdvertiserId,
+    queryKey: ["/api/publisher/balance", selectedAdvertiserId],
+    enabled: role === "publisher" && !!selectedAdvertiserId,
   });
 
   // Publisher payout requests for approved amount
   const { data: publisherPayoutRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/publisher/payout-requests", firstAdvertiserId],
-    enabled: role === "publisher" && !!firstAdvertiserId,
+    queryKey: ["/api/publisher/payout-requests", selectedAdvertiserId],
+    enabled: role === "publisher" && !!selectedAdvertiserId,
   });
 
   // Calculate approved amount (approved but not yet paid)
@@ -269,6 +274,20 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
   const holdBalance = publisherBalance?.hold || 0;
   const availableBalance = publisherBalance?.available || 0;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+        return <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400">Активен</span>;
+      case "pending":
+        return <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-400">Ожидание</span>;
+      case "inactive":
+      case "rejected":
+        return <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-400">Неактивен</span>;
+      default:
+        return null;
+    }
+  };
 
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
   const showCreateOffer = matchCreateOffer;
@@ -442,6 +461,51 @@ function MainContent({ role, t }: { role: string, t: any }) {
       {/* Top Bar */}
       <header className="h-14 bg-[#0A0A0A] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center gap-4">
+          {role === "publisher" && advertisers.length > 0 && (
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+                    data-testid="advertiser-switcher"
+                  >
+                    <Building2 className="w-4 h-4 text-blue-400" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-medium text-white">
+                        {selectedAdvertiser?.username || "Выберите рекламодателя"}
+                      </span>
+                      {selectedAdvertiser && (
+                        <span className="text-[10px] text-slate-400">
+                          {selectedAdvertiser.offersCount} офферов
+                        </span>
+                      )}
+                    </div>
+                    {selectedAdvertiser && getStatusBadge(selectedAdvertiser.status)}
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 bg-[#0A0A0A] border-white/10">
+                  {advertisers.map((adv) => (
+                    <DropdownMenuItem
+                      key={adv.id}
+                      onClick={() => setSelectedAdvertiserId(adv.id)}
+                      className={`flex items-center justify-between cursor-pointer ${
+                        selectedAdvertiserId === adv.id ? "bg-white/10" : ""
+                      }`}
+                      data-testid={`advertiser-option-${adv.id}`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-white">{adv.username}</span>
+                        <span className="text-[10px] text-slate-400">{adv.offersCount} офферов</span>
+                      </div>
+                      {getStatusBadge(adv.status)}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="h-4 w-px bg-white/10" />
+            </>
+          )}
           <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
           <div className="h-4 w-px bg-white/10" />
           <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
