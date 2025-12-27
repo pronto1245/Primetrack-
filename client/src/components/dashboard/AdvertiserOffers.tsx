@@ -36,6 +36,22 @@ interface Offer {
   landings?: OfferLanding[];
 }
 
+function getOfferPayout(offer: Offer): string {
+  if (offer.partnerPayout) return offer.partnerPayout;
+  if (offer.landings && offer.landings.length > 0) {
+    return offer.landings[0].partnerPayout;
+  }
+  return '';
+}
+
+function getOfferInternalCost(offer: Offer): string | null {
+  if (offer.internalCost) return offer.internalCost;
+  if (offer.landings && offer.landings.length > 0) {
+    return offer.landings[0].internalCost;
+  }
+  return null;
+}
+
 export function AdvertiserOffers({ role }: { role: string }) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -247,11 +263,11 @@ export function AdvertiserOffers({ role }: { role: string }) {
                     <td className="px-4 py-3 text-slate-300">
                       {offer.geo.slice(0, 3).join(", ")}{offer.geo.length > 3 ? ` +${offer.geo.length - 3}` : ""}
                     </td>
-                    <td className="px-4 py-3 text-emerald-400 font-bold">
-                      {offer.partnerPayout ? `$${offer.partnerPayout}` : 'N/A'}
+                    <td className="px-4 py-3 text-emerald-400 font-bold" data-testid={`text-payout-${offer.id}`}>
+                      {getOfferPayout(offer) ? `$${getOfferPayout(offer)}` : 'N/A'}
                     </td>
-                    <td className="px-4 py-3 text-red-400 font-bold">
-                      {offer.internalCost ? `$${offer.internalCost}` : 'N/A'}
+                    <td className="px-4 py-3 text-red-400 font-bold" data-testid={`text-cost-${offer.id}`}>
+                      {getOfferInternalCost(offer) ? `$${getOfferInternalCost(offer)}` : 'N/A'}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${offer.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>

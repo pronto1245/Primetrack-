@@ -254,7 +254,13 @@ export async function registerRoutes(
   app.get("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const offers = await storage.getOffersByAdvertiser(req.session.userId!);
-      res.json(offers);
+      const offersWithLandings = await Promise.all(
+        offers.map(async (offer) => {
+          const landings = await storage.getOfferLandings(offer.id);
+          return { ...offer, landings };
+        })
+      );
+      res.json(offersWithLandings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch offers" });
     }
