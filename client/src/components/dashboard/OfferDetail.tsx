@@ -420,9 +420,9 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
             <div className={`h-2 ${offer.status === 'active' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-yellow-500 to-yellow-400'}`} />
             <CardContent className="p-6">
               <div className="flex items-start gap-4 mb-6">
-                <div className={`w-20 h-20 rounded-xl ${categoryColor.split(' ')[0]} flex items-center justify-center flex-shrink-0 border border-white/10`}>
+                <div className={`w-20 h-20 rounded-xl ${categoryColor.split(' ')[0]} flex items-center justify-center flex-shrink-0 border border-white/10 overflow-hidden`}>
                   {offer.logoUrl ? (
-                    <img src={offer.logoUrl} alt={offer.name} className="w-14 h-14 object-contain rounded" />
+                    <img src={offer.logoUrl} alt={offer.name} className="w-full h-full object-cover" />
                   ) : (
                     <Tag className="w-10 h-10 text-white/60" />
                   )}
