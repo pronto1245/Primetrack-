@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Save, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Globe, Save, Loader2, CheckCircle, AlertCircle, History, ExternalLink, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,18 @@ interface PostbackSettingsData {
   leadPostbackMethod: string;
   salePostbackUrl: string | null;
   salePostbackMethod: string;
+}
+
+interface PostbackLog {
+  id: string;
+  conversionId: string;
+  url: string;
+  method: string;
+  responseCode: number | null;
+  responseBody: string | null;
+  success: boolean;
+  retryCount: number;
+  createdAt: string;
 }
 
 export function PostbackSettings() {
@@ -31,6 +43,11 @@ export function PostbackSettings() {
     queryKey: ["/api/postback-settings"],
     staleTime: 0,
     gcTime: 0,
+  });
+
+  const { data: logsData } = useQuery<PostbackLog[]>({
+    queryKey: ["/api/postback-logs"],
+    staleTime: 30000,
   });
 
   useEffect(() => {
@@ -233,6 +250,86 @@ export function PostbackSettings() {
           Сохранить
         </Button>
       </div>
+
+      {/* Postback Logs Section */}
+      <Card className="bg-[#0A0A0A] border-white/10 p-6 mt-6">
+        <div className="flex items-center gap-3 mb-4">
+          <History className="w-5 h-5 text-slate-400" />
+          <h3 className="text-lg font-semibold text-white">История постбеков</h3>
+        </div>
+        
+        {logsData && logsData.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Дата</th>
+                  <th className="text-left py-2 px-3 text-slate-400 font-medium">URL</th>
+                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Метод</th>
+                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Код</th>
+                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Статус</th>
+                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Retry</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logsData.slice(0, 20).map((log) => (
+                  <tr key={log.id} className="border-b border-white/5 hover:bg-white/5">
+                    <td className="py-2 px-3 text-slate-300 font-mono text-xs">
+                      {new Date(log.createdAt).toLocaleString('ru-RU', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </td>
+                    <td className="py-2 px-3 text-slate-300 font-mono text-xs max-w-[300px] truncate">
+                      <a 
+                        href={log.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:text-emerald-400 flex items-center gap-1"
+                      >
+                        {log.url.length > 50 ? log.url.substring(0, 50) + '...' : log.url}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </td>
+                    <td className="py-2 px-3 text-slate-300 font-mono text-xs">
+                      {log.method}
+                    </td>
+                    <td className="py-2 px-3 font-mono text-xs">
+                      <span className={log.responseCode && log.responseCode >= 200 && log.responseCode < 300 ? 'text-emerald-400' : 'text-red-400'}>
+                        {log.responseCode || '-'}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3">
+                      {log.success ? (
+                        <span className="flex items-center gap-1 text-emerald-400 text-xs">
+                          <CheckCircle className="w-3 h-3" />
+                          OK
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-red-400 text-xs">
+                          <XCircle className="w-3 h-3" />
+                          Fail
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-400 text-xs">
+                      {log.retryCount > 0 ? `#${log.retryCount}` : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>История постбеков пуста</p>
+            <p className="text-xs mt-1">Логи появятся после первых конверсий</p>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

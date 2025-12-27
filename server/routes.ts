@@ -1140,6 +1140,28 @@ export async function registerRoutes(
     }
   });
   
+  // Get postback logs (universal for all roles)
+  app.get("/api/postback-logs", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      let logs;
+      if (role === 'admin') {
+        logs = await storage.getPostbackLogs({ limit });
+      } else if (role === 'advertiser') {
+        logs = await storage.getPostbackLogs({ advertiserId: userId, limit });
+      } else {
+        logs = await storage.getPostbackLogs({ publisherId: userId, limit });
+      }
+      
+      res.json(logs || []);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback logs" });
+    }
+  });
+
   // Test postback URL (universal)
   app.post("/api/advertiser/postbacks/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
