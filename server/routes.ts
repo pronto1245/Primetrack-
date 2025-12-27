@@ -833,13 +833,14 @@ export async function registerRoutes(
       const publisherId = req.session.userId!;
       const relationships = await storage.getAdvertisersForPublisher(publisherId);
       
+      // Load publisher offers once (O(1) instead of O(n))
+      const publisherOffers = await storage.getPublisherOffersByPublisher(publisherId);
+      const publisherOfferIds = new Set(publisherOffers.map(po => po.offerId));
+      
       const extendedAdvertisers = await Promise.all(
         relationships.map(async ({ advertiser, ...rel }) => {
-          const publisherOffers = await storage.getPublisherOffersByPublisher(publisherId);
           const advertiserOffers = await storage.getOffersByAdvertiser(advertiser.id);
-          const offersCount = publisherOffers.filter(po => 
-            advertiserOffers.some(o => o.id === po.offerId)
-          ).length;
+          const offersCount = advertiserOffers.filter(o => publisherOfferIds.has(o.id)).length;
           
           return {
             id: advertiser.id,
