@@ -1100,7 +1100,47 @@ export async function registerRoutes(
     }
   });
 
-  // Test postback URL
+  // ============================================
+  // UNIVERSAL POSTBACK SETTINGS (for all roles)
+  // ============================================
+  
+  // Get user postback settings
+  app.get("/api/postback-settings", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const settings = await storage.getUserPostbackSettings(userId);
+      res.json(settings || {
+        leadPostbackUrl: null,
+        leadPostbackMethod: "GET",
+        salePostbackUrl: null,
+        salePostbackMethod: "GET"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback settings" });
+    }
+  });
+  
+  // Update user postback settings
+  app.put("/api/postback-settings", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { leadPostbackUrl, leadPostbackMethod, salePostbackUrl, salePostbackMethod } = req.body;
+      
+      const settings = await storage.upsertUserPostbackSettings(userId, {
+        leadPostbackUrl: leadPostbackUrl || null,
+        leadPostbackMethod: leadPostbackMethod || "GET",
+        salePostbackUrl: salePostbackUrl || null,
+        salePostbackMethod: salePostbackMethod || "GET"
+      });
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating postback settings:", error);
+      res.status(500).json({ message: "Failed to update postback settings" });
+    }
+  });
+  
+  // Test postback URL (universal)
   app.post("/api/advertiser/postbacks/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const { url, method = "GET" } = req.body;
