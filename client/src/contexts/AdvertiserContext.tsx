@@ -7,6 +7,10 @@ interface AdvertiserInfo {
   email: string;
   offersCount: number;
   status: "active" | "pending" | "inactive" | "rejected";
+  logoUrl: string | null;
+  telegram: string | null;
+  phone: string | null;
+  companyName: string | null;
 }
 
 interface AdvertiserContextType {

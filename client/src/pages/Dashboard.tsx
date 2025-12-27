@@ -9,7 +9,8 @@ import {
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
-  Plus, Search, Loader2, UserPlus, ChevronDown, Building2
+  Plus, Search, Loader2, UserPlus, ChevronDown, Building2,
+  Phone, Send
 } from "lucide-react";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import {
@@ -183,6 +184,8 @@ function RoleSelectionScreen({ t }: { t: any }) {
 }
 
 function Sidebar({ role, t }: { role: string, t: any }) {
+  const { selectedAdvertiser } = useAdvertiserContext();
+  
   const menus = {
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
@@ -227,6 +230,60 @@ function Sidebar({ role, t }: { role: string, t: any }) {
           </Link>
         ))}
       </nav>
+
+      {/* Advertiser Card for Publisher */}
+      {role === "publisher" && selectedAdvertiser && (
+        <div className="p-3 border-t border-white/10">
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-3 border border-white/10" data-testid="advertiser-card">
+            <div className="flex items-center gap-3 mb-3">
+              {selectedAdvertiser.logoUrl ? (
+                <img 
+                  src={selectedAdvertiser.logoUrl} 
+                  alt={selectedAdvertiser.companyName || selectedAdvertiser.username}
+                  className="w-10 h-10 rounded-lg bg-slate-700 object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                  {(selectedAdvertiser.companyName || selectedAdvertiser.username).charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  {selectedAdvertiser.companyName || selectedAdvertiser.username}
+                </p>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {selectedAdvertiser.offersCount} офферов
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              {selectedAdvertiser.telegram && (
+                <a 
+                  href={`https://t.me/${selectedAdvertiser.telegram.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-slate-400 hover:text-blue-400 transition-colors"
+                  data-testid="advertiser-telegram"
+                >
+                  <Send className="w-3 h-3" />
+                  <span className="truncate">{selectedAdvertiser.telegram}</span>
+                </a>
+              )}
+              {selectedAdvertiser.phone && (
+                <a 
+                  href={`tel:${selectedAdvertiser.phone}`}
+                  className="flex items-center gap-2 text-xs text-slate-400 hover:text-emerald-400 transition-colors"
+                  data-testid="advertiser-phone"
+                >
+                  <Phone className="w-3 h-3" />
+                  <span className="truncate">{selectedAdvertiser.phone}</span>
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="p-4 border-t border-white/10">
         <Link href="/dashboard">

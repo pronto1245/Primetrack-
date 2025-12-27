@@ -847,6 +847,10 @@ export async function registerRoutes(
             email: advertiser.email,
             offersCount,
             status: rel.status as "active" | "pending" | "inactive" | "rejected",
+            logoUrl: (advertiser as any).logoUrl || null,
+            telegram: (advertiser as any).telegram || null,
+            phone: (advertiser as any).phone || null,
+            companyName: (advertiser as any).companyName || null,
           };
         })
       );

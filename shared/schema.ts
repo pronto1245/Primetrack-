@@ -14,6 +14,10 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   referralCode: text("referral_code").unique(),
   status: text("status").notNull().default("active"), // pending, active, blocked (advertisers start as pending)
+  logoUrl: text("logo_url"),
+  telegram: text("telegram"),
+  phone: text("phone"),
+  companyName: text("company_name"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
