@@ -10,7 +10,7 @@ import {
   RefreshCw, Loader2, Filter, X, Clock, CheckCircle
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { AdvertiserSwitcher } from "./AdvertiserSwitcher";
+import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 
 interface PublisherStatsData {
   totalClicks: number;
@@ -66,12 +66,11 @@ export function PublisherDashboard() {
   const [dateTo, setDateTo] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedAdvertiserId") || null;
-  });
+  
+  // Use global advertiser context
+  const { selectedAdvertiserId } = useAdvertiserContext();
 
-  const handleAdvertiserChange = (advId: string | null) => {
-    setSelectedAdvertiserId(advId);
+  const handleAdvertiserChange = () => {
     setSelectedOffer("all");
   };
 
@@ -180,10 +179,6 @@ export function PublisherDashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold text-white">{t('dashboard.overview')}</h2>
-          <AdvertiserSwitcher 
-            selectedAdvertiserId={selectedAdvertiserId}
-            onSelect={handleAdvertiserChange}
-          />
         </div>
         <div className="flex items-center gap-2">
           <Button
