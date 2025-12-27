@@ -6,6 +6,7 @@ import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone } from 
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
+import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 
 interface OfferLanding {
   id: string;
@@ -43,9 +44,12 @@ export function PublisherOffers({ role }: { role: string }) {
   const [selectedGeo, setSelectedGeo] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [showMyOffers, setShowMyOffers] = useState<boolean>(false);
+  
+  // Use global advertiser context for filtering
+  const { selectedAdvertiserId } = useAdvertiserContext();
 
   const { data: offers, isLoading, error } = useQuery<MarketplaceOffer[]>({
-    queryKey: ["/api/marketplace/offers"],
+    queryKey: ["/api/marketplace/offers", selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch("/api/marketplace/offers", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch marketplace");
@@ -75,6 +79,8 @@ export function PublisherOffers({ role }: { role: string }) {
   const filteredOffers = useMemo(() => {
     if (!offers) return [];
     return offers.filter((offer) => {
+      // Filter by selected advertiser (if selected)
+      const matchesAdvertiser = !selectedAdvertiserId || offer.advertiserId === selectedAdvertiserId;
       const matchesSearch = searchQuery === "" || 
         offer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -83,9 +89,9 @@ export function PublisherOffers({ role }: { role: string }) {
       const matchesGeo = selectedGeo === "all" || offer.geo.includes(selectedGeo);
       const matchesSource = selectedSource === "all" || offer.trafficSources?.includes(selectedSource);
       const matchesMyOffers = !showMyOffers || offer.hasAccess === true;
-      return matchesSearch && matchesCategory && matchesGeo && matchesSource && matchesMyOffers;
+      return matchesAdvertiser && matchesSearch && matchesCategory && matchesGeo && matchesSource && matchesMyOffers;
     });
-  }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, showMyOffers]);
+  }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, showMyOffers, selectedAdvertiserId]);
 
   const getMaxPayout = (offer: MarketplaceOffer) => {
     if (offer.landings && offer.landings.length > 0) {

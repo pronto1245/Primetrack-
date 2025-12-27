@@ -12,6 +12,7 @@ import {
   MousePointer, Target, DollarSign, TrendingUp, Loader2,
   Calendar
 } from "lucide-react";
+import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 
 interface ReportsProps {
   role: string;
@@ -30,6 +31,9 @@ export function Reports({ role }: ReportsProps) {
     groupBy: "date"
   });
   const [page, setPage] = useState(1);
+  
+  // Use global advertiser context for publisher filtering
+  const { selectedAdvertiserId } = useAdvertiserContext();
 
   const queryParams = new URLSearchParams();
   if (filters.dateFrom) queryParams.set("dateFrom", filters.dateFrom);
@@ -38,11 +42,15 @@ export function Reports({ role }: ReportsProps) {
   if (filters.publisherId && role !== "publisher") queryParams.set("publisherId", filters.publisherId);
   if (filters.geo) queryParams.set("geo", filters.geo);
   if (filters.device) queryParams.set("device", filters.device);
+  // Add advertiser filter for publisher role
+  if (role === "publisher" && selectedAdvertiserId) {
+    queryParams.set("advertiserId", selectedAdvertiserId);
+  }
   queryParams.set("page", String(page));
   queryParams.set("limit", "50");
 
   const { data: clicksData, isLoading: clicksLoading, refetch: refetchClicks } = useQuery({
-    queryKey: ["/api/reports/clicks", filters, page],
+    queryKey: ["/api/reports/clicks", filters, page, selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch(`/api/reports/clicks?${queryParams.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch clicks");
@@ -52,7 +60,7 @@ export function Reports({ role }: ReportsProps) {
   });
 
   const { data: conversionsData, isLoading: conversionsLoading, refetch: refetchConversions } = useQuery({
-    queryKey: ["/api/reports/conversions", filters, page],
+    queryKey: ["/api/reports/conversions", filters, page, selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch(`/api/reports/conversions?${queryParams.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch conversions");
@@ -65,7 +73,7 @@ export function Reports({ role }: ReportsProps) {
   groupedParams.set("groupBy", filters.groupBy);
   
   const { data: groupedData, isLoading: groupedLoading, refetch: refetchGrouped } = useQuery({
-    queryKey: ["/api/reports/grouped", filters],
+    queryKey: ["/api/reports/grouped", filters, selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch grouped data");
