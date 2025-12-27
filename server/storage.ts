@@ -9,7 +9,12 @@ import {
   type OfferAccessRequest, type InsertOfferAccessRequest, offerAccessRequests,
   type PublisherOfferAccess, type InsertPublisherOffer, publisherOffers,
   type PublisherAdvertiser, publisherAdvertisers,
-  type OfferCapsStats, type InsertOfferCapsStats, offerCapsStats
+  type OfferCapsStats, type InsertOfferCapsStats, offerCapsStats,
+  type PaymentMethod, type InsertPaymentMethod, paymentMethods,
+  type PublisherWallet, type InsertPublisherWallet, publisherWallets,
+  type PayoutRequest, type InsertPayoutRequest, payoutRequests,
+  type Payout, type InsertPayout, payouts,
+  type PublisherBalance, type InsertPublisherBalance, publisherBalances
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
@@ -197,6 +202,39 @@ export interface IStorage {
   getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number }>;
   getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: any[]; total: number; page: number; limit: number }>;
   getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
+  
+  // Payment Methods (Advertiser)
+  getPaymentMethodsByAdvertiser(advertiserId: string): Promise<PaymentMethod[]>;
+  getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
+  createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: string, data: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
+  deletePaymentMethod(id: string): Promise<void>;
+  
+  // Publisher Wallets
+  getPublisherWalletsByPublisher(publisherId: string, advertiserId: string): Promise<(PublisherWallet & { paymentMethod: PaymentMethod })[]>;
+  getPublisherWallet(id: string): Promise<PublisherWallet | undefined>;
+  createPublisherWallet(wallet: InsertPublisherWallet): Promise<PublisherWallet>;
+  updatePublisherWallet(id: string, data: Partial<InsertPublisherWallet>): Promise<PublisherWallet | undefined>;
+  deletePublisherWallet(id: string): Promise<void>;
+  
+  // Payout Requests
+  getPayoutRequestsByPublisher(publisherId: string, advertiserId?: string): Promise<(PayoutRequest & { wallet: PublisherWallet; paymentMethod: PaymentMethod })[]>;
+  getPayoutRequestsByAdvertiser(advertiserId: string): Promise<(PayoutRequest & { publisher: User; wallet: PublisherWallet; paymentMethod: PaymentMethod })[]>;
+  getPayoutRequest(id: string): Promise<PayoutRequest | undefined>;
+  createPayoutRequest(request: InsertPayoutRequest): Promise<PayoutRequest>;
+  updatePayoutRequest(id: string, data: Partial<InsertPayoutRequest>): Promise<PayoutRequest | undefined>;
+  
+  // Payouts
+  getPayoutsByPublisher(publisherId: string, advertiserId?: string): Promise<(Payout & { paymentMethod: PaymentMethod })[]>;
+  getPayoutsByAdvertiser(advertiserId: string): Promise<(Payout & { publisher: User; paymentMethod: PaymentMethod })[]>;
+  createPayout(payout: InsertPayout): Promise<Payout>;
+  createBulkPayouts(payouts: InsertPayout[]): Promise<Payout[]>;
+  
+  // Publisher Balances
+  getPublisherBalance(publisherId: string, advertiserId: string): Promise<PublisherBalance | undefined>;
+  getPublisherBalancesByAdvertiser(advertiserId: string): Promise<(PublisherBalance & { publisher: User })[]>;
+  updatePublisherBalance(publisherId: string, advertiserId: string, data: Partial<InsertPublisherBalance>): Promise<PublisherBalance>;
+  calculatePublisherBalance(publisherId: string, advertiserId: string): Promise<{ available: number; pending: number; hold: number; totalPaid: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1572,6 +1610,270 @@ export class DatabaseStorage implements IStorage {
     });
     
     return { data: result, groupBy };
+  }
+  
+  // ============================================
+  // PAYMENT METHODS (Advertiser)
+  // ============================================
+  async getPaymentMethodsByAdvertiser(advertiserId: string): Promise<PaymentMethod[]> {
+    return db.select().from(paymentMethods).where(eq(paymentMethods.advertiserId, advertiserId)).orderBy(desc(paymentMethods.createdAt));
+  }
+  
+  async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
+    const [method] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
+    return method;
+  }
+  
+  async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [created] = await db.insert(paymentMethods).values(method).returning();
+    return created;
+  }
+  
+  async updatePaymentMethod(id: string, data: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined> {
+    const [updated] = await db.update(paymentMethods).set(data).where(eq(paymentMethods.id, id)).returning();
+    return updated;
+  }
+  
+  async deletePaymentMethod(id: string): Promise<void> {
+    await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
+  }
+  
+  // ============================================
+  // PUBLISHER WALLETS
+  // ============================================
+  async getPublisherWalletsByPublisher(publisherId: string, advertiserId: string): Promise<(PublisherWallet & { paymentMethod: PaymentMethod })[]> {
+    const wallets = await db.select().from(publisherWallets).where(and(
+      eq(publisherWallets.publisherId, publisherId),
+      eq(publisherWallets.advertiserId, advertiserId)
+    )).orderBy(desc(publisherWallets.createdAt));
+    
+    const result = [];
+    for (const wallet of wallets) {
+      const method = await this.getPaymentMethod(wallet.paymentMethodId);
+      if (method) {
+        result.push({ ...wallet, paymentMethod: method });
+      }
+    }
+    return result;
+  }
+  
+  async getPublisherWallet(id: string): Promise<PublisherWallet | undefined> {
+    const [wallet] = await db.select().from(publisherWallets).where(eq(publisherWallets.id, id));
+    return wallet;
+  }
+  
+  async createPublisherWallet(wallet: InsertPublisherWallet): Promise<PublisherWallet> {
+    const [created] = await db.insert(publisherWallets).values(wallet).returning();
+    return created;
+  }
+  
+  async updatePublisherWallet(id: string, data: Partial<InsertPublisherWallet>): Promise<PublisherWallet | undefined> {
+    const [updated] = await db.update(publisherWallets).set(data).where(eq(publisherWallets.id, id)).returning();
+    return updated;
+  }
+  
+  async deletePublisherWallet(id: string): Promise<void> {
+    await db.delete(publisherWallets).where(eq(publisherWallets.id, id));
+  }
+  
+  // ============================================
+  // PAYOUT REQUESTS
+  // ============================================
+  async getPayoutRequestsByPublisher(publisherId: string, advertiserId?: string): Promise<(PayoutRequest & { wallet: PublisherWallet; paymentMethod: PaymentMethod })[]> {
+    let query = db.select().from(payoutRequests).where(eq(payoutRequests.publisherId, publisherId));
+    
+    if (advertiserId) {
+      query = db.select().from(payoutRequests).where(and(
+        eq(payoutRequests.publisherId, publisherId),
+        eq(payoutRequests.advertiserId, advertiserId)
+      ));
+    }
+    
+    const requests = await query.orderBy(desc(payoutRequests.createdAt));
+    
+    const result = [];
+    for (const req of requests) {
+      const wallet = await this.getPublisherWallet(req.walletId);
+      const method = await this.getPaymentMethod(req.paymentMethodId);
+      if (wallet && method) {
+        result.push({ ...req, wallet, paymentMethod: method });
+      }
+    }
+    return result;
+  }
+  
+  async getPayoutRequestsByAdvertiser(advertiserId: string): Promise<(PayoutRequest & { publisher: User; wallet: PublisherWallet; paymentMethod: PaymentMethod })[]> {
+    const requests = await db.select().from(payoutRequests)
+      .where(eq(payoutRequests.advertiserId, advertiserId))
+      .orderBy(desc(payoutRequests.createdAt));
+    
+    const result = [];
+    for (const req of requests) {
+      const publisher = await this.getUser(req.publisherId);
+      const wallet = await this.getPublisherWallet(req.walletId);
+      const method = await this.getPaymentMethod(req.paymentMethodId);
+      if (publisher && wallet && method) {
+        result.push({ ...req, publisher, wallet, paymentMethod: method });
+      }
+    }
+    return result;
+  }
+  
+  async getPayoutRequest(id: string): Promise<PayoutRequest | undefined> {
+    const [request] = await db.select().from(payoutRequests).where(eq(payoutRequests.id, id));
+    return request;
+  }
+  
+  async createPayoutRequest(request: InsertPayoutRequest): Promise<PayoutRequest> {
+    const [created] = await db.insert(payoutRequests).values(request).returning();
+    return created;
+  }
+  
+  async updatePayoutRequest(id: string, data: Partial<InsertPayoutRequest>): Promise<PayoutRequest | undefined> {
+    const [updated] = await db.update(payoutRequests).set({ ...data, updatedAt: new Date() }).where(eq(payoutRequests.id, id)).returning();
+    return updated;
+  }
+  
+  // ============================================
+  // PAYOUTS
+  // ============================================
+  async getPayoutsByPublisher(publisherId: string, advertiserId?: string): Promise<(Payout & { paymentMethod: PaymentMethod })[]> {
+    let query = db.select().from(payouts).where(eq(payouts.publisherId, publisherId));
+    
+    if (advertiserId) {
+      query = db.select().from(payouts).where(and(
+        eq(payouts.publisherId, publisherId),
+        eq(payouts.advertiserId, advertiserId)
+      ));
+    }
+    
+    const payoutsList = await query.orderBy(desc(payouts.createdAt));
+    
+    const result = [];
+    for (const payout of payoutsList) {
+      const method = await this.getPaymentMethod(payout.paymentMethodId);
+      if (method) {
+        result.push({ ...payout, paymentMethod: method });
+      }
+    }
+    return result;
+  }
+  
+  async getPayoutsByAdvertiser(advertiserId: string): Promise<(Payout & { publisher: User; paymentMethod: PaymentMethod })[]> {
+    const payoutsList = await db.select().from(payouts)
+      .where(eq(payouts.advertiserId, advertiserId))
+      .orderBy(desc(payouts.createdAt));
+    
+    const result = [];
+    for (const payout of payoutsList) {
+      const publisher = await this.getUser(payout.publisherId);
+      const method = await this.getPaymentMethod(payout.paymentMethodId);
+      if (publisher && method) {
+        result.push({ ...payout, publisher, paymentMethod: method });
+      }
+    }
+    return result;
+  }
+  
+  async createPayout(payout: InsertPayout): Promise<Payout> {
+    const [created] = await db.insert(payouts).values(payout).returning();
+    return created;
+  }
+  
+  async createBulkPayouts(payoutsList: InsertPayout[]): Promise<Payout[]> {
+    if (payoutsList.length === 0) return [];
+    const created = await db.insert(payouts).values(payoutsList).returning();
+    return created;
+  }
+  
+  // ============================================
+  // PUBLISHER BALANCES
+  // ============================================
+  async getPublisherBalance(publisherId: string, advertiserId: string): Promise<PublisherBalance | undefined> {
+    const [balance] = await db.select().from(publisherBalances).where(and(
+      eq(publisherBalances.publisherId, publisherId),
+      eq(publisherBalances.advertiserId, advertiserId)
+    ));
+    return balance;
+  }
+  
+  async getPublisherBalancesByAdvertiser(advertiserId: string): Promise<(PublisherBalance & { publisher: User })[]> {
+    const balances = await db.select().from(publisherBalances)
+      .where(eq(publisherBalances.advertiserId, advertiserId));
+    
+    const result = [];
+    for (const balance of balances) {
+      const publisher = await this.getUser(balance.publisherId);
+      if (publisher) {
+        result.push({ ...balance, publisher });
+      }
+    }
+    return result;
+  }
+  
+  async updatePublisherBalance(publisherId: string, advertiserId: string, data: Partial<InsertPublisherBalance>): Promise<PublisherBalance> {
+    const existing = await this.getPublisherBalance(publisherId, advertiserId);
+    
+    if (existing) {
+      const [updated] = await db.update(publisherBalances)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(publisherBalances.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(publisherBalances).values({
+        publisherId,
+        advertiserId,
+        ...data
+      }).returning();
+      return created;
+    }
+  }
+  
+  async calculatePublisherBalance(publisherId: string, advertiserId: string): Promise<{ available: number; pending: number; hold: number; totalPaid: number }> {
+    // Get all approved conversions for this publisher from this advertiser's offers
+    const publisherConversions = await db.select()
+      .from(conversions)
+      .innerJoin(offers, eq(conversions.offerId, offers.id))
+      .where(and(
+        eq(conversions.publisherId, publisherId),
+        eq(offers.advertiserId, advertiserId)
+      ));
+    
+    let available = 0;
+    let pending = 0;
+    let hold = 0;
+    
+    for (const { conversions: conv } of publisherConversions) {
+      const amount = parseFloat(conv.publisherPayout);
+      switch (conv.status) {
+        case "approved":
+          available += amount;
+          break;
+        case "pending":
+          pending += amount;
+          break;
+        case "hold":
+          hold += amount;
+          break;
+      }
+    }
+    
+    // Get total paid from payouts
+    const paidPayouts = await db.select()
+      .from(payouts)
+      .where(and(
+        eq(payouts.publisherId, publisherId),
+        eq(payouts.advertiserId, advertiserId),
+        eq(payouts.status, "completed")
+      ));
+    
+    const totalPaid = paidPayouts.reduce((sum, p) => sum + parseFloat(p.netAmount), 0);
+    
+    // Available = earned approved - already paid
+    available = available - totalPaid;
+    
+    return { available: Math.max(0, available), pending, hold, totalPaid };
   }
 }
 
