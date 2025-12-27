@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Users, Loader2, Trash2, Edit,
-  Send, AlertCircle
+  Send, AlertCircle, CheckSquare
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +38,8 @@ export function AdvertiserFinance() {
   const [approveAmount, setApproveAmount] = useState("");
   const [rejectReason, setRejectReason] = useState("");
   const [transactionId, setTransactionId] = useState("");
+  const [selectedRequestIds, setSelectedRequestIds] = useState<string[]>([]);
+  const [showMassPayout, setShowMassPayout] = useState(false);
 
   const { data: paymentMethods = [], isLoading: methodsLoading } = useQuery<any[]>({
     queryKey: ["/api/advertiser/payment-methods"],
@@ -139,8 +142,40 @@ export function AdvertiserFinance() {
     });
   };
 
+  const massPayoutMutation = useMutation({
+    mutationFn: (requestIds: string[]) => apiRequest("POST", "/api/advertiser/mass-payout", { requestIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/payout-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/payouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/publisher-balances"] });
+      setSelectedRequestIds([]);
+      setShowMassPayout(false);
+      toast({ title: "Массовая выплата выполнена" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const toggleRequestSelection = (id: string) => {
+    setSelectedRequestIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllApproved = () => {
+    setSelectedRequestIds(approvedRequests.map((r: any) => r.id));
+  };
+
+  const handleMassPayout = () => {
+    massPayoutMutation.mutate(selectedRequestIds);
+  };
+
   const pendingRequests = payoutRequests.filter((r: any) => r.status === "pending");
   const approvedRequests = payoutRequests.filter((r: any) => r.status === "approved");
+  const selectedTotal = approvedRequests
+    .filter((r: any) => selectedRequestIds.includes(r.id))
+    .reduce((sum: number, r: any) => sum + parseFloat(r.approvedAmount || r.requestedAmount || 0), 0);
   const totalPending = pendingRequests.reduce((sum: number, r: any) => sum + parseFloat(r.requestedAmount || 0), 0);
   const totalOwed = publisherBalances.reduce((sum: number, b: any) => sum + b.available, 0);
 
@@ -238,23 +273,69 @@ export function AdvertiserFinance() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {payoutRequests.map((request: any) => (
-                <Card key={request.id} className="bg-[#0A0A0A] border-white/10">
+              {/* Mass Payout Panel */}
+              {approvedRequests.length > 0 && (
+                <Card className="bg-[#0A0A0A] border-emerald-500/30">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold">
-                          {request.publisherId?.slice(0, 2).toUpperCase() || "??"}
-                        </div>
+                        <CheckSquare className="w-5 h-5 text-emerald-500" />
                         <div>
-                          <p className="font-medium text-white">Publisher #{request.publisherId?.slice(0, 8)}</p>
-                          <p className="text-sm text-slate-400">
-                            Запрошено: <span className="text-white font-mono">${request.requestedAmount}</span>
-                          </p>
+                          <p className="text-sm text-white">Одобренных к выплате: <span className="font-bold">{approvedRequests.length}</span></p>
+                          {selectedRequestIds.length > 0 && (
+                            <p className="text-xs text-slate-400">Выбрано: {selectedRequestIds.length} на сумму ${selectedTotal.toFixed(2)}</p>
+                          )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-3">
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={selectAllApproved} data-testid="button-select-all">
+                          Выбрать все
+                        </Button>
+                        <Button 
+                          className="bg-emerald-600 hover:bg-emerald-700" 
+                          size="sm"
+                          disabled={selectedRequestIds.length === 0 || massPayoutMutation.isPending}
+                          onClick={handleMassPayout}
+                          data-testid="button-mass-payout"
+                        >
+                          {massPayoutMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : (
+                            <Send className="w-4 h-4 mr-2" />
+                          )}
+                          Массовая выплата
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {payoutRequests.map((request: any) => (
+                <Card key={request.id} className="bg-[#0A0A0A] border-white/10" data-testid={`card-request-${request.id}`}>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          {/* Checkbox for approved requests */}
+                          {request.status === "approved" && (
+                            <Checkbox 
+                              checked={selectedRequestIds.includes(request.id)}
+                              onCheckedChange={() => toggleRequestSelection(request.id)}
+                              data-testid={`checkbox-request-${request.id}`}
+                            />
+                          )}
+                          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold">
+                            {request.publisherName?.slice(0, 2).toUpperCase() || "??"}
+                          </div>
+                          <div>
+                            <p className="font-medium text-white" data-testid={`text-publisher-name-${request.id}`}>{request.publisherName || `Publisher #${request.publisherId?.slice(0, 8)}`}</p>
+                            <p className="text-xs text-slate-400">{request.publisherEmail}</p>
+                            <p className="text-sm text-slate-400">
+                              Запрошено: <span className="text-white font-mono" data-testid={`text-request-amount-${request.id}`}>${request.requestedAmount}</span>
+                            </p>
+                          </div>
+                        </div>
                         <Badge
                           className={
                             request.status === "pending"
@@ -265,13 +346,31 @@ export function AdvertiserFinance() {
                               ? "bg-emerald-500/20 text-emerald-500"
                               : "bg-red-500/20 text-red-500"
                           }
+                          data-testid={`badge-status-${request.id}`}
                         >
                           {request.status === "pending" && "Ожидает"}
                           {request.status === "approved" && "Одобрено"}
                           {request.status === "paid" && "Оплачено"}
                           {request.status === "rejected" && "Отклонено"}
                         </Badge>
+                      </div>
+                      
+                      {/* Payment Requisites */}
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                        <p className="text-xs text-slate-400 mb-2">Реквизиты для выплаты:</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">{request.methodName || request.methodType}</Badge>
+                        </div>
+                        <p className="font-mono text-sm text-white break-all" data-testid={`text-wallet-address-${request.id}`}>{request.walletAddress}</p>
+                        {request.walletAccountName && (
+                          <p className="text-xs text-slate-400 mt-1">Имя: {request.walletAccountName}</p>
+                        )}
+                        {request.walletAdditionalInfo && (
+                          <p className="text-xs text-slate-400">Доп. инфо: {request.walletAdditionalInfo}</p>
+                        )}
+                      </div>
 
+                      <div className="flex items-center justify-end gap-3">
                         {request.status === "pending" && (
                           <div className="flex gap-2">
                             <Button

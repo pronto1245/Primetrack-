@@ -1885,7 +1885,18 @@ export async function registerRoutes(
     try {
       const userId = req.session.userId!;
       const requests = await storage.getPayoutRequestsByAdvertiser(userId);
-      res.json(requests);
+      // Include wallet details for advertiser to see payout requisites
+      const enrichedRequests = requests.map(req => ({
+        ...req,
+        publisherName: req.publisher.username,
+        publisherEmail: req.publisher.email,
+        walletAddress: req.wallet.walletAddress,
+        walletAccountName: req.wallet.accountName,
+        walletAdditionalInfo: req.wallet.additionalInfo,
+        methodName: req.paymentMethod.methodName,
+        methodType: req.paymentMethod.methodType,
+      }));
+      res.json(enrichedRequests);
     } catch (error: any) {
       console.error("Get payout requests error:", error);
       res.status(500).json({ message: "Failed to fetch payout requests" });
@@ -2009,6 +2020,69 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Create bonus payout error:", error);
       res.status(500).json({ message: "Failed to create bonus payout" });
+    }
+  });
+
+  // Advertiser: Mass payout (pay multiple approved requests at once)
+  app.post("/api/advertiser/mass-payout", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { requestIds } = req.body;
+      
+      if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+        return res.status(400).json({ message: "requestIds array is required" });
+      }
+      
+      const results = [];
+      for (const requestId of requestIds) {
+        const request = await storage.getPayoutRequest(requestId);
+        if (!request || request.advertiserId !== userId) {
+          continue;
+        }
+        
+        if (request.status !== "approved") {
+          continue;
+        }
+        
+        const wallet = await storage.getPublisherWallet(request.walletId);
+        const method = await storage.getPaymentMethod(request.paymentMethodId);
+        
+        if (!wallet || !method) {
+          continue;
+        }
+        
+        const amount = parseFloat(request.approvedAmount || request.requestedAmount);
+        const feePercent = parseFloat(method.feePercent || "0");
+        const feeFixed = parseFloat(method.feeFixed || "0");
+        const feeAmount = (amount * feePercent / 100) + feeFixed;
+        const netAmount = amount - feeAmount;
+        
+        await storage.updatePayoutRequest(requestId, {
+          status: "paid",
+          paidAt: new Date()
+        });
+        
+        const payout = await storage.createPayout({
+          payoutRequestId: request.id,
+          publisherId: request.publisherId,
+          advertiserId: userId,
+          paymentMethodId: request.paymentMethodId,
+          walletAddress: wallet.walletAddress,
+          amount: amount.toString(),
+          feeAmount: feeAmount.toString(),
+          netAmount: netAmount.toString(),
+          currency: request.currency,
+          payoutType: "manual",
+          status: "completed"
+        });
+        
+        results.push(payout);
+      }
+      
+      res.json({ success: true, payoutsCount: results.length, payouts: results });
+    } catch (error: any) {
+      console.error("Mass payout error:", error);
+      res.status(500).json({ message: "Failed to process mass payout" });
     }
   });
   
