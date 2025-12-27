@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
+import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 
 interface PublisherStatsData {
   totalClicks: number;
@@ -68,7 +69,12 @@ export function PublisherDashboard() {
   const [showFilters, setShowFilters] = useState(false);
   
   // Use global advertiser context
-  const { selectedAdvertiserId } = useAdvertiserContext();
+  const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
+
+  // Show pending overlay if partnership is not active
+  if (isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
 
   const handleAdvertiserChange = () => {
     setSelectedOffer("all");

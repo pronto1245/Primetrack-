@@ -13,6 +13,7 @@ import {
   Calendar
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
+import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 
 interface ReportsProps {
   role: string;
@@ -33,7 +34,12 @@ export function Reports({ role }: ReportsProps) {
   const [page, setPage] = useState(1);
   
   // Use global advertiser context for publisher filtering
-  const { selectedAdvertiserId } = useAdvertiserContext();
+  const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
+
+  // Show pending overlay if partnership is not active (publisher only)
+  if (role === "publisher" && isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
 
   const queryParams = new URLSearchParams();
   if (filters.dateFrom) queryParams.set("dateFrom", filters.dateFrom);

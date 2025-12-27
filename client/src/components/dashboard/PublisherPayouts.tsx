@@ -18,6 +18,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
+import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 
 const PAYMENT_ICONS: Record<string, any> = {
   crypto_usdt_trc20: { icon: Bitcoin, color: "text-green-500" },
@@ -33,7 +34,12 @@ export function PublisherPayouts() {
   const queryClient = useQueryClient();
   
   // Use global advertiser context
-  const { selectedAdvertiserId: selectedAdvertiser, selectedAdvertiser: advertiserInfo } = useAdvertiserContext();
+  const { selectedAdvertiserId: selectedAdvertiser, selectedAdvertiser: advertiserInfo, isPendingPartnership } = useAdvertiserContext();
+  
+  // Show pending overlay if partnership is not active
+  if (isPendingPartnership) {
+    return <PendingPartnershipOverlay />;
+  }
   
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [showRequestPayout, setShowRequestPayout] = useState(false);
