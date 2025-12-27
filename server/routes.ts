@@ -1576,5 +1576,516 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // PAYMENT METHODS (Advertiser)
+  // ============================================
+  
+  // Get advertiser's payment methods
+  app.get("/api/advertiser/payment-methods", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const methods = await storage.getPaymentMethodsByAdvertiser(userId);
+      res.json(methods);
+    } catch (error: any) {
+      console.error("Get payment methods error:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+  
+  // Create payment method
+  app.post("/api/advertiser/payment-methods", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { methodType, methodName, currency, minPayout, maxPayout, feePercent, feeFixed, instructions } = req.body;
+      
+      if (!methodType || !methodName || !currency) {
+        return res.status(400).json({ message: "methodType, methodName, and currency are required" });
+      }
+      
+      const method = await storage.createPaymentMethod({
+        advertiserId: userId,
+        methodType,
+        methodName,
+        currency,
+        minPayout: minPayout || "0",
+        maxPayout: maxPayout || null,
+        feePercent: feePercent || "0",
+        feeFixed: feeFixed || "0",
+        instructions: instructions || null,
+        isActive: true
+      });
+      
+      res.status(201).json(method);
+    } catch (error: any) {
+      console.error("Create payment method error:", error);
+      res.status(500).json({ message: "Failed to create payment method" });
+    }
+  });
+  
+  // Update payment method
+  app.put("/api/advertiser/payment-methods/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { id } = req.params;
+      
+      const existing = await storage.getPaymentMethod(id);
+      if (!existing || existing.advertiserId !== userId) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+      
+      const updated = await storage.updatePaymentMethod(id, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Update payment method error:", error);
+      res.status(500).json({ message: "Failed to update payment method" });
+    }
+  });
+  
+  // Delete payment method
+  app.delete("/api/advertiser/payment-methods/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { id } = req.params;
+      
+      const existing = await storage.getPaymentMethod(id);
+      if (!existing || existing.advertiserId !== userId) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+      
+      await storage.deletePaymentMethod(id);
+      res.json({ message: "Payment method deleted" });
+    } catch (error: any) {
+      console.error("Delete payment method error:", error);
+      res.status(500).json({ message: "Failed to delete payment method" });
+    }
+  });
+  
+  // ============================================
+  // PUBLISHER WALLETS
+  // ============================================
+  
+  // Get publisher's wallets for specific advertiser
+  app.get("/api/publisher/wallets/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { advertiserId } = req.params;
+      
+      const wallets = await storage.getPublisherWalletsByPublisher(userId, advertiserId);
+      res.json(wallets);
+    } catch (error: any) {
+      console.error("Get publisher wallets error:", error);
+      res.status(500).json({ message: "Failed to fetch wallets" });
+    }
+  });
+  
+  // Get advertiser's payment methods (for publisher to see)
+  app.get("/api/publisher/advertiser-payment-methods/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { advertiserId } = req.params;
+      const methods = await storage.getPaymentMethodsByAdvertiser(advertiserId);
+      // Only return active methods
+      const activeMethods = methods.filter(m => m.isActive);
+      res.json(activeMethods);
+    } catch (error: any) {
+      console.error("Get advertiser payment methods error:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+  
+  // Create publisher wallet
+  app.post("/api/publisher/wallets", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { advertiserId, paymentMethodId, walletAddress, accountName, additionalInfo } = req.body;
+      
+      if (!advertiserId || !paymentMethodId || !walletAddress) {
+        return res.status(400).json({ message: "advertiserId, paymentMethodId, and walletAddress are required" });
+      }
+      
+      // Verify payment method exists and belongs to advertiser
+      const method = await storage.getPaymentMethod(paymentMethodId);
+      if (!method || method.advertiserId !== advertiserId) {
+        return res.status(400).json({ message: "Invalid payment method" });
+      }
+      
+      const wallet = await storage.createPublisherWallet({
+        publisherId: userId,
+        advertiserId,
+        paymentMethodId,
+        walletAddress,
+        accountName: accountName || null,
+        additionalInfo: additionalInfo || null,
+        isVerified: false,
+        isDefault: false
+      });
+      
+      res.status(201).json(wallet);
+    } catch (error: any) {
+      console.error("Create publisher wallet error:", error);
+      res.status(500).json({ message: "Failed to create wallet" });
+    }
+  });
+  
+  // Update publisher wallet
+  app.put("/api/publisher/wallets/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { id } = req.params;
+      
+      const existing = await storage.getPublisherWallet(id);
+      if (!existing || existing.publisherId !== userId) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      
+      const updated = await storage.updatePublisherWallet(id, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Update publisher wallet error:", error);
+      res.status(500).json({ message: "Failed to update wallet" });
+    }
+  });
+  
+  // Delete publisher wallet
+  app.delete("/api/publisher/wallets/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { id } = req.params;
+      
+      const existing = await storage.getPublisherWallet(id);
+      if (!existing || existing.publisherId !== userId) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      
+      await storage.deletePublisherWallet(id);
+      res.json({ message: "Wallet deleted" });
+    } catch (error: any) {
+      console.error("Delete publisher wallet error:", error);
+      res.status(500).json({ message: "Failed to delete wallet" });
+    }
+  });
+  
+  // ============================================
+  // PUBLISHER BALANCE
+  // ============================================
+  
+  // Get publisher's balance for specific advertiser
+  app.get("/api/publisher/balance/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { advertiserId } = req.params;
+      
+      const balance = await storage.calculatePublisherBalance(userId, advertiserId);
+      res.json(balance);
+    } catch (error: any) {
+      console.error("Get publisher balance error:", error);
+      res.status(500).json({ message: "Failed to fetch balance" });
+    }
+  });
+  
+  // Get all publisher balances (for advertiser)
+  app.get("/api/advertiser/publisher-balances", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      
+      // Get all publishers connected to this advertiser
+      const publishers = await storage.getPublishersByAdvertiser(userId);
+      
+      const balances = [];
+      for (const pub of publishers) {
+        const balance = await storage.calculatePublisherBalance(pub.publisherId, userId);
+        const user = await storage.getUser(pub.publisherId);
+        if (user) {
+          balances.push({
+            publisherId: pub.publisherId,
+            publisherName: user.username,
+            publisherEmail: user.email,
+            ...balance
+          });
+        }
+      }
+      
+      res.json(balances);
+    } catch (error: any) {
+      console.error("Get publisher balances error:", error);
+      res.status(500).json({ message: "Failed to fetch balances" });
+    }
+  });
+  
+  // ============================================
+  // PAYOUT REQUESTS
+  // ============================================
+  
+  // Publisher: Get my payout requests
+  app.get("/api/publisher/payout-requests/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { advertiserId } = req.params;
+      
+      const requests = await storage.getPayoutRequestsByPublisher(userId, advertiserId);
+      res.json(requests);
+    } catch (error: any) {
+      console.error("Get payout requests error:", error);
+      res.status(500).json({ message: "Failed to fetch payout requests" });
+    }
+  });
+  
+  // Publisher: Create payout request
+  app.post("/api/publisher/payout-requests", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { advertiserId, walletId, requestedAmount, publisherNote } = req.body;
+      
+      if (!advertiserId || !walletId || !requestedAmount) {
+        return res.status(400).json({ message: "advertiserId, walletId, and requestedAmount are required" });
+      }
+      
+      // Verify wallet belongs to publisher
+      const wallet = await storage.getPublisherWallet(walletId);
+      if (!wallet || wallet.publisherId !== userId) {
+        return res.status(400).json({ message: "Invalid wallet" });
+      }
+      
+      // Check available balance
+      const balance = await storage.calculatePublisherBalance(userId, advertiserId);
+      if (parseFloat(requestedAmount) > balance.available) {
+        return res.status(400).json({ message: "Requested amount exceeds available balance" });
+      }
+      
+      // Get payment method for currency
+      const method = await storage.getPaymentMethod(wallet.paymentMethodId);
+      if (!method) {
+        return res.status(400).json({ message: "Invalid payment method" });
+      }
+      
+      // Check minimum payout
+      if (parseFloat(requestedAmount) < parseFloat(method.minPayout)) {
+        return res.status(400).json({ message: `Minimum payout is ${method.minPayout} ${method.currency}` });
+      }
+      
+      const request = await storage.createPayoutRequest({
+        publisherId: userId,
+        advertiserId,
+        walletId,
+        paymentMethodId: wallet.paymentMethodId,
+        requestedAmount,
+        currency: method.currency,
+        status: "pending",
+        publisherNote: publisherNote || null
+      });
+      
+      res.status(201).json(request);
+    } catch (error: any) {
+      console.error("Create payout request error:", error);
+      res.status(500).json({ message: "Failed to create payout request" });
+    }
+  });
+  
+  // Advertiser: Get all payout requests
+  app.get("/api/advertiser/payout-requests", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const requests = await storage.getPayoutRequestsByAdvertiser(userId);
+      res.json(requests);
+    } catch (error: any) {
+      console.error("Get payout requests error:", error);
+      res.status(500).json({ message: "Failed to fetch payout requests" });
+    }
+  });
+  
+  // Advertiser: Update payout request (approve, reject, partial, pay)
+  app.put("/api/advertiser/payout-requests/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { id } = req.params;
+      const { status, approvedAmount, advertiserNote, rejectionReason, transactionId } = req.body;
+      
+      const request = await storage.getPayoutRequest(id);
+      if (!request || request.advertiserId !== userId) {
+        return res.status(404).json({ message: "Payout request not found" });
+      }
+      
+      // Update request
+      const updateData: any = { status };
+      if (approvedAmount !== undefined) updateData.approvedAmount = approvedAmount;
+      if (advertiserNote) updateData.advertiserNote = advertiserNote;
+      if (rejectionReason) updateData.rejectionReason = rejectionReason;
+      if (transactionId) updateData.transactionId = transactionId;
+      if (status === "paid") updateData.paidAt = new Date();
+      
+      const updated = await storage.updatePayoutRequest(id, updateData);
+      
+      // If paid, create payout record
+      if (status === "paid" && updated) {
+        const wallet = await storage.getPublisherWallet(request.walletId);
+        const method = await storage.getPaymentMethod(request.paymentMethodId);
+        
+        if (wallet && method) {
+          const amount = parseFloat(approvedAmount || request.requestedAmount);
+          const feePercent = parseFloat(method.feePercent || "0");
+          const feeFixed = parseFloat(method.feeFixed || "0");
+          const feeAmount = (amount * feePercent / 100) + feeFixed;
+          const netAmount = amount - feeAmount;
+          
+          await storage.createPayout({
+            payoutRequestId: request.id,
+            publisherId: request.publisherId,
+            advertiserId: userId,
+            paymentMethodId: request.paymentMethodId,
+            walletAddress: wallet.walletAddress,
+            amount: amount.toString(),
+            feeAmount: feeAmount.toString(),
+            netAmount: netAmount.toString(),
+            currency: request.currency,
+            payoutType: "manual",
+            transactionId: transactionId || null,
+            note: advertiserNote || null,
+            status: "completed"
+          });
+        }
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Update payout request error:", error);
+      res.status(500).json({ message: "Failed to update payout request" });
+    }
+  });
+  
+  // ============================================
+  // PAYOUTS
+  // ============================================
+  
+  // Publisher: Get my payouts
+  app.get("/api/publisher/payouts/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { advertiserId } = req.params;
+      
+      const payoutsList = await storage.getPayoutsByPublisher(userId, advertiserId);
+      res.json(payoutsList);
+    } catch (error: any) {
+      console.error("Get payouts error:", error);
+      res.status(500).json({ message: "Failed to fetch payouts" });
+    }
+  });
+  
+  // Advertiser: Get all payouts
+  app.get("/api/advertiser/payouts", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const payoutsList = await storage.getPayoutsByAdvertiser(userId);
+      res.json(payoutsList);
+    } catch (error: any) {
+      console.error("Get payouts error:", error);
+      res.status(500).json({ message: "Failed to fetch payouts" });
+    }
+  });
+  
+  // Advertiser: Create bonus payout
+  app.post("/api/advertiser/payouts/bonus", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { publisherId, paymentMethodId, walletAddress, amount, currency, note } = req.body;
+      
+      if (!publisherId || !paymentMethodId || !walletAddress || !amount || !currency) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const payout = await storage.createPayout({
+        publisherId,
+        advertiserId: userId,
+        paymentMethodId,
+        walletAddress,
+        amount,
+        feeAmount: "0",
+        netAmount: amount,
+        currency,
+        payoutType: "bonus",
+        note: note || "Bonus payment",
+        status: "completed"
+      });
+      
+      res.status(201).json(payout);
+    } catch (error: any) {
+      console.error("Create bonus payout error:", error);
+      res.status(500).json({ message: "Failed to create bonus payout" });
+    }
+  });
+  
+  // Advertiser: Bulk auto-payout
+  app.post("/api/advertiser/payouts/bulk", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { publisherIds, paymentMethodId, note } = req.body;
+      
+      if (!publisherIds || !Array.isArray(publisherIds) || publisherIds.length === 0) {
+        return res.status(400).json({ message: "publisherIds array is required" });
+      }
+      
+      const results = [];
+      const errors = [];
+      
+      for (const publisherId of publisherIds) {
+        try {
+          // Calculate balance
+          const balance = await storage.calculatePublisherBalance(publisherId, userId);
+          
+          if (balance.available <= 0) {
+            errors.push({ publisherId, error: "No available balance" });
+            continue;
+          }
+          
+          // Get publisher's default wallet for this payment method
+          const wallets = await storage.getPublisherWalletsByPublisher(publisherId, userId);
+          
+          let wallet = wallets.find(w => w.paymentMethodId === paymentMethodId && w.isDefault);
+          if (!wallet) {
+            wallet = wallets.find(w => w.paymentMethodId === paymentMethodId);
+          }
+          
+          if (!wallet) {
+            errors.push({ publisherId, error: "No wallet configured for this payment method" });
+            continue;
+          }
+          
+          const method = await storage.getPaymentMethod(wallet.paymentMethodId);
+          if (!method) {
+            errors.push({ publisherId, error: "Invalid payment method" });
+            continue;
+          }
+          
+          const amount = balance.available;
+          const feePercent = parseFloat(method.feePercent || "0");
+          const feeFixed = parseFloat(method.feeFixed || "0");
+          const feeAmount = (amount * feePercent / 100) + feeFixed;
+          const netAmount = amount - feeAmount;
+          
+          const payout = await storage.createPayout({
+            publisherId,
+            advertiserId: userId,
+            paymentMethodId: wallet.paymentMethodId,
+            walletAddress: wallet.walletAddress,
+            amount: amount.toString(),
+            feeAmount: feeAmount.toString(),
+            netAmount: netAmount.toString(),
+            currency: method.currency,
+            payoutType: "auto",
+            note: note || "Auto-payout",
+            status: "completed"
+          });
+          
+          results.push(payout);
+        } catch (err: any) {
+          errors.push({ publisherId, error: err.message });
+        }
+      }
+      
+      res.json({ payouts: results, errors });
+    } catch (error: any) {
+      console.error("Bulk payout error:", error);
+      res.status(500).json({ message: "Failed to process bulk payout" });
+    }
+  });
+
   return httpServer;
 }

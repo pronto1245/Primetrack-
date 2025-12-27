@@ -189,6 +189,7 @@ export interface IStorage {
   
   // Publisher-Advertiser relationships
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
+  getPublishersByAdvertiser(advertiserId: string): Promise<(PublisherAdvertiser & { publisher: User })[]>;
   addPublisherToAdvertiser(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser>;
   
   // Offer Caps Stats
@@ -531,6 +532,24 @@ export class DatabaseStorage implements IStorage {
       const advertiser = await this.getUser(rel.advertiserId);
       if (advertiser) {
         result.push({ ...rel, advertiser });
+      }
+    }
+    return result;
+  }
+  
+  async getPublishersByAdvertiser(advertiserId: string): Promise<(PublisherAdvertiser & { publisher: User })[]> {
+    const relations = await db.select()
+      .from(publisherAdvertisers)
+      .where(and(
+        eq(publisherAdvertisers.advertiserId, advertiserId),
+        eq(publisherAdvertisers.status, "active")
+      ));
+    
+    const result: (PublisherAdvertiser & { publisher: User })[] = [];
+    for (const rel of relations) {
+      const publisher = await this.getUser(rel.publisherId);
+      if (publisher) {
+        result.push({ ...rel, publisher });
       }
     }
     return result;
