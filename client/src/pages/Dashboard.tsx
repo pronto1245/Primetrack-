@@ -31,9 +31,7 @@ import { Reports } from "@/components/dashboard/Reports";
 import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
-import { AdvertiserPostbacks } from "@/components/dashboard/AdvertiserPostbacks";
-import { PublisherPostbacks } from "@/components/dashboard/PublisherPostbacks";
-import { AdminPostbacks } from "@/components/dashboard/AdminPostbacks";
+import { PostbackSettings } from "@/components/dashboard/PostbackSettings";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -378,8 +376,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
 
     if (showPostbacks) {
-      if (role === 'admin') return <AdminPostbacks />;
-      return <AdvertiserPostbacks />;
+      return <PostbackSettings />;
     }
 
     if (showPayouts) {
