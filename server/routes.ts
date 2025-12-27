@@ -108,6 +108,10 @@ async function seedUsers() {
   for (const [advUsername, offers] of Object.entries(offerTemplates)) {
     const advertiser = await storage.getUserByUsername(advUsername);
     if (!advertiser) continue;
+    
+    // Check if publisher has active partnership with this advertiser
+    const partnership = await storage.getPublisherAdvertiserRelation(publisher.id, advertiser.id);
+    const isActive = partnership?.status === "active";
 
     const existingOffers = await storage.getOffersByAdvertiser(advertiser.id);
     if (existingOffers.length === 0) {
@@ -122,11 +126,13 @@ async function seedUsers() {
         });
         console.log(`Created offer: ${offerData.name}`);
 
-        // Give publisher access to this offer
-        await storage.createPublisherOffer({
-          offerId: offer.id,
-          publisherId: publisher.id,
-        });
+        // Give publisher access only if partnership is active
+        if (isActive) {
+          await storage.createPublisherOffer({
+            offerId: offer.id,
+            publisherId: publisher.id,
+          });
+        }
       }
     }
   }
@@ -715,7 +721,14 @@ export async function registerRoutes(
       
       const offersWithAccess = await Promise.all(
         offers.map(async (offer) => {
-          const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, publisherId);
+          // Check if publisher has active partnership with this advertiser
+          const partnership = await storage.getPublisherAdvertiserRelation(publisherId, offer.advertiserId);
+          const partnershipStatus = partnership?.status || null;
+          
+          // Only grant access if partnership is active
+          const isPartnershipActive = partnershipStatus === "active";
+          
+          const hasAccess = isPartnershipActive && await storage.hasPublisherAccessToOffer(offer.id, publisherId);
           const existingRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, publisherId);
           
           const { internalCost, ...safeOffer } = offer;
@@ -727,7 +740,8 @@ export async function registerRoutes(
               ...safeOffer, 
               landings: safeLandings,
               accessStatus: "approved" as const,
-              hasAccess: true 
+              hasAccess: true,
+              partnershipStatus
             };
           }
           
@@ -735,7 +749,8 @@ export async function registerRoutes(
             ...safeOffer, 
             landings: [],
             accessStatus: existingRequest?.status || null,
-            hasAccess: false 
+            hasAccess: false,
+            partnershipStatus
           };
         })
       );
