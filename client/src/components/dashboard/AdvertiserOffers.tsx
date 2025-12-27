@@ -248,10 +248,10 @@ export function AdvertiserOffers({ role }: { role: string }) {
                       {offer.geo.slice(0, 3).join(", ")}{offer.geo.length > 3 ? ` +${offer.geo.length - 3}` : ""}
                     </td>
                     <td className="px-4 py-3 text-emerald-400 font-bold">
-                      ${offer.partnerPayout}
+                      ${offer.partnerPayout || 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-red-400 font-bold">
-                      {offer.internalCost ? `$${offer.internalCost}` : '-'}
+                      {offer.internalCost ? `$${offer.internalCost}` : 'N/A'}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${offer.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
