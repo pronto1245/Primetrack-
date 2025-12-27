@@ -29,6 +29,8 @@ export function PostbackSettings() {
 
   const { data, isLoading } = useQuery<PostbackSettingsData>({
     queryKey: ["/api/postback-settings"],
+    staleTime: 0,
+    gcTime: 0,
   });
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface User {
   id: string;
@@ -12,6 +13,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     checkAuth();
@@ -41,6 +43,7 @@ export function useAuth() {
 
       if (res.ok) {
         const data = await res.json();
+        queryClient.clear();
         setUser(data);
         setLocation(`/dashboard/${data.role}`);
         return true;
@@ -53,6 +56,7 @@ export function useAuth() {
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    queryClient.clear();
     setUser(null);
     setLocation("/dashboard");
   };
