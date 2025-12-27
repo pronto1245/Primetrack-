@@ -55,6 +55,7 @@ export function CreateOfferForm({ role }: { role: string }) {
     creativeLinks: [""],
     geo: [] as string[],
     revSharePercent: "",
+    holdPeriodDays: "0",
   });
 
   const [landings, setLandings] = useState<Landing[]>([
@@ -316,6 +317,39 @@ export function CreateOfferForm({ role }: { role: string }) {
                   </div>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label className="text-slate-300 text-xs font-mono uppercase flex items-center gap-2">
+                  Период холда (дней)
+                </Label>
+                <div className="flex gap-2">
+                  {[0, 7, 14, 30].map(days => (
+                    <Button
+                      key={days}
+                      type="button"
+                      variant={formData.holdPeriodDays === String(days) ? "default" : "outline"}
+                      size="sm"
+                      className={formData.holdPeriodDays === String(days) 
+                        ? "bg-blue-600 text-white" 
+                        : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"}
+                      onClick={() => setFormData(prev => ({ ...prev, holdPeriodDays: String(days) }))}
+                      data-testid={`button-hold-${days}`}
+                    >
+                      {days === 0 ? "Без холда" : `${days} дней`}
+                    </Button>
+                  ))}
+                  <Input
+                    data-testid="input-hold-period"
+                    type="number"
+                    min="0"
+                    className="w-20 bg-[#050505] border-white/10 text-white font-mono text-center"
+                    placeholder="Др."
+                    value={![0, 7, 14, 30].includes(Number(formData.holdPeriodDays)) ? formData.holdPeriodDays : ""}
+                    onChange={e => setFormData(prev => ({ ...prev, holdPeriodDays: e.target.value || "0" }))}
+                  />
+                </div>
+                <p className="text-xs text-slate-500">Деньги партнёра будут заморожены на указанный срок после конверсии</p>
+              </div>
             </CardContent>
           </Card>
 

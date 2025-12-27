@@ -321,6 +321,7 @@ interface Offer {
   internalCost?: string;
   payoutModel: string;
   currency: string;
+  holdPeriodDays?: number;
   geo: string[];
   category: string;
   trafficSources: string[];
@@ -491,6 +492,15 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                   <div className="text-[10px] uppercase text-slate-500 mb-1 font-medium">Валюта</div>
                   <div className="text-xl font-bold text-white">{offer.currency}</div>
+                </div>
+                <div className={`rounded-xl p-4 border ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20' : 'bg-white/5 border-white/10'}`}>
+                  <div className={`text-[10px] uppercase mb-1 font-medium ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400/70' : 'text-slate-500'}`}>
+                    <Clock className="w-3 h-3 inline mr-1" />
+                    Холд
+                  </div>
+                  <div className={`text-xl font-bold ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400' : 'text-white'}`} data-testid="text-hold-period">
+                    {offer.holdPeriodDays && offer.holdPeriodDays > 0 ? `${offer.holdPeriodDays} дн.` : 'Нет'}
+                  </div>
                 </div>
               </div>
             </CardContent>
