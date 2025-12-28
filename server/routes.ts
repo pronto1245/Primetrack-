@@ -1549,20 +1549,54 @@ export async function registerRoutes(
 
       const clicks = await storage.getClicksForAdvertiser(req.session.userId!, filters);
       
-      const safeClicks = clicks.map(c => ({
-        id: c.id,
-        clickId: c.clickId,
-        offerId: c.offerId,
-        offerName: c.offer.name,
-        publisherId: c.publisherId,
-        publisherName: c.publisher.username,
-        ip: c.ip,
-        geo: c.geo,
-        userAgent: c.userAgent,
-        sub1: c.sub1,
-        sub2: c.sub2,
-        sub3: c.sub3,
-        createdAt: c.createdAt,
+      // Get all conversions to calculate per-click stats
+      const allConversions = await storage.getConversionsForAdvertiser(req.session.userId!, {});
+      
+      // Track unique IPs per offer for isUnique calculation
+      const uniqueIpsByOffer: Map<string, Set<string>> = new Map();
+      
+      const safeClicks = await Promise.all(clicks.map(async c => {
+        // Get conversions for this click
+        const clickConversions = allConversions.filter(conv => conv.clickId === c.id);
+        const hasConversion = clickConversions.length > 0;
+        const payout = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.publisherPayout || '0'), 0);
+        const cost = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.advertiserCost || '0'), 0);
+        const margin = cost - payout;
+        const roi = payout > 0 ? ((margin / payout) * 100) : 0;
+        const cr = hasConversion ? 100 : 0;
+        
+        // Check if this is unique IP for the offer
+        if (!uniqueIpsByOffer.has(c.offerId)) {
+          uniqueIpsByOffer.set(c.offerId, new Set());
+        }
+        const ipSet = uniqueIpsByOffer.get(c.offerId)!;
+        const isUnique = c.ip ? !ipSet.has(c.ip) : true;
+        if (c.ip) ipSet.add(c.ip);
+        
+        return {
+          id: c.id,
+          clickId: c.clickId,
+          offerId: c.offerId,
+          offerName: c.offer.name,
+          publisherId: c.publisherId,
+          publisherName: c.publisher.username,
+          ip: c.ip,
+          geo: c.geo,
+          userAgent: c.userAgent,
+          sub1: c.sub1,
+          sub2: c.sub2,
+          sub3: c.sub3,
+          sub4: c.sub4,
+          sub5: c.sub5,
+          createdAt: c.createdAt,
+          isUnique,
+          hasConversion,
+          payout,
+          advertiserCost: cost,
+          margin,
+          roi,
+          cr,
+        };
       }));
       
       res.json(safeClicks);
@@ -1726,7 +1760,7 @@ export async function registerRoutes(
     }
   });
 
-  // Publisher clicks (NO antifraud data)
+  // Publisher clicks (NO antifraud data, NO advertiser_cost)
   app.get("/api/publisher/clicks", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
       const { dateFrom, dateTo, offerIds, geo } = req.query;
@@ -1738,7 +1772,38 @@ export async function registerRoutes(
       if (geo) filters.geo = (geo as string).split(',');
 
       const clicks = await storage.getClicksForPublisher(req.session.userId!, filters);
-      res.json(clicks);
+      
+      // Get conversions to calculate per-click stats
+      const allConversions = await storage.getConversionsForPublisher(req.session.userId!, {});
+      
+      // Track unique IPs per offer
+      const uniqueIpsByOffer: Map<string, Set<string>> = new Map();
+      
+      const enrichedClicks = clicks.map(c => {
+        // Get conversions for this click
+        const clickConversions = allConversions.filter(conv => conv.clickId === c.id);
+        const hasConversion = clickConversions.length > 0;
+        const payout = clickConversions.reduce((sum, conv) => sum + conv.payout, 0);
+        const cr = hasConversion ? 100 : 0;
+        
+        // Check if unique IP (approximate - based on order in results)
+        if (!uniqueIpsByOffer.has(c.offerId)) {
+          uniqueIpsByOffer.set(c.offerId, new Set());
+        }
+        const ipSet = uniqueIpsByOffer.get(c.offerId)!;
+        // We don't have IP in publisher results, so mark first occurrence as unique
+        const isUnique = true; // Simplified for publisher
+        
+        return {
+          ...c,
+          isUnique,
+          hasConversion,
+          payout,
+          cr,
+        };
+      });
+      
+      res.json(enrichedClicks);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch clicks" });
     }
