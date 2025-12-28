@@ -58,6 +58,7 @@ async function setupAuth(app: Express) {
       resave: false,
       saveUninitialized: false,
       store,
+      proxy: isProduction,
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
