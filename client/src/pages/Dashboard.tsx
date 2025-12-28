@@ -34,6 +34,9 @@ import { AdminFinance } from "@/components/dashboard/AdminFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
 import { PostbackSettings } from "@/components/dashboard/PostbackSettings";
 import AntifraudDashboard from "@/components/dashboard/AntifraudDashboard";
+import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
+import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
+import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -319,6 +322,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchPayouts] = useRoute("/dashboard/:role/payouts");
   const [matchPostbacks] = useRoute("/dashboard/:role/postbacks");
   const [matchAntifraud] = useRoute("/dashboard/:role/antifraud");
+  const [matchSettings] = useRoute("/dashboard/:role/settings");
 
   // Global advertiser context for publisher
   const { advertisers, selectedAdvertiserId, selectedAdvertiser, setSelectedAdvertiserId, isLoading: advertisersLoading } = useAdvertiserContext();
@@ -368,8 +372,19 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showPayouts = matchPayouts && role === 'publisher';
   const showPostbacks = matchPostbacks;
   const showAntifraud = matchAntifraud && (role === 'admin' || role === 'advertiser');
+  const showSettings = matchSettings;
 
   const renderContent = () => {
+    if (showSettings) {
+      if (role === 'admin') {
+        return <AdminSettings />;
+      } else if (role === 'advertiser') {
+        return <AdvertiserSettings />;
+      } else if (role === 'publisher') {
+        return <PublisherSettings />;
+      }
+    }
+
     if (showUsers) {
       return <AdminUsers />;
     }
