@@ -126,9 +126,33 @@ export class Orchestrator {
         return { advertiserCost, publisherPayout };
         
       case "CPA":
+        // CPA = Cost Per Action (Sale) - платим только за sale
+        if (conversionType === "sale") {
+          return { advertiserCost: baseAdvertiserCost, publisherPayout: basePublisherPayout };
+        }
+        return { advertiserCost: 0, publisherPayout: 0 };
+        
       case "CPL":
+        // CPL = Cost Per Lead - платим только за lead
+        if (conversionType === "lead") {
+          return { advertiserCost: baseAdvertiserCost, publisherPayout: basePublisherPayout };
+        }
+        return { advertiserCost: 0, publisherPayout: 0 };
+        
       case "CPI":
+        // CPI = Cost Per Install - платим только за install
+        if (conversionType === "install") {
+          return { advertiserCost: baseAdvertiserCost, publisherPayout: basePublisherPayout };
+        }
+        return { advertiserCost: 0, publisherPayout: 0 };
+        
       case "CPS":
+        // CPS = Cost Per Sale - платим только за sale
+        if (conversionType === "sale") {
+          return { advertiserCost: baseAdvertiserCost, publisherPayout: basePublisherPayout };
+        }
+        return { advertiserCost: 0, publisherPayout: 0 };
+        
       default:
         return { advertiserCost: baseAdvertiserCost, publisherPayout: basePublisherPayout };
     }
