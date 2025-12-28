@@ -1,0 +1,164 @@
+2025-12-29 00:21:43.21
+9729b184
+User
+9:21:43 PM [express] GET /api/platform-manager 304 in 210ms :: {"username":"admin","fullName":null,"email":"admin@primetrack.io","telegram":null,"phone":null}
+2025-12-29 00:21:43.21
+9729b184
+User
+9:21:43 PM [express] GET /api/user 304 in 190ms :: {"id":"7b8ac674-f50e-43b1-a9e3-c420fbe452bf","username":"advertiser999","role":"advertiser","email":"karaterezzas@gmail.com","referralCode":"ADV-D5N0D854","status":"active","twoFactorEnabled":true,"hasApprovedAdvertiser":false}
+2025-12-29 00:21:43.35
+9729b184
+User
+9:21:43 PM [express] GET /api/advertiser/registration-link 304 in 341ms :: {"referralCode":"ADV-D5N0D854","registrationLink":"https://9729b184-c301-4e98-8e0a-fab3b45915a3-00-ngseqkrrf98m.riker.replit.dev/register?ref=ADV-D5N0D854"}
+2025-12-29 00:23:48.69
+a371842d
+System
+starting up user application
+2025-12-29 00:23:48.69
+a371842d
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-12-29 00:23:48.69
+a371842d
+System
+metasidecar: loaded enterprise status from environment is_enterprise=false
+2025-12-29 00:23:49.92
+a371842d
+User
+[session] Using PostgreSQL session store
+2025-12-29 00:23:49.92
+a371842d
+User
+Skipping test user seeding in production mode
+2025-12-29 00:23:49.99
+a371842d
+User
+[HoldReleaseJob] Starting with interval 300000ms
+2025-12-29 00:23:49.99
+a371842d
+User
+9:23:49 PM [express] serving on port 5000
+2025-12-29 00:23:49.99
+a371842d
+User
+9:23:49 PM [crypto] Crypto payout service ready (per-advertiser keys)
+2025-12-29 00:24:55.81
+a371842d
+User
+9:24:55 PM [express] GET /api/user 304 in 204ms :: {"id":"7b8ac674-f50e-43b1-a9e3-c420fbe452bf","username":"advertiser999","role":"advertiser","email":"karaterezzas@gmail.com","referralCode":"ADV-D5N0D854","status":"active","twoFactorEnabled":true,"hasApprovedAdvertiser":false}
+2025-12-29 00:24:55.85
+a371842d
+User
+9:24:55 PM [express] GET /api/platform-manager 304 in 218ms :: {"username":"admin","fullName":null,"email":"admin@primetrack.io","telegram":null,"phone":null}
+2025-12-29 00:24:59.50
+a371842d
+User
+9:24:59 PM [express] GET /api/advertiser/partners 304 in 67ms :: []
+2025-12-29 00:24:59.50
+a371842d
+User
+9:24:59 PM [express] GET /api/advertiser/registration-link 200 in 76ms :: {"referralCode":"ADV-D5N0D854","registrationLink":"https://a371842d-eb75-429e-91ed-f510cd64d89b-00-3vr8y4e8yx22m.riker.replit.dev/register?ref=ADV-D5N0D854"}
+2025-12-29 00:25:50.10
+ded14b1e
+System
+system: received signal terminated
+2025-12-29 00:25:50.16
+ded14b1e
+System
+command finished with error [node ./dist/index.cjs]: signal: terminated
+2025-12-29 00:25:50.18
+ded14b1e
+System
+main done, exiting
+2025-12-29 00:26:44.11
+9729b184
+System
+system: received signal terminated
+2025-12-29 00:26:44.13
+9729b184
+System
+command finished with error [node ./dist/index.cjs]: signal: terminated
+2025-12-29 00:26:44.19
+9729b184
+System
+main done, exiting
+2025-12-29 00:28:15.18
+38854704
+System
+starting up user application
+2025-12-29 00:28:15.18
+38854704
+System
+metasidecar: loaded enterprise status from environment is_enterprise=false
+2025-12-29 00:28:15.19
+38854704
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-12-29 00:28:17.63
+38854704
+User
+[session] Using PostgreSQL session store
+2025-12-29 00:28:17.64
+38854704
+User
+Skipping test user seeding in production mode
+2025-12-29 00:28:17.74
+38854704
+User
+[HoldReleaseJob] Starting with interval 300000ms
+2025-12-29 00:28:17.74
+38854704
+User
+9:28:17 PM [express] serving on port 5000
+2025-12-29 00:28:17.74
+38854704
+User
+9:28:17 PM [crypto] Crypto payout service ready (per-advertiser keys)
+2025-12-29 00:28:35.43
+38854704
+User
+[session] Session saved successfully for user: advertiser999
+2025-12-29 00:28:35.45
+38854704
+User
+9:28:35 PM [express] POST /api/auth/login 200 in 2311ms :: {"id":"7b8ac674-f50e-43b1-a9e3-c420fbe452bf","username":"advertiser999","role":"advertiser","email":"karaterezzas@gmail.com"}
+2025-12-29 00:28:35.72
+38854704
+User
+9:28:35 PM [express] GET /api/user 200 in 65ms :: {"id":"7b8ac674-f50e-43b1-a9e3-c420fbe452bf","username":"advertiser999","role":"advertiser","email":"karaterezzas@gmail.com","referralCode":"ADV-D5N0D854","status":"active","twoFactorEnabled":true,"hasApprovedAdvertiser":false,"fullName":"ти","phone":"","contactType":"viber","contactValue":"+70000000000","companyName":"Icloud9","telegram":"ytffryui","logoUrl":"https://theme-forge--joycethomas1907.replit.app/objects/uploads/8db42faf-0300-41df-94bf-6aa3831c09e3"}
+2025-12-29 00:28:35.87
+38854704
+User
+9:28:35 PM [express] GET /api/advertiser/publishers 304 in 212ms :: []
+2025-12-29 00:28:35.88
+38854704
+User
+9:28:35 PM [express] GET /api/platform-manager 304 in 215ms :: {"username":"admin","fullName":null,"email":"admin@primetrack.io","telegram":null,"phone":null}
+2025-12-29 00:28:36.02
+38854704
+User
+9:28:36 PM [express] GET /api/advertiser/stats 304 in 338ms :: {"totalClicks":0,"totalLeads":0,"totalSales":0,"totalConversions":0,"advertiserCost":0,"publisherPayout":0,"margin":0,"roi":0,"cr":0,"epc":0,"byOffer":[],"byPublisher":[],"byDate":[],"byGeo":[]}
+2025-12-29 00:28:36.03
+38854704
+User
+9:28:36 PM [express] GET /api/offers 304 in 347ms :: []
+2025-12-29 00:28:39.60
+38854704
+User
+9:28:39 PM [express] GET /api/advertiser/partners 304 in 68ms :: []
+2025-12-29 00:28:39.60
+38854704
+User
+9:28:39 PM [express] GET /api/advertiser/registration-link 200 in 65ms :: {"referralCode":"ADV-D5N0D854","registrationLink":"https://38854704-306d-436e-a49d-fd9e3240aed9-00-1x0frlsw0k75e.riker.replit.dev/register?ref=ADV-D5N0D854"}
+2025-12-29 00:30:05.73
+a371842d
+System
+system: received signal terminated
+2025-12-29 00:30:05.80
+a371842d
+System
+command finished with error [node ./dist/index.cjs]: signal: terminated
+2025-12-29 00:30:05.80
+a371842d
+System
+main done, exiting

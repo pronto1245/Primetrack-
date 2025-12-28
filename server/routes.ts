@@ -2010,9 +2010,10 @@ export async function registerRoutes(
         await storage.setAdvertiserReferralCode(req.session.userId!, referralCode);
       }
       
-      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-        : 'http://localhost:5000';
+      // Use request host to get correct URL for both dev and production
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host || req.hostname;
+      const baseUrl = `${protocol}://${host}`;
       const registrationLink = `${baseUrl}/register?ref=${referralCode}`;
       
       res.json({ referralCode, registrationLink });
