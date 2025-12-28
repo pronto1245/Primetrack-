@@ -604,3 +604,125 @@ export const insertUserPostbackSettingSchema = createInsertSchema(userPostbackSe
 
 export type InsertUserPostbackSetting = z.infer<typeof insertUserPostbackSettingSchema>;
 export type UserPostbackSetting = typeof userPostbackSettings.$inferSelect;
+
+// ============================================
+// ANTI-FRAUD RULES
+// Configurable rules for fraud detection
+// scope: global (admin only), advertiser (per-advertiser)
+// ============================================
+export const antifraudRules = pgTable("antifraud_rules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  scope: text("scope").notNull().default("global"), // global, advertiser
+  advertiserId: varchar("advertiser_id").references(() => users.id), // null for global rules
+  
+  name: text("name").notNull(),
+  description: text("description"),
+  
+  // Rule type and conditions
+  ruleType: text("rule_type").notNull(), // fraud_score, proxy_vpn, bot, duplicate_click, geo_mismatch, device_fingerprint
+  
+  // Thresholds
+  threshold: integer("threshold"), // e.g., fraud score >= 80
+  
+  // Action when triggered
+  action: text("action").notNull().default("flag"), // block, hold, flag, notify, reject
+  
+  isActive: boolean("is_active").notNull().default(true),
+  priority: integer("priority").notNull().default(100), // Lower = higher priority
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertAntifraudRuleSchema = createInsertSchema(antifraudRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAntifraudRule = z.infer<typeof insertAntifraudRuleSchema>;
+export type AntifraudRule = typeof antifraudRules.$inferSelect;
+
+// ============================================
+// ANTI-FRAUD LOGS
+// Detailed log of each evaluated click with fraud signals
+// ============================================
+export const antifraudLogs = pgTable("antifraud_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  clickId: varchar("click_id").references(() => clicks.id),
+  offerId: varchar("offer_id").references(() => offers.id),
+  advertiserId: varchar("advertiser_id").references(() => users.id),
+  publisherId: varchar("publisher_id").references(() => users.id),
+  
+  // Fraud signals
+  fraudScore: integer("fraud_score").notNull().default(0),
+  isProxy: boolean("is_proxy").default(false),
+  isVpn: boolean("is_vpn").default(false),
+  isBot: boolean("is_bot").default(false),
+  isDatacenter: boolean("is_datacenter").default(false),
+  
+  // Detection details (JSON)
+  signals: text("signals"), // JSON array of detected signals
+  
+  // Matched rules
+  matchedRuleIds: text("matched_rule_ids").array().default(sql`ARRAY[]::text[]`),
+  
+  // Action taken
+  action: text("action").notNull().default("allow"), // allow, block, hold, flag, reject
+  
+  // Context
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  country: text("country"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertAntifraudLogSchema = createInsertSchema(antifraudLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAntifraudLog = z.infer<typeof insertAntifraudLogSchema>;
+export type AntifraudLog = typeof antifraudLogs.$inferSelect;
+
+// ============================================
+// ANTI-FRAUD DAILY METRICS
+// Aggregated metrics for dashboard
+// ============================================
+export const antifraudMetrics = pgTable("antifraud_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  date: timestamp("date").notNull(),
+  advertiserId: varchar("advertiser_id").references(() => users.id), // null for platform-wide
+  offerId: varchar("offer_id").references(() => offers.id), // null for advertiser-level
+  
+  // Counts
+  totalClicks: integer("total_clicks").notNull().default(0),
+  blockedClicks: integer("blocked_clicks").notNull().default(0),
+  flaggedClicks: integer("flagged_clicks").notNull().default(0),
+  
+  // By type
+  proxyVpnCount: integer("proxy_vpn_count").notNull().default(0),
+  botCount: integer("bot_count").notNull().default(0),
+  datacenterCount: integer("datacenter_count").notNull().default(0),
+  
+  // Fraud score distribution
+  lowRiskCount: integer("low_risk_count").notNull().default(0), // score 0-30
+  mediumRiskCount: integer("medium_risk_count").notNull().default(0), // score 31-60
+  highRiskCount: integer("high_risk_count").notNull().default(0), // score 61-100
+  
+  averageFraudScore: numeric("average_fraud_score", { precision: 5, scale: 2 }).default("0"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertAntifraudMetricSchema = createInsertSchema(antifraudMetrics).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAntifraudMetric = z.infer<typeof insertAntifraudMetricSchema>;
+export type AntifraudMetric = typeof antifraudMetrics.$inferSelect;
