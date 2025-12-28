@@ -4,6 +4,8 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { postbackSender } from "./services/postback-sender";
+import { holdReleaseJob } from "./services/hold-release-job";
+import { cryptoPayoutService } from "./services/crypto-payout-service";
 
 const app = express();
 const httpServer = createServer(app);
@@ -96,28 +98,16 @@ app.use((req, res, next) => {
     () => {
       log(`serving on port ${port}`);
       
-      // Process hold conversions every 5 minutes
-      const processHoldBatch = async () => {
-        try {
-          const processedIds = await storage.processHoldConversions();
-          if (processedIds.length > 0) {
-            log(`Processed ${processedIds.length} hold conversions to approved`, "hold-processor");
-            // Send postbacks for each approved conversion
-            for (const conversionId of processedIds) {
-              postbackSender.sendPostback(conversionId).catch(err => {
-                log(`Postback failed for hold-released conversion ${conversionId}: ${err}`, "hold-processor");
-              });
-            }
-          }
-        } catch (error) {
-          log(`Error processing hold conversions: ${error}`, "hold-processor");
+      // Start hold release job (every 5 minutes)
+      holdReleaseJob.start(5 * 60 * 1000);
+      
+      // Initialize crypto payout providers
+      cryptoPayoutService.initializeProviders().then(() => {
+        const providers = cryptoPayoutService.getAvailableProviders();
+        if (providers.length > 0) {
+          log(`Crypto payout providers initialized: ${providers.join(", ")}`, "crypto");
         }
-      };
-      
-      setInterval(processHoldBatch, 5 * 60 * 1000); // 5 minutes
-      
-      // Run immediately on startup
-      processHoldBatch();
+      });
     },
   );
 })();

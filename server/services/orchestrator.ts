@@ -44,8 +44,15 @@ export class Orchestrator {
       event.sum
     );
     
-    const holdUntil = offer.holdPeriodDays && offer.holdPeriodDays > 0
-      ? new Date(Date.now() + offer.holdPeriodDays * 24 * 60 * 60 * 1000)
+    // Use offer hold period, or fall back to advertiser default
+    let holdDays = offer.holdPeriodDays || 0;
+    if (holdDays === 0) {
+      const advertiserSettings = await storage.getAdvertiserSettings(offer.advertiserId);
+      holdDays = advertiserSettings?.defaultHoldPeriodDays || 0;
+    }
+    
+    const holdUntil = holdDays > 0
+      ? new Date(Date.now() + holdDays * 24 * 60 * 60 * 1000)
       : undefined;
     
     const conversionData: InsertConversion = {

@@ -2666,6 +2666,87 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // CRYPTO PAYOUT API
+  // Advertiser: automated crypto payouts via exchange APIs
+  // ============================================
+
+  // Get available crypto providers
+  app.get("/api/advertiser/crypto/providers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { cryptoPayoutService } = await import("./services/crypto-payout-service");
+      const providers = cryptoPayoutService.getAvailableProviders();
+      res.json({ providers });
+    } catch (error: any) {
+      console.error("Get crypto providers error:", error);
+      res.status(500).json({ message: "Failed to fetch crypto providers" });
+    }
+  });
+
+  // Get crypto balances
+  app.get("/api/advertiser/crypto/balances", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { cryptoPayoutService } = await import("./services/crypto-payout-service");
+      const balances = await cryptoPayoutService.getBalances();
+      res.json(balances);
+    } catch (error: any) {
+      console.error("Get crypto balances error:", error);
+      res.status(500).json({ message: "Failed to fetch crypto balances" });
+    }
+  });
+
+  // Send crypto payout
+  app.post("/api/advertiser/crypto/payout", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { cryptoPayoutService } = await import("./services/crypto-payout-service");
+      const userId = req.session.userId!;
+      const { provider, walletAddress, amount, currency, network, publisherId, note } = req.body;
+      
+      if (!provider || !walletAddress || !amount || !currency || !publisherId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const result = await cryptoPayoutService.sendPayout(provider, {
+        walletAddress,
+        amount,
+        currency,
+        network,
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      const method = (await storage.getPaymentMethodsByAdvertiser(userId))
+        .find(m => m.methodType?.toLowerCase().includes(provider));
+      
+      if (method) {
+        const payout = await storage.createPayout({
+          publisherId,
+          advertiserId: userId,
+          paymentMethodId: method.id,
+          walletAddress,
+          amount,
+          feeAmount: "0",
+          netAmount: amount,
+          currency,
+          payoutType: "auto",
+          transactionId: result.transactionId,
+          transactionHash: result.transactionHash,
+          note: note || `Auto crypto payout via ${provider}`,
+          status: "completed"
+        });
+        
+        res.json({ success: true, payout, transaction: result });
+      } else {
+        res.json({ success: true, transaction: result });
+      }
+    } catch (error: any) {
+      console.error("Crypto payout error:", error);
+      res.status(500).json({ message: "Failed to process crypto payout" });
+    }
+  });
+
+  // ============================================
   // ANTI-FRAUD API
   // Admin: full access to all data
   // Advertiser: only their own offers/data

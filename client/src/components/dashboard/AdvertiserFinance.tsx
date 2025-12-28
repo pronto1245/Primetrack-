@@ -40,6 +40,11 @@ export function AdvertiserFinance() {
   const [transactionId, setTransactionId] = useState("");
   const [selectedRequestIds, setSelectedRequestIds] = useState<string[]>([]);
   const [showMassPayout, setShowMassPayout] = useState(false);
+  const [showBonusDialog, setShowBonusDialog] = useState(false);
+  const [bonusPublisherId, setBonusPublisherId] = useState("");
+  const [bonusMethodId, setBonusMethodId] = useState("");
+  const [bonusAmount, setBonusAmount] = useState("");
+  const [bonusNote, setBonusNote] = useState("");
 
   const { data: paymentMethods = [], isLoading: methodsLoading } = useQuery<any[]>({
     queryKey: ["/api/advertiser/payment-methods"],
@@ -156,6 +161,38 @@ export function AdvertiserFinance() {
       toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     },
   });
+
+  const bonusPayoutMutation = useMutation({
+    mutationFn: (data: { publisherId: string; paymentMethodId: string; walletAddress: string; amount: string; currency: string; note: string }) => 
+      apiRequest("POST", "/api/advertiser/payouts/bonus", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/payouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/publisher-balances"] });
+      setShowBonusDialog(false);
+      setBonusPublisherId("");
+      setBonusMethodId("");
+      setBonusAmount("");
+      setBonusNote("");
+      toast({ title: "Бонус выплачен" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleBonusPayout = () => {
+    const method = paymentMethods.find((m: any) => m.id === bonusMethodId);
+    if (!method) return;
+    
+    bonusPayoutMutation.mutate({
+      publisherId: bonusPublisherId,
+      paymentMethodId: bonusMethodId,
+      walletAddress: "bonus",
+      amount: bonusAmount,
+      currency: method.currency || "USD",
+      note: bonusNote || "Бонусная выплата",
+    });
+  };
 
   const toggleRequestSelection = (id: string) => {
     setSelectedRequestIds(prev => 
@@ -533,6 +570,7 @@ export function AdvertiserFinance() {
                     <th className="text-right py-3 px-4">В ожидании</th>
                     <th className="text-right py-3 px-4">Холд</th>
                     <th className="text-right py-3 px-4">Выплачено</th>
+                    <th className="text-right py-3 px-4">Действия</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -555,6 +593,21 @@ export function AdvertiserFinance() {
                       </td>
                       <td className="text-right py-3 px-4 font-mono text-white">
                         ${balance.totalPaid.toFixed(2)}
+                      </td>
+                      <td className="text-right py-3 px-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/10"
+                          onClick={() => {
+                            setBonusPublisherId(balance.publisherId);
+                            setShowBonusDialog(true);
+                          }}
+                          data-testid={`button-bonus-${balance.publisherId}`}
+                        >
+                          <DollarSign className="w-3 h-3 mr-1" />
+                          Бонус
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -825,6 +878,78 @@ export function AdvertiserFinance() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Bonus Payout Dialog */}
+      <Dialog open={showBonusDialog} onOpenChange={setShowBonusDialog}>
+        <DialogContent className="bg-[#0A0A0A] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-yellow-500" />
+              Бонусная выплата
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Партнер</Label>
+              <Input
+                value={publisherBalances.find((b: any) => b.publisherId === bonusPublisherId)?.publisherName || ""}
+                disabled
+                className="bg-[#111] border-white/10"
+              />
+            </div>
+            <div>
+              <Label>Способ оплаты</Label>
+              <Select value={bonusMethodId} onValueChange={setBonusMethodId}>
+                <SelectTrigger className="bg-[#111] border-white/10" data-testid="select-bonus-method">
+                  <SelectValue placeholder="Выберите способ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((method: any) => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.methodName} ({method.currency})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Сумма</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={bonusAmount}
+                onChange={(e) => setBonusAmount(e.target.value)}
+                placeholder="100.00"
+                className="bg-[#111] border-white/10"
+                data-testid="input-bonus-amount"
+              />
+            </div>
+            <div>
+              <Label>Комментарий</Label>
+              <Textarea
+                value={bonusNote}
+                onChange={(e) => setBonusNote(e.target.value)}
+                placeholder="За хорошую работу..."
+                className="bg-[#111] border-white/10"
+                data-testid="input-bonus-note"
+              />
+            </div>
+            <Button
+              className="w-full bg-yellow-600 hover:bg-yellow-700"
+              disabled={!bonusMethodId || !bonusAmount || bonusPayoutMutation.isPending}
+              onClick={handleBonusPayout}
+              data-testid="button-send-bonus"
+            >
+              {bonusPayoutMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Выплатить бонус
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -278,6 +278,9 @@ export const advertiserSettings = pgTable("advertiser_settings", {
   customDomain: text("custom_domain"),
   hidePlatformBranding: boolean("hide_platform_branding").default(false),
   
+  // Financial settings
+  defaultHoldPeriodDays: integer("default_hold_period_days").default(7),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
