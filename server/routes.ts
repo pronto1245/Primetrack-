@@ -6,6 +6,8 @@ import { z } from "zod";
 import crypto from "crypto";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import pgSession from "connect-pg-simple";
+import pg from "pg";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { ClickHandler } from "./services/click-handler";
 import { Orchestrator } from "./services/orchestrator";
@@ -21,24 +23,43 @@ declare module "express-session" {
   }
 }
 
-const SessionStore = MemoryStore(session);
+const MemorySessionStore = MemoryStore(session);
+const PgSessionStore = pgSession(session);
 
 async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === "production";
+  
+  // Trust proxy for Replit deployment (reverse proxy)
+  app.set("trust proxy", 1);
+  
+  // Use PostgreSQL session store in production, memory store in development
+  let store;
+  if (isProduction && process.env.DATABASE_URL) {
+    const pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+    store = new PgSessionStore({
+      pool,
+      tableName: "session",
+      createTableIfMissing: true,
+    });
+  } else {
+    store = new MemorySessionStore({
+      checkPeriod: 86400000,
+    });
+  }
   
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
       resave: false,
       saveUninitialized: false,
-      store: new SessionStore({
-        checkPeriod: 86400000,
-      }),
+      store,
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "lax" : false,
+        sameSite: isProduction ? "none" : "lax",
       },
     })
   );
