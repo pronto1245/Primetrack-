@@ -30,24 +30,24 @@ export function AdvertiserSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
+        <TabsList className="grid w-full grid-cols-5 gap-1">
+          <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
             <User className="h-4 w-4" />
             Профиль
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2" data-testid="tab-security">
+          <TabsTrigger value="security" className="flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white" data-testid="tab-security">
             <Lock className="h-4 w-4" />
             Безопасность
           </TabsTrigger>
-          <TabsTrigger value="whitelabel" className="flex items-center gap-2" data-testid="tab-whitelabel">
+          <TabsTrigger value="whitelabel" className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white" data-testid="tab-whitelabel">
             <Palette className="h-4 w-4" />
             White-label
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2" data-testid="tab-notifications">
+          <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-white" data-testid="tab-notifications">
             <Bell className="h-4 w-4" />
             Уведомления
           </TabsTrigger>
-          <TabsTrigger value="migration" className="flex items-center gap-2" data-testid="tab-migration">
+          <TabsTrigger value="migration" className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white" data-testid="tab-migration">
             <Database className="h-4 w-4" />
             Миграция
           </TabsTrigger>
