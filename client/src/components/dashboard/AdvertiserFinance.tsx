@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Users, Loader2, Trash2, Edit,
-  Send, AlertCircle, CheckSquare
+  Send, AlertCircle, CheckSquare, History
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -248,15 +248,25 @@ export function AdvertiserFinance() {
 
       <Tabs defaultValue="requests" className="space-y-4">
         <TabsList className="bg-[#0A0A0A] border border-white/10">
-          <TabsTrigger value="requests" data-testid="tab-requests">
+          <TabsTrigger value="requests" data-testid="tab-requests" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
+            <Send className="h-4 w-4 mr-1 text-yellow-500" />
             Запросы на выплату
             {pendingRequests.length > 0 && (
-              <Badge className="ml-2 bg-yellow-500 text-black">{pendingRequests.length}</Badge>
+              <Badge className="ml-2 bg-yellow-600 text-black">{pendingRequests.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="balances" data-testid="tab-balances">Балансы партнеров</TabsTrigger>
-          <TabsTrigger value="methods" data-testid="tab-methods">Способы оплаты</TabsTrigger>
-          <TabsTrigger value="history" data-testid="tab-history">История выплат</TabsTrigger>
+          <TabsTrigger value="balances" data-testid="tab-balances" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Users className="h-4 w-4 mr-1 text-emerald-500" />
+            Балансы партнеров
+          </TabsTrigger>
+          <TabsTrigger value="methods" data-testid="tab-methods" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <CreditCard className="h-4 w-4 mr-1 text-blue-500" />
+            Способы оплаты
+          </TabsTrigger>
+          <TabsTrigger value="history" data-testid="tab-history" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+            <History className="h-4 w-4 mr-1 text-purple-500" />
+            История выплат
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests" className="space-y-4">
