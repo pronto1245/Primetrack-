@@ -204,6 +204,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: UserPlus, label: t('dashboard.menu.requests'), path: `/dashboard/${role}/requests` },
       { icon: Users, label: t('dashboard.menu.partners'), path: `/dashboard/${role}/partners` },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
+      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud` },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
     ],
