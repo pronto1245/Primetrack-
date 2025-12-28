@@ -23,10 +23,25 @@ import { useToast } from "@/hooks/use-toast";
 
 const PAYMENT_TYPES = [
   { value: "crypto_usdt_trc20", label: "USDT TRC20", icon: Bitcoin, color: "text-green-500" },
-  { value: "crypto_btc", label: "Bitcoin", icon: Bitcoin, color: "text-orange-500" },
-  { value: "bank_card", label: "Bank Card", icon: CreditCard, color: "text-blue-500" },
+  { value: "crypto_usdt_erc20", label: "USDT ERC20", icon: Bitcoin, color: "text-blue-400" },
+  { value: "crypto_usdt_bep20", label: "USDT BEP20", icon: Bitcoin, color: "text-yellow-400" },
+  { value: "crypto_btc", label: "Bitcoin (BTC)", icon: Bitcoin, color: "text-orange-500" },
+  { value: "crypto_eth", label: "Ethereum (ETH)", icon: Bitcoin, color: "text-purple-400" },
+  { value: "crypto_ltc", label: "Litecoin (LTC)", icon: Bitcoin, color: "text-slate-400" },
+  { value: "bank_card", label: "Банковская карта", icon: CreditCard, color: "text-blue-500" },
+  { value: "bank_transfer", label: "Банковский перевод", icon: CreditCard, color: "text-cyan-500" },
   { value: "binance", label: "Binance Pay", icon: Building2, color: "text-yellow-500" },
   { value: "bybit", label: "Bybit", icon: Building2, color: "text-purple-500" },
+  { value: "kraken", label: "Kraken", icon: Building2, color: "text-blue-500" },
+  { value: "coinbase", label: "Coinbase", icon: Building2, color: "text-blue-400" },
+  { value: "exmo", label: "EXMO", icon: Building2, color: "text-cyan-500" },
+  { value: "mexc", label: "MEXC", icon: Building2, color: "text-teal-500" },
+  { value: "okx", label: "OKX", icon: Building2, color: "text-slate-400" },
+  { value: "paypal", label: "PayPal", icon: CreditCard, color: "text-blue-600" },
+  { value: "webmoney", label: "WebMoney", icon: CreditCard, color: "text-blue-500" },
+  { value: "capitalist", label: "Capitalist", icon: CreditCard, color: "text-red-500" },
+  { value: "qiwi", label: "QIWI", icon: CreditCard, color: "text-orange-400" },
+  { value: "skrill", label: "Skrill", icon: CreditCard, color: "text-purple-600" },
 ];
 
 const CURRENCIES = ["USD", "EUR", "USDT", "BTC"];

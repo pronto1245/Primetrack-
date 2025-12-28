@@ -13,8 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Send, Loader2, Trash2,
-  AlertCircle, History
+  AlertCircle, History, BookOpen, HelpCircle
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
@@ -22,10 +23,25 @@ import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 
 const PAYMENT_ICONS: Record<string, any> = {
   crypto_usdt_trc20: { icon: Bitcoin, color: "text-green-500" },
+  crypto_usdt_erc20: { icon: Bitcoin, color: "text-blue-400" },
+  crypto_usdt_bep20: { icon: Bitcoin, color: "text-yellow-400" },
   crypto_btc: { icon: Bitcoin, color: "text-orange-500" },
+  crypto_eth: { icon: Bitcoin, color: "text-purple-400" },
+  crypto_ltc: { icon: Bitcoin, color: "text-slate-400" },
   bank_card: { icon: CreditCard, color: "text-blue-500" },
+  bank_transfer: { icon: CreditCard, color: "text-cyan-500" },
   binance: { icon: Building2, color: "text-yellow-500" },
   bybit: { icon: Building2, color: "text-purple-500" },
+  kraken: { icon: Building2, color: "text-blue-500" },
+  coinbase: { icon: Building2, color: "text-blue-400" },
+  exmo: { icon: Building2, color: "text-cyan-500" },
+  mexc: { icon: Building2, color: "text-teal-500" },
+  okx: { icon: Building2, color: "text-slate-400" },
+  paypal: { icon: CreditCard, color: "text-blue-600" },
+  webmoney: { icon: CreditCard, color: "text-blue-500" },
+  capitalist: { icon: CreditCard, color: "text-red-500" },
+  qiwi: { icon: CreditCard, color: "text-orange-400" },
+  skrill: { icon: CreditCard, color: "text-purple-600" },
 };
 
 export function PublisherPayouts() {
@@ -349,6 +365,10 @@ export function PublisherPayouts() {
                 <History className="w-4 h-4 mr-2 text-purple-400" />
                 История
               </TabsTrigger>
+              <TabsTrigger value="instructions" data-testid="tab-instructions" className="px-4 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
+                <BookOpen className="w-4 h-4 mr-2 text-cyan-400" />
+                Инструкция
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="wallets" className="space-y-4">
@@ -641,6 +661,170 @@ export function PublisherPayouts() {
                   </table>
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="instructions" className="space-y-6">
+              <Card className="bg-[#0A0A0A] border-white/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <BookOpen className="h-6 w-6 text-cyan-500" />
+                    Руководство для партнёра
+                  </CardTitle>
+                  <p className="text-sm text-slate-400">
+                    Как работать с выплатами, кошельками и балансами
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[500px] pr-4">
+                    <div className="space-y-8">
+                      
+                      <section className="space-y-4">
+                        <h3 className="text-lg font-semibold text-blue-500 flex items-center gap-2">
+                          <Wallet className="w-5 h-5" />
+                          1. Привязка кошелька
+                        </h3>
+                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                          <p><strong className="text-white">Зачем нужен кошелёк:</strong> Чтобы получать выплаты, вам нужно привязать свой кошелёк к способу оплаты рекламодателя.</p>
+                          <div className="space-y-2">
+                            <p className="text-white font-medium">Как добавить кошелёк:</p>
+                            <ol className="list-decimal list-inside space-y-1 ml-2">
+                              <li>Нажмите кнопку <Badge className="bg-blue-500/20 text-blue-500">+ Добавить кошелек</Badge></li>
+                              <li>Выберите способ оплаты из списка рекламодателя</li>
+                              <li>Введите адрес вашего кошелька</li>
+                              <li>Укажите имя владельца (для верификации)</li>
+                              <li>Добавьте дополнительную информацию при необходимости</li>
+                              <li>Сохраните кошелёк</li>
+                            </ol>
+                          </div>
+                          <div className="bg-amber-500/10 border border-amber-500/30 rounded p-3 mt-2">
+                            <p className="text-amber-400"><AlertCircle className="w-4 h-4 inline mr-1" /> <strong>ВАЖНО:</strong> Тщательно проверяйте адрес кошелька! Ошибка может привести к потере средств.</p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <h3 className="text-lg font-semibold text-emerald-500 flex items-center gap-2">
+                          <DollarSign className="w-5 h-5" />
+                          2. Ваш баланс
+                        </h3>
+                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                          <p><strong className="text-white">Типы баланса:</strong></p>
+                          <ul className="space-y-2 ml-2">
+                            <li><Badge className="bg-emerald-500/20 text-emerald-500">Доступно</Badge> — средства, которые можно вывести прямо сейчас</li>
+                            <li><Badge className="bg-yellow-500/20 text-yellow-500">В ожидании</Badge> — средства в процессе обработки (запрос отправлен)</li>
+                            <li><Badge className="bg-slate-500/20 text-slate-400">На холде</Badge> — средства заморожены на период Hold</li>
+                          </ul>
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3 mt-2">
+                            <p className="text-blue-400"><HelpCircle className="w-4 h-4 inline mr-1" /> Баланс обновляется автоматически при получении новых конверсий и после окончания Hold периода.</p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <h3 className="text-lg font-semibold text-yellow-500 flex items-center gap-2">
+                          <Send className="w-5 h-5" />
+                          3. Запрос на выплату
+                        </h3>
+                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                          <p><strong className="text-white">Как запросить выплату:</strong></p>
+                          <ol className="list-decimal list-inside space-y-2 ml-2">
+                            <li>Убедитесь, что у вас есть <strong>доступный баланс</strong></li>
+                            <li>Проверьте, что кошелёк привязан</li>
+                            <li>Нажмите <Badge className="bg-yellow-500/20 text-yellow-500">Запросить выплату</Badge></li>
+                            <li>Выберите кошелёк для получения</li>
+                            <li>Укажите сумму (не меньше минимальной)</li>
+                            <li>Добавьте комментарий (опционально)</li>
+                            <li>Отправьте запрос</li>
+                          </ol>
+                          <div className="mt-3 space-y-2">
+                            <p className="text-white font-medium">Статусы запроса:</p>
+                            <ul className="space-y-1 ml-2">
+                              <li><Badge className="bg-yellow-500/20 text-yellow-500">pending</Badge> — ожидает рассмотрения рекламодателем</li>
+                              <li><Badge className="bg-emerald-500/20 text-emerald-500">approved</Badge> — одобрен, ожидает перевода</li>
+                              <li><Badge className="bg-blue-500/20 text-blue-500">paid</Badge> — выплачен, проверьте ваш кошелёк</li>
+                              <li><Badge className="bg-red-500/20 text-red-500">rejected</Badge> — отклонён (причина указана)</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <h3 className="text-lg font-semibold text-slate-400 flex items-center gap-2">
+                          <Clock className="w-5 h-5" />
+                          4. Hold период
+                        </h3>
+                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                          <p><strong className="text-white">Что такое Hold:</strong></p>
+                          <p>Hold — это период заморозки средств после конверсии. В течение этого времени рекламодатель проверяет качество лида.</p>
+                          <div className="mt-3 space-y-2">
+                            <p className="text-white font-medium">Как это работает:</p>
+                            <ul className="list-disc list-inside ml-2 space-y-1">
+                              <li>Каждый оффер имеет свой Hold период (0-30 дней)</li>
+                              <li>После конверсии деньги попадают в "На холде"</li>
+                              <li>По истечении Hold периода средства переходят в "Доступно"</li>
+                              <li>Если лид отклонён — средства не начисляются</li>
+                            </ul>
+                          </div>
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3 mt-2">
+                            <p className="text-blue-400"><HelpCircle className="w-4 h-4 inline mr-1" /> Hold защищает рекламодателя от некачественного трафика. Чем качественнее ваш трафик, тем меньше отклонений.</p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <h3 className="text-lg font-semibold text-purple-500 flex items-center gap-2">
+                          <History className="w-5 h-5" />
+                          5. История выплат
+                        </h3>
+                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                          <p><strong className="text-white">Что отображается в истории:</strong></p>
+                          <ul className="list-disc list-inside ml-2 space-y-1">
+                            <li>Дата выплаты</li>
+                            <li>Способ оплаты</li>
+                            <li>Сумма до комиссии</li>
+                            <li>Удержанная комиссия</li>
+                            <li>Итоговая сумма (получено на кошелёк)</li>
+                            <li>Статус транзакции</li>
+                          </ul>
+                          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-3 mt-2">
+                            <p className="text-emerald-400"><Check className="w-4 h-4 inline mr-1" /> Храните историю выплат для отчётности и сверки.</p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <h3 className="text-lg font-semibold text-red-500 flex items-center gap-2">
+                          <AlertCircle className="w-5 h-5" />
+                          6. Частые вопросы
+                        </h3>
+                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-4 text-sm text-slate-300">
+                          <div>
+                            <p className="text-white font-medium">Почему я не могу запросить выплату?</p>
+                            <p className="mt-1">Проверьте: 1) Достаточно ли доступного баланса 2) Привязан ли кошелёк 3) Сумма не меньше минимальной</p>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Сколько ждать выплату?</p>
+                            <p className="mt-1">Обычно 1-3 рабочих дня. Если у рекламодателя настроены автовыплаты — быстрее.</p>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Мой запрос отклонён. Что делать?</p>
+                            <p className="mt-1">Посмотрите причину отказа в карточке запроса. Часто это связано с Hold или верификацией кошелька.</p>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Почему мой баланс на холде?</p>
+                            <p className="mt-1">Конверсии находятся в периоде проверки. Дождитесь окончания Hold периода оффера.</p>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Где узнать минимальную сумму выплаты?</p>
+                            <p className="mt-1">Минимальная сумма указана в способе оплаты рекламодателя при выборе кошелька.</p>
+                          </div>
+                        </div>
+                      </section>
+
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </>
