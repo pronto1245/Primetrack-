@@ -19,8 +19,10 @@ import {
   type UserPostbackSetting, type InsertUserPostbackSetting, userPostbackSettings,
   type AntifraudRule, type InsertAntifraudRule, antifraudRules,
   type AntifraudLog, type InsertAntifraudLog, antifraudLogs,
-  type AntifraudMetric, type InsertAntifraudMetric, antifraudMetrics
+  type AntifraudMetric, type InsertAntifraudMetric, antifraudMetrics,
+  type PlatformSettings, type InsertPlatformSettings, platformSettings
 } from "@shared/schema";
+import crypto from "crypto";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -139,6 +141,12 @@ export interface IStorage {
   getUserByReferralCode(referralCode: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserReferralCode(userId: string, referralCode: string): Promise<User | undefined>;
+  updateUserProfile(userId: string, data: { email?: string; phone?: string; telegram?: string; logoUrl?: string; companyName?: string }): Promise<User | undefined>;
+  updateUserPassword(userId: string, newPassword: string): Promise<User | undefined>;
+  updateUser2FA(userId: string, enabled: boolean, secret?: string): Promise<User | undefined>;
+  updateUserTelegramNotifications(userId: string, data: { telegramChatId?: string; telegramNotifyLeads?: boolean; telegramNotifySales?: boolean; telegramNotifyPayouts?: boolean; telegramNotifySystem?: boolean }): Promise<User | undefined>;
+  generateApiToken(userId: string): Promise<string>;
+  revokeApiToken(userId: string): Promise<void>;
   verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
   
   // Offers
@@ -306,6 +314,10 @@ export interface IStorage {
   
   // Hold period processing
   processHoldConversions(): Promise<string[]>;
+  
+  // Platform Settings (Admin)
+  getPlatformSettings(): Promise<PlatformSettings | undefined>;
+  updatePlatformSettings(data: Partial<InsertPlatformSettings>): Promise<PlatformSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -345,6 +357,57 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async updateUserProfile(userId: string, data: { email?: string; phone?: string; telegram?: string; logoUrl?: string; companyName?: string }): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set(data)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateUserPassword(userId: string, newPassword: string): Promise<User | undefined> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const [user] = await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateUser2FA(userId: string, enabled: boolean, secret?: string): Promise<User | undefined> {
+    const updateData: any = { twoFactorEnabled: enabled };
+    if (secret !== undefined) {
+      updateData.twoFactorSecret = secret ? encrypt(secret) : null;
+    }
+    const [user] = await db.update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateUserTelegramNotifications(userId: string, data: { telegramChatId?: string; telegramNotifyLeads?: boolean; telegramNotifySales?: boolean; telegramNotifyPayouts?: boolean; telegramNotifySystem?: boolean }): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set(data)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async generateApiToken(userId: string): Promise<string> {
+    const token = crypto.randomBytes(32).toString('hex');
+    await db.update(users)
+      .set({ apiToken: token, apiTokenCreatedAt: new Date() })
+      .where(eq(users.id, userId));
+    return token;
+  }
+
+  async revokeApiToken(userId: string): Promise<void> {
+    await db.update(users)
+      .set({ apiToken: null, apiTokenCreatedAt: null })
+      .where(eq(users.id, userId));
   }
 
   async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
@@ -502,8 +565,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAdvertiserSettings(advertiserId: string, data: Partial<InsertAdvertiserSettings>): Promise<AdvertiserSettings | undefined> {
+    // Encrypt sensitive fields if provided
+    const encryptedData = { ...data };
+    if (data.smtpPassword) {
+      encryptedData.smtpPassword = encrypt(data.smtpPassword);
+    }
+    if (data.telegramBotToken) {
+      encryptedData.telegramBotToken = encrypt(data.telegramBotToken);
+    }
+    
     const [result] = await db.update(advertiserSettings)
-      .set(data)
+      .set(encryptedData)
       .where(eq(advertiserSettings.advertiserId, advertiserId))
       .returning();
     return result;
@@ -2419,6 +2491,38 @@ export class DatabaseStorage implements IStorage {
         { type: "Datacenter", count: datacenterCount }
       ]
     };
+  }
+
+  // Platform Settings (Admin)
+  async getPlatformSettings(): Promise<PlatformSettings | undefined> {
+    const [settings] = await db.select().from(platformSettings).limit(1);
+    return settings;
+  }
+
+  async updatePlatformSettings(data: Partial<InsertPlatformSettings>): Promise<PlatformSettings> {
+    const existing = await this.getPlatformSettings();
+    
+    // Encrypt sensitive fields if provided
+    const encryptedData = { ...data };
+    if (data.defaultTelegramBotToken) {
+      encryptedData.defaultTelegramBotToken = encrypt(data.defaultTelegramBotToken);
+    }
+    if (data.stripeSecretKey) {
+      encryptedData.stripeSecretKey = encrypt(data.stripeSecretKey);
+    }
+    
+    if (existing) {
+      const [updated] = await db.update(platformSettings)
+        .set({ ...encryptedData, updatedAt: new Date() })
+        .where(eq(platformSettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(platformSettings)
+        .values(encryptedData)
+        .returning();
+      return created;
+    }
   }
 }
 

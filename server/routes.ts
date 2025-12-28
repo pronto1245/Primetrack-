@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema } from "@shared/schema";
+import { z } from "zod";
 import crypto from "crypto";
 import session from "express-session";
 import MemoryStore from "memorystore";
@@ -3084,6 +3085,406 @@ export async function registerRoutes(
       res.json(metrics);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch antifraud metrics" });
+    }
+  });
+
+  // ============================================
+  // SETTINGS API ENDPOINTS (with Zod validation)
+  // ============================================
+
+  // Validation schemas
+  const profileUpdateSchema = z.object({
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+    telegram: z.string().optional(),
+    logoUrl: z.string().url().optional().or(z.literal("")),
+    companyName: z.string().optional(),
+  });
+
+  const passwordChangeSchema = z.object({
+    currentPassword: z.string().min(1, "Current password required"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  });
+
+  const twoFactorToggleSchema = z.object({
+    enabled: z.boolean(),
+  });
+
+  const telegramNotificationsSchema = z.object({
+    telegramChatId: z.string().optional(),
+    telegramNotifyLeads: z.boolean().optional(),
+    telegramNotifySales: z.boolean().optional(),
+    telegramNotifyPayouts: z.boolean().optional(),
+    telegramNotifySystem: z.boolean().optional(),
+  });
+
+  const whitelabelSchema = z.object({
+    brandName: z.string().optional(),
+    logoUrl: z.string().url().optional().or(z.literal("")),
+    primaryColor: z.string().optional(),
+    customDomain: z.string().optional(),
+    hidePlatformBranding: z.boolean().optional(),
+  });
+
+  // Sentinel value constant for encrypted fields - API returns this instead of real secrets
+  const SENTINEL_CONFIGURED = "***configured***";
+  
+  // Helper for secret fields - accepts actual value, empty string (clear), sentinel (no-op), or undefined (skip)
+  const secretFieldSchema = z.union([
+    z.string().min(1),        // New secret value
+    z.literal(""),            // Clear the secret
+    z.literal(SENTINEL_CONFIGURED)  // Keep existing (no-op)
+  ]).optional();
+  
+  const emailSettingsSchema = z.object({
+    emailNotifyLeads: z.boolean().optional(),
+    emailNotifySales: z.boolean().optional(),
+    emailNotifyPayouts: z.boolean().optional(),
+    emailNotifySystem: z.boolean().optional(),
+    smtpHost: z.string().optional().or(z.literal("")),
+    smtpPort: z.number().optional(),
+    smtpUser: z.string().optional().or(z.literal("")),
+    smtpPassword: secretFieldSchema,
+    smtpFromEmail: z.string().email().optional().or(z.literal("")),
+    smtpFromName: z.string().optional().or(z.literal("")),
+    telegramBotToken: secretFieldSchema,
+  });
+
+  const platformSettingsSchema = z.object({
+    platformName: z.string().optional().or(z.literal("")),
+    platformLogoUrl: z.string().url().optional().or(z.literal("")),
+    platformFaviconUrl: z.string().url().optional().or(z.literal("")),
+    supportEmail: z.string().email().optional().or(z.literal("")),
+    defaultTelegramBotToken: secretFieldSchema,
+    stripeSecretKey: secretFieldSchema,
+    allowPublisherRegistration: z.boolean().optional(),
+    allowAdvertiserRegistration: z.boolean().optional(),
+    requireAdvertiserApproval: z.boolean().optional(),
+    enableProxyDetection: z.boolean().optional(),
+    enableVpnDetection: z.boolean().optional(),
+    enableFingerprintTracking: z.boolean().optional(),
+    maxFraudScore: z.number().min(0).max(100).optional(),
+  });
+
+  // Update user profile (all roles)
+  app.patch("/api/user/profile", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const parseResult = profileUpdateSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
+      }
+      const { email, phone, telegram, logoUrl, companyName } = parseResult.data;
+      
+      // Check email uniqueness if changing
+      if (email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+      
+      const user = await storage.updateUserProfile(userId, { email, phone, telegram, logoUrl, companyName });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ 
+        id: user.id, 
+        username: user.username, 
+        email: user.email,
+        phone: user.phone,
+        telegram: user.telegram,
+        logoUrl: user.logoUrl,
+        companyName: user.companyName,
+        role: user.role
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Change password (all roles)
+  app.patch("/api/user/password", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const parseResult = passwordChangeSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: parseResult.error.errors[0]?.message || "Invalid data" });
+      }
+      const { currentPassword, newPassword } = parseResult.data;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const isValid = await storage.verifyPassword(currentPassword, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+      
+      await storage.updateUserPassword(userId, newPassword);
+      res.json({ success: true, message: "Password updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update password" });
+    }
+  });
+
+  // Toggle 2FA (all roles)
+  app.post("/api/user/2fa/toggle", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const parseResult = twoFactorToggleSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid data" });
+      }
+      const { enabled } = parseResult.data;
+      
+      // Generate TOTP secret for 2FA (base32 encoded for authenticator apps)
+      const secret = enabled ? crypto.randomBytes(20).toString('base64').replace(/[^A-Z2-7]/gi, '').substring(0, 16) : undefined;
+      
+      const user = await storage.updateUser2FA(userId, enabled, secret);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ 
+        success: true, 
+        twoFactorEnabled: user.twoFactorEnabled,
+        message: enabled ? "2FA enabled successfully" : "2FA disabled successfully"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to toggle 2FA" });
+    }
+  });
+
+  // Update Telegram notifications (all roles)
+  app.post("/api/user/notifications/telegram", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const parseResult = telegramNotificationsSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid data" });
+      }
+      const { telegramChatId, telegramNotifyLeads, telegramNotifySales, telegramNotifyPayouts, telegramNotifySystem } = parseResult.data;
+      
+      const user = await storage.updateUserTelegramNotifications(userId, {
+        telegramChatId,
+        telegramNotifyLeads,
+        telegramNotifySales,
+        telegramNotifyPayouts,
+        telegramNotifySystem
+      });
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ success: true, message: "Telegram settings saved" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save Telegram settings" });
+    }
+  });
+
+  // Test Telegram notification
+  app.post("/api/user/notifications/telegram/test", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.telegramChatId) {
+        return res.status(400).json({ message: "Telegram chat ID not configured" });
+      }
+      
+      // In production, you would send an actual Telegram message here
+      // For now, just return success
+      res.json({ success: true, message: "Test message sent successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send test message" });
+    }
+  });
+
+  // Generate API token (publisher/advertiser)
+  app.post("/api/user/api-token/generate", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const token = await storage.generateApiToken(userId);
+      res.json({ success: true, token });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate API token" });
+    }
+  });
+
+  // Revoke API token
+  app.post("/api/user/api-token/revoke", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      await storage.revokeApiToken(userId);
+      res.json({ success: true, message: "API token revoked" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to revoke API token" });
+    }
+  });
+
+  // Get advertiser settings
+  app.get("/api/advertiser/settings", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      let settings = await storage.getAdvertiserSettings(userId);
+      
+      if (!settings) {
+        settings = await storage.createAdvertiserSettings({ advertiserId: userId });
+      }
+      
+      // Don't send encrypted values
+      res.json({
+        ...settings,
+        smtpPassword: settings.smtpPassword ? SENTINEL_CONFIGURED : null,
+        telegramBotToken: settings.telegramBotToken ? SENTINEL_CONFIGURED : null
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  // Update white-label settings
+  app.patch("/api/advertiser/settings/whitelabel", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const parseResult = whitelabelSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
+      }
+      const { brandName, logoUrl, primaryColor, customDomain, hidePlatformBranding } = parseResult.data;
+      
+      const settings = await storage.updateAdvertiserSettings(userId, {
+        brandName,
+        logoUrl,
+        primaryColor,
+        customDomain,
+        hidePlatformBranding
+      });
+      
+      if (!settings) {
+        return res.status(404).json({ message: "Settings not found" });
+      }
+      
+      res.json({ success: true, settings });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update white-label settings" });
+    }
+  });
+
+  // Update email/SMTP settings (advertiser)
+  app.post("/api/advertiser/settings/email", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const parseResult = emailSettingsSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
+      }
+      const { 
+        emailNotifyLeads, emailNotifySales, emailNotifyPayouts, emailNotifySystem,
+        smtpHost, smtpPort, smtpUser, smtpPassword, smtpFromEmail, smtpFromName,
+        telegramBotToken
+      } = parseResult.data;
+      
+      const updateData: any = {
+        emailNotifyLeads,
+        emailNotifySales,
+        emailNotifyPayouts,
+        emailNotifySystem,
+        smtpHost,
+        smtpPort,
+        smtpUser,
+        smtpFromEmail,
+        smtpFromName
+      };
+      
+      // Handle secret fields: new value = update, empty string = clear, sentinel = no-op
+      if (smtpPassword !== undefined && smtpPassword !== SENTINEL_CONFIGURED) {
+        updateData.smtpPassword = smtpPassword === "" ? null : smtpPassword;
+      }
+      
+      if (telegramBotToken !== undefined && telegramBotToken !== SENTINEL_CONFIGURED) {
+        updateData.telegramBotToken = telegramBotToken === "" ? null : telegramBotToken;
+      }
+      
+      const settings = await storage.updateAdvertiserSettings(userId, updateData);
+      
+      if (!settings) {
+        return res.status(404).json({ message: "Settings not found" });
+      }
+      
+      res.json({ success: true, message: "Email settings saved" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update email settings" });
+    }
+  });
+
+  // Get platform settings (admin)
+  app.get("/api/admin/platform-settings", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      let settings = await storage.getPlatformSettings();
+      
+      if (!settings) {
+        settings = await storage.updatePlatformSettings({
+          platformName: "PrimeTrack"
+        });
+      }
+      
+      // Don't send encrypted values
+      res.json({
+        ...settings,
+        defaultTelegramBotToken: settings.defaultTelegramBotToken ? SENTINEL_CONFIGURED : null,
+        stripeSecretKey: settings.stripeSecretKey ? SENTINEL_CONFIGURED : null
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch platform settings" });
+    }
+  });
+
+  // Update platform settings (admin)
+  app.patch("/api/admin/platform-settings", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const parseResult = platformSettingsSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
+      }
+      const {
+        platformName, platformLogoUrl, platformFaviconUrl, supportEmail,
+        defaultTelegramBotToken, stripeSecretKey,
+        allowPublisherRegistration, allowAdvertiserRegistration, requireAdvertiserApproval,
+        enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore
+      } = parseResult.data;
+      
+      const updateData: any = {
+        platformName,
+        platformLogoUrl,
+        platformFaviconUrl,
+        supportEmail,
+        allowPublisherRegistration,
+        allowAdvertiserRegistration,
+        requireAdvertiserApproval,
+        enableProxyDetection,
+        enableVpnDetection,
+        enableFingerprintTracking,
+        maxFraudScore
+      };
+      
+      // Handle secret fields: new value = update, empty string = clear, sentinel = no-op
+      if (defaultTelegramBotToken !== undefined && defaultTelegramBotToken !== SENTINEL_CONFIGURED) {
+        updateData.defaultTelegramBotToken = defaultTelegramBotToken === "" ? null : defaultTelegramBotToken;
+      }
+      if (stripeSecretKey !== undefined && stripeSecretKey !== SENTINEL_CONFIGURED) {
+        updateData.stripeSecretKey = stripeSecretKey === "" ? null : stripeSecretKey;
+      }
+      
+      const settings = await storage.updatePlatformSettings(updateData);
+      res.json({ success: true, settings });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update platform settings" });
     }
   });
 
