@@ -191,29 +191,29 @@ function Sidebar({ role, t }: { role: string, t: any }) {
   
   const menus = {
     admin: [
-      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
-      { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users` },
-      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud` },
-      { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
-      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
-      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings` },
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
+      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
+      { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-purple-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
     ],
     advertiser: [
-      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
-      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers` },
-      { icon: UserPlus, label: t('dashboard.menu.requests'), path: `/dashboard/${role}/requests` },
-      { icon: Users, label: t('dashboard.menu.partners'), path: `/dashboard/${role}/partners` },
-      { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
-      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud` },
-      { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance` },
-      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers`, color: "text-orange-400" },
+      { icon: UserPlus, label: t('dashboard.menu.requests'), path: `/dashboard/${role}/requests`, color: "text-cyan-400" },
+      { icon: Users, label: t('dashboard.menu.partners'), path: `/dashboard/${role}/partners`, color: "text-emerald-400" },
+      { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
+      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
+      { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
     ],
     publisher: [
-      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}` },
-      { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links` },
-      { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports` },
-      { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts` },
-      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks` },
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
+      { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
+      { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
     ]
   };
 
@@ -231,7 +231,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
         {currentMenu.map((item, i) => (
           <Link key={i} href={item.path}>
             <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-              <item.icon className="w-4 h-4" />
+              <item.icon className={`w-4 h-4 ${item.color}`} />
               {item.label}
             </button>
           </Link>
