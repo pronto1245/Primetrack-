@@ -263,10 +263,16 @@ export default function AntifraudDashboard({ role }: { role: string }) {
 
       <Tabs defaultValue="rules">
         <TabsList>
-          <TabsTrigger value="rules" data-testid="tab-rules">Правила</TabsTrigger>
-          <TabsTrigger value="logs" data-testid="tab-logs">Логи</TabsTrigger>
-          <TabsTrigger value="help" data-testid="tab-help">
-            <HelpCircle className="h-4 w-4 mr-1" />
+          <TabsTrigger value="rules" data-testid="tab-rules" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <Shield className="h-4 w-4 mr-1 text-blue-500 data-[state=active]:text-white" />
+            Правила
+          </TabsTrigger>
+          <TabsTrigger value="logs" data-testid="tab-logs" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+            <Activity className="h-4 w-4 mr-1 text-orange-500" />
+            Логи
+          </TabsTrigger>
+          <TabsTrigger value="help" data-testid="tab-help" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+            <HelpCircle className="h-4 w-4 mr-1 text-green-500" />
             Инструкция
           </TabsTrigger>
         </TabsList>
