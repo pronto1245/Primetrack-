@@ -669,10 +669,10 @@ export async function registerRoutes(
   // ============================================
 
   // Click tracking endpoint (public, no auth required)
-  // Usage: /api/click?offer_id=XXX&partner_id=YYY&sub1=...&sub2=...
+  // Usage: /api/click?offer_id=XXX&partner_id=YYY&geo=US&sub1=...&sub2=...
   app.get("/api/click", async (req: Request, res: Response) => {
     try {
-      const { offer_id, partner_id, sub1, sub2, sub3, sub4, sub5 } = req.query;
+      const { offer_id, partner_id, geo, sub1, sub2, sub3, sub4, sub5 } = req.query;
 
       if (!offer_id || !partner_id) {
         return res.status(400).json({ 
@@ -686,6 +686,12 @@ export async function registerRoutes(
                  "unknown";
       const userAgent = req.headers["user-agent"] || "";
       const referer = req.headers["referer"] || "";
+      
+      // GEO: from query param, or derive from CF-IPCountry/x-country-code headers
+      const geoCode = (geo as string) || 
+                      (req.headers["cf-ipcountry"] as string) ||
+                      (req.headers["x-country-code"] as string) ||
+                      undefined;
 
       const result = await clickHandler.processClick({
         offerId: offer_id as string,
@@ -698,6 +704,7 @@ export async function registerRoutes(
         ip,
         userAgent,
         referer,
+        geo: geoCode,
       });
 
       if (result.isBlocked) {
@@ -2075,13 +2082,57 @@ export async function registerRoutes(
 
       const result = await storage.getClicksReport(filters, groupBy as string, pageNum, limitNum);
       
-      // Remove anti-fraud data for publishers
-      if (role === "publisher") {
-        result.clicks = result.clicks.map((click: any) => {
+      // Get all conversions to calculate per-click stats
+      const allConversions = await storage.getConversionsReport({ 
+        ...(role === "publisher" ? { publisherId: userId } : {}),
+        ...(role === "advertiser" ? { offerIds: filters.offerIds } : {})
+      }, undefined, 1, 10000);
+      
+      // Get offers for names
+      const offerIds = Array.from(new Set(result.clicks.map((c: any) => c.offerId)));
+      const offersData = await Promise.all(offerIds.map(id => storage.getOffer(id)));
+      const offerMap = new Map(offersData.filter(Boolean).map(o => [o!.id, o!.name]));
+      
+      // Enrich clicks with conversion data
+      result.clicks = result.clicks.map((click: any) => {
+        const clickConversions = allConversions.conversions.filter((conv: any) => conv.clickId === click.id);
+        const conversionCount = clickConversions.length;
+        const hasConversion = conversionCount > 0;
+        // Use publisherPayout field from conversions table
+        const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
+        const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
+        const margin = cost - payout;
+        const roi = payout > 0 ? ((margin / payout) * 100) : 0;
+        // CR for a single click: 0% or 100% (or more if multiple conversions)
+        const cr = hasConversion ? (conversionCount * 100) : 0;
+        
+        // Remove anti-fraud data for publishers
+        if (role === "publisher") {
           const { fraudScore, isProxy, isVpn, fingerprint, ...safeClick } = click;
-          return safeClick;
-        });
-      }
+          return {
+            ...safeClick,
+            offerName: offerMap.get(click.offerId) || click.offerId,
+            isUnique: click.isUnique ?? true,
+            hasConversion,
+            conversions: conversionCount,
+            payout,
+            cr,
+          };
+        }
+        
+        return {
+          ...click,
+          offerName: offerMap.get(click.offerId) || click.offerId,
+          isUnique: click.isUnique ?? true,
+          hasConversion,
+          conversions: conversionCount,
+          payout,
+          advertiserCost: cost,
+          margin,
+          roi,
+          cr,
+        };
+      });
 
       res.json(result);
     } catch (error: any) {
