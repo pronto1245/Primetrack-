@@ -54,6 +54,7 @@ async function setupAuth(app: Express) {
   
   app.use(
     session({
+      name: isProduction ? "__Host-sid" : "connect.sid",
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
       resave: false,
       saveUninitialized: false,
@@ -64,6 +65,7 @@ async function setupAuth(app: Express) {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
+        path: "/",
       },
     })
   );
