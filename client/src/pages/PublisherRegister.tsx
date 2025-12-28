@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, CheckCircle, XCircle, User, Mail, Lock, Phone, MessageCircle, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, User, Mail, Lock, Phone, MessageCircle, ArrowLeft, AlertTriangle, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 const CONTACT_TYPES = [
@@ -33,6 +33,7 @@ export default function PublisherRegister() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
   const [showExistingUserDialog, setShowExistingUserDialog] = useState(false);
   const [existingUserData, setExistingUserData] = useState<any>(null);
   const [loginData, setLoginData] = useState({ username: "", password: "" });
@@ -95,7 +96,7 @@ export default function PublisherRegister() {
       return result;
     },
     onSuccess: () => {
-      setLocation("/dashboard/publisher");
+      setShowSuccess(true);
     },
     onError: (error: any) => {
       if (error?.type === "EMAIL_EXISTS_DIFFERENT_ADVERTISER") {
@@ -179,6 +180,59 @@ export default function PublisherRegister() {
       default: return "Введите контакт";
     }
   };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-emerald-500 opacity-20 blur-[120px]" />
+
+        <Card className="w-full max-w-md bg-card border-border relative z-10 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500" />
+          <CardHeader className="text-center pt-8">
+            <div className="relative mx-auto mb-4">
+              <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto animate-pulse">
+                <CheckCircle className="w-10 h-10 text-emerald-500" />
+              </div>
+              <div className="absolute -top-2 -right-2">
+                <Sparkles className="w-6 h-6 text-yellow-500" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold text-foreground">
+              Заявка отправлена!
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-base mt-2">
+              Спасибо за регистрацию в PrimeTrack
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6 text-center pb-8">
+            <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-xl p-6 border border-emerald-500/20">
+              <p className="text-lg text-foreground">
+                Спасибо за регистрацию!
+              </p>
+              <p className="text-muted-foreground mt-2">
+                С вами свяжется менеджер в течение <span className="text-emerald-500 font-semibold">24 часов</span>
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Заявка на рассмотрении</span>
+            </div>
+
+            <Button
+              onClick={() => setLocation("/login")}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base"
+              data-testid="button-go-to-login"
+            >
+              Перейти ко входу
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!referralCode) {
     return (
