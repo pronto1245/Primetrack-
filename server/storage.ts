@@ -256,7 +256,7 @@ export interface IStorage {
   upsertUserPostbackSettings(userId: string, settings: Partial<InsertUserPostbackSetting>): Promise<UserPostbackSetting>;
   
   // Hold period processing
-  processHoldConversions(): Promise<number>;
+  processHoldConversions(): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -412,8 +412,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateConversionStatus(id: string, status: string): Promise<Conversion | undefined> {
+    const updateData: any = { status };
+    
+    // Set appropriate timestamp based on status
+    if (status === "approved") {
+      updateData.approvedAt = new Date();
+    } else if (status === "rejected") {
+      updateData.rejectedAt = new Date();
+    }
+    
     const [conversion] = await db.update(conversions)
-      .set({ status })
+      .set(updateData)
       .where(eq(conversions.id, id))
       .returning();
     return conversion;
@@ -2012,16 +2021,17 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Process hold conversions - move from hold to approved when holdUntil has passed
-  async processHoldConversions(): Promise<number> {
+  // Returns the list of conversion IDs that were processed
+  async processHoldConversions(): Promise<string[]> {
     const now = new Date();
     const result = await db.update(conversions)
-      .set({ status: "approved" })
+      .set({ status: "approved", approvedAt: now })
       .where(and(
         eq(conversions.status, "hold"),
         lte(conversions.holdUntil, now)
       ))
       .returning();
-    return result.length;
+    return result.map(c => c.id);
   }
 }
 
