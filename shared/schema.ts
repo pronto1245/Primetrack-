@@ -19,6 +19,11 @@ export const users = pgTable("users", {
   phone: text("phone"),
   companyName: text("company_name"),
   
+  // Contact preferences (telegram, whatsapp, viber, phone)
+  contactType: text("contact_type"), 
+  contactValue: text("contact_value"),
+  fullName: text("full_name"),
+  
   // 2FA Settings
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
   twoFactorSecret: text("two_factor_secret"), // encrypted TOTP secret

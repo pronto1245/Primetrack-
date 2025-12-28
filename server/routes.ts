@@ -220,7 +220,7 @@ export async function registerRoutes(
 
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
-      const { username, password, email, referralCode } = req.body;
+      const { username, password, email, referralCode, fullName, phone, contactType, contactValue } = req.body;
 
       if (!username || !password || !email) {
         return res.status(400).json({ message: "Username, password and email are required" });
@@ -233,6 +233,13 @@ export async function registerRoutes(
 
       const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
+        // Если партнер существует, предлагаем привязать к новому рекламодателю
+        if (referralCode && existingEmail.role === "publisher") {
+          return res.status(409).json({ 
+            message: "Email already exists with different advertiser",
+            code: "EMAIL_EXISTS_DIFFERENT_ADVERTISER"
+          });
+        }
         return res.status(400).json({ message: "Email already exists" });
       }
 
@@ -250,6 +257,10 @@ export async function registerRoutes(
         password,
         email,
         role: "publisher",
+        fullName: fullName || null,
+        phone: phone || null,
+        contactType: contactType || null,
+        contactValue: contactValue || null,
       });
 
       if (advertiserId) {
@@ -269,6 +280,158 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  // Register advertiser
+  app.post("/api/auth/register/advertiser", async (req: Request, res: Response) => {
+    try {
+      const { username, password, email, fullName, companyName, phone, contactType, contactValue } = req.body;
+
+      if (!username || !password || !email || !fullName || !companyName || !phone || !contactType || !contactValue) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Generate referral code for advertiser
+      const referralCode = `ADV-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+
+      const newUser = await storage.createUser({
+        username,
+        password,
+        email,
+        role: "advertiser",
+        status: "pending", // Рекламодатели начинают с pending статуса
+        fullName,
+        companyName,
+        phone,
+        contactType,
+        contactValue,
+        referralCode,
+      });
+
+      res.json({
+        success: true,
+        message: "Registration successful! Your account is pending approval.",
+        username: newUser.username,
+      });
+    } catch (error) {
+      console.error("Advertiser registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  // Forgot password
+  app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Не раскрываем существование email
+        return res.json({ success: true, message: "If email exists, instructions will be sent" });
+      }
+
+      // TODO: Implement email sending
+      // For now, just acknowledge the request
+      console.log(`Password reset requested for: ${email}`);
+      
+      res.json({ success: true, message: "Password reset instructions sent" });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Failed to process request" });
+    }
+  });
+
+  // Check email for existing publisher
+  app.post("/api/auth/check-email", async (req: Request, res: Response) => {
+    try {
+      const { email, advertiserId } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.json({ exists: false });
+      }
+
+      if (user.role !== "publisher") {
+        return res.json({ exists: true, differentRole: true });
+      }
+
+      // Check if already linked to this advertiser
+      if (advertiserId) {
+        const relation = await storage.getPublisherAdvertiserRelation(user.id, advertiserId);
+        if (relation) {
+          return res.json({ exists: true, alreadyLinked: true });
+        }
+        return res.json({ exists: true, differentAdvertiser: true, username: user.username });
+      }
+
+      return res.json({ exists: true });
+    } catch (error) {
+      console.error("Check email error:", error);
+      res.status(500).json({ message: "Failed to check email" });
+    }
+  });
+
+  // Link existing publisher to new advertiser
+  app.post("/api/auth/link-to-advertiser", async (req: Request, res: Response) => {
+    try {
+      const { username, password, advertiserId } = req.body;
+      
+      if (!username || !password || !advertiserId) {
+        return res.status(400).json({ message: "All fields required" });
+      }
+
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isValid = await storage.verifyPassword(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if (user.role !== "publisher") {
+        return res.status(400).json({ message: "Only publishers can link to advertisers" });
+      }
+
+      // Check if already linked
+      const existingRelation = await storage.getPublisherAdvertiserRelation(user.id, advertiserId);
+      if (existingRelation) {
+        return res.status(400).json({ message: "Already linked to this advertiser" });
+      }
+
+      // Add relation with pending status
+      await storage.addPublisherToAdvertiser(user.id, advertiserId, "pending");
+
+      req.session.userId = user.id;
+      req.session.role = user.role;
+
+      res.json({
+        success: true,
+        message: "Successfully linked to advertiser. Waiting for approval.",
+        id: user.id,
+        role: user.role,
+      });
+    } catch (error) {
+      console.error("Link to advertiser error:", error);
+      res.status(500).json({ message: "Failed to link account" });
     }
   });
 

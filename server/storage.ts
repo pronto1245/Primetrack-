@@ -250,7 +250,7 @@ export interface IStorage {
   // Publisher-Advertiser relationships
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
   getPublishersByAdvertiser(advertiserId: string): Promise<(PublisherAdvertiser & { publisher: User })[]>;
-  addPublisherToAdvertiser(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser>;
+  addPublisherToAdvertiser(publisherId: string, advertiserId: string, status?: string): Promise<PublisherAdvertiser>;
   
   // Offer Caps Stats
   getOfferCapsStats(offerId: string, date: string): Promise<OfferCapsStats | undefined>;
@@ -835,7 +835,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async addPublisherToAdvertiser(publisherId: string, advertiserId: string): Promise<PublisherAdvertiser> {
+  async addPublisherToAdvertiser(publisherId: string, advertiserId: string, status: string = "pending"): Promise<PublisherAdvertiser> {
     const existing = await db.select()
       .from(publisherAdvertisers)
       .where(and(
@@ -850,7 +850,7 @@ export class DatabaseStorage implements IStorage {
     const [relation] = await db.insert(publisherAdvertisers).values({
       publisherId,
       advertiserId,
-      status: "pending" // Рекламодатель должен одобрить партнёра
+      status
     }).returning();
     return relation;
   }
