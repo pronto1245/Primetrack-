@@ -193,6 +193,7 @@ function ProfileTab() {
                     const res = await fetch("/api/uploads/request-url", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
+                      credentials: "include",
                       body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
                     });
                     const { uploadURL, objectPath } = await res.json();
@@ -608,6 +609,7 @@ function WhiteLabelTab() {
                     const res = await fetch("/api/uploads/request-url", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
+                      credentials: "include",
                       body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
                     });
                     const { uploadURL, objectPath } = await res.json();

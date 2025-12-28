@@ -134,6 +134,7 @@ export function CreateOfferForm({ role }: { role: string }) {
       const response = await fetch("/api/offers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           ...formData,
           geo: geos,

@@ -26,7 +26,7 @@ export default function Register() {
     queryKey: ["validate-referral", referralCode],
     queryFn: async () => {
       if (!referralCode) return null;
-      const response = await fetch(`/api/auth/validate-referral/${referralCode}`);
+      const response = await fetch(`/api/auth/validate-referral/${referralCode}`, { credentials: "include" });
       if (!response.ok) return null;
       return response.json();
     },

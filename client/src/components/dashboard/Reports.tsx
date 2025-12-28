@@ -53,7 +53,7 @@ export function Reports({ role }: ReportsProps) {
   const { data: clicksData, isLoading: clicksLoading, refetch: refetchClicks } = useQuery({
     queryKey: ["/api/reports/clicks", filters, page, selectedAdvertiserId],
     queryFn: async () => {
-      const res = await fetch(`/api/reports/clicks?${queryParams.toString()}`);
+      const res = await fetch(`/api/reports/clicks?${queryParams.toString()}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch clicks");
       return res.json();
     },
@@ -63,7 +63,7 @@ export function Reports({ role }: ReportsProps) {
   const { data: conversionsData, isLoading: conversionsLoading, refetch: refetchConversions } = useQuery({
     queryKey: ["/api/reports/conversions", filters, page, selectedAdvertiserId],
     queryFn: async () => {
-      const res = await fetch(`/api/reports/conversions?${queryParams.toString()}`);
+      const res = await fetch(`/api/reports/conversions?${queryParams.toString()}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch conversions");
       return res.json();
     },
@@ -76,7 +76,7 @@ export function Reports({ role }: ReportsProps) {
   const { data: groupedData, isLoading: groupedLoading, refetch: refetchGrouped } = useQuery({
     queryKey: ["/api/reports/grouped", filters, selectedAdvertiserId],
     queryFn: async () => {
-      const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`);
+      const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch grouped data");
       return res.json();
     }
@@ -87,7 +87,7 @@ export function Reports({ role }: ReportsProps) {
     queryKey: ["/api/advertiser/publishers", role],
     queryFn: async () => {
       const endpoint = role === "admin" ? "/api/admin/publishers" : "/api/advertiser/publishers";
-      const res = await fetch(endpoint);
+      const res = await fetch(endpoint, { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },

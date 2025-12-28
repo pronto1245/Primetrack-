@@ -65,8 +65,8 @@ export function AdminDashboard() {
     setError("");
     try {
       const [platformRes, statsRes] = await Promise.all([
-        fetch("/api/admin/platform-stats"),
-        fetch("/api/admin/stats")
+        fetch("/api/admin/platform-stats", { credentials: "include" }),
+        fetch("/api/admin/stats", { credentials: "include" })
       ]);
 
       if (platformRes.status === 401 || statsRes.status === 401) {

@@ -94,9 +94,9 @@ export function AdvertiserDashboard() {
       if (selectedPublisher && selectedPublisher !== "all") params.append("publisherIds", selectedPublisher);
 
       const [statsRes, publishersRes, offersRes] = await Promise.all([
-        fetch(`/api/advertiser/stats?${params}`),
-        fetch("/api/advertiser/publishers"),
-        fetch("/api/offers")
+        fetch(`/api/advertiser/stats?${params}`, { credentials: "include" }),
+        fetch("/api/advertiser/publishers", { credentials: "include" }),
+        fetch("/api/offers", { credentials: "include" })
       ]);
 
       if (statsRes.status === 401 || publishersRes.status === 401 || offersRes.status === 401) {
@@ -150,7 +150,7 @@ export function AdvertiserDashboard() {
       if (selectedOffer && selectedOffer !== "all") params.append("offerIds", selectedOffer);
       if (selectedPublisher && selectedPublisher !== "all") params.append("publisherIds", selectedPublisher);
 
-      const res = await fetch(`/api/advertiser/export/csv?${params}`);
+      const res = await fetch(`/api/advertiser/export/csv?${params}`, { credentials: "include" });
       if (!res.ok) {
         throw new Error("Failed to export CSV");
       }

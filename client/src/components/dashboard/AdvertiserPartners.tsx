@@ -37,7 +37,7 @@ export function AdvertiserPartners() {
       const url = statusFilter === "all" 
         ? "/api/advertiser/partners"
         : `/api/advertiser/partners?status=${statusFilter}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch partners");
       return res.json();
     },
@@ -46,7 +46,7 @@ export function AdvertiserPartners() {
   const { data: linkData } = useQuery({
     queryKey: ["advertiser-registration-link"],
     queryFn: async () => {
-      const res = await fetch("/api/advertiser/registration-link");
+      const res = await fetch("/api/advertiser/registration-link", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to get link");
       return res.json();
     },

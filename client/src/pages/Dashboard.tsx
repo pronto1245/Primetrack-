@@ -91,6 +91,7 @@ function RoleSelectionScreen({ t }: { t: any }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: user, password: pass }),
+        credentials: "include",
       });
       if (res.ok) {
         const data = await res.json();
@@ -191,7 +192,7 @@ function ManagerCard() {
   const { data: manager } = useQuery<any>({
     queryKey: ["platform-manager"],
     queryFn: async () => {
-      const res = await fetch("/api/platform-manager");
+      const res = await fetch("/api/platform-manager", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },

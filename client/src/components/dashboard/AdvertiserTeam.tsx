@@ -38,7 +38,7 @@ export function AdvertiserTeam() {
   const { data: staff = [], isLoading } = useQuery<StaffMember[]>({
     queryKey: ["advertiser-staff"],
     queryFn: async () => {
-      const res = await fetch("/api/advertiser/staff");
+      const res = await fetch("/api/advertiser/staff", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch staff");
       return res.json();
     },

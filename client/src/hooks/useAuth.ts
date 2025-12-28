@@ -21,7 +21,7 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setUser(data);
@@ -39,6 +39,7 @@ export function useAuth() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       if (res.ok) {
@@ -55,7 +56,7 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     queryClient.clear();
     setUser(null);
     setLocation("/dashboard");

@@ -24,7 +24,7 @@ export function AdvertiserSwitcher({ selectedAdvertiserId, onSelect }: Advertise
   useEffect(() => {
     const fetchAdvertisers = async () => {
       try {
-        const res = await fetch("/api/publisher/advertisers");
+        const res = await fetch("/api/publisher/advertisers", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
           setAdvertisers(data);

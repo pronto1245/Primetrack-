@@ -48,7 +48,7 @@ export function AdminUsers() {
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/stats");
+      const res = await fetch("/api/admin/stats", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
@@ -62,7 +62,7 @@ export function AdminUsers() {
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (search) params.append("search", search);
       
-      const res = await fetch(`/api/admin/users?${params.toString()}`);
+      const res = await fetch(`/api/admin/users?${params.toString()}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch users");
       return res.json();
     },
@@ -71,7 +71,7 @@ export function AdminUsers() {
   const { data: publishers = [], isLoading: publishersLoading } = useQuery<Publisher[]>({
     queryKey: ["admin-publishers"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/publishers");
+      const res = await fetch("/api/admin/publishers", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch publishers");
       return res.json();
     },
