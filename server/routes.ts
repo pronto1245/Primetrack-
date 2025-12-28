@@ -321,6 +321,37 @@ export async function registerRoutes(
     }
   });
 
+  // Reset admin password (requires SETUP_KEY)
+  app.post("/api/reset-admin-password", async (req: Request, res: Response) => {
+    try {
+      const { newPassword, setupKey } = req.body;
+      
+      const validKey = process.env.SETUP_KEY;
+      if (!validKey) {
+        return res.status(403).json({ message: "SETUP_KEY not configured" });
+      }
+      if (setupKey !== validKey) {
+        return res.status(403).json({ message: "Invalid setup key" });
+      }
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password required" });
+      }
+      
+      const admin = await storage.getUserByUsername("admin");
+      if (!admin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      
+      await storage.updateUserPassword(admin.id, newPassword);
+      
+      res.json({ success: true, message: "Admin password updated!" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   app.get("/api/auth/validate-referral/:code", async (req: Request, res: Response) => {
     try {
       const { code } = req.params;
