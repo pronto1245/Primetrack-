@@ -440,7 +440,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   const margin = summary?.margin || (totals.cost - totals.payout);
   const roi = summary?.roi || (totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0);
 
-  const colSpan = role !== "publisher" ? 16 : 15;
+  const colSpan = role !== "publisher" ? 20 : 19;
 
   return (
     <Card className="bg-card border-border">
@@ -454,6 +454,10 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium">{t('reports.table.offer') || 'Offer'}</th>
                 {role !== "publisher" && <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>}
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
+                <th className="px-4 py-3 font-medium">IP</th>
+                <th className="px-4 py-3 font-medium">Device</th>
+                <th className="px-4 py-3 font-medium">OS</th>
+                <th className="px-4 py-3 font-medium">Browser</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
@@ -494,6 +498,20 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                         {click.geo || 'N/A'}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-muted-foreground text-[10px]">
+                      {click.ip || '-'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 text-[10px]">
+                        {click.device || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-[10px]">
+                      {click.os || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-[10px]">
+                      {click.browser || '-'}
+                    </td>
                     <td className="px-4 py-3 text-center">
                       {click.isUnique ? (
                         <span className="text-emerald-500">✓</span>
@@ -531,7 +549,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
             </tbody>
             <tfoot>
               <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
-                <td colSpan={6} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
+                <td colSpan={10} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
                   {t('reports.total') || 'Total'}
                 </td>
                 <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>

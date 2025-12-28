@@ -9,6 +9,7 @@ import MemoryStore from "memorystore";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { ClickHandler } from "./services/click-handler";
 import { Orchestrator } from "./services/orchestrator";
+import geoip from "geoip-lite";
 
 const clickHandler = new ClickHandler();
 const orchestrator = new Orchestrator();
@@ -687,11 +688,18 @@ export async function registerRoutes(
       const userAgent = req.headers["user-agent"] || "";
       const referer = req.headers["referer"] || "";
       
-      // GEO: from query param, or derive from CF-IPCountry/x-country-code headers
-      const geoCode = (geo as string) || 
-                      (req.headers["cf-ipcountry"] as string) ||
-                      (req.headers["x-country-code"] as string) ||
-                      undefined;
+      // GEO: from query param, headers, or IP geolocation
+      let geoCode = (geo as string) || 
+                    (req.headers["cf-ipcountry"] as string) ||
+                    (req.headers["x-country-code"] as string);
+      
+      // Fallback to IP geolocation if no GEO provided
+      if (!geoCode && ip && ip !== "unknown") {
+        const geoData = geoip.lookup(ip);
+        if (geoData?.country) {
+          geoCode = geoData.country;
+        }
+      }
 
       const result = await clickHandler.processClick({
         offerId: offer_id as string,
