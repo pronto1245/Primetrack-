@@ -507,7 +507,7 @@ export async function registerRoutes(
   // Postback для конверсий (вызывается advertiser)
   app.post("/api/conversions", async (req: Request, res: Response) => {
     try {
-      const { clickId, payout } = req.body;
+      const { clickId, payout, status: inputStatus, conversionType = "lead" } = req.body;
       
       if (!clickId) {
         return res.status(400).json({ message: "clickId is required" });
@@ -518,14 +518,35 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Click not found" });
       }
 
+      // Get offer to determine pricing and hold period
+      const offer = await storage.getOffer(click.offerId);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+
+      // Calculate advertiser cost and publisher payout from offer
+      const advertiserCost = payout || offer.advertiserPrice || "0";
+      const publisherPayout = offer.payoutAmount || "0";
+
+      // Determine initial status based on hold period
+      let finalStatus = inputStatus || "pending";
+      let holdUntil: Date | null = null;
+      
+      if (offer.holdPeriodDays && offer.holdPeriodDays > 0 && finalStatus === "pending") {
+        finalStatus = "hold";
+        holdUntil = new Date();
+        holdUntil.setDate(holdUntil.getDate() + offer.holdPeriodDays);
+      }
+
       const result = insertConversionSchema.safeParse({
         clickId: click.id,
         offerId: click.offerId,
         publisherId: click.publisherId,
-        advertiserCost: payout || "0",
-        publisherPayout: payout || "0",
-        conversionType: "lead",
-        status: "pending",
+        advertiserCost,
+        publisherPayout,
+        conversionType,
+        status: finalStatus,
+        holdUntil,
       });
 
       if (!result.success) {

@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { storage } from "./storage";
 
 const app = express();
 const httpServer = createServer(app);
@@ -93,6 +94,27 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      
+      // Process hold conversions every 5 minutes
+      setInterval(async () => {
+        try {
+          const processed = await storage.processHoldConversions();
+          if (processed > 0) {
+            log(`Processed ${processed} hold conversions to approved`, "hold-processor");
+          }
+        } catch (error) {
+          log(`Error processing hold conversions: ${error}`, "hold-processor");
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+      
+      // Run immediately on startup
+      storage.processHoldConversions().then(processed => {
+        if (processed > 0) {
+          log(`Initial: Processed ${processed} hold conversions to approved`, "hold-processor");
+        }
+      }).catch(error => {
+        log(`Initial hold processing error: ${error}`, "hold-processor");
+      });
     },
   );
 })();

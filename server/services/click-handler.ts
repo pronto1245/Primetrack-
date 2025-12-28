@@ -269,14 +269,53 @@ export class ClickHandler {
     let isProxy = false;
     let isVpn = false;
     
+    // Check for missing or suspicious user agent
     if (!userAgent || userAgent.length < 10) {
       score += 30;
     }
     
+    // Check for known bot patterns
     if (userAgent?.toLowerCase().includes("bot") ||
         userAgent?.toLowerCase().includes("crawler") ||
         userAgent?.toLowerCase().includes("spider")) {
       score += 50;
+    }
+    
+    // Check for automation tools in user agent
+    const automationTools = ["selenium", "puppeteer", "headless", "phantomjs", "playwright"];
+    if (userAgent && automationTools.some(tool => userAgent.toLowerCase().includes(tool))) {
+      score += 40;
+    }
+    
+    // Check for suspicious IP patterns (datacenter ranges - simplified detection)
+    if (ip) {
+      // Common datacenter/proxy IP prefixes
+      const suspiciousPrefixes = [
+        "104.16.", "104.17.", "104.18.", "104.19.", "104.20.", // Cloudflare
+        "172.64.", "172.65.", "172.66.", "172.67.", // Cloudflare
+        "185.199.", // GitHub Pages
+        "151.101.", // Fastly
+        "23.227.", // Shopify
+      ];
+      if (suspiciousPrefixes.some(prefix => ip.startsWith(prefix))) {
+        score += 15;
+        isProxy = true;
+      }
+      
+      // Check for localhost/private IPs (suspicious in production)
+      if (ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.")) {
+        score += 10;
+      }
+    }
+    
+    // Check for common curl/wget patterns
+    if (userAgent && /^(curl|wget|python-requests|python-urllib|java|httpclient|okhttp)/i.test(userAgent)) {
+      score += 35;
+    }
+    
+    // Check for missing common browser headers patterns
+    if (userAgent && !/(mozilla|chrome|safari|firefox|edge|opera)/i.test(userAgent)) {
+      score += 20;
     }
     
     return { score, isProxy, isVpn };

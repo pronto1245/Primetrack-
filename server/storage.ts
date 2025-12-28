@@ -254,6 +254,9 @@ export interface IStorage {
   // User Postback Settings (universal for all roles)
   getUserPostbackSettings(userId: string): Promise<UserPostbackSetting | undefined>;
   upsertUserPostbackSettings(userId: string, settings: Partial<InsertUserPostbackSetting>): Promise<UserPostbackSetting>;
+  
+  // Hold period processing
+  processHoldConversions(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2006,6 +2009,19 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+  
+  // Process hold conversions - move from hold to approved when holdUntil has passed
+  async processHoldConversions(): Promise<number> {
+    const now = new Date();
+    const result = await db.update(conversions)
+      .set({ status: "approved" })
+      .where(and(
+        eq(conversions.status, "hold"),
+        lte(conversions.holdUntil, now)
+      ))
+      .returning();
+    return result.length;
   }
 }
 
