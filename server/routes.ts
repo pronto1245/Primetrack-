@@ -3294,14 +3294,97 @@ export async function registerRoutes(
       const user = await storage.getUser(userId);
       
       if (!user?.telegramChatId) {
-        return res.status(400).json({ message: "Telegram chat ID not configured" });
+        return res.status(400).json({ message: "Telegram не привязан. Сначала привяжите аккаунт." });
       }
       
-      // In production, you would send an actual Telegram message here
-      // For now, just return success
-      res.json({ success: true, message: "Test message sent successfully" });
+      const { telegramService } = await import("./services/telegram-service");
+      const sent = await telegramService.notifyUser(
+        userId, 
+        "system", 
+        "Тестовое уведомление", 
+        { Статус: "Telegram интеграция работает корректно!" }
+      );
+      
+      if (sent) {
+        res.json({ success: true, message: "Тестовое сообщение отправлено!" });
+      } else {
+        res.status(500).json({ message: "Не удалось отправить сообщение. Проверьте настройки бота." });
+      }
     } catch (error) {
       res.status(500).json({ message: "Failed to send test message" });
+    }
+  });
+
+  // Generate Telegram link code
+  app.post("/api/user/telegram/link-code", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { telegramService } = await import("./services/telegram-service");
+      const code = await telegramService.generateLinkCode(userId);
+      
+      res.json({ 
+        success: true, 
+        code,
+        expiresIn: "10 минут",
+        instruction: `Отправьте боту команду: /link ${code}`
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate link code" });
+    }
+  });
+
+  // Unlink Telegram account
+  app.post("/api/user/telegram/unlink", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { telegramService } = await import("./services/telegram-service");
+      await telegramService.unlinkAccount(userId);
+      
+      res.json({ success: true, message: "Telegram отвязан" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to unlink Telegram" });
+    }
+  });
+
+  // Webhook for Telegram bot (public endpoint)
+  app.post("/api/telegram/webhook", async (req: Request, res: Response) => {
+    try {
+      const { message } = req.body;
+      if (!message?.text || !message?.chat?.id) {
+        return res.sendStatus(200);
+      }
+
+      const chatId = message.chat.id.toString();
+      const text = message.text.trim();
+
+      if (text.startsWith("/link ")) {
+        const code = text.replace("/link ", "").trim().toUpperCase();
+        const { telegramService } = await import("./services/telegram-service");
+        const result = await telegramService.linkAccount(code, chatId);
+
+        if (result.success) {
+          await telegramService.sendMessage({
+            chatId,
+            text: "✅ <b>Аккаунт успешно привязан!</b>\n\nТеперь вы будете получать уведомления о лидах, продажах и выплатах."
+          });
+        } else {
+          await telegramService.sendMessage({
+            chatId,
+            text: `❌ <b>Ошибка:</b> ${result.error}`
+          });
+        }
+      } else if (text === "/start") {
+        const { telegramService } = await import("./services/telegram-service");
+        await telegramService.sendMessage({
+          chatId,
+          text: "👋 <b>Добро пожаловать в PrimeTrack Bot!</b>\n\nДля привязки аккаунта:\n1. Зайдите в Настройки → Telegram\n2. Нажмите «Получить код»\n3. Отправьте сюда команду /link КОД"
+        });
+      }
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("[Telegram Webhook] Error:", error);
+      res.sendStatus(200);
     }
   });
 
@@ -3486,6 +3569,43 @@ export async function registerRoutes(
     } catch (error) {
       res.status(500).json({ message: "Failed to update platform settings" });
     }
+  });
+
+  // Data Migration API (admin)
+  app.post("/api/admin/migration/import", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { tracker, apiUrl, apiKey, advertiserId, options } = req.body;
+      
+      if (!tracker || !apiUrl || !apiKey || !advertiserId) {
+        return res.status(400).json({ message: "Missing required fields: tracker, apiUrl, apiKey, advertiserId" });
+      }
+
+      const { migrationService } = await import("./services/migration-service");
+      const result = await migrationService.importFromTracker(
+        tracker,
+        apiUrl,
+        apiKey,
+        advertiserId,
+        options || { importOffers: true, importPublishers: true }
+      );
+
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Migration failed" });
+    }
+  });
+
+  // Get tracker info (admin)
+  app.get("/api/admin/migration/trackers", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    const { migrationService } = await import("./services/migration-service");
+    const trackers = ["scaleo", "affilka", "affise", "voluum", "keitaro"] as const;
+    
+    const info = trackers.map(t => ({
+      id: t,
+      ...migrationService.getTrackerInfo(t)
+    }));
+
+    res.json(info);
   });
 
   return httpServer;

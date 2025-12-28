@@ -11,8 +11,10 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Settings, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Shield, Key, CheckCircle2, Globe,
-  Users, ShieldAlert, CreditCard, Upload
+  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,7 +32,7 @@ export function AdminSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
             <User className="h-4 w-4" />
             Профиль
@@ -47,6 +49,10 @@ export function AdminSettings() {
             <Settings className="h-4 w-4" />
             Платформа
           </TabsTrigger>
+          <TabsTrigger value="migration" className="flex items-center gap-2" data-testid="tab-migration">
+            <Database className="h-4 w-4" />
+            Миграция
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -60,6 +66,9 @@ export function AdminSettings() {
         </TabsContent>
         <TabsContent value="platform">
           <PlatformTab />
+        </TabsContent>
+        <TabsContent value="migration">
+          <MigrationTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -685,6 +694,283 @@ function PlatformTab() {
         {updateMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
         Сохранить все настройки платформы
       </Button>
+    </div>
+  );
+}
+
+function MigrationTab() {
+  const { toast } = useToast();
+  const [selectedTracker, setSelectedTracker] = useState<string>("");
+  const [apiUrl, setApiUrl] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [advertiserId, setAdvertiserId] = useState("");
+  const [importOffers, setImportOffers] = useState(true);
+  const [importPublishers, setImportPublishers] = useState(true);
+  const [migrationResult, setMigrationResult] = useState<any>(null);
+
+  const { data: trackers } = useQuery<any[]>({
+    queryKey: ["/api/admin/migration/trackers"],
+  });
+
+  const { data: advertisers } = useQuery<any[]>({
+    queryKey: ["/api/admin/users"],
+    select: (data) => data?.filter((u: any) => u.role === "advertiser"),
+  });
+
+  const migrationMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/migration/import", data),
+    onSuccess: (result: any) => {
+      setMigrationResult(result);
+      if (result.success) {
+        toast({
+          title: "Миграция завершена",
+          description: `Импортировано: ${result.offersImported} офферов, ${result.publishersImported} партнёров`,
+        });
+      } else {
+        toast({
+          title: "Миграция завершена с ошибками",
+          description: `Ошибок: ${result.errors?.length || 0}`,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ошибка миграции",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleMigrate = () => {
+    if (!selectedTracker || !apiUrl || !apiKey || !advertiserId) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    migrationMutation.mutate({
+      tracker: selectedTracker,
+      apiUrl,
+      apiKey,
+      advertiserId,
+      options: { importOffers, importPublishers },
+    });
+  };
+
+  const selectedTrackerInfo = trackers?.find((t) => t.id === selectedTracker);
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Миграция данных
+          </CardTitle>
+          <CardDescription>
+            Импорт офферов и партнёров из других трекинговых платформ
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Исходная платформа</Label>
+              <Select value={selectedTracker} onValueChange={setSelectedTracker}>
+                <SelectTrigger data-testid="select-tracker">
+                  <SelectValue placeholder="Выберите платформу" />
+                </SelectTrigger>
+                <SelectContent>
+                  {trackers?.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Рекламодатель-получатель</Label>
+              <Select value={advertiserId} onValueChange={setAdvertiserId}>
+                <SelectTrigger data-testid="select-advertiser">
+                  <SelectValue placeholder="Выберите рекламодателя" />
+                </SelectTrigger>
+                <SelectContent>
+                  {advertisers?.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.username} ({a.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {selectedTrackerInfo && (
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <p className="text-sm font-medium">{selectedTrackerInfo.name}</p>
+              <p className="text-sm text-muted-foreground">{selectedTrackerInfo.apiKeyHelp}</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="apiUrl">API URL</Label>
+            <Input
+              id="apiUrl"
+              placeholder={selectedTrackerInfo?.apiUrlPlaceholder || "https://api.tracker.com"}
+              value={apiUrl}
+              onChange={(e) => setApiUrl(e.target.value)}
+              data-testid="input-api-url"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="apiKey">API ключ</Label>
+            <div className="relative">
+              <Input
+                id="apiKey"
+                type={showApiKey ? "text" : "password"}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                data-testid="input-api-key"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => setShowApiKey(!showApiKey)}
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <Label className="text-base">Что импортировать</Label>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="importOffers"
+                  checked={importOffers}
+                  onCheckedChange={(checked) => setImportOffers(checked as boolean)}
+                  data-testid="checkbox-import-offers"
+                />
+                <label htmlFor="importOffers" className="text-sm font-medium cursor-pointer">
+                  Офферы
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="importPublishers"
+                  checked={importPublishers}
+                  onCheckedChange={(checked) => setImportPublishers(checked as boolean)}
+                  data-testid="checkbox-import-publishers"
+                />
+                <label htmlFor="importPublishers" className="text-sm font-medium cursor-pointer">
+                  Партнёры (аффилиаты)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleMigrate}
+            disabled={migrationMutation.isPending || !selectedTracker || !apiUrl || !apiKey || !advertiserId}
+            className="w-full"
+            data-testid="button-start-migration"
+          >
+            {migrationMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Импортируем данные...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Начать миграцию
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {migrationResult && (
+        <Card className={migrationResult.success ? "border-green-500" : "border-destructive"}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {migrationResult.success ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              )}
+              Результат миграции
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg text-center">
+                <div className="text-2xl font-bold" data-testid="text-offers-imported">
+                  {migrationResult.offersImported}
+                </div>
+                <div className="text-sm text-muted-foreground">Офферов импортировано</div>
+              </div>
+              <div className="p-4 border rounded-lg text-center">
+                <div className="text-2xl font-bold" data-testid="text-publishers-imported">
+                  {migrationResult.publishersImported}
+                </div>
+                <div className="text-sm text-muted-foreground">Партнёров импортировано</div>
+              </div>
+            </div>
+
+            {migrationResult.errors?.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-destructive">Ошибки ({migrationResult.errors.length})</Label>
+                <div className="max-h-40 overflow-y-auto space-y-1">
+                  {migrationResult.errors.map((err: string, i: number) => (
+                    <div key={i} className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+                      {err}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Поддерживаемые платформы
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-5 gap-4">
+            {[
+              { name: "Scaleo", color: "bg-blue-500" },
+              { name: "Affilka", color: "bg-purple-500" },
+              { name: "Affise", color: "bg-orange-500" },
+              { name: "Voluum", color: "bg-green-500" },
+              { name: "Keitaro", color: "bg-red-500" },
+            ].map((platform) => (
+              <div key={platform.name} className="flex items-center gap-2 p-3 border rounded-lg">
+                <div className={`w-3 h-3 rounded-full ${platform.color}`} />
+                <span className="text-sm font-medium">{platform.name}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

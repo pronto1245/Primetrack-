@@ -362,6 +362,7 @@ function NotificationsTab() {
     telegramNotifyPayouts: true,
     telegramNotifySystem: true,
   });
+  const [linkCode, setLinkCode] = useState<string | null>(null);
 
   const { data: user } = useQuery<any>({
     queryKey: ["/api/user"],
@@ -400,6 +401,30 @@ function NotificationsTab() {
     },
   });
 
+  const getLinkCodeMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/user/telegram/link-code"),
+    onSuccess: (data: any) => {
+      setLinkCode(data.code);
+      toast({ title: "Код получен", description: "Отправьте его боту в Telegram" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const unlinkMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/user/telegram/unlink"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({ title: "Telegram отвязан" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const isLinked = !!user?.telegramChatId;
+
   return (
     <Card>
       <CardHeader>
@@ -410,26 +435,62 @@ function NotificationsTab() {
         <CardDescription>Получайте мгновенные уведомления в Telegram</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-          <h4 className="font-medium mb-2">Как подключить:</h4>
-          <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-            <li>Найдите бота рекламодателя в Telegram</li>
-            <li>Отправьте команду /start</li>
-            <li>Скопируйте ваш Chat ID (бот пришлёт его в ответ)</li>
-            <li>Вставьте Chat ID в поле ниже</li>
-          </ol>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="chatId">Chat ID</Label>
-          <Input
-            id="chatId"
-            data-testid="input-chat-id"
-            value={telegramData.telegramChatId}
-            onChange={(e) => setTelegramData({ ...telegramData, telegramChatId: e.target.value })}
-            placeholder="123456789"
-          />
-        </div>
+        {isLinked ? (
+          <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-emerald-400">Telegram привязан</h4>
+                <p className="text-sm text-muted-foreground">Chat ID: {user.telegramChatId}</p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => unlinkMutation.mutate()}
+                disabled={unlinkMutation.isPending}
+                data-testid="button-unlink-telegram"
+              >
+                Отвязать
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Как подключить:</h4>
+              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Нажмите «Получить код» ниже</li>
+                <li>Откройте бота рекламодателя в Telegram</li>
+                <li>Отправьте команду: <code className="bg-slate-800 px-1 rounded">/link ВАШ_КОД</code></li>
+              </ol>
+            </div>
+            
+            {linkCode ? (
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-slate-800 px-4 py-2 rounded text-lg font-mono text-center">{linkCode}</code>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`/link ${linkCode}`);
+                    toast({ title: "Скопировано!" });
+                  }}
+                  data-testid="button-copy-link-code"
+                >
+                  Копировать
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                onClick={() => getLinkCodeMutation.mutate()}
+                disabled={getLinkCodeMutation.isPending}
+                data-testid="button-get-link-code"
+              >
+                {getLinkCodeMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Получить код
+              </Button>
+            )}
+          </div>
+        )}
 
         <Separator />
 
@@ -466,7 +527,7 @@ function NotificationsTab() {
           <Button 
             variant="outline"
             onClick={() => testTelegramMutation.mutate()}
-            disabled={testTelegramMutation.isPending || !telegramData.telegramChatId}
+            disabled={testTelegramMutation.isPending || !isLinked}
             data-testid="button-test-telegram"
           >
             {testTelegramMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
