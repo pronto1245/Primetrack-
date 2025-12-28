@@ -129,7 +129,7 @@ export function AdvertiserPartners() {
                   data-testid="input-registration-link"
                   value={linkData?.registrationLink || ""} 
                   readOnly 
-                  className="bg-[#111] border-border text-foreground font-mono text-sm"
+                  className="bg-input border-border text-foreground font-mono text-sm"
                 />
                 <Button 
                   data-testid="button-copy-link"
@@ -158,11 +158,11 @@ export function AdvertiserPartners() {
                 placeholder="Поиск по имени или email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-[#111] border-border text-foreground"
+                className="pl-10 bg-input border-border text-foreground"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger data-testid="select-status-filter" className="w-40 bg-[#111] border-border">
+              <SelectTrigger data-testid="select-status-filter" className="w-40 bg-input border-border">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>

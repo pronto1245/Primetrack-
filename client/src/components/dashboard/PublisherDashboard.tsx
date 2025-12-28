@@ -220,7 +220,7 @@ export function PublisherDashboard() {
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="bg-[#111] border-border text-foreground h-9"
+                  className="bg-input border-border text-foreground h-9"
                 />
               </div>
               <div>
@@ -230,16 +230,16 @@ export function PublisherDashboard() {
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="bg-[#111] border-border text-foreground h-9"
+                  className="bg-input border-border text-foreground h-9"
                 />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t('dashboard.table.offer')}</label>
                 <Select value={selectedOffer} onValueChange={setSelectedOffer}>
-                  <SelectTrigger data-testid="select-offer" className="bg-[#111] border-border text-foreground h-9">
+                  <SelectTrigger data-testid="select-offer" className="bg-input border-border text-foreground h-9">
                     <SelectValue placeholder={t('dashboard.offers.all')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#111] border-border">
+                  <SelectContent className="bg-input border-border">
                     <SelectItem value="all">{t('dashboard.offers.all')}</SelectItem>
                     {offers.map((o) => (
                       <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>

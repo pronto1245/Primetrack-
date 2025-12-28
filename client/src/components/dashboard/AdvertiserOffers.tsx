@@ -158,7 +158,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                 <Globe className="w-3 h-3 mr-1 text-muted-foreground" />
                 <SelectValue placeholder="ГЕО" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1a1a1a] border-border">
+              <SelectContent className="bg-input border-border">
                 <SelectItem value="all" className="text-foreground font-mono text-xs">Все ГЕО</SelectItem>
                 {allGeos.map(geo => (
                   <SelectItem key={geo} value={geo} className="text-foreground font-mono text-xs">{geo}</SelectItem>
@@ -171,7 +171,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                 <FolderOpen className="w-3 h-3 mr-1 text-muted-foreground" />
                 <SelectValue placeholder="Категория" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1a1a1a] border-border">
+              <SelectContent className="bg-input border-border">
                 <SelectItem value="all" className="text-foreground font-mono text-xs">Все категории</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat} value={cat} className="text-foreground font-mono text-xs">{cat}</SelectItem>
@@ -184,7 +184,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                 <Megaphone className="w-3 h-3 mr-1 text-muted-foreground" />
                 <SelectValue placeholder="Источник" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1a1a1a] border-border">
+              <SelectContent className="bg-input border-border">
                 <SelectItem value="all" className="text-foreground font-mono text-xs">Все источники</SelectItem>
                 {allSources.map(src => (
                   <SelectItem key={src} value={src} className="text-foreground font-mono text-xs">{src}</SelectItem>
@@ -196,7 +196,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
               <SelectTrigger className="w-[130px] bg-muted border-border text-foreground font-mono text-xs h-8" data-testid="select-status">
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1a1a1a] border-border">
+              <SelectContent className="bg-input border-border">
                 <SelectItem value="all" className="text-foreground font-mono text-xs">Все статусы</SelectItem>
                 <SelectItem value="active" className="text-foreground font-mono text-xs">Active</SelectItem>
                 <SelectItem value="paused" className="text-foreground font-mono text-xs">Paused</SelectItem>

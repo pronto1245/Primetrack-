@@ -503,7 +503,7 @@ export function AdvertiserFinance() {
                                       value={approveAmount}
                                       onChange={(e) => setApproveAmount(e.target.value)}
                                       max={request.requestedAmount}
-                                      className="bg-[#111] border-border"
+                                      className="bg-input border-border"
                                       data-testid="input-partial-amount"
                                     />
                                     <p className="text-xs text-muted-foreground mt-1">
@@ -536,7 +536,7 @@ export function AdvertiserFinance() {
                                     <Textarea
                                       value={rejectReason}
                                       onChange={(e) => setRejectReason(e.target.value)}
-                                      className="bg-[#111] border-border"
+                                      className="bg-input border-border"
                                       placeholder="Укажите причину..."
                                       data-testid="input-reject-reason"
                                     />
@@ -579,7 +579,7 @@ export function AdvertiserFinance() {
                                   <Input
                                     value={transactionId}
                                     onChange={(e) => setTransactionId(e.target.value)}
-                                    className="bg-[#111] border-border"
+                                    className="bg-input border-border"
                                     placeholder="TX hash или номер перевода"
                                     data-testid="input-transaction-id"
                                   />
@@ -689,7 +689,7 @@ export function AdvertiserFinance() {
                   <div>
                     <Label>Тип</Label>
                     <Select name="methodType" required>
-                      <SelectTrigger className="bg-[#111] border-border" data-testid="select-method-type">
+                      <SelectTrigger className="bg-input border-border" data-testid="select-method-type">
                         <SelectValue placeholder="Выберите тип" />
                       </SelectTrigger>
                       <SelectContent>
@@ -709,14 +709,14 @@ export function AdvertiserFinance() {
                     <Input
                       name="methodName"
                       required
-                      className="bg-[#111] border-border"
+                      className="bg-input border-border"
                       placeholder="Например: USDT TRC20"
                     />
                   </div>
                   <div>
                     <Label>Валюта</Label>
                     <Select name="currency" required>
-                      <SelectTrigger className="bg-[#111] border-border">
+                      <SelectTrigger className="bg-input border-border">
                         <SelectValue placeholder="Выберите валюту" />
                       </SelectTrigger>
                       <SelectContent>
@@ -735,7 +735,7 @@ export function AdvertiserFinance() {
                         name="minPayout"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-border"
+                        className="bg-input border-border"
                         placeholder="50"
                       />
                     </div>
@@ -745,7 +745,7 @@ export function AdvertiserFinance() {
                         name="maxPayout"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-border"
+                        className="bg-input border-border"
                         placeholder="10000"
                       />
                     </div>
@@ -757,7 +757,7 @@ export function AdvertiserFinance() {
                         name="feePercent"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-border"
+                        className="bg-input border-border"
                         placeholder="0"
                       />
                     </div>
@@ -767,7 +767,7 @@ export function AdvertiserFinance() {
                         name="feeFixed"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-border"
+                        className="bg-input border-border"
                         placeholder="0"
                       />
                     </div>
@@ -776,7 +776,7 @@ export function AdvertiserFinance() {
                     <Label>Инструкции</Label>
                     <Textarea
                       name="instructions"
-                      className="bg-[#111] border-border"
+                      className="bg-input border-border"
                       placeholder="Инструкции для партнеров..."
                     />
                   </div>
@@ -1015,7 +1015,7 @@ export function AdvertiserFinance() {
                               [exchange.key]: { ...inputs, apiKey: e.target.value } 
                             }))}
                             placeholder="Введите API Key"
-                            className="bg-[#111] border-border font-mono text-sm"
+                            className="bg-input border-border font-mono text-sm"
                             data-testid={`input-${exchange.key}-api-key`}
                           />
                         </div>
@@ -1029,7 +1029,7 @@ export function AdvertiserFinance() {
                               [exchange.key]: { ...inputs, secretKey: e.target.value } 
                             }))}
                             placeholder="Введите Secret Key"
-                            className="bg-[#111] border-border font-mono text-sm"
+                            className="bg-input border-border font-mono text-sm"
                             data-testid={`input-${exchange.key}-secret-key`}
                           />
                         </div>
@@ -1044,7 +1044,7 @@ export function AdvertiserFinance() {
                                 [exchange.key]: { ...inputs, passphrase: e.target.value } 
                               }))}
                               placeholder="Введите Passphrase"
-                              className="bg-[#111] border-border font-mono text-sm"
+                              className="bg-input border-border font-mono text-sm"
                               data-testid={`input-${exchange.key}-passphrase`}
                             />
                           </div>
@@ -1346,13 +1346,13 @@ export function AdvertiserFinance() {
               <Input
                 value={publisherBalances.find((b: any) => b.publisherId === bonusPublisherId)?.publisherName || ""}
                 disabled
-                className="bg-[#111] border-border"
+                className="bg-input border-border"
               />
             </div>
             <div>
               <Label>Способ оплаты</Label>
               <Select value={bonusMethodId} onValueChange={setBonusMethodId}>
-                <SelectTrigger className="bg-[#111] border-border" data-testid="select-bonus-method">
+                <SelectTrigger className="bg-input border-border" data-testid="select-bonus-method">
                   <SelectValue placeholder="Выберите способ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1372,7 +1372,7 @@ export function AdvertiserFinance() {
                 value={bonusAmount}
                 onChange={(e) => setBonusAmount(e.target.value)}
                 placeholder="100.00"
-                className="bg-[#111] border-border"
+                className="bg-input border-border"
                 data-testid="input-bonus-amount"
               />
             </div>
@@ -1382,7 +1382,7 @@ export function AdvertiserFinance() {
                 value={bonusNote}
                 onChange={(e) => setBonusNote(e.target.value)}
                 placeholder="За хорошую работу..."
-                className="bg-[#111] border-border"
+                className="bg-input border-border"
                 data-testid="input-bonus-note"
               />
             </div>

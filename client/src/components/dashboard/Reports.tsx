@@ -143,7 +143,7 @@ export function Reports({ role }: ReportsProps) {
                 data-testid="input-date-from"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters(f => ({ ...f, dateFrom: e.target.value }))}
-                className="mt-1 bg-[#111] border-border text-foreground font-mono text-sm"
+                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
               />
             </div>
             <div>
@@ -153,7 +153,7 @@ export function Reports({ role }: ReportsProps) {
                 data-testid="input-date-to"
                 value={filters.dateTo}
                 onChange={(e) => setFilters(f => ({ ...f, dateTo: e.target.value }))}
-                className="mt-1 bg-[#111] border-border text-foreground font-mono text-sm"
+                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
               />
             </div>
             <div>
@@ -163,16 +163,16 @@ export function Reports({ role }: ReportsProps) {
                 placeholder="US, DE, RU..."
                 value={filters.geo}
                 onChange={(e) => setFilters(f => ({ ...f, geo: e.target.value.toUpperCase() }))}
-                className="mt-1 bg-[#111] border-border text-foreground font-mono text-sm"
+                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
               />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.device') || 'Device'}</Label>
               <Select value={filters.device || "all"} onValueChange={(v) => setFilters(f => ({ ...f, device: v === "all" ? "" : v }))}>
-                <SelectTrigger className="mt-1 bg-[#111] border-border text-foreground" data-testid="select-device">
+                <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-device">
                   <SelectValue placeholder={t('reports.all') || 'All'} />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-border">
+                <SelectContent className="bg-input border-border">
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="mobile">Mobile</SelectItem>
                   <SelectItem value="desktop">Desktop</SelectItem>
@@ -184,10 +184,10 @@ export function Reports({ role }: ReportsProps) {
               <div>
                 <Label className="text-xs text-muted-foreground">Вебмастер</Label>
                 <Select value={filters.publisherId || "all"} onValueChange={(v) => setFilters(f => ({ ...f, publisherId: v === "all" ? "" : v }))}>
-                  <SelectTrigger className="mt-1 bg-[#111] border-border text-foreground" data-testid="select-publisher">
+                  <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-publisher">
                     <SelectValue placeholder="Все" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#111] border-border">
+                  <SelectContent className="bg-input border-border">
                     <SelectItem value="all">Все вебмастера</SelectItem>
                     {publishers.map((pub) => (
                       <SelectItem key={pub.id} value={pub.id}>{pub.username || pub.email}</SelectItem>
@@ -199,10 +199,10 @@ export function Reports({ role }: ReportsProps) {
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.groupBy') || 'Group By'}</Label>
               <Select value={filters.groupBy} onValueChange={(v) => setFilters(f => ({ ...f, groupBy: v }))}>
-                <SelectTrigger className="mt-1 bg-[#111] border-border text-foreground" data-testid="select-group-by">
+                <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-group-by">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-border">
+                <SelectContent className="bg-input border-border">
                   <SelectItem value="date">Date</SelectItem>
                   <SelectItem value="geo">GEO</SelectItem>
                   <SelectItem value="offer">Offer</SelectItem>

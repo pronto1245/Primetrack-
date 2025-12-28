@@ -264,7 +264,7 @@ export function PublisherPayouts() {
                   <div>
                     <Label>Кошелек для выплаты</Label>
                     <Select value={selectedWallet} onValueChange={setSelectedWallet}>
-                      <SelectTrigger className="bg-[#111] border-border">
+                      <SelectTrigger className="bg-input border-border">
                         <SelectValue placeholder="Выберите кошелек" />
                       </SelectTrigger>
                       <SelectContent>
@@ -293,7 +293,7 @@ export function PublisherPayouts() {
                       onChange={(e) => setRequestAmount(e.target.value)}
                       max={availableBalance}
                       step="0.01"
-                      className="bg-[#111] border-border"
+                      className="bg-input border-border"
                       placeholder="100.00"
                       data-testid="input-request-amount"
                     />
@@ -312,7 +312,7 @@ export function PublisherPayouts() {
                     <Textarea
                       value={requestNote}
                       onChange={(e) => setRequestNote(e.target.value)}
-                      className="bg-[#111] border-border"
+                      className="bg-input border-border"
                       placeholder="Дополнительная информация..."
                     />
                   </div>
@@ -392,7 +392,7 @@ export function PublisherPayouts() {
                       <div>
                         <Label>Способ оплаты</Label>
                         <Select name="paymentMethodId" required>
-                          <SelectTrigger className="bg-[#111] border-border">
+                          <SelectTrigger className="bg-input border-border">
                             <SelectValue placeholder="Выберите способ" />
                           </SelectTrigger>
                           <SelectContent>
@@ -416,7 +416,7 @@ export function PublisherPayouts() {
                         <Input
                           name="walletAddress"
                           required
-                          className="bg-[#111] border-border"
+                          className="bg-input border-border"
                           placeholder="TRC20 адрес, номер карты и т.д."
                         />
                       </div>
@@ -424,7 +424,7 @@ export function PublisherPayouts() {
                         <Label>Имя владельца (опционально)</Label>
                         <Input
                           name="accountName"
-                          className="bg-[#111] border-border"
+                          className="bg-input border-border"
                           placeholder="Имя на карте / UID"
                         />
                       </div>
@@ -432,7 +432,7 @@ export function PublisherPayouts() {
                         <Label>Дополнительная информация</Label>
                         <Textarea
                           name="additionalInfo"
-                          className="bg-[#111] border-border"
+                          className="bg-input border-border"
                           placeholder="Банк, страна и т.д."
                         />
                       </div>

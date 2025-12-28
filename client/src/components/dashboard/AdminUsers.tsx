@@ -235,7 +235,7 @@ export function AdminUsers() {
                     <Filter className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Статус" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1A1A] border-border">
+                  <SelectContent className="bg-input border-border">
                     <SelectItem value="all">Все статусы</SelectItem>
                     <SelectItem value="pending">Ожидают</SelectItem>
                     <SelectItem value="active">Активные</SelectItem>
