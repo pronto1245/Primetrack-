@@ -266,6 +266,13 @@ export async function registerRoutes(
       referralCode: user.referralCode,
       status: user.status,
       twoFactorEnabled: user.twoFactorEnabled || false,
+      fullName: user.fullName,
+      phone: user.phone,
+      contactType: user.contactType,
+      contactValue: user.contactValue,
+      companyName: user.companyName,
+      telegram: user.telegram,
+      logoUrl: user.logoUrl,
     });
   });
 
@@ -296,6 +303,13 @@ export async function registerRoutes(
       status: user.status,
       twoFactorEnabled: user.twoFactorEnabled || false,
       hasApprovedAdvertiser,
+      fullName: user.fullName,
+      phone: user.phone,
+      contactType: user.contactType,
+      contactValue: user.contactValue,
+      companyName: user.companyName,
+      telegram: user.telegram,
+      logoUrl: user.logoUrl,
     });
   });
 
