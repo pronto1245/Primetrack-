@@ -42,15 +42,6 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-// Mock Data for "High Density" feel
-const MOCK_CAMPAIGNS = [
-  { id: 1024, name: "US_Sweepstakes_Main", status: "active", clicks: "45,201", conv: "1,204", revenue: "$4,214.00", roi: "142%" },
-  { id: 1025, name: "DE_Dating_Smartlink", status: "active", clicks: "12,100", conv: "854", revenue: "$2,989.00", roi: "210%" },
-  { id: 1026, name: "Crypto_Push_WW", status: "paused", clicks: "5,400", conv: "12", revenue: "$450.00", roi: "-20%" },
-  { id: 1027, name: "Gambling_Tier1_iOS", status: "active", clicks: "8,900", conv: "410", revenue: "$8,200.00", roi: "340%" },
-  { id: 1028, name: "Nutra_Keto_FR", status: "active", clicks: "3,200", conv: "98", revenue: "$1,100.00", roi: "85%" },
-];
-
 export default function Dashboard() {
   const { t } = useTranslation();
   
@@ -83,11 +74,13 @@ function RoleSelectionScreen({ t }: { t: any }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const testUsers = [
+  // Quick login only in development mode
+  const isDevelopment = import.meta.env.DEV;
+  const testUsers = isDevelopment ? [
     { username: "admin", password: "admin123", role: "admin", label: t('dashboard.roles.admin'), icon: Shield, color: "bg-red-500", hoverColor: "hover:bg-red-600" },
     { username: "advertiser", password: "adv123", role: "advertiser", label: t('dashboard.roles.advertiser'), icon: Briefcase, color: "bg-blue-500", hoverColor: "hover:bg-blue-600" },
     { username: "publisher", password: "pub123", role: "publisher", label: t('dashboard.roles.publisher'), icon: User, color: "bg-emerald-500", hoverColor: "hover:bg-emerald-600" },
-  ];
+  ] : [];
 
   const handleLogin = async (user: string, pass: string) => {
     setLoading(true);
@@ -159,25 +152,27 @@ function RoleSelectionScreen({ t }: { t: any }) {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <p className="text-center text-slate-500 font-mono text-xs uppercase tracking-wider">{t('dashboard.quickLogin') || "Quick Login"}</p>
-          {testUsers.map((user) => (
-            <button
-              key={user.role}
-              data-testid={`button-quick-login-${user.role}`}
-              onClick={() => handleLogin(user.username, user.password)}
-              disabled={loading}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg ${user.color} ${user.hoverColor} transition-all hover:-translate-y-0.5 disabled:opacity-50`}
-            >
-              <user.icon className="w-5 h-5 text-foreground" />
-              <div className="flex-1 text-left">
-                <div className="text-foreground font-bold text-sm">{user.label}</div>
-                <div className="text-muted-foreground font-mono text-xs">{user.username} / {user.password}</div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
+        {testUsers.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-center text-slate-500 font-mono text-xs uppercase tracking-wider">{t('dashboard.quickLogin') || "Quick Login (Dev Only)"}</p>
+            {testUsers.map((user) => (
+              <button
+                key={user.role}
+                data-testid={`button-quick-login-${user.role}`}
+                onClick={() => handleLogin(user.username, user.password)}
+                disabled={loading}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg ${user.color} ${user.hoverColor} transition-all hover:-translate-y-0.5 disabled:opacity-50`}
+              >
+                <user.icon className="w-5 h-5 text-foreground" />
+                <div className="flex-1 text-left">
+                  <div className="text-foreground font-bold text-sm">{user.label}</div>
+                  <div className="text-muted-foreground font-mono text-xs">{user.username} / {user.password}</div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        )}
         
         <div className="mt-8 text-center">
           <Link href="/">
@@ -452,110 +447,11 @@ function MainContent({ role, t }: { role: string, t: any }) {
       return <PublisherDashboard />;
     }
 
-    // Fallback
+    // Fallback - should not reach here as all roles have dedicated dashboards
     return (
-      <>
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <StatBox label={t('stats.revenue')} value="$12,450.00" trend="+12%" color="text-emerald-500" />
-          <StatBox label={t('stats.clicks')} value="145,200" trend="+5%" color="text-blue-500" />
-          <StatBox label={t('stats.conversions')} value="3,204" trend="+8%" color="text-purple-500" />
-          <StatBox label={t('stats.roi')} value="165%" trend="-2%" color="text-yellow-500" />
-        </div>
-
-        {/* Charts & Graphs Area */}
-        <div className="grid grid-cols-3 gap-6 mb-6">
-          <div className="col-span-2 bg-card border border-border rounded p-4 h-[300px] relative overflow-hidden">
-             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-bold uppercase text-slate-400">{t('dashboard.trafficVol')}</h3>
-                <div className="flex gap-2">
-                   <Button size="sm" variant="outline" className="h-6 text-[10px] border-white/10 bg-transparent">1H</Button>
-                   <Button size="sm" variant="outline" className="h-6 text-[10px] border-white/10 bg-white/5">24H</Button>
-                </div>
-             </div>
-             {/* Mock Chart Visualization */}
-             <div className="absolute inset-x-0 bottom-0 h-48 flex items-end justify-between px-4 gap-1 opacity-50">
-                {Array.from({ length: 40 }).map((_, i) => (
-                  <div key={i} className="w-full bg-emerald-500/20 hover:bg-emerald-500/50 transition-colors rounded-t-sm" style={{ height: `${Math.random() * 100}%` }} />
-                ))}
-             </div>
-             <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-slate-600 font-mono text-xs">[LIVE CHART VISUALIZATION LAYER]</div>
-             </div>
-          </div>
-
-          <div className="col-span-1 bg-card border border-border rounded p-4 h-[300px]">
-             <h3 className="text-xs font-bold uppercase text-slate-400 mb-4">{t('dashboard.topGeos')}</h3>
-             <div className="space-y-3">
-               {[
-                 { code: "US", name: "United States", val: "45%" },
-                 { code: "DE", name: "Germany", val: "22%" },
-                 { code: "GB", name: "Great Britain", val: "15%" },
-                 { code: "FR", name: "France", val: "8%" },
-               ].map((geo, i) => (
-                 <div key={i} className="flex items-center justify-between text-sm">
-                   <div className="flex items-center gap-2">
-                     <span className="font-mono text-slate-500">{geo.code}</span>
-                     <span className="text-slate-300">{geo.name}</span>
-                   </div>
-                   <div className="flex items-center gap-3">
-                     <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                       <div className="h-full bg-blue-500" style={{ width: geo.val }} />
-                     </div>
-                     <span className="font-mono text-xs w-8 text-right">{geo.val}</span>
-                   </div>
-                 </div>
-               ))}
-             </div>
-          </div>
-        </div>
-
-        {/* Dense Data Table */}
-        <div className="bg-card border border-border rounded overflow-hidden">
-           <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Activity className="w-4 h-4 text-slate-500" />
-                {t('dashboard.activeCampaigns')}
-              </h3>
-              <div className="flex gap-2">
-                 <Button size="icon" variant="ghost" className="h-6 w-6"><Filter className="w-3 h-3" /></Button>
-                 <Button size="icon" variant="ghost" className="h-6 w-6"><RefreshCw className="w-3 h-3" /></Button>
-              </div>
-           </div>
-           <div className="overflow-x-auto">
-             <table className="w-full text-left text-xs font-mono">
-               <thead>
-                 <tr className="border-b border-border bg-muted/50 text-muted-foreground uppercase tracking-wider">
-                   <th className="px-4 py-3 font-medium">{t('dashboard.table.id')}</th>
-                   <th className="px-4 py-3 font-medium">{t('dashboard.table.name')}</th>
-                   <th className="px-4 py-3 font-medium">{t('dashboard.table.status')}</th>
-                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.clicks')}</th>
-                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.conv')}</th>
-                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.revenue')}</th>
-                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.roi')}</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-border">
-                 {MOCK_CAMPAIGNS.map((row) => (
-                   <tr key={row.id} className="hover:bg-muted transition-colors cursor-pointer group">
-                     <td className="px-4 py-3 text-slate-500">#{row.id}</td>
-                     <td className="px-4 py-3 font-medium text-foreground group-hover:text-emerald-400 transition-colors">{row.name}</td>
-                     <td className="px-4 py-3">
-                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${row.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
-                         {row.status}
-                       </span>
-                     </td>
-                     <td className="px-4 py-3 text-right text-slate-300">{row.clicks}</td>
-                     <td className="px-4 py-3 text-right text-slate-300">{row.conv}</td>
-                     <td className="px-4 py-3 text-right text-foreground font-bold">{row.revenue}</td>
-                     <td className={`px-4 py-3 text-right font-bold ${row.roi.includes('-') ? 'text-red-500' : 'text-emerald-500'}`}>{row.roi}</td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
-           </div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">{t('common.loading') || 'Loading...'}</p>
+      </div>
     );
   };
 

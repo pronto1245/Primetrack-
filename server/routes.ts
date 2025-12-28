@@ -44,6 +44,13 @@ async function setupAuth(app: Express) {
 }
 
 async function seedUsers() {
+  // Only seed test users in development mode
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction) {
+    console.log("Skipping test user seeding in production mode");
+    return;
+  }
+
   const testUsers = [
     { username: "admin", password: "admin123", role: "admin", email: "admin@primetrack.io" },
     { username: "advertiser", password: "adv123", role: "advertiser", email: "advertiser@primetrack.io" },
@@ -54,7 +61,7 @@ async function seedUsers() {
     const existing = await storage.getUserByUsername(userData.username);
     if (!existing) {
       await storage.createUser(userData);
-      console.log(`Created test user: ${userData.username}`);
+      console.log(`[DEV] Created test user: ${userData.username}`);
     }
   }
 
