@@ -11,15 +11,6 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function Register() {
   const [, setLocation] = useLocation();
-  const params = useParams<{ ref?: string }>();
-  const referralCode = params.ref || new URLSearchParams(window.location.search).get("ref") || "";
-
-  // If there's a referral code, redirect to publisher registration
-  useEffect(() => {
-    if (referralCode) {
-      setLocation(`/register/${referralCode}`);
-    }
-  }, [referralCode, setLocation]);
 
   const [formData, setFormData] = useState({
     username: "",

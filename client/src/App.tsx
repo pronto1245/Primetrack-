@@ -14,13 +14,22 @@ import PublisherRegister from "@/pages/PublisherRegister";
 import Setup2FA from "@/pages/Setup2FA";
 import "./lib/i18n";
 
+// Wrapper that shows PublisherRegister if ref query param exists
+function RegisterWrapper() {
+  const ref = new URLSearchParams(window.location.search).get("ref");
+  if (ref) {
+    return <PublisherRegister />;
+  }
+  return <Register />;
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/setup-2fa" component={Setup2FA} />
-      <Route path="/register" component={Register} />
+      <Route path="/register" component={RegisterWrapper} />
       <Route path="/register/advertiser" component={AdvertiserRegister} />
       <Route path="/register/:ref" component={PublisherRegister} />
       <Route path="/dashboard" component={Dashboard} />
