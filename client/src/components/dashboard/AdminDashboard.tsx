@@ -122,7 +122,7 @@ export function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Панель администратора</h1>
+          <h1 className="text-2xl font-bold text-foreground">Панель администратора</h1>
           <p className="text-slate-400 text-sm">Общая статистика платформы</p>
         </div>
         <Button onClick={fetchData} variant="outline" size="sm" data-testid="button-refresh">
@@ -132,12 +132,12 @@ export function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400 uppercase tracking-wider">Доход платформы</p>
-                <p className="text-2xl font-bold text-white" data-testid="text-total-revenue">
+                <p className="text-2xl font-bold text-foreground" data-testid="text-total-revenue">
                   {formatCurrency(platformStats?.totalRevenue)}
                 </p>
               </div>
@@ -152,12 +152,12 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400 uppercase tracking-wider">Выплаты партнёрам</p>
-                <p className="text-2xl font-bold text-white" data-testid="text-total-payouts">
+                <p className="text-2xl font-bold text-foreground" data-testid="text-total-payouts">
                   {formatCurrency(platformStats?.totalPayouts)}
                 </p>
               </div>
@@ -171,12 +171,12 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400 uppercase tracking-wider">Всего конверсий</p>
-                <p className="text-2xl font-bold text-white" data-testid="text-total-conversions">
+                <p className="text-2xl font-bold text-foreground" data-testid="text-total-conversions">
                   {formatNumber(platformStats?.totalConversions)}
                 </p>
               </div>
@@ -190,12 +190,12 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400 uppercase tracking-wider">Всего пользователей</p>
-                <p className="text-2xl font-bold text-white" data-testid="text-total-users">
+                <p className="text-2xl font-bold text-foreground" data-testid="text-total-users">
                   {formatNumber(adminStats?.totalUsers)}
                 </p>
               </div>
@@ -211,7 +211,7 @@ export function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-[#0A0A0A] border-white/10 md:col-span-2">
+        <Card className="bg-card border-border md:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Target className="w-4 h-4" />
@@ -221,25 +221,25 @@ export function AdminDashboard() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Link href="/dashboard/admin/users">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-white/5 border-white/10 hover:bg-white/10" data-testid="link-users">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-users">
                   <Users className="w-6 h-6 text-emerald-400" />
                   <span className="text-xs">Пользователи</span>
                 </Button>
               </Link>
               <Link href="/dashboard/admin/finance">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-white/5 border-white/10 hover:bg-white/10" data-testid="link-finance">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-finance">
                   <DollarSign className="w-6 h-6 text-yellow-400" />
                   <span className="text-xs">Финансы</span>
                 </Button>
               </Link>
               <Link href="/dashboard/admin/antifraud">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-white/5 border-white/10 hover:bg-white/10" data-testid="link-antifraud">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-antifraud">
                   <Activity className="w-6 h-6 text-red-400" />
                   <span className="text-xs">Антифрод</span>
                 </Button>
               </Link>
               <Link href="/dashboard/admin/reports">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-white/5 border-white/10 hover:bg-white/10" data-testid="link-reports">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-reports">
                   <MousePointer2 className="w-6 h-6 text-purple-400" />
                   <span className="text-xs">Статистика</span>
                 </Button>
@@ -248,7 +248,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -292,7 +292,7 @@ export function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Building2 className="w-4 h-4" />
@@ -301,30 +301,30 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Target className="w-5 h-5 text-orange-400" />
                   <span className="text-sm text-slate-300">Всего офферов</span>
                 </div>
-                <span className="font-mono font-bold text-white" data-testid="text-total-offers">
+                <span className="font-mono font-bold text-foreground" data-testid="text-total-offers">
                   {formatNumber(adminStats?.totalOffers)}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <MousePointer2 className="w-5 h-5 text-blue-400" />
                   <span className="text-sm text-slate-300">Всего кликов</span>
                 </div>
-                <span className="font-mono font-bold text-white" data-testid="text-total-clicks">
+                <span className="font-mono font-bold text-foreground" data-testid="text-total-clicks">
                   {formatNumber(adminStats?.totalClicks)}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <UserCheck className="w-5 h-5 text-emerald-400" />
                   <span className="text-sm text-slate-300">Всего конверсий</span>
                 </div>
-                <span className="font-mono font-bold text-white" data-testid="text-admin-total-conversions">
+                <span className="font-mono font-bold text-foreground" data-testid="text-admin-total-conversions">
                   {formatNumber(adminStats?.totalConversions)}
                 </span>
               </div>
@@ -332,7 +332,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -347,7 +347,7 @@ export function AdminDashboard() {
           <CardContent>
             <div className="space-y-3">
               {adminStats?.recentUsers?.slice(0, 5).map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg" data-testid={`user-row-${user.id}`}>
+                <div key={user.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg" data-testid={`user-row-${user.id}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                       user.role === 'admin' ? 'bg-red-500/20 text-red-400' :
@@ -357,7 +357,7 @@ export function AdminDashboard() {
                       {user.username.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">{user.username}</p>
+                      <p className="text-sm font-medium text-foreground">{user.username}</p>
                       <p className="text-xs text-slate-500">{user.role}</p>
                     </div>
                   </div>

@@ -38,6 +38,7 @@ import AntifraudDashboard from "@/components/dashboard/AntifraudDashboard";
 import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
 import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -67,7 +68,7 @@ export default function Dashboard() {
 
   return (
     <AdvertiserProvider role={role}>
-      <div className="min-h-screen bg-[#09090b] text-white font-sans flex flex-col md:flex-row overflow-hidden">
+      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col md:flex-row overflow-hidden">
         <Sidebar role={role} t={t} />
         <MainContent role={role} t={t} />
       </div>
@@ -111,17 +112,17 @@ function RoleSelectionScreen({ t }: { t: any }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold font-mono text-2xl mx-auto mb-4 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+          <div className="w-16 h-16 rounded-lg bg-emerald-600 flex items-center justify-center text-primary-foreground font-bold font-mono text-2xl mx-auto mb-4 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
             PT
           </div>
-          <h1 className="text-2xl font-mono font-bold text-white mb-2">{t('dashboard.welcome')}</h1>
+          <h1 className="text-2xl font-mono font-bold text-foreground mb-2">{t('dashboard.welcome')}</h1>
           <p className="text-slate-500 font-mono text-sm">{t('dashboard.loginPrompt') || "Enter credentials or use quick login"}</p>
         </div>
 
-        <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 mb-6">
+        <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <div className="space-y-4">
             <div>
               <Label htmlFor="username" className="text-slate-400 font-mono text-xs">{t('dashboard.username') || "USERNAME"}</Label>
@@ -130,7 +131,7 @@ function RoleSelectionScreen({ t }: { t: any }) {
                 data-testid="input-username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 bg-[#111] border-white/10 text-white font-mono"
+                className="mt-1 bg-secondary border-border text-foreground font-mono"
                 placeholder="admin"
               />
             </div>
@@ -142,7 +143,7 @@ function RoleSelectionScreen({ t }: { t: any }) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 bg-[#111] border-white/10 text-white font-mono"
+                className="mt-1 bg-secondary border-border text-foreground font-mono"
                 placeholder="••••••"
               />
             </div>
@@ -168,19 +169,19 @@ function RoleSelectionScreen({ t }: { t: any }) {
               disabled={loading}
               className={`w-full flex items-center gap-3 p-3 rounded-lg ${user.color} ${user.hoverColor} transition-all hover:-translate-y-0.5 disabled:opacity-50`}
             >
-              <user.icon className="w-5 h-5 text-white" />
+              <user.icon className="w-5 h-5 text-foreground" />
               <div className="flex-1 text-left">
-                <div className="text-white font-bold text-sm">{user.label}</div>
-                <div className="text-white/70 font-mono text-xs">{user.username} / {user.password}</div>
+                <div className="text-foreground font-bold text-sm">{user.label}</div>
+                <div className="text-muted-foreground font-mono text-xs">{user.username} / {user.password}</div>
               </div>
-              <ArrowRight className="w-4 h-4 text-white/70" />
+              <ArrowRight className="w-4 h-4 text-muted-foreground" />
             </button>
           ))}
         </div>
         
         <div className="mt-8 text-center">
           <Link href="/">
-            <Button variant="link" className="text-slate-500 hover:text-white font-mono text-xs">
+            <Button variant="link" className="text-muted-foreground hover:text-foreground font-mono text-xs">
               ← {t('nav.exit')}
             </Button>
           </Link>
@@ -228,8 +229,8 @@ function Sidebar({ role, t }: { role: string, t: any }) {
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
 
   return (
-    <aside className="w-64 bg-[#0A0A0A] border-r border-white/10 flex-shrink-0 hidden md:flex flex-col">
-      <div className="h-14 flex items-center px-4 border-b border-white/10">
+    <aside className="w-64 bg-card border-r border-border flex-shrink-0 hidden md:flex flex-col">
+      <div className="h-14 flex items-center px-4 border-b border-border">
         <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
         <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
       </div>
@@ -237,7 +238,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       <nav className="p-2 space-y-1 flex-1">
         {currentMenu.map((item, i) => (
           <Link key={i} href={item.path}>
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
               <item.icon className={`w-4 h-4 ${item.color}`} />
               {item.label}
             </button>
@@ -248,7 +249,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       {/* Advertiser Card for Publisher */}
       {role === "publisher" && selectedAdvertiser && (
         <div className="p-3 mb-16">
-          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-3 border border-white/10" data-testid="advertiser-card">
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-lg p-3 border border-border" data-testid="advertiser-card">
             <div className="flex items-center gap-3 mb-3">
               {selectedAdvertiser.logoUrl ? (
                 <img 
@@ -257,12 +258,12 @@ function Sidebar({ role, t }: { role: string, t: any }) {
                   className="w-10 h-10 rounded-lg bg-slate-700 object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary-foreground font-bold text-sm">
                   {(selectedAdvertiser.companyName || selectedAdvertiser.username).charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">
+                <p className="text-sm font-semibold text-foreground truncate">
                   {selectedAdvertiser.companyName || selectedAdvertiser.username}
                 </p>
                 <p className="text-[10px] text-slate-400 truncate">
@@ -299,9 +300,9 @@ function Sidebar({ role, t }: { role: string, t: any }) {
         </div>
       )}
 
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-border">
         <Link href="/dashboard">
-          <button className="flex items-center gap-2 text-xs font-mono text-slate-500 hover:text-white transition-colors w-full">
+          <button className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full">
             <LogOut className="w-3 h-3" />
             {t('dashboard.menu.logout')}
           </button>
@@ -464,7 +465,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
         {/* Charts & Graphs Area */}
         <div className="grid grid-cols-3 gap-6 mb-6">
-          <div className="col-span-2 bg-[#0A0A0A] border border-white/10 rounded p-4 h-[300px] relative overflow-hidden">
+          <div className="col-span-2 bg-card border border-border rounded p-4 h-[300px] relative overflow-hidden">
              <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xs font-bold uppercase text-slate-400">{t('dashboard.trafficVol')}</h3>
                 <div className="flex gap-2">
@@ -483,7 +484,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
              </div>
           </div>
 
-          <div className="col-span-1 bg-[#0A0A0A] border border-white/10 rounded p-4 h-[300px]">
+          <div className="col-span-1 bg-card border border-border rounded p-4 h-[300px]">
              <h3 className="text-xs font-bold uppercase text-slate-400 mb-4">{t('dashboard.topGeos')}</h3>
              <div className="space-y-3">
                {[
@@ -510,9 +511,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
         </div>
 
         {/* Dense Data Table */}
-        <div className="bg-[#0A0A0A] border border-white/10 rounded overflow-hidden">
-           <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <div className="bg-card border border-border rounded overflow-hidden">
+           <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Activity className="w-4 h-4 text-slate-500" />
                 {t('dashboard.activeCampaigns')}
               </h3>
@@ -524,7 +525,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
            <div className="overflow-x-auto">
              <table className="w-full text-left text-xs font-mono">
                <thead>
-                 <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+                 <tr className="border-b border-border bg-muted/50 text-muted-foreground uppercase tracking-wider">
                    <th className="px-4 py-3 font-medium">{t('dashboard.table.id')}</th>
                    <th className="px-4 py-3 font-medium">{t('dashboard.table.name')}</th>
                    <th className="px-4 py-3 font-medium">{t('dashboard.table.status')}</th>
@@ -534,11 +535,11 @@ function MainContent({ role, t }: { role: string, t: any }) {
                    <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.roi')}</th>
                  </tr>
                </thead>
-               <tbody className="divide-y divide-white/5">
+               <tbody className="divide-y divide-border">
                  {MOCK_CAMPAIGNS.map((row) => (
-                   <tr key={row.id} className="hover:bg-white/5 transition-colors cursor-pointer group">
+                   <tr key={row.id} className="hover:bg-muted transition-colors cursor-pointer group">
                      <td className="px-4 py-3 text-slate-500">#{row.id}</td>
-                     <td className="px-4 py-3 font-medium text-white group-hover:text-emerald-400 transition-colors">{row.name}</td>
+                     <td className="px-4 py-3 font-medium text-foreground group-hover:text-emerald-400 transition-colors">{row.name}</td>
                      <td className="px-4 py-3">
                        <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${row.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
                          {row.status}
@@ -546,7 +547,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
                      </td>
                      <td className="px-4 py-3 text-right text-slate-300">{row.clicks}</td>
                      <td className="px-4 py-3 text-right text-slate-300">{row.conv}</td>
-                     <td className="px-4 py-3 text-right text-white font-bold">{row.revenue}</td>
+                     <td className="px-4 py-3 text-right text-foreground font-bold">{row.revenue}</td>
                      <td className={`px-4 py-3 text-right font-bold ${row.roi.includes('-') ? 'text-red-500' : 'text-emerald-500'}`}>{row.roi}</td>
                    </tr>
                  ))}
@@ -561,7 +562,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden">
       {/* Top Bar */}
-      <header className="h-14 bg-[#0A0A0A] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
+      <header className="h-14 bg-card border-b border-border flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center gap-4">
           {role === "publisher" && advertisers.length > 0 && (
             <>
@@ -573,7 +574,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
                   >
                     <Building2 className="w-4 h-4 text-blue-400" />
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-foreground">
                         {selectedAdvertiser?.username || "Выберите рекламодателя"}
                       </span>
                       {selectedAdvertiser && (
@@ -586,7 +587,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
                     <ChevronDown className="w-4 h-4 text-slate-400" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 bg-[#0A0A0A] border-white/10">
+                <DropdownMenuContent align="start" className="w-64 bg-card border-border">
                   {advertisers.map((adv) => (
                     <DropdownMenuItem
                       key={adv.id}
@@ -597,7 +598,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
                       data-testid={`advertiser-option-${adv.id}`}
                     >
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-white">{adv.username}</span>
+                        <span className="text-sm font-medium text-foreground">{adv.username}</span>
                         <span className="text-[10px] text-slate-400">{adv.offersCount} офферов</span>
                       </div>
                       {getStatusBadge(adv.status)}
@@ -605,11 +606,11 @@ function MainContent({ role, t }: { role: string, t: any }) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <div className="h-4 w-px bg-white/10" />
+              <div className="h-4 w-px bg-border" />
             </>
           )}
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
-          <div className="h-4 w-px bg-white/10" />
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
+          <div className="h-4 w-px bg-border" />
           <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             {t('dashboard.liveStream')}
@@ -632,10 +633,11 @@ function MainContent({ role, t }: { role: string, t: any }) {
                 <span className="text-xs font-mono text-yellow-400" data-testid="header-hold">${holdBalance.toFixed(2)}</span>
                 <span className="text-[10px] text-yellow-400/60">холд</span>
               </div>
-              <div className="h-4 w-px bg-white/10" />
+              <div className="h-4 w-px bg-border" />
             </>
           )}
           <div className="text-xs font-mono text-slate-500">{t('dashboard.server')}: US-EAST-1</div>
+          <ThemeToggle />
           <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
             {role.charAt(0)}
           </div>
@@ -652,11 +654,11 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
 function StatBox({ label, value, trend, color }: any) {
   return (
-    <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded hover:border-white/20 transition-colors">
+    <div className="bg-card border border-border p-4 rounded hover:border-border/80 transition-colors">
       <div className="text-xs text-slate-500 font-mono uppercase mb-1">{label}</div>
       <div className="flex items-end justify-between">
-        <div className="text-2xl font-bold text-white font-mono">{value}</div>
-        <div className={`text-xs font-bold ${color} bg-white/5 px-1.5 py-0.5 rounded`}>{trend}</div>
+        <div className="text-2xl font-bold text-foreground font-mono">{value}</div>
+        <div className={`text-xs font-bold ${color} bg-muted px-1.5 py-0.5 rounded`}>{trend}</div>
       </div>
     </div>
   )
