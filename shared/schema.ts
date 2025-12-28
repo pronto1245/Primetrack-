@@ -54,6 +54,28 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 // ============================================
+// ADVERTISER STAFF (Team members)
+// ============================================
+export const advertiserStaff = pgTable("advertiser_staff", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  email: text("email").notNull(),
+  fullName: text("full_name").notNull(),
+  staffRole: text("staff_role").notNull(), // manager, analyst, support, finance
+  password: text("password").notNull(),
+  status: text("status").notNull().default("active"), // active, blocked
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertAdvertiserStaffSchema = createInsertSchema(advertiserStaff).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAdvertiserStaff = z.infer<typeof insertAdvertiserStaffSchema>;
+export type AdvertiserStaff = typeof advertiserStaff.$inferSelect;
+
+// ============================================
 // PUBLISHER-ADVERTISER RELATIONSHIPS (M-to-M)
 // One publisher can work with multiple advertisers
 // ============================================

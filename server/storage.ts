@@ -20,7 +20,8 @@ import {
   type AntifraudRule, type InsertAntifraudRule, antifraudRules,
   type AntifraudLog, type InsertAntifraudLog, antifraudLogs,
   type AntifraudMetric, type InsertAntifraudMetric, antifraudMetrics,
-  type PlatformSettings, type InsertPlatformSettings, platformSettings
+  type PlatformSettings, type InsertPlatformSettings, platformSettings,
+  type AdvertiserStaff, type InsertAdvertiserStaff, advertiserStaff
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -149,6 +150,7 @@ export interface IStorage {
   generateApiToken(userId: string): Promise<string>;
   revokeApiToken(userId: string): Promise<void>;
   verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
+  getFirstAdmin(): Promise<User | undefined>;
   
   // Offers
   getOffer(id: string): Promise<Offer | undefined>;
@@ -319,6 +321,14 @@ export interface IStorage {
   // Platform Settings (Admin)
   getPlatformSettings(): Promise<PlatformSettings | undefined>;
   updatePlatformSettings(data: Partial<InsertPlatformSettings>): Promise<PlatformSettings>;
+  
+  // Advertiser Staff (Team)
+  getAdvertiserStaff(advertiserId: string): Promise<AdvertiserStaff[]>;
+  getAdvertiserStaffById(id: string): Promise<AdvertiserStaff | undefined>;
+  getAdvertiserStaffByEmail(email: string, advertiserId: string): Promise<AdvertiserStaff | undefined>;
+  createAdvertiserStaff(staff: InsertAdvertiserStaff): Promise<AdvertiserStaff>;
+  updateAdvertiserStaff(id: string, data: Partial<InsertAdvertiserStaff>): Promise<AdvertiserStaff | undefined>;
+  deleteAdvertiserStaff(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -340,6 +350,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUsersByRole(role: string): Promise<User[]> {
     return await db.select().from(users).where(eq(users.role, role));
+  }
+
+  async getFirstAdmin(): Promise<User | undefined> {
+    const [admin] = await db.select().from(users).where(eq(users.role, "admin")).limit(1);
+    return admin;
   }
 
   async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
@@ -2548,6 +2563,48 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Advertiser Staff (Team)
+  async getAdvertiserStaff(advertiserId: string): Promise<AdvertiserStaff[]> {
+    return db.select().from(advertiserStaff)
+      .where(eq(advertiserStaff.advertiserId, advertiserId))
+      .orderBy(desc(advertiserStaff.createdAt));
+  }
+
+  async getAdvertiserStaffById(id: string): Promise<AdvertiserStaff | undefined> {
+    const [staff] = await db.select().from(advertiserStaff).where(eq(advertiserStaff.id, id));
+    return staff;
+  }
+
+  async getAdvertiserStaffByEmail(email: string, advertiserId: string): Promise<AdvertiserStaff | undefined> {
+    const [staff] = await db.select().from(advertiserStaff)
+      .where(and(eq(advertiserStaff.email, email), eq(advertiserStaff.advertiserId, advertiserId)));
+    return staff;
+  }
+
+  async createAdvertiserStaff(data: InsertAdvertiserStaff): Promise<AdvertiserStaff> {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const [staff] = await db.insert(advertiserStaff)
+      .values({ ...data, password: hashedPassword })
+      .returning();
+    return staff;
+  }
+
+  async updateAdvertiserStaff(id: string, data: Partial<InsertAdvertiserStaff>): Promise<AdvertiserStaff | undefined> {
+    const updateData = { ...data };
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+    const [staff] = await db.update(advertiserStaff)
+      .set(updateData)
+      .where(eq(advertiserStaff.id, id))
+      .returning();
+    return staff;
+  }
+
+  async deleteAdvertiserStaff(id: string): Promise<void> {
+    await db.delete(advertiserStaff).where(eq(advertiserStaff.id, id));
   }
 }
 

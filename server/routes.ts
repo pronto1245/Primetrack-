@@ -250,6 +250,25 @@ export async function registerRoutes(
     });
   });
 
+  app.get("/api/platform-manager", async (req: Request, res: Response) => {
+    try {
+      const admin = await storage.getFirstAdmin();
+      if (!admin) {
+        return res.status(404).json({ message: "No manager found" });
+      }
+      res.json({
+        username: admin.username,
+        fullName: admin.fullName,
+        email: admin.email,
+        telegram: admin.telegram,
+        phone: admin.phone,
+      });
+    } catch (error) {
+      console.error("Error getting platform manager:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
       const { username, password, email, referralCode, fullName, phone, contactType, contactValue } = req.body;
@@ -644,6 +663,131 @@ export async function registerRoutes(
       res.json({ referralCode: user.referralCode || null });
     } catch (error) {
       res.status(500).json({ message: "Failed to get referral code" });
+    }
+  });
+
+  // ADVERTISER STAFF (TEAM) API
+  app.get("/api/advertiser/staff", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.role === "admin" 
+        ? req.query.advertiserId as string 
+        : req.session.userId!;
+      
+      if (!advertiserId) {
+        return res.status(400).json({ message: "Advertiser ID required" });
+      }
+      
+      const staff = await storage.getAdvertiserStaff(advertiserId);
+      res.json(staff.map(s => ({ ...s, password: undefined })));
+    } catch (error) {
+      console.error("Get staff error:", error);
+      res.status(500).json({ message: "Failed to fetch staff" });
+    }
+  });
+
+  app.post("/api/advertiser/staff", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { email, fullName, staffRole, password, advertiserId: bodyAdvertiserId } = req.body;
+      
+      const advertiserId = req.session.role === "admin" 
+        ? bodyAdvertiserId 
+        : req.session.userId!;
+      
+      if (!email || !fullName || !staffRole || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      if (!advertiserId) {
+        return res.status(400).json({ message: "Advertiser ID required" });
+      }
+
+      const validRoles = ["manager", "analyst", "support", "finance"];
+      if (!validRoles.includes(staffRole)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      const existing = await storage.getAdvertiserStaffByEmail(email, advertiserId);
+      if (existing) {
+        return res.status(400).json({ message: "Staff member with this email already exists" });
+      }
+
+      const staff = await storage.createAdvertiserStaff({
+        advertiserId,
+        email,
+        fullName,
+        staffRole,
+        password,
+        status: "active"
+      });
+
+      res.json({ ...staff, password: undefined });
+    } catch (error) {
+      console.error("Create staff error:", error);
+      res.status(500).json({ message: "Failed to create staff member" });
+    }
+  });
+
+  app.put("/api/advertiser/staff/:id", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { fullName, staffRole, status, password } = req.body;
+
+      const staff = await storage.getAdvertiserStaffById(id);
+      if (!staff) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+
+      if (req.session.role !== "admin" && staff.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateData: any = {};
+      if (fullName) updateData.fullName = fullName;
+      if (staffRole) {
+        const validRoles = ["manager", "analyst", "support", "finance"];
+        if (!validRoles.includes(staffRole)) {
+          return res.status(400).json({ message: "Invalid role" });
+        }
+        updateData.staffRole = staffRole;
+      }
+      if (status) updateData.status = status;
+      if (password) {
+        if (password.length < 6) {
+          return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+        updateData.password = password;
+      }
+
+      const updated = await storage.updateAdvertiserStaff(id, updateData);
+      res.json({ ...updated, password: undefined });
+    } catch (error) {
+      console.error("Update staff error:", error);
+      res.status(500).json({ message: "Failed to update staff member" });
+    }
+  });
+
+  app.delete("/api/advertiser/staff/:id", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const staff = await storage.getAdvertiserStaffById(id);
+      if (!staff) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+
+      if (req.session.role !== "admin" && staff.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteAdvertiserStaff(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete staff error:", error);
+      res.status(500).json({ message: "Failed to delete staff member" });
     }
   });
 
