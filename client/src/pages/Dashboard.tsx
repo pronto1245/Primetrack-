@@ -200,7 +200,7 @@ function ManagerCard() {
   if (!manager) return null;
 
   return (
-    <div className="p-3 mb-2">
+    <div className="p-3 mb-16">
       <div className="bg-gradient-to-br from-red-900/30 to-slate-900/50 rounded-lg p-3 border border-red-500/20" data-testid="manager-card">
         <div className="text-[10px] text-red-400 uppercase font-bold mb-2">Ваш менеджер</div>
         <div className="flex items-center gap-3 mb-3">
