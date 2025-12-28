@@ -161,10 +161,10 @@ export function AdvertiserPostbacks() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-postbacks-title">
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-postbacks-title">
             Постбеки
           </h2>
-          <p className="text-slate-400 text-sm font-mono">
+          <p className="text-muted-foreground text-sm font-mono">
             Настройка URL для получения уведомлений о конверсиях
           </p>
         </div>
@@ -175,8 +175,8 @@ export function AdvertiserPostbacks() {
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-white mb-1">Поддерживаемые макросы</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-300 font-mono">
+            <h3 className="text-sm font-semibold text-foreground mb-1">Поддерживаемые макросы</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground font-mono">
               <span><code className="text-blue-400">{"{click_id}"}</code> - ID клика</span>
               <span><code className="text-blue-400">{"{status}"}</code> - Статус</span>
               <span><code className="text-blue-400">{"{sum}"}</code> - Сумма</span>
@@ -190,33 +190,33 @@ export function AdvertiserPostbacks() {
         </div>
       </Card>
 
-      <Card className="bg-[#0A0A0A] border-white/10 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Глобальный постбек</h3>
-        <p className="text-xs text-slate-500 mb-4">
+      <Card className="bg-card border-border p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Глобальный постбек</h3>
+        <p className="text-xs text-muted-foreground mb-4">
           URL по умолчанию для всех офферов (можно переопределить для каждого оффера)
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="md:col-span-2">
-            <Label className="text-xs text-slate-400 font-mono mb-2 block">Postback URL</Label>
+            <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
             <Input
               placeholder="https://your-tracker.com/postback?click_id={click_id}&status={status}"
               value={currentUrl}
               onChange={(e) => setGlobalUrl(e.target.value)}
-              className="bg-white/5 border-white/10 text-white font-mono text-sm"
+              className="bg-muted border-border text-foreground font-mono text-sm"
               data-testid="input-global-postback-url"
             />
           </div>
           <div>
-            <Label className="text-xs text-slate-400 font-mono mb-2 block">Метод</Label>
+            <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
             <Select 
               value={currentMethod} 
               onValueChange={setGlobalMethod}
             >
-              <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-global-method">
+              <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-global-method">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0A0A0A] border-white/10">
+              <SelectContent className="bg-card border-border">
                 <SelectItem value="GET">GET</SelectItem>
                 <SelectItem value="POST">POST</SelectItem>
               </SelectContent>
@@ -242,22 +242,22 @@ export function AdvertiserPostbacks() {
         </Button>
       </Card>
 
-      <Card className="bg-[#0A0A0A] border-white/10 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Тест постбека</h3>
+      <Card className="bg-card border-border p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Тест постбека</h3>
         
         <div className="flex gap-2 mb-4">
           <Input
             placeholder="https://your-tracker.com/postback?click_id={click_id}"
             value={testUrl}
             onChange={(e) => setTestUrl(e.target.value)}
-            className="bg-white/5 border-white/10 text-white font-mono text-sm flex-1"
+            className="bg-muted border-border text-foreground font-mono text-sm flex-1"
             data-testid="input-test-url"
           />
           <Button
             onClick={handleTest}
             disabled={testLoading || !testUrl}
             variant="outline"
-            className="border-white/10"
+            className="border-border"
             data-testid="button-test-postback"
           >
             {testLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
@@ -276,13 +276,13 @@ export function AdvertiserPostbacks() {
                 {testResult.success ? 'Успешно' : 'Ошибка'}
               </span>
               {testResult.status && (
-                <span className="text-xs text-slate-400">HTTP {testResult.status}</span>
+                <span className="text-xs text-muted-foreground">HTTP {testResult.status}</span>
               )}
               {testResult.responseTime && (
-                <span className="text-xs text-slate-400">{testResult.responseTime}ms</span>
+                <span className="text-xs text-muted-foreground">{testResult.responseTime}ms</span>
               )}
             </div>
-            <code className="text-[10px] text-slate-400 break-all block">{testResult.url}</code>
+            <code className="text-[10px] text-muted-foreground break-all block">{testResult.url}</code>
             {testResult.error && (
               <p className="text-xs text-red-400 mt-1">{testResult.error}</p>
             )}
@@ -290,10 +290,10 @@ export function AdvertiserPostbacks() {
         )}
       </Card>
 
-      <Card className="bg-[#0A0A0A] border-white/10">
-        <div className="p-4 border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">Настройки по офферам</h3>
-          <p className="text-xs text-slate-500">Переопределение URL и событий для каждого оффера</p>
+      <Card className="bg-card border-border">
+        <div className="p-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-foreground">Настройки по офферам</h3>
+          <p className="text-xs text-muted-foreground">Переопределение URL и событий для каждого оффера</p>
         </div>
         
         <div className="divide-y divide-white/5">
@@ -316,21 +316,21 @@ export function AdvertiserPostbacks() {
           
           {(!offers || offers.length === 0) && (
             <div className="p-8 text-center">
-              <Globe className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500">Нет офферов</p>
+              <Globe className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Нет офферов</p>
             </div>
           )}
         </div>
       </Card>
 
       {data?.logs && data.logs.length > 0 && (
-        <Card className="bg-[#0A0A0A] border-white/10">
-          <div className="p-4 border-b border-white/10 flex items-center justify-between">
+        <Card className="bg-card border-border">
+          <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-white">Лог постбеков</h3>
-              <p className="text-xs text-slate-500">Последние 50 запросов</p>
+              <h3 className="text-lg font-semibold text-foreground">Лог постбеков</h3>
+              <p className="text-xs text-muted-foreground">Последние 50 запросов</p>
             </div>
-            <Button variant="ghost" size="sm" className="text-slate-400">
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
@@ -338,7 +338,7 @@ export function AdvertiserPostbacks() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3">Время</th>
                   <th className="px-4 py-3">URL</th>
                   <th className="px-4 py-3">Статус</th>
@@ -348,11 +348,11 @@ export function AdvertiserPostbacks() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {data.logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/5">
-                    <td className="px-4 py-3 text-slate-400">
+                  <tr key={log.id} className="hover:bg-muted">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-slate-300 max-w-xs truncate">
+                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
                       {log.url}
                     </td>
                     <td className="px-4 py-3">
@@ -366,8 +366,8 @@ export function AdvertiserPostbacks() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{log.responseCode || "-"}</td>
-                    <td className="px-4 py-3 text-slate-400">{log.retryCount}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{log.responseCode || "-"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{log.retryCount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -404,15 +404,15 @@ function OfferPostbackRow({
   return (
     <div className="border-b border-white/5 last:border-0">
       <div 
-        className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5"
+        className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted"
         onClick={onToggle}
         data-testid={`postback-offer-${offer.id}`}
       >
         <div className="flex items-center gap-3">
-          {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
+          {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
           <div>
-            <p className="font-medium text-white">{offer.name}</p>
-            <p className="text-xs text-slate-500">{offer.category}</p>
+            <p className="font-medium text-foreground">{offer.name}</p>
+            <p className="text-xs text-muted-foreground">{offer.category}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -432,7 +432,7 @@ function OfferPostbackRow({
       {isExpanded && (
         <div className="px-4 pb-4 pt-0 ml-7 space-y-4">
           <div>
-            <Label className="text-xs text-slate-400 font-mono mb-2 block">
+            <Label className="text-xs text-muted-foreground font-mono mb-2 block">
               Postback URL (оставьте пустым для глобального)
             </Label>
             <div className="flex gap-2">
@@ -440,14 +440,14 @@ function OfferPostbackRow({
                 placeholder="https://..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="bg-white/5 border-white/10 text-white font-mono text-sm flex-1"
+                className="bg-muted border-border text-foreground font-mono text-sm flex-1"
                 data-testid={`input-postback-url-${offer.id}`}
               />
               <Select value={method} onValueChange={setMethod}>
-                <SelectTrigger className="w-24 bg-white/5 border-white/10 text-white">
+                <SelectTrigger className="w-24 bg-muted border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="GET">GET</SelectItem>
                   <SelectItem value="POST">POST</SelectItem>
                 </SelectContent>
@@ -462,7 +462,7 @@ function OfferPostbackRow({
                 onCheckedChange={setSendOnLead}
                 data-testid={`switch-lead-${offer.id}`}
               />
-              <Label className="text-xs text-slate-400">Lead</Label>
+              <Label className="text-xs text-muted-foreground">Lead</Label>
             </div>
             <div className="flex items-center gap-2">
               <Switch 
@@ -470,7 +470,7 @@ function OfferPostbackRow({
                 onCheckedChange={setSendOnSale}
                 data-testid={`switch-sale-${offer.id}`}
               />
-              <Label className="text-xs text-slate-400">Sale</Label>
+              <Label className="text-xs text-muted-foreground">Sale</Label>
             </div>
             <div className="flex items-center gap-2">
               <Switch 
@@ -478,7 +478,7 @@ function OfferPostbackRow({
                 onCheckedChange={setSendOnRejected}
                 data-testid={`switch-rejected-${offer.id}`}
               />
-              <Label className="text-xs text-slate-400">Rejected</Label>
+              <Label className="text-xs text-muted-foreground">Rejected</Label>
             </div>
             <div className="flex items-center gap-2">
               <Switch 
@@ -486,7 +486,7 @@ function OfferPostbackRow({
                 onCheckedChange={setIsActive}
                 data-testid={`switch-active-${offer.id}`}
               />
-              <Label className="text-xs text-slate-400">Активно</Label>
+              <Label className="text-xs text-muted-foreground">Активно</Label>
             </div>
           </div>
           

@@ -112,13 +112,13 @@ function RoleSelectionScreen({ t }: { t: any }) {
             PT
           </div>
           <h1 className="text-2xl font-mono font-bold text-foreground mb-2">{t('dashboard.welcome')}</h1>
-          <p className="text-slate-500 font-mono text-sm">{t('dashboard.loginPrompt') || "Enter credentials or use quick login"}</p>
+          <p className="text-muted-foreground font-mono text-sm">{t('dashboard.loginPrompt') || "Enter credentials or use quick login"}</p>
         </div>
 
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="username" className="text-slate-400 font-mono text-xs">{t('dashboard.username') || "USERNAME"}</Label>
+              <Label htmlFor="username" className="text-muted-foreground font-mono text-xs">{t('dashboard.username') || "USERNAME"}</Label>
               <Input
                 id="username"
                 data-testid="input-username"
@@ -129,7 +129,7 @@ function RoleSelectionScreen({ t }: { t: any }) {
               />
             </div>
             <div>
-              <Label htmlFor="password" className="text-slate-400 font-mono text-xs">{t('dashboard.password') || "PASSWORD"}</Label>
+              <Label htmlFor="password" className="text-muted-foreground font-mono text-xs">{t('dashboard.password') || "PASSWORD"}</Label>
               <Input
                 id="password"
                 data-testid="input-password"
@@ -145,7 +145,7 @@ function RoleSelectionScreen({ t }: { t: any }) {
               data-testid="button-login"
               onClick={() => handleLogin(username, password)}
               disabled={loading || !username || !password}
-              className="w-full bg-white text-black hover:bg-slate-200 font-mono font-bold"
+              className="w-full bg-white text-black hover:bg-muted font-mono font-bold"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (t('dashboard.login') || "LOGIN")}
             </Button>
@@ -154,7 +154,7 @@ function RoleSelectionScreen({ t }: { t: any }) {
 
         {testUsers.length > 0 && (
           <div className="space-y-3">
-            <p className="text-center text-slate-500 font-mono text-xs uppercase tracking-wider">{t('dashboard.quickLogin') || "Quick Login (Dev Only)"}</p>
+            <p className="text-center text-muted-foreground font-mono text-xs uppercase tracking-wider">{t('dashboard.quickLogin') || "Quick Login (Dev Only)"}</p>
             {testUsers.map((user) => (
               <button
                 key={user.role}
@@ -197,7 +197,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
-      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
     advertiser: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
@@ -208,7 +208,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
-      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
     publisher: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
@@ -216,7 +216,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
-      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ]
   };
 
@@ -250,7 +250,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
                 <img 
                   src={selectedAdvertiser.logoUrl} 
                   alt={selectedAdvertiser.companyName || selectedAdvertiser.username}
-                  className="w-10 h-10 rounded-lg bg-slate-700 object-cover"
+                  className="w-10 h-10 rounded-lg bg-muted object-cover"
                 />
               ) : (
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary-foreground font-bold text-sm">
@@ -261,7 +261,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
                 <p className="text-sm font-semibold text-foreground truncate">
                   {selectedAdvertiser.companyName || selectedAdvertiser.username}
                 </p>
-                <p className="text-[10px] text-slate-400 truncate">
+                <p className="text-[10px] text-muted-foreground truncate">
                   {selectedAdvertiser.offersCount} офферов
                 </p>
               </div>
@@ -273,7 +273,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
                   href={`https://t.me/${selectedAdvertiser.telegram.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs text-slate-400 hover:text-blue-400 transition-colors"
+                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-blue-400 transition-colors"
                   data-testid="advertiser-telegram"
                 >
                   <Send className="w-3 h-3" />
@@ -283,7 +283,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
               {selectedAdvertiser.phone && (
                 <a 
                   href={`tel:${selectedAdvertiser.phone}`}
-                  className="flex items-center gap-2 text-xs text-slate-400 hover:text-emerald-400 transition-colors"
+                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-emerald-400 transition-colors"
                   data-testid="advertiser-phone"
                 >
                   <Phone className="w-3 h-3" />
@@ -474,13 +474,13 @@ function MainContent({ role, t }: { role: string, t: any }) {
                         {selectedAdvertiser?.username || "Выберите рекламодателя"}
                       </span>
                       {selectedAdvertiser && (
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-muted-foreground">
                           {selectedAdvertiser.offersCount} офферов
                         </span>
                       )}
                     </div>
                     {selectedAdvertiser && getStatusBadge(selectedAdvertiser.status)}
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-64 bg-card border-border">
@@ -495,7 +495,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
                     >
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-foreground">{adv.username}</span>
-                        <span className="text-[10px] text-slate-400">{adv.offersCount} офферов</span>
+                        <span className="text-[10px] text-muted-foreground">{adv.offersCount} офферов</span>
                       </div>
                       {getStatusBadge(adv.status)}
                     </DropdownMenuItem>
@@ -507,7 +507,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
           )}
           <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('dashboard.menu.overview')}</h2>
           <div className="h-4 w-px bg-border" />
-          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             {t('dashboard.liveStream')}
           </div>
@@ -532,7 +532,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
               <div className="h-4 w-px bg-border" />
             </>
           )}
-          <div className="text-xs font-mono text-slate-500">{t('dashboard.server')}: US-EAST-1</div>
+          <div className="text-xs font-mono text-muted-foreground">{t('dashboard.server')}: US-EAST-1</div>
           <ThemeToggle />
           <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
             {role.charAt(0)}
@@ -551,7 +551,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
 function StatBox({ label, value, trend, color }: any) {
   return (
     <div className="bg-card border border-border p-4 rounded hover:border-border/80 transition-colors">
-      <div className="text-xs text-slate-500 font-mono uppercase mb-1">{label}</div>
+      <div className="text-xs text-muted-foreground font-mono uppercase mb-1">{label}</div>
       <div className="flex items-end justify-between">
         <div className="text-2xl font-bold text-foreground font-mono">{value}</div>
         <div className={`text-xs font-bold ${color} bg-muted px-1.5 py-0.5 rounded`}>{trend}</div>

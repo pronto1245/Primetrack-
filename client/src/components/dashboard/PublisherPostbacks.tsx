@@ -34,10 +34,10 @@ export function PublisherPostbacks() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-postbacks-title">
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-postbacks-title">
             Лог постбеков
           </h2>
-          <p className="text-slate-400 text-sm font-mono">
+          <p className="text-muted-foreground text-sm font-mono">
             История отправки уведомлений о ваших конверсиях
           </p>
         </div>
@@ -48,8 +48,8 @@ export function PublisherPostbacks() {
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-white mb-1">Что такое постбеки?</h3>
-            <p className="text-xs text-slate-300">
+            <h3 className="text-sm font-semibold text-foreground mb-1">Что такое постбеки?</h3>
+            <p className="text-xs text-muted-foreground">
               Постбеки — это автоматические уведомления, которые рекламодатель получает при каждой вашей конверсии. 
               Здесь вы можете видеть историю отправки этих уведомлений.
             </p>
@@ -58,16 +58,16 @@ export function PublisherPostbacks() {
       </Card>
 
       {logs && logs.length > 0 ? (
-        <Card className="bg-[#0A0A0A] border-white/10">
-          <div className="p-4 border-b border-white/10">
-            <h3 className="text-lg font-semibold text-white">История постбеков</h3>
-            <p className="text-xs text-slate-500">Последние 50 уведомлений</p>
+        <Card className="bg-card border-border">
+          <div className="p-4 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">История постбеков</h3>
+            <p className="text-xs text-muted-foreground">Последние 50 уведомлений</p>
           </div>
           
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3">Время</th>
                   <th className="px-4 py-3">Статус</th>
                   <th className="px-4 py-3">HTTP код</th>
@@ -76,8 +76,8 @@ export function PublisherPostbacks() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/5">
-                    <td className="px-4 py-3 text-slate-400">
+                  <tr key={log.id} className="hover:bg-muted">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-3">
@@ -91,8 +91,8 @@ export function PublisherPostbacks() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{log.responseCode || "-"}</td>
-                    <td className="px-4 py-3 text-slate-400">{log.retryCount}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{log.responseCode || "-"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{log.retryCount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -100,11 +100,11 @@ export function PublisherPostbacks() {
           </div>
         </Card>
       ) : (
-        <Card className="bg-[#0A0A0A] border-white/10 p-8">
+        <Card className="bg-card border-border p-8">
           <div className="text-center">
-            <Globe className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500">Нет данных о постбеках</p>
-            <p className="text-xs text-slate-600 mt-2">
+            <Globe className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Нет данных о постбеках</p>
+            <p className="text-xs text-muted-foreground mt-2">
               Постбеки появятся после первых конверсий
             </p>
           </div>

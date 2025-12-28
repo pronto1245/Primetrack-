@@ -159,13 +159,13 @@ export function CreateOfferForm({ role }: { role: string }) {
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
       <div className="flex items-center gap-4 mb-8">
         <Link href={`/dashboard/${role}/offers`}>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" data-testid="button-back">
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" data-testid="button-back">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white">Создать оффер</h2>
-          <p className="text-slate-400 text-sm font-mono">Заполните все необходимые данные</p>
+          <h2 className="text-2xl font-bold font-mono text-foreground">Создать оффер</h2>
+          <p className="text-muted-foreground text-sm font-mono">Заполните все необходимые данные</p>
         </div>
       </div>
 
@@ -177,13 +177,13 @@ export function CreateOfferForm({ role }: { role: string }) {
 
       <div className="flex gap-4">
         <Button 
-          className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-mono"
+          className="flex-1 bg-muted hover:bg-white/10 text-muted-foreground font-mono"
           disabled={loading}
         >
           Черновик
         </Button>
         <Button 
-          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-mono disabled:opacity-50"
+          className="flex-1 bg-blue-600 hover:bg-blue-500 text-foreground font-mono disabled:opacity-50"
           onClick={handleSubmit}
           disabled={loading || !isFormValid()}
           data-testid="button-publish-offer"
@@ -194,17 +194,17 @@ export function CreateOfferForm({ role }: { role: string }) {
       </div>
 
       <div className="space-y-6">
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground uppercase font-mono mb-4 border-b border-border pb-2 flex items-center gap-2">
                 <FileText className="w-4 h-4" /> Основная информация
               </h3>
               
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">Название оффера *</Label>
+                <Label className="text-muted-foreground text-xs font-mono uppercase">Название оффера *</Label>
                 <Input 
                   data-testid="input-offer-name"
-                  className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500" 
+                  className="bg-background border-border text-foreground font-mono focus:border-blue-500" 
                   placeholder="например: Casino Royale - Tier1 GEO"
                   value={formData.name}
                   onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -212,10 +212,10 @@ export function CreateOfferForm({ role }: { role: string }) {
               </div>
               
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">Описание оффера *</Label>
+                <Label className="text-muted-foreground text-xs font-mono uppercase">Описание оффера *</Label>
                 <Textarea 
                   data-testid="input-offer-description"
-                  className="bg-[#050505] border-white/10 text-white font-mono min-h-[100px] focus:border-blue-500" 
+                  className="bg-background border-border text-foreground font-mono min-h-[100px] focus:border-blue-500" 
                   placeholder="Подробное описание оффера, условия, особенности..."
                   value={formData.description}
                   onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -223,15 +223,15 @@ export function CreateOfferForm({ role }: { role: string }) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase">Логотип</Label>
+                <Label className="text-muted-foreground text-xs font-mono uppercase">Логотип</Label>
                 <div className="flex items-center gap-4">
                   {formData.logoUrl ? (
-                    <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-white/10">
+                    <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center overflow-hidden border border-border">
                       <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center border border-white/10">
-                      <Image className="w-6 h-6 text-slate-500" />
+                    <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center border border-border">
+                      <Image className="w-6 h-6 text-muted-foreground" />
                     </div>
                   )}
                   <div className="flex flex-col gap-2">
@@ -248,7 +248,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                       <Button
                         type="button"
                         variant="outline"
-                        className="border-white/10 text-slate-300 cursor-pointer hover:bg-white/5"
+                        className="border-border text-muted-foreground cursor-pointer hover:bg-muted"
                         disabled={isUploading}
                         asChild
                       >
@@ -260,7 +260,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                     </label>
                     <Input 
                       data-testid="input-logo-url"
-                      className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500 text-xs h-8" 
+                      className="bg-background border-border text-foreground font-mono focus:border-blue-500 text-xs h-8" 
                       placeholder="или вставьте URL"
                       value={formData.logoUrl}
                       onChange={e => setFormData(prev => ({ ...prev, logoUrl: e.target.value }))}
@@ -271,12 +271,12 @@ export function CreateOfferForm({ role }: { role: string }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300 text-xs font-mono uppercase flex items-center gap-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
                     <Tag className="w-3 h-3" /> Категория
                   </Label>
                   <select 
                     data-testid="select-category"
-                    className="w-full h-9 rounded-md bg-[#050505] border border-white/10 text-white px-3 text-sm font-mono focus:border-blue-500 focus:outline-none"
+                    className="w-full h-9 rounded-md bg-background border border-border text-foreground px-3 text-sm font-mono focus:border-blue-500 focus:outline-none"
                     value={formData.category}
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   >
@@ -284,12 +284,12 @@ export function CreateOfferForm({ role }: { role: string }) {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 text-xs font-mono uppercase flex items-center gap-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
                     <DollarSign className="w-3 h-3" /> Модель оплаты
                   </Label>
                   <select 
                     data-testid="select-payout-model"
-                    className="w-full h-9 rounded-md bg-[#050505] border border-white/10 text-white px-3 text-sm font-mono focus:border-blue-500 focus:outline-none"
+                    className="w-full h-9 rounded-md bg-background border border-border text-foreground px-3 text-sm font-mono focus:border-blue-500 focus:outline-none"
                     value={formData.payoutModel}
                     onChange={e => setFormData(prev => ({ ...prev, payoutModel: e.target.value }))}
                   >
@@ -300,26 +300,26 @@ export function CreateOfferForm({ role }: { role: string }) {
 
               {(formData.payoutModel === "RevShare" || formData.payoutModel === "Hybrid") && (
                 <div className="space-y-2">
-                  <Label className="text-slate-300 text-xs font-mono uppercase flex items-center gap-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
                     <DollarSign className="w-3 h-3" /> RevShare %
                   </Label>
                   <div className="relative">
                     <Input
                       data-testid="input-rev-share-percent"
-                      className="bg-[#050505] border-white/10 text-white font-mono focus:border-blue-500"
+                      className="bg-background border-border text-foreground font-mono focus:border-blue-500"
                       placeholder="10.5"
                       type="number"
                       step="0.01"
                       value={formData.revSharePercent}
                       onChange={e => setFormData(prev => ({ ...prev, revSharePercent: e.target.value }))}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
                   </div>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs font-mono uppercase flex items-center gap-2">
+                <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
                   Период холда (дней)
                 </Label>
                 <div className="flex gap-2">
@@ -330,8 +330,8 @@ export function CreateOfferForm({ role }: { role: string }) {
                       variant={formData.holdPeriodDays === String(days) ? "default" : "outline"}
                       size="sm"
                       className={formData.holdPeriodDays === String(days) 
-                        ? "bg-blue-600 text-white" 
-                        : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"}
+                        ? "bg-blue-600 text-foreground" 
+                        : "bg-muted border-border text-muted-foreground hover:bg-white/10"}
                       onClick={() => setFormData(prev => ({ ...prev, holdPeriodDays: String(days) }))}
                       data-testid={`button-hold-${days}`}
                     >
@@ -342,28 +342,28 @@ export function CreateOfferForm({ role }: { role: string }) {
                     data-testid="input-hold-period"
                     type="number"
                     min="0"
-                    className="w-20 bg-[#050505] border-white/10 text-white font-mono text-center"
+                    className="w-20 bg-background border-border text-foreground font-mono text-center"
                     placeholder="Др."
                     value={![0, 7, 14, 30].includes(Number(formData.holdPeriodDays)) ? formData.holdPeriodDays : ""}
                     onChange={e => setFormData(prev => ({ ...prev, holdPeriodDays: e.target.value || "0" }))}
                   />
                 </div>
-                <p className="text-xs text-slate-500">Деньги партнёра будут заморожены на указанный срок после конверсии</p>
+                <p className="text-xs text-muted-foreground">Деньги партнёра будут заморожены на указанный срок после конверсии</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-4">
-                <h3 className="text-sm font-bold text-white uppercase font-mono flex items-center gap-2">
+              <div className="flex items-center justify-between border-b border-border pb-2 mb-4">
+                <h3 className="text-sm font-bold text-foreground uppercase font-mono flex items-center gap-2">
                   <Globe className="w-4 h-4" /> ГЕО и Лендинги
                 </h3>
                 <Button 
                   type="button" 
                   size="sm" 
                   onClick={addLanding}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs"
+                  className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono text-xs"
                   data-testid="button-add-landing"
                 >
                   <Plus className="w-3 h-3 mr-1" /> Добавить
@@ -372,9 +372,9 @@ export function CreateOfferForm({ role }: { role: string }) {
 
               <div className="space-y-4">
                 {landings.map((landing, index) => (
-                  <div key={index} className="bg-white/5 rounded-lg p-4 space-y-3">
+                  <div key={index} className="bg-muted rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono text-slate-400">Лендинг #{index + 1}</span>
+                      <span className="text-xs font-mono text-muted-foreground">Лендинг #{index + 1}</span>
                       {landings.length > 1 && (
                         <Button 
                           type="button" 
@@ -391,7 +391,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <Label className="text-slate-400 text-[10px] font-mono uppercase">ГЕО (код страны) *</Label>
+                        <Label className="text-muted-foreground text-[10px] font-mono uppercase">ГЕО (код страны) *</Label>
                         <CountrySelector
                           value={landing.geo}
                           onChange={e => updateLanding(index, "geo", e)}
@@ -399,10 +399,10 @@ export function CreateOfferForm({ role }: { role: string }) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-slate-400 text-[10px] font-mono uppercase">Название лендинга</Label>
+                        <Label className="text-muted-foreground text-[10px] font-mono uppercase">Название лендинга</Label>
                         <Input
                           data-testid={`input-landing-name-${index}`}
-                          className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm"
+                          className="bg-card border-border text-foreground font-mono h-8 text-sm"
                           placeholder="Landing v1"
                           value={landing.landingName}
                           onChange={e => updateLanding(index, "landingName", e.target.value)}
@@ -411,10 +411,10 @@ export function CreateOfferForm({ role }: { role: string }) {
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-slate-400 text-[10px] font-mono uppercase">URL лендинга *</Label>
+                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">URL лендинга *</Label>
                       <Input
                         data-testid={`input-landing-url-${index}`}
-                        className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm"
+                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
                         placeholder="https://landing.com/?sub1={click_id}"
                         value={landing.landingUrl}
                         onChange={e => updateLanding(index, "landingUrl", e.target.value)}
@@ -424,12 +424,12 @@ export function CreateOfferForm({ role }: { role: string }) {
                     <div className={`grid gap-3 ${formData.payoutModel === "RevShare" ? "grid-cols-1" : "grid-cols-3"}`}>
                       {formData.payoutModel !== "RevShare" && (
                         <div className="space-y-1">
-                          <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена партнеру *</Label>
+                          <Label className="text-muted-foreground text-[10px] font-mono uppercase">Цена партнеру *</Label>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
                             <Input
                               data-testid={`input-landing-partner-payout-${index}`}
-                              className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
+                              className="bg-card border-border text-foreground font-mono h-8 text-sm pl-5"
                               placeholder="0.00"
                               value={landing.partnerPayout}
                               onChange={e => updateLanding(index, "partnerPayout", e.target.value)}
@@ -439,12 +439,12 @@ export function CreateOfferForm({ role }: { role: string }) {
                       )}
                       {formData.payoutModel !== "RevShare" && (
                         <div className="space-y-1">
-                          <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена для себя</Label>
+                          <Label className="text-muted-foreground text-[10px] font-mono uppercase">Цена для себя</Label>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
                             <Input
                               data-testid={`input-landing-internal-cost-${index}`}
-                              className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
+                              className="bg-card border-border text-foreground font-mono h-8 text-sm pl-5"
                               placeholder="0.00"
                               value={landing.internalCost}
                               onChange={e => updateLanding(index, "internalCost", e.target.value)}
@@ -459,12 +459,12 @@ export function CreateOfferForm({ role }: { role: string }) {
                       )}
                       {formData.payoutModel === "Hybrid" && (
                         <div className="space-y-1">
-                          <Label className="text-slate-400 text-[10px] font-mono uppercase">Цена для себя</Label>
+                          <Label className="text-muted-foreground text-[10px] font-mono uppercase">Цена для себя</Label>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
                             <Input
                               data-testid={`input-landing-internal-cost-${index}`}
-                              className="bg-[#0A0A0A] border-white/10 text-white font-mono h-8 text-sm pl-5"
+                              className="bg-card border-border text-foreground font-mono h-8 text-sm pl-5"
                               placeholder="0.00"
                               value={landing.internalCost}
                               onChange={e => updateLanding(index, "internalCost", e.target.value)}
@@ -473,10 +473,10 @@ export function CreateOfferForm({ role }: { role: string }) {
                         </div>
                       )}
                       <div className="space-y-1">
-                        <Label className="text-slate-400 text-[10px] font-mono uppercase">Валюта</Label>
+                        <Label className="text-muted-foreground text-[10px] font-mono uppercase">Валюта</Label>
                         <select
                           data-testid={`select-landing-currency-${index}`}
-                          className="w-full h-8 rounded-md bg-[#0A0A0A] border border-white/10 text-white px-2 text-sm font-mono"
+                          className="w-full h-8 rounded-md bg-card border border-border text-foreground px-2 text-sm font-mono"
                           value={landing.currency}
                           onChange={e => updateLanding(index, "currency", e.target.value)}
                         >
@@ -492,9 +492,9 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground uppercase font-mono mb-4 border-b border-border pb-2 flex items-center gap-2">
                 <Megaphone className="w-4 h-4" /> Источники трафика
               </h3>
               
@@ -507,8 +507,8 @@ export function CreateOfferForm({ role }: { role: string }) {
                     onClick={() => toggleArrayItem("trafficSources", source)}
                     className={`px-3 py-1.5 rounded text-xs font-mono transition-all ${
                       formData.trafficSources.includes(source)
-                        ? "bg-blue-600 text-white"
-                        : "bg-white/5 text-slate-400 hover:bg-white/10"
+                        ? "bg-blue-600 text-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-white/10"
                     }`}
                   >
                     {source}
@@ -518,9 +518,9 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground uppercase font-mono mb-4 border-b border-border pb-2 flex items-center gap-2">
                 <Smartphone className="w-4 h-4" /> Типы приложений
               </h3>
               
@@ -533,8 +533,8 @@ export function CreateOfferForm({ role }: { role: string }) {
                     onClick={() => toggleArrayItem("appTypes", appType)}
                     className={`px-3 py-1.5 rounded text-xs font-mono transition-all ${
                       formData.appTypes.includes(appType)
-                        ? "bg-emerald-600 text-white"
-                        : "bg-white/5 text-slate-400 hover:bg-white/10"
+                        ? "bg-emerald-600 text-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-white/10"
                     }`}
                   >
                     {appType}
@@ -544,18 +544,18 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase font-mono mb-2 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground uppercase font-mono mb-2 flex items-center gap-2">
                 <LinkIcon className="w-4 h-4" /> Креативы
               </h3>
-              <p className="text-xs text-slate-500 mb-4">Ссылки на Google/Yandex диск с креативами</p>
+              <p className="text-xs text-muted-foreground mb-4">Ссылки на Google/Yandex диск с креативами</p>
 
               {formData.creativeLinks.map((link, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     data-testid={`input-creative-link-${index}`}
-                    className="bg-[#050505] border-white/10 text-white font-mono text-sm flex-1"
+                    className="bg-background border-border text-foreground font-mono text-sm flex-1"
                     placeholder="https://drive.google.com/..."
                     value={link}
                     onChange={e => updateCreativeLink(index, e.target.value)}
@@ -580,7 +580,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                 variant="outline"
                 size="sm"
                 onClick={addCreativeLink}
-                className="w-full border-white/10 text-slate-300"
+                className="w-full border-border text-muted-foreground"
                 data-testid="button-add-creative"
               >
                 <Plus className="w-3 h-3 mr-2" /> Добавить ссылку
@@ -590,13 +590,13 @@ export function CreateOfferForm({ role }: { role: string }) {
 
           <div className="flex gap-4">
             <Button 
-              className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-mono"
+              className="flex-1 bg-muted hover:bg-white/10 text-muted-foreground font-mono"
               disabled={loading}
             >
               Черновик
             </Button>
             <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-mono disabled:opacity-50"
+              className="flex-1 bg-blue-600 hover:bg-blue-500 text-foreground font-mono disabled:opacity-50"
               onClick={handleSubmit}
               disabled={loading || !isFormValid()}
               data-testid="button-publish-offer"

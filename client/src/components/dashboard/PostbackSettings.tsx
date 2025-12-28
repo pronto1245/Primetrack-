@@ -115,10 +115,10 @@ export function PostbackSettings() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-postbacks-title">
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-postbacks-title">
             Постбеки
           </h2>
-          <p className="text-slate-400 text-sm font-mono">
+          <p className="text-muted-foreground text-sm font-mono">
             Настройка URL для получения уведомлений о конверсиях
           </p>
         </div>
@@ -129,11 +129,11 @@ export function PostbackSettings() {
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-white mb-1">Как работают постбеки?</h3>
-            <p className="text-xs text-slate-300 mb-2">
+            <h3 className="text-sm font-semibold text-foreground mb-1">Как работают постбеки?</h3>
+            <p className="text-xs text-muted-foreground mb-2">
               При каждой конверсии система отправит HTTP запрос на указанные URL. Вы можете настроить отдельные URL для разных типов конверсий.
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Поддерживаемые макросы: <code className="bg-white/10 px-1 rounded">{"{click_id}"}</code>, <code className="bg-white/10 px-1 rounded">{"{status}"}</code>, <code className="bg-white/10 px-1 rounded">{"{sum}"}</code>, <code className="bg-white/10 px-1 rounded">{"{payout}"}</code>, <code className="bg-white/10 px-1 rounded">{"{sub1}"}</code>-<code className="bg-white/10 px-1 rounded">{"{sub5}"}</code>
             </p>
           </div>
@@ -141,20 +141,20 @@ export function PostbackSettings() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="bg-[#0A0A0A] border-white/10 p-6">
+        <Card className="bg-card border-border p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
               <span className="text-emerald-400 font-bold text-sm">REG</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Регистрация / Лид</h3>
-              <p className="text-xs text-slate-500">Postback при регистрации пользователя</p>
+              <h3 className="text-lg font-semibold text-foreground">Регистрация / Лид</h3>
+              <p className="text-xs text-muted-foreground">Postback при регистрации пользователя</p>
             </div>
           </div>
           
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-400 text-xs mb-2 block">Postback URL</Label>
+              <Label className="text-muted-foreground text-xs mb-2 block">Postback URL</Label>
               <Input
                 placeholder="https://your-tracker.com/postback?click_id={click_id}&status={status}"
                 value={leadUrl}
@@ -162,17 +162,17 @@ export function PostbackSettings() {
                   setLeadUrl(e.target.value);
                   setIsSaved(false);
                 }}
-                className="bg-white/5 border-white/10 text-white font-mono text-sm"
+                className="bg-muted border-border text-foreground font-mono text-sm"
                 data-testid="input-lead-postback-url"
               />
             </div>
             <div>
-              <Label className="text-slate-400 text-xs mb-2 block">HTTP метод</Label>
+              <Label className="text-muted-foreground text-xs mb-2 block">HTTP метод</Label>
               <Select value={leadMethod} onValueChange={(v) => { setLeadMethod(v); setIsSaved(false); }}>
-                <SelectTrigger className="w-full bg-white/5 border-white/10 text-white" data-testid="select-lead-method">
+                <SelectTrigger className="w-full bg-muted border-border text-foreground" data-testid="select-lead-method">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="GET">GET</SelectItem>
                   <SelectItem value="POST">POST</SelectItem>
                 </SelectContent>
@@ -181,20 +181,20 @@ export function PostbackSettings() {
           </div>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10 p-6">
+        <Card className="bg-card border-border p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
               <span className="text-yellow-400 font-bold text-sm">FTD</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Депозит / Продажа</h3>
-              <p className="text-xs text-slate-500">Postback при первом депозите или продаже</p>
+              <h3 className="text-lg font-semibold text-foreground">Депозит / Продажа</h3>
+              <p className="text-xs text-muted-foreground">Postback при первом депозите или продаже</p>
             </div>
           </div>
           
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-400 text-xs mb-2 block">Postback URL</Label>
+              <Label className="text-muted-foreground text-xs mb-2 block">Postback URL</Label>
               <Input
                 placeholder="https://your-tracker.com/postback?click_id={click_id}&status={status}&sum={sum}"
                 value={saleUrl}
@@ -202,17 +202,17 @@ export function PostbackSettings() {
                   setSaleUrl(e.target.value);
                   setIsSaved(false);
                 }}
-                className="bg-white/5 border-white/10 text-white font-mono text-sm"
+                className="bg-muted border-border text-foreground font-mono text-sm"
                 data-testid="input-sale-postback-url"
               />
             </div>
             <div>
-              <Label className="text-slate-400 text-xs mb-2 block">HTTP метод</Label>
+              <Label className="text-muted-foreground text-xs mb-2 block">HTTP метод</Label>
               <Select value={saleMethod} onValueChange={(v) => { setSaleMethod(v); setIsSaved(false); }}>
-                <SelectTrigger className="w-full bg-white/5 border-white/10 text-white" data-testid="select-sale-method">
+                <SelectTrigger className="w-full bg-muted border-border text-foreground" data-testid="select-sale-method">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="GET">GET</SelectItem>
                   <SelectItem value="POST">POST</SelectItem>
                 </SelectContent>
@@ -239,7 +239,7 @@ export function PostbackSettings() {
         <Button
           onClick={handleSave}
           disabled={saveMutation.isPending || (!hasChanges() && isSaved)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="bg-emerald-600 hover:bg-emerald-700 text-foreground"
           data-testid="button-save-postbacks"
         >
           {saveMutation.isPending ? (
@@ -252,29 +252,29 @@ export function PostbackSettings() {
       </div>
 
       {/* Postback Logs Section */}
-      <Card className="bg-[#0A0A0A] border-white/10 p-6 mt-6">
+      <Card className="bg-card border-border p-6 mt-6">
         <div className="flex items-center gap-3 mb-4">
-          <History className="w-5 h-5 text-slate-400" />
-          <h3 className="text-lg font-semibold text-white">История постбеков</h3>
+          <History className="w-5 h-5 text-muted-foreground" />
+          <h3 className="text-lg font-semibold text-foreground">История постбеков</h3>
         </div>
         
         {logsData && logsData.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Дата</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">URL</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Метод</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Код</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Статус</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Retry</th>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Дата</th>
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">URL</th>
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Метод</th>
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Код</th>
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Статус</th>
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Retry</th>
                 </tr>
               </thead>
               <tbody>
                 {logsData.slice(0, 20).map((log) => (
-                  <tr key={log.id} className="border-b border-white/5 hover:bg-white/5">
-                    <td className="py-2 px-3 text-slate-300 font-mono text-xs">
+                  <tr key={log.id} className="border-b border-white/5 hover:bg-muted">
+                    <td className="py-2 px-3 text-muted-foreground font-mono text-xs">
                       {new Date(log.createdAt).toLocaleString('ru-RU', { 
                         day: '2-digit', 
                         month: '2-digit', 
@@ -282,7 +282,7 @@ export function PostbackSettings() {
                         minute: '2-digit' 
                       })}
                     </td>
-                    <td className="py-2 px-3 text-slate-300 font-mono text-xs max-w-[300px] truncate">
+                    <td className="py-2 px-3 text-muted-foreground font-mono text-xs max-w-[300px] truncate">
                       <a 
                         href={log.url} 
                         target="_blank" 
@@ -293,7 +293,7 @@ export function PostbackSettings() {
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </td>
-                    <td className="py-2 px-3 text-slate-300 font-mono text-xs">
+                    <td className="py-2 px-3 text-muted-foreground font-mono text-xs">
                       {log.method}
                     </td>
                     <td className="py-2 px-3 font-mono text-xs">
@@ -314,7 +314,7 @@ export function PostbackSettings() {
                         </span>
                       )}
                     </td>
-                    <td className="py-2 px-3 text-slate-400 text-xs">
+                    <td className="py-2 px-3 text-muted-foreground text-xs">
                       {log.retryCount > 0 ? `#${log.retryCount}` : '-'}
                     </td>
                   </tr>
@@ -323,7 +323,7 @@ export function PostbackSettings() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-muted-foreground">
             <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>История постбеков пуста</p>
             <p className="text-xs mt-1">Логи появятся после первых конверсий</p>

@@ -97,7 +97,7 @@ export function AdvertiserPartners() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Users className="w-6 h-6" />
             Партнёры
             {pendingCount > 0 && (
@@ -106,7 +106,7 @@ export function AdvertiserPartners() {
               </Badge>
             )}
           </h1>
-          <p className="text-slate-400 mt-1">Управление партнёрами и их доступом</p>
+          <p className="text-muted-foreground mt-1">Управление партнёрами и их доступом</p>
         </div>
 
         <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
@@ -116,12 +116,12 @@ export function AdvertiserPartners() {
               Получить ссылку
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#0A0A0A] border-white/10">
+          <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle className="text-white">Ссылка для регистрации партнёров</DialogTitle>
+              <DialogTitle className="text-foreground">Ссылка для регистрации партнёров</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-4">
-              <p className="text-slate-400 text-sm">
+              <p className="text-muted-foreground text-sm">
                 Поделитесь этой ссылкой с партнёрами. После регистрации они появятся в списке со статусом "pending".
               </p>
               <div className="flex gap-2">
@@ -129,18 +129,18 @@ export function AdvertiserPartners() {
                   data-testid="input-registration-link"
                   value={linkData?.registrationLink || ""} 
                   readOnly 
-                  className="bg-[#111] border-white/10 text-white font-mono text-sm"
+                  className="bg-[#111] border-border text-foreground font-mono text-sm"
                 />
                 <Button 
                   data-testid="button-copy-link"
                   variant="outline" 
                   onClick={copyLink}
-                  className="border-white/10"
+                  className="border-border"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-muted-foreground">
                 Реферальный код: <code className="text-emerald-400">{linkData?.referralCode}</code>
               </div>
             </div>
@@ -148,25 +148,25 @@ export function AdvertiserPartners() {
         </Dialog>
       </div>
 
-      <Card className="bg-[#0A0A0A] border-white/10">
-        <CardHeader className="border-b border-white/10">
+      <Card className="bg-card border-border">
+        <CardHeader className="border-b border-border">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 data-testid="input-search-partners"
                 placeholder="Поиск по имени или email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-[#111] border-white/10 text-white"
+                className="pl-10 bg-[#111] border-border text-foreground"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger data-testid="select-status-filter" className="w-40 bg-[#111] border-white/10">
+              <SelectTrigger data-testid="select-status-filter" className="w-40 bg-[#111] border-border">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>
-              <SelectContent className="bg-[#0A0A0A] border-white/10">
+              <SelectContent className="bg-card border-border">
                 <SelectItem value="all">Все</SelectItem>
                 <SelectItem value="pending">Ожидают</SelectItem>
                 <SelectItem value="active">Активные</SelectItem>
@@ -179,10 +179,10 @@ export function AdvertiserPartners() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : filteredPartners.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
+            <div className="text-center py-12 text-muted-foreground">
               <UserPlus className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Партнёры не найдены</p>
               <p className="text-sm mt-1">Поделитесь ссылкой для регистрации</p>
@@ -190,31 +190,31 @@ export function AdvertiserPartners() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white/5 border-b border-white/10">
+                <thead className="bg-muted border-b border-border">
                   <tr>
-                    <th className="text-left text-xs font-medium text-slate-400 uppercase px-4 py-3">Партнёр</th>
-                    <th className="text-left text-xs font-medium text-slate-400 uppercase px-4 py-3">Статус</th>
-                    <th className="text-right text-xs font-medium text-slate-400 uppercase px-4 py-3">Клики</th>
-                    <th className="text-right text-xs font-medium text-slate-400 uppercase px-4 py-3">Конверсии</th>
-                    <th className="text-right text-xs font-medium text-slate-400 uppercase px-4 py-3">Выплаты</th>
-                    <th className="text-left text-xs font-medium text-slate-400 uppercase px-4 py-3">Дата</th>
-                    <th className="text-right text-xs font-medium text-slate-400 uppercase px-4 py-3">Действия</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Партнёр</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Статус</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Клики</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Конверсии</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Выплаты</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Дата</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Действия</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {filteredPartners.map((partner) => (
-                    <tr key={partner.id} data-testid={`row-partner-${partner.id}`} className="hover:bg-white/5">
+                    <tr key={partner.id} data-testid={`row-partner-${partner.id}`} className="hover:bg-muted">
                       <td className="px-4 py-3">
                         <div>
-                          <div className="text-white font-medium">{partner.username}</div>
-                          <div className="text-slate-500 text-sm">{partner.email}</div>
+                          <div className="text-foreground font-medium">{partner.username}</div>
+                          <div className="text-muted-foreground text-sm">{partner.email}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3">{statusBadge(partner.status)}</td>
-                      <td className="px-4 py-3 text-right text-slate-300 font-mono">{partner.clicks.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right text-slate-300 font-mono">{partner.conversions.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground font-mono">{partner.clicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground font-mono">{partner.conversions.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-mono">${partner.payout.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-slate-500 text-sm">
+                      <td className="px-4 py-3 text-muted-foreground text-sm">
                         {new Date(partner.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -236,7 +236,7 @@ export function AdvertiserPartners() {
                                 data-testid={`button-pause-${partner.id}`}
                                 size="sm"
                                 variant="outline"
-                                className="border-white/10 h-7 text-xs"
+                                className="border-border h-7 text-xs"
                                 onClick={() => updateStatusMutation.mutate({ id: partner.id, status: "paused" })}
                                 disabled={updateStatusMutation.isPending}
                               >
@@ -273,7 +273,7 @@ export function AdvertiserPartners() {
                               data-testid={`button-unblock-${partner.id}`}
                               size="sm"
                               variant="outline"
-                              className="border-white/10 h-7 text-xs"
+                              className="border-border h-7 text-xs"
                               onClick={() => updateStatusMutation.mutate({ id: partner.id, status: "active" })}
                               disabled={updateStatusMutation.isPending}
                             >

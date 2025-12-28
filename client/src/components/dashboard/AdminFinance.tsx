@@ -63,10 +63,10 @@ export function AdminFinance() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-admin-finance-title">
+        <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-admin-finance-title">
           Финансы платформы
         </h2>
-        <p className="text-slate-400 text-sm font-mono">
+        <p className="text-muted-foreground text-sm font-mono">
           Глобальная статистика и управление финансами
         </p>
       </div>
@@ -78,7 +78,7 @@ export function AdminFinance() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-emerald-400 text-xs font-mono uppercase">Общий доход</p>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   ${platformStats.totalRevenue.toLocaleString()}
                 </p>
               </div>
@@ -94,7 +94,7 @@ export function AdminFinance() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-400 text-xs font-mono uppercase">Выплаты партнёрам</p>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   ${platformStats.totalPayouts.toLocaleString()}
                 </p>
               </div>
@@ -110,7 +110,7 @@ export function AdminFinance() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-400 text-xs font-mono uppercase">Маржа платформы</p>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   ${platformStats.platformMargin.toLocaleString()}
                 </p>
               </div>
@@ -126,7 +126,7 @@ export function AdminFinance() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-400 text-xs font-mono uppercase">Ожидают выплаты</p>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   ${platformStats.pendingPayouts.toLocaleString()}
                 </p>
               </div>
@@ -140,37 +140,37 @@ export function AdminFinance() {
 
       {/* Users Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-slate-400" />
+              <Users className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-slate-400 text-xs">Активных рекламодателей</p>
-                <p className="text-xl font-bold text-white">{platformStats.activeAdvertisers}</p>
+                <p className="text-muted-foreground text-xs">Активных рекламодателей</p>
+                <p className="text-xl font-bold text-foreground">{platformStats.activeAdvertisers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-slate-400" />
+              <Users className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-slate-400 text-xs">Активных партнёров</p>
-                <p className="text-xl font-bold text-white">{platformStats.activePublishers}</p>
+                <p className="text-muted-foreground text-xs">Активных партнёров</p>
+                <p className="text-xl font-bold text-foreground">{platformStats.activePublishers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <ArrowUpRight className="w-5 h-5 text-slate-400" />
+              <ArrowUpRight className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-slate-400 text-xs">Средний ROI</p>
-                <p className="text-xl font-bold text-white">{platformStats.avgROI.toFixed(1)}%</p>
+                <p className="text-muted-foreground text-xs">Средний ROI</p>
+                <p className="text-xl font-bold text-foreground">{platformStats.avgROI.toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
@@ -178,9 +178,9 @@ export function AdminFinance() {
       </div>
 
       {/* Payout Requests Overview */}
-      <Card className="bg-[#0A0A0A] border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
             Заявки на выплату (все рекламодатели)
           </CardTitle>
@@ -189,15 +189,15 @@ export function AdminFinance() {
           <div className="flex gap-4 mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-yellow-400" />
-              <span className="text-slate-400 text-sm">Ожидают: {pendingRequests.length}</span>
+              <span className="text-muted-foreground text-sm">Ожидают: {pendingRequests.length}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-emerald-400" />
-              <span className="text-slate-400 text-sm">Одобрено: {approvedRequests.length}</span>
+              <span className="text-muted-foreground text-sm">Одобрено: {approvedRequests.length}</span>
             </div>
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-blue-400" />
-              <span className="text-slate-400 text-sm">Выплачено: {paidRequests.length}</span>
+              <span className="text-muted-foreground text-sm">Выплачено: {paidRequests.length}</span>
             </div>
           </div>
 
@@ -206,7 +206,7 @@ export function AdminFinance() {
               <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
             </div>
           ) : allPayouts.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
+            <div className="text-center py-8 text-muted-foreground">
               <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Нет заявок на выплату</p>
             </div>
@@ -214,22 +214,22 @@ export function AdminFinance() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-2 px-3 text-slate-400 font-medium">Дата</th>
-                    <th className="text-left py-2 px-3 text-slate-400 font-medium">Партнёр</th>
-                    <th className="text-left py-2 px-3 text-slate-400 font-medium">Рекламодатель</th>
-                    <th className="text-left py-2 px-3 text-slate-400 font-medium">Сумма</th>
-                    <th className="text-left py-2 px-3 text-slate-400 font-medium">Статус</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-3 text-muted-foreground font-medium">Дата</th>
+                    <th className="text-left py-2 px-3 text-muted-foreground font-medium">Партнёр</th>
+                    <th className="text-left py-2 px-3 text-muted-foreground font-medium">Рекламодатель</th>
+                    <th className="text-left py-2 px-3 text-muted-foreground font-medium">Сумма</th>
+                    <th className="text-left py-2 px-3 text-muted-foreground font-medium">Статус</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allPayouts.slice(0, 20).map((request) => (
-                    <tr key={request.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="py-2 px-3 text-slate-300 font-mono text-xs">
+                    <tr key={request.id} className="border-b border-white/5 hover:bg-muted">
+                      <td className="py-2 px-3 text-muted-foreground font-mono text-xs">
                         {new Date(request.createdAt).toLocaleDateString('ru-RU')}
                       </td>
-                      <td className="py-2 px-3 text-white">{request.publisherName || 'N/A'}</td>
-                      <td className="py-2 px-3 text-slate-400">{request.advertiserName || 'N/A'}</td>
+                      <td className="py-2 px-3 text-foreground">{request.publisherName || 'N/A'}</td>
+                      <td className="py-2 px-3 text-muted-foreground">{request.advertiserName || 'N/A'}</td>
                       <td className="py-2 px-3 text-emerald-400 font-mono">${request.requestedAmount}</td>
                       <td className="py-2 px-3">
                         <Badge variant={

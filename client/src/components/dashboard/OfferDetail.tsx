@@ -83,9 +83,9 @@ function LandingsGroupedByGeo({
   const totalGeos = groupedByGeo.length;
 
   return (
-    <Card className="bg-[#0A0A0A] border-white/10">
+    <Card className="bg-card border-border">
       <CardContent className="p-6">
-        <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
+        <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4 flex items-center gap-2">
           <Globe className="w-4 h-4" />
           ГЕО / Лендинги ({landings.length} лендингов в {totalGeos} GEO)
         </h3>
@@ -98,14 +98,14 @@ function LandingsGroupedByGeo({
             >
               <CollapsibleTrigger asChild>
                 <div 
-                  className="w-full bg-white/5 hover:bg-white/10 rounded-xl p-4 flex items-center justify-between border border-white/5 hover:border-white/10 transition-all cursor-pointer"
+                  className="w-full bg-muted hover:bg-white/10 rounded-xl p-4 flex items-center justify-between border border-white/5 hover:border-border transition-all cursor-pointer"
                   data-testid={`geo-group-${geo}`}
                 >
                   <div className="flex items-center gap-4">
                     <span className="text-4xl">{getCountryFlag(geo)}</span>
                     <div>
-                      <div className="text-sm font-medium text-white">
-                        {geo} <span className="text-slate-300 font-normal">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
+                      <div className="text-sm font-medium text-foreground">
+                        {geo} <span className="text-muted-foreground font-normal">({geoLandings.length} {geoLandings.length === 1 ? 'лендинг' : 'лендингов'})</span>
                       </div>
                       <div className="text-xs text-emerald-400 font-medium">
                         {getPayoutRange(geoLandings)}
@@ -114,9 +114,9 @@ function LandingsGroupedByGeo({
                   </div>
                   <div className="flex items-center gap-2">
                     {openGeos.has(geo) ? (
-                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-slate-400" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     )}
                   </div>
                 </div>
@@ -126,14 +126,14 @@ function LandingsGroupedByGeo({
                   {geoLandings.map((landing, index) => (
                     <div 
                       key={landing.id} 
-                      className="bg-white/[0.03] rounded-lg p-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+                      className="bg-white/[0.03] rounded-lg p-3 flex items-center justify-between hover:bg-muted transition-colors"
                       data-testid={`landing-row-${geo}-${index}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white truncate">
+                        <div className="text-sm font-medium text-foreground truncate">
                           {landing.landingName || `Landing ${index + 1}`}
                         </div>
-                        <div className="text-xs text-slate-500 truncate">{landing.landingUrl}</div>
+                        <div className="text-xs text-muted-foreground truncate">{landing.landingUrl}</div>
                       </div>
                       <div className="flex items-center gap-3 ml-4">
                         <div className="text-right">
@@ -144,7 +144,7 @@ function LandingsGroupedByGeo({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-slate-400 hover:text-white h-8 w-8 p-0"
+                          className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             copyToClipboard(landing.landingUrl, landing.id);
@@ -222,7 +222,7 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
             </div>
           </div>
           <Button
-            className="w-full bg-red-600 hover:bg-red-500 text-white mt-3"
+            className="w-full bg-red-600 hover:bg-red-500 text-foreground mt-3"
             onClick={() => requestAccessMutation.mutate()}
             disabled={requestAccessMutation.isPending}
             data-testid="button-request-access-again"
@@ -267,18 +267,18 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
         </div>
         
         <div className="mb-4">
-          <Label className="text-xs text-slate-400 mb-1">Сообщение (необязательно)</Label>
+          <Label className="text-xs text-muted-foreground mb-1">Сообщение (необязательно)</Label>
           <Input
             placeholder="Опишите ваш опыт и источники трафика..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="bg-white/5 border-white/10 text-white text-sm"
+            className="bg-muted border-border text-foreground text-sm"
             data-testid="input-access-message"
           />
         </div>
         
         <Button
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold"
+          className="w-full bg-blue-600 hover:bg-blue-500 text-foreground font-bold"
           onClick={() => requestAccessMutation.mutate()}
           disabled={requestAccessMutation.isPending}
           data-testid="button-request-access"
@@ -400,7 +400,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
       <div className="text-center py-12">
         <p className="text-red-400 mb-4">Failed to load offer</p>
         <Link href={`/dashboard/${role}/offers`}>
-          <Button variant="outline" className="border-white/10">
+          <Button variant="outline" className="border-border">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Offers
           </Button>
@@ -409,7 +409,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
     );
   }
 
-  const categoryColor = CATEGORY_COLORS[offer.category.toLowerCase()] || "bg-slate-500/20 text-slate-400";
+  const categoryColor = CATEGORY_COLORS[offer.category.toLowerCase()] || "bg-slate-500/20 text-muted-foreground";
   const isPublisher = role === 'publisher';
   const hasAccess = offer.hasAccess === true;
   const canSeeLinks = !isPublisher || hasAccess;
@@ -418,7 +418,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Link href={`/dashboard/${role}/${role === 'publisher' ? 'links' : 'offers'}`}>
-          <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white" data-testid="button-back">
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" data-testid="button-back">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Назад
           </Button>
@@ -434,11 +434,11 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-[#0A0A0A] border-white/10 overflow-hidden">
+          <Card className="bg-card border-border overflow-hidden">
             <div className={`h-2 ${offer.status === 'active' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-yellow-500 to-yellow-400'}`} />
             <CardContent className="p-6">
               <div className="flex items-start gap-4 mb-6">
-                <div className={`w-20 h-20 rounded-xl ${categoryColor.split(' ')[0]} flex items-center justify-center flex-shrink-0 border border-white/10 overflow-hidden`}>
+                <div className={`w-20 h-20 rounded-xl ${categoryColor.split(' ')[0]} flex items-center justify-center flex-shrink-0 border border-border overflow-hidden`}>
                   {offer.logoUrl ? (
                     <img src={offer.logoUrl} alt={offer.name} className="w-full h-full object-cover" />
                   ) : (
@@ -447,12 +447,12 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h1 className="text-2xl font-bold text-white" data-testid="text-offer-name">{offer.name}</h1>
+                    <h1 className="text-2xl font-bold text-foreground" data-testid="text-offer-name">{offer.name}</h1>
                     <Badge className={`${offer.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                       {offer.status === 'active' ? 'Активен' : 'Приостановлен'}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-slate-400 flex-wrap">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
                     <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${categoryColor}`}>
                       {offer.category}
                     </span>
@@ -460,14 +460,14 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                       <Globe className="w-3 h-3" />
                       {offer.geo.slice(0, 5).join(", ")}{offer.geo.length > 5 ? ` +${offer.geo.length - 5}` : ""}
                     </span>
-                    <span className="text-slate-500">ID: {offer.id.slice(0, 8)}</span>
+                    <span className="text-muted-foreground">ID: {offer.id.slice(0, 8)}</span>
                   </div>
                 </div>
               </div>
 
               <div className="mb-6">
-                <h3 className="text-xs font-bold uppercase text-slate-500 mb-2">Описание</h3>
-                <p className="text-slate-300 text-sm leading-relaxed" data-testid="text-offer-description">{offer.description || "Описание не указано"}</p>
+                <h3 className="text-xs font-bold uppercase text-muted-foreground mb-2">Описание</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed" data-testid="text-offer-description">{offer.description || "Описание не указано"}</p>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -477,9 +477,9 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                     {getOfferPayoutPrice(offer) ? `${offer.currency === 'USD' ? '$' : offer.currency}${getOfferPayoutPrice(offer)}` : 'N/A'}
                   </div>
                 </div>
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="text-[10px] uppercase text-slate-500 mb-1 font-medium">Модель</div>
-                  <div className="text-xl font-bold text-white" data-testid="text-payout-model">{offer.payoutModel}</div>
+                <div className="bg-muted rounded-xl p-4 border border-border">
+                  <div className="text-[10px] uppercase text-muted-foreground mb-1 font-medium">Модель</div>
+                  <div className="text-xl font-bold text-foreground" data-testid="text-payout-model">{offer.payoutModel}</div>
                 </div>
                 {role === 'advertiser' && (
                   <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl p-4 border border-red-500/20">
@@ -489,16 +489,16 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                     </div>
                   </div>
                 )}
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="text-[10px] uppercase text-slate-500 mb-1 font-medium">Валюта</div>
-                  <div className="text-xl font-bold text-white">{offer.currency}</div>
+                <div className="bg-muted rounded-xl p-4 border border-border">
+                  <div className="text-[10px] uppercase text-muted-foreground mb-1 font-medium">Валюта</div>
+                  <div className="text-xl font-bold text-foreground">{offer.currency}</div>
                 </div>
-                <div className={`rounded-xl p-4 border ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20' : 'bg-white/5 border-white/10'}`}>
-                  <div className={`text-[10px] uppercase mb-1 font-medium ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400/70' : 'text-slate-500'}`}>
+                <div className={`rounded-xl p-4 border ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20' : 'bg-muted border-border'}`}>
+                  <div className={`text-[10px] uppercase mb-1 font-medium ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400/70' : 'text-muted-foreground'}`}>
                     <Clock className="w-3 h-3 inline mr-1" />
                     Холд
                   </div>
-                  <div className={`text-xl font-bold ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400' : 'text-white'}`} data-testid="text-hold-period">
+                  <div className={`text-xl font-bold ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400' : 'text-foreground'}`} data-testid="text-hold-period">
                     {offer.holdPeriodDays && offer.holdPeriodDays > 0 ? `${offer.holdPeriodDays} дн.` : 'Нет'}
                   </div>
                 </div>
@@ -511,45 +511,45 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
           )}
 
           {!canSeeLinks && (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-slate-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lock className="w-8 h-8 text-slate-500" />
+                  <Lock className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">Лендинги скрыты</h3>
-                <p className="text-slate-400 text-sm">Получите доступ к офферу, чтобы увидеть лендинги и ссылки</p>
+                <h3 className="text-lg font-bold text-foreground mb-2">Лендинги скрыты</h3>
+                <p className="text-muted-foreground text-sm">Получите доступ к офферу, чтобы увидеть лендинги и ссылки</p>
               </CardContent>
             </Card>
           )}
 
           {(offer.kpi || offer.rules || offer.conditions) && (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="p-6 space-y-6">
                 {offer.kpi && (
                   <div>
-                    <h3 className="text-sm font-bold uppercase text-slate-400 mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase text-muted-foreground mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       KPI
                     </h3>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap bg-white/5 rounded-lg p-4">{offer.kpi}</p>
+                    <p className="text-muted-foreground text-sm whitespace-pre-wrap bg-muted rounded-lg p-4">{offer.kpi}</p>
                   </div>
                 )}
                 {offer.rules && (
                   <div>
-                    <h3 className="text-sm font-bold uppercase text-slate-400 mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase text-muted-foreground mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Правила
                     </h3>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap bg-white/5 rounded-lg p-4">{offer.rules}</p>
+                    <p className="text-muted-foreground text-sm whitespace-pre-wrap bg-muted rounded-lg p-4">{offer.rules}</p>
                   </div>
                 )}
                 {offer.conditions && (
                   <div>
-                    <h3 className="text-sm font-bold uppercase text-slate-400 mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase text-muted-foreground mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Условия
                     </h3>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap bg-white/5 rounded-lg p-4">{offer.conditions}</p>
+                    <p className="text-muted-foreground text-sm whitespace-pre-wrap bg-muted rounded-lg p-4">{offer.conditions}</p>
                   </div>
                 )}
               </CardContent>
@@ -582,46 +582,46 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
             </Card>
           )}
 
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6">
-              <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4 flex items-center gap-2">
                 <Share2 className="w-4 h-4" />
                 Источники трафика
               </h3>
               <div className="flex flex-wrap gap-2">
                 {offer.trafficSources.length > 0 ? offer.trafficSources.map((source, i) => (
-                  <Badge key={i} variant="outline" className="border-white/10 text-slate-300 text-xs">
+                  <Badge key={i} variant="outline" className="border-border text-muted-foreground text-xs">
                     {source}
                   </Badge>
                 )) : (
-                  <span className="text-slate-500 text-sm">Все источники разрешены</span>
+                  <span className="text-muted-foreground text-sm">Все источники разрешены</span>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-6">
-              <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4 flex items-center gap-2">
                 <Smartphone className="w-4 h-4" />
                 Типы приложений
               </h3>
               <div className="flex flex-wrap gap-2">
                 {offer.appTypes.length > 0 ? offer.appTypes.map((type, i) => (
-                  <Badge key={i} variant="outline" className="border-white/10 text-slate-300 text-xs">
+                  <Badge key={i} variant="outline" className="border-border text-muted-foreground text-xs">
                     {type}
                   </Badge>
                 )) : (
-                  <span className="text-slate-500 text-sm">Все типы разрешены</span>
+                  <span className="text-muted-foreground text-sm">Все типы разрешены</span>
                 )}
               </div>
             </CardContent>
           </Card>
 
           {canSeeLinks && offer.creativeLinks && offer.creativeLinks.length > 0 && (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="p-6">
-                <h3 className="text-sm font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
+                <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4 flex items-center gap-2">
                   <Monitor className="w-4 h-4" />
                   Креативы
                 </h3>
@@ -632,7 +632,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                       href={link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors bg-white/5 rounded-lg p-3"
+                      className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors bg-muted rounded-lg p-3"
                       data-testid={`link-creative-${i}`}
                     >
                       <ExternalLink className="w-4 h-4" />

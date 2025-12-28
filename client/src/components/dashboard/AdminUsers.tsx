@@ -129,7 +129,7 @@ export function AdminUsers() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Users className="w-6 h-6" />
             Пользователи
             {pendingCount > 0 && (
@@ -138,71 +138,71 @@ export function AdminUsers() {
               </Badge>
             )}
           </h1>
-          <p className="text-slate-400 mt-1">Управление рекламодателями и партнёрами</p>
+          <p className="text-muted-foreground mt-1">Управление рекламодателями и партнёрами</p>
         </div>
       </div>
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-blue-400" />
-                <span className="text-slate-400 text-sm">Рекламодатели</span>
+                <span className="text-muted-foreground text-sm">Рекламодатели</span>
               </div>
-              <div className="text-2xl font-bold text-white mt-1">{stats.totalAdvertisers}</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{stats.totalAdvertisers}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-yellow-400" />
-                <span className="text-slate-400 text-sm">Ожидают</span>
+                <span className="text-muted-foreground text-sm">Ожидают</span>
               </div>
               <div className="text-2xl font-bold text-yellow-400 mt-1">{stats.pendingAdvertisers}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-emerald-400" />
-                <span className="text-slate-400 text-sm">Партнёры</span>
+                <span className="text-muted-foreground text-sm">Партнёры</span>
               </div>
-              <div className="text-2xl font-bold text-white mt-1">{stats.totalPublishers}</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{stats.totalPublishers}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-purple-400" />
-                <span className="text-slate-400 text-sm">Офферы</span>
+                <span className="text-muted-foreground text-sm">Офферы</span>
               </div>
-              <div className="text-2xl font-bold text-white mt-1">{stats.totalOffers}</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{stats.totalOffers}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-cyan-400" />
-                <span className="text-slate-400 text-sm">Клики</span>
+                <span className="text-muted-foreground text-sm">Клики</span>
               </div>
-              <div className="text-2xl font-bold text-white mt-1">{stats.totalClicks}</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{stats.totalClicks}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-green-400" />
-                <span className="text-slate-400 text-sm">Конверсии</span>
+                <span className="text-muted-foreground text-sm">Конверсии</span>
               </div>
-              <div className="text-2xl font-bold text-white mt-1">{stats.totalConversions}</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{stats.totalConversions}</div>
             </CardContent>
           </Card>
         </div>
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-[#0A0A0A] border border-white/10 gap-2 p-1">
+        <TabsList className="bg-card border border-border gap-2 p-1">
           <TabsTrigger value="advertisers" className="px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Building2 className="w-4 h-4 mr-2 text-blue-400" />
             Рекламодатели
@@ -217,25 +217,25 @@ export function AdminUsers() {
         </TabsList>
 
         <TabsContent value="advertisers" className="mt-4">
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardHeader>
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     data-testid="input-search-advertisers"
                     placeholder="Поиск по имени или email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 bg-white/5 border-white/10"
+                    className="pl-10 bg-muted border-border"
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger data-testid="select-status-filter" className="w-48 bg-white/5 border-white/10">
+                  <SelectTrigger data-testid="select-status-filter" className="w-48 bg-muted border-border">
                     <Filter className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Статус" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1A1A] border-white/10">
+                  <SelectContent className="bg-[#1A1A1A] border-border">
                     <SelectItem value="all">Все статусы</SelectItem>
                     <SelectItem value="pending">Ожидают</SelectItem>
                     <SelectItem value="active">Активные</SelectItem>
@@ -247,38 +247,38 @@ export function AdminUsers() {
             <CardContent>
               {usersLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : advertisers.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
+                <div className="text-center py-8 text-muted-foreground">
                   Рекламодатели не найдены
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Пользователь</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Email</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Статус</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Регистрация</th>
-                        <th className="text-right py-3 px-4 text-slate-400 font-medium text-sm">Действия</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Пользователь</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Email</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Статус</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Регистрация</th>
+                        <th className="text-right py-3 px-4 text-muted-foreground font-medium text-sm">Действия</th>
                       </tr>
                     </thead>
                     <tbody>
                       {advertisers.map((user) => (
-                        <tr key={user.id} data-testid={`row-advertiser-${user.id}`} className="border-b border-white/5 hover:bg-white/5">
+                        <tr key={user.id} data-testid={`row-advertiser-${user.id}`} className="border-b border-white/5 hover:bg-muted">
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
                                 <Building2 className="w-4 h-4 text-blue-400" />
                               </div>
-                              <span className="text-white font-medium">{user.username}</span>
+                              <span className="text-foreground font-medium">{user.username}</span>
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-slate-400">{user.email}</td>
+                          <td className="py-3 px-4 text-muted-foreground">{user.email}</td>
                           <td className="py-3 px-4">{statusBadge(user.status)}</td>
-                          <td className="py-3 px-4 text-slate-400 text-sm">
+                          <td className="py-3 px-4 text-muted-foreground text-sm">
                             {new Date(user.createdAt).toLocaleDateString('ru-RU')}
                           </td>
                           <td className="py-3 px-4">
@@ -332,64 +332,64 @@ export function AdminUsers() {
         </TabsContent>
 
         <TabsContent value="publishers" className="mt-4">
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardHeader>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   data-testid="input-search-publishers"
                   placeholder="Поиск по имени, email или рекламодателю..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10"
+                  className="pl-10 bg-muted border-border"
                 />
               </div>
             </CardHeader>
             <CardContent>
               {publishersLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : filteredPublishers.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
+                <div className="text-center py-8 text-muted-foreground">
                   Партнёры не найдены
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Партнёр</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Email</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Рекламодатель</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Статус</th>
-                        <th className="text-left py-3 px-4 text-slate-400 font-medium text-sm">Регистрация</th>
-                        <th className="text-right py-3 px-4 text-slate-400 font-medium text-sm">Действия</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Партнёр</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Email</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Рекламодатель</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Статус</th>
+                        <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Регистрация</th>
+                        <th className="text-right py-3 px-4 text-muted-foreground font-medium text-sm">Действия</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredPublishers.map((pub) => (
-                        <tr key={pub.id} data-testid={`row-publisher-${pub.id}`} className="border-b border-white/5 hover:bg-white/5">
+                        <tr key={pub.id} data-testid={`row-publisher-${pub.id}`} className="border-b border-white/5 hover:bg-muted">
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
                                 <User className="w-4 h-4 text-emerald-400" />
                               </div>
-                              <span className="text-white font-medium">{pub.username}</span>
+                              <span className="text-foreground font-medium">{pub.username}</span>
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-slate-400">{pub.email}</td>
+                          <td className="py-3 px-4 text-muted-foreground">{pub.email}</td>
                           <td className="py-3 px-4">
                             {pub.advertiserName ? (
                               <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
                                 {pub.advertiserName}
                               </Badge>
                             ) : (
-                              <span className="text-slate-500">—</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </td>
                           <td className="py-3 px-4">{statusBadge(pub.status)}</td>
-                          <td className="py-3 px-4 text-slate-400 text-sm">
+                          <td className="py-3 px-4 text-muted-foreground text-sm">
                             {new Date(pub.createdAt).toLocaleDateString('ru-RU')}
                           </td>
                           <td className="py-3 px-4">

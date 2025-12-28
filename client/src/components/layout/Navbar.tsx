@@ -34,7 +34,7 @@ export function Navbar() {
         
         {/* Brand - Tech/Terminal Style */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-white font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
+          <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-foreground font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
             PT
           </div>
           <span className="font-bold text-lg tracking-tight text-foreground group-hover:text-emerald-400 transition-colors font-mono">
@@ -74,7 +74,7 @@ export function Navbar() {
             </Button>
           </Link>
           
-          <Button size="sm" className="h-8 bg-white text-black hover:bg-slate-200 text-xs font-bold font-mono px-4 rounded-sm">
+          <Button size="sm" className="h-8 bg-white text-black hover:bg-muted text-xs font-bold font-mono px-4 rounded-sm">
              GET_STARTED <ArrowRight className="w-3 h-3 ml-2" />
           </Button>
         </div>
@@ -92,7 +92,7 @@ export function Navbar() {
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-b border-border p-4 shadow-xl flex flex-col gap-4">
           <a href="#features" className="text-sm font-mono text-muted-foreground py-2">Features</a>
           <a href="#pricing" className="text-sm font-mono text-muted-foreground py-2">Pricing</a>
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-mono">ACCESS PORTAL</Button>
+          <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-foreground font-mono">ACCESS PORTAL</Button>
         </div>
       )}
     </nav>

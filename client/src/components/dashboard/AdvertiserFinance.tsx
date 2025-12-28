@@ -27,7 +27,7 @@ const PAYMENT_TYPES = [
   { value: "crypto_usdt_bep20", label: "USDT BEP20", icon: Bitcoin, color: "text-yellow-400" },
   { value: "crypto_btc", label: "Bitcoin (BTC)", icon: Bitcoin, color: "text-orange-500" },
   { value: "crypto_eth", label: "Ethereum (ETH)", icon: Bitcoin, color: "text-purple-400" },
-  { value: "crypto_ltc", label: "Litecoin (LTC)", icon: Bitcoin, color: "text-slate-400" },
+  { value: "crypto_ltc", label: "Litecoin (LTC)", icon: Bitcoin, color: "text-muted-foreground" },
   { value: "bank_card", label: "Банковская карта", icon: CreditCard, color: "text-blue-500" },
   { value: "bank_transfer", label: "Банковский перевод", icon: CreditCard, color: "text-cyan-500" },
   { value: "binance", label: "Binance Pay", icon: Building2, color: "text-yellow-500" },
@@ -36,7 +36,7 @@ const PAYMENT_TYPES = [
   { value: "coinbase", label: "Coinbase", icon: Building2, color: "text-blue-400" },
   { value: "exmo", label: "EXMO", icon: Building2, color: "text-cyan-500" },
   { value: "mexc", label: "MEXC", icon: Building2, color: "text-teal-500" },
-  { value: "okx", label: "OKX", icon: Building2, color: "text-slate-400" },
+  { value: "okx", label: "OKX", icon: Building2, color: "text-muted-foreground" },
   { value: "paypal", label: "PayPal", icon: CreditCard, color: "text-blue-600" },
   { value: "webmoney", label: "WebMoney", icon: CreditCard, color: "text-blue-500" },
   { value: "capitalist", label: "Capitalist", icon: CreditCard, color: "text-red-500" },
@@ -268,63 +268,63 @@ export function AdvertiserFinance() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Финансы</h1>
-          <p className="text-slate-400 text-sm">Управление выплатами партнерам</p>
+          <h1 className="text-2xl font-bold text-foreground">Финансы</h1>
+          <p className="text-muted-foreground text-sm">Управление выплатами партнерам</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-pending-requests">
+        <Card className="bg-card border-border" data-testid="card-pending-requests">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-yellow-500" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Ожидает одобрения</p>
-                <p className="text-xl font-bold text-white" data-testid="text-pending-count">{pendingRequests.length}</p>
+                <p className="text-xs text-muted-foreground">Ожидает одобрения</p>
+                <p className="text-xl font-bold text-foreground" data-testid="text-pending-count">{pendingRequests.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-pending-amount">
+        <Card className="bg-card border-border" data-testid="card-pending-amount">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">К выплате (pending)</p>
-                <p className="text-xl font-bold text-white" data-testid="text-pending-amount">${totalPending.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">К выплате (pending)</p>
+                <p className="text-xl font-bold text-foreground" data-testid="text-pending-amount">${totalPending.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-total-owed">
+        <Card className="bg-card border-border" data-testid="card-total-owed">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
                 <AlertCircle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Общий долг</p>
-                <p className="text-xl font-bold text-white" data-testid="text-total-owed">${totalOwed.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Общий долг</p>
+                <p className="text-xl font-bold text-foreground" data-testid="text-total-owed">${totalOwed.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-active-partners">
+        <Card className="bg-card border-border" data-testid="card-active-partners">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                 <Users className="w-5 h-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Активных партнеров</p>
-                <p className="text-xl font-bold text-white" data-testid="text-active-partners">{publisherBalances.length}</p>
+                <p className="text-xs text-muted-foreground">Активных партнеров</p>
+                <p className="text-xl font-bold text-foreground" data-testid="text-active-partners">{publisherBalances.length}</p>
               </div>
             </div>
           </CardContent>
@@ -332,7 +332,7 @@ export function AdvertiserFinance() {
       </div>
 
       <Tabs defaultValue="requests" className="space-y-4">
-        <TabsList className="bg-[#0A0A0A] border border-white/10">
+        <TabsList className="bg-card border border-border">
           <TabsTrigger value="requests" data-testid="tab-requests" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
             <Send className="h-4 w-4 mr-1 text-yellow-500" />
             Запросы на выплату
@@ -365,28 +365,28 @@ export function AdvertiserFinance() {
         <TabsContent value="requests" className="space-y-4">
           {requestsLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : payoutRequests.length === 0 ? (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="py-12 text-center">
-                <Wallet className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">Нет запросов на выплату</p>
+                <Wallet className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Нет запросов на выплату</p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
               {/* Mass Payout Panel */}
               {approvedRequests.length > 0 && (
-                <Card className="bg-[#0A0A0A] border-emerald-500/30">
+                <Card className="bg-card border-emerald-500/30">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <CheckSquare className="w-5 h-5 text-emerald-500" />
                         <div>
-                          <p className="text-sm text-white">Одобренных к выплате: <span className="font-bold">{approvedRequests.length}</span></p>
+                          <p className="text-sm text-foreground">Одобренных к выплате: <span className="font-bold">{approvedRequests.length}</span></p>
                           {selectedRequestIds.length > 0 && (
-                            <p className="text-xs text-slate-400">Выбрано: {selectedRequestIds.length} на сумму ${selectedTotal.toFixed(2)}</p>
+                            <p className="text-xs text-muted-foreground">Выбрано: {selectedRequestIds.length} на сумму ${selectedTotal.toFixed(2)}</p>
                           )}
                         </div>
                       </div>
@@ -415,7 +415,7 @@ export function AdvertiserFinance() {
               )}
               
               {payoutRequests.map((request: any) => (
-                <Card key={request.id} className="bg-[#0A0A0A] border-white/10" data-testid={`card-request-${request.id}`}>
+                <Card key={request.id} className="bg-card border-border" data-testid={`card-request-${request.id}`}>
                   <CardContent className="p-4">
                     <div className="flex flex-col gap-4">
                       <div className="flex items-center justify-between">
@@ -432,10 +432,10 @@ export function AdvertiserFinance() {
                             {request.publisherName?.slice(0, 2).toUpperCase() || "??"}
                           </div>
                           <div>
-                            <p className="font-medium text-white" data-testid={`text-publisher-name-${request.id}`}>{request.publisherName || `Publisher #${request.publisherId?.slice(0, 8)}`}</p>
-                            <p className="text-xs text-slate-400">{request.publisherEmail}</p>
-                            <p className="text-sm text-slate-400">
-                              Запрошено: <span className="text-white font-mono" data-testid={`text-request-amount-${request.id}`}>${request.requestedAmount}</span>
+                            <p className="font-medium text-foreground" data-testid={`text-publisher-name-${request.id}`}>{request.publisherName || `Publisher #${request.publisherId?.slice(0, 8)}`}</p>
+                            <p className="text-xs text-muted-foreground">{request.publisherEmail}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Запрошено: <span className="text-foreground font-mono" data-testid={`text-request-amount-${request.id}`}>${request.requestedAmount}</span>
                             </p>
                           </div>
                         </div>
@@ -459,17 +459,17 @@ export function AdvertiserFinance() {
                       </div>
                       
                       {/* Payment Requisites */}
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                        <p className="text-xs text-slate-400 mb-2">Реквизиты для выплаты:</p>
+                      <div className="p-3 bg-muted rounded-lg border border-border">
+                        <p className="text-xs text-muted-foreground mb-2">Реквизиты для выплаты:</p>
                         <div className="flex items-center gap-2 mb-1">
                           <Badge variant="outline" className="text-xs">{request.methodName || request.methodType}</Badge>
                         </div>
-                        <p className="font-mono text-sm text-white break-all" data-testid={`text-wallet-address-${request.id}`}>{request.walletAddress}</p>
+                        <p className="font-mono text-sm text-foreground break-all" data-testid={`text-wallet-address-${request.id}`}>{request.walletAddress}</p>
                         {request.walletAccountName && (
-                          <p className="text-xs text-slate-400 mt-1">Имя: {request.walletAccountName}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Имя: {request.walletAccountName}</p>
                         )}
                         {request.walletAdditionalInfo && (
-                          <p className="text-xs text-slate-400">Доп. инфо: {request.walletAdditionalInfo}</p>
+                          <p className="text-xs text-muted-foreground">Доп. инфо: {request.walletAdditionalInfo}</p>
                         )}
                       </div>
 
@@ -491,7 +491,7 @@ export function AdvertiserFinance() {
                                   Частично
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="bg-[#0A0A0A] border-white/10">
+                              <DialogContent className="bg-card border-border">
                                 <DialogHeader>
                                   <DialogTitle>Частичное одобрение</DialogTitle>
                                 </DialogHeader>
@@ -503,10 +503,10 @@ export function AdvertiserFinance() {
                                       value={approveAmount}
                                       onChange={(e) => setApproveAmount(e.target.value)}
                                       max={request.requestedAmount}
-                                      className="bg-[#111] border-white/10"
+                                      className="bg-[#111] border-border"
                                       data-testid="input-partial-amount"
                                     />
-                                    <p className="text-xs text-slate-400 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                       Запрошено: ${request.requestedAmount}
                                     </p>
                                   </div>
@@ -526,7 +526,7 @@ export function AdvertiserFinance() {
                                   <X className="w-4 h-4" />
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="bg-[#0A0A0A] border-white/10">
+                              <DialogContent className="bg-card border-border">
                                 <DialogHeader>
                                   <DialogTitle>Отклонить запрос</DialogTitle>
                                 </DialogHeader>
@@ -536,7 +536,7 @@ export function AdvertiserFinance() {
                                     <Textarea
                                       value={rejectReason}
                                       onChange={(e) => setRejectReason(e.target.value)}
-                                      className="bg-[#111] border-white/10"
+                                      className="bg-[#111] border-border"
                                       placeholder="Укажите причину..."
                                       data-testid="input-reject-reason"
                                     />
@@ -563,14 +563,14 @@ export function AdvertiserFinance() {
                                 Выплатить
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="bg-[#0A0A0A] border-white/10">
+                            <DialogContent className="bg-card border-border">
                               <DialogHeader>
                                 <DialogTitle>Подтверждение выплаты</DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <div className="p-4 bg-white/5 rounded-lg">
-                                  <p className="text-sm text-slate-400">Сумма</p>
-                                  <p className="text-2xl font-bold text-white" data-testid="text-pay-amount">
+                                <div className="p-4 bg-muted rounded-lg">
+                                  <p className="text-sm text-muted-foreground">Сумма</p>
+                                  <p className="text-2xl font-bold text-foreground" data-testid="text-pay-amount">
                                     ${request.approvedAmount || request.requestedAmount}
                                   </p>
                                 </div>
@@ -579,7 +579,7 @@ export function AdvertiserFinance() {
                                   <Input
                                     value={transactionId}
                                     onChange={(e) => setTransactionId(e.target.value)}
-                                    className="bg-[#111] border-white/10"
+                                    className="bg-[#111] border-border"
                                     placeholder="TX hash или номер перевода"
                                     data-testid="input-transaction-id"
                                   />
@@ -607,20 +607,20 @@ export function AdvertiserFinance() {
         <TabsContent value="balances" className="space-y-4">
           {balancesLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : publisherBalances.length === 0 ? (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="py-12 text-center">
-                <Users className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">Нет активных партнеров</p>
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Нет активных партнеров</p>
               </CardContent>
             </Card>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 text-slate-400">
+                  <tr className="border-b border-border text-muted-foreground">
                     <th className="text-left py-3 px-4">Партнер</th>
                     <th className="text-right py-3 px-4">Доступно</th>
                     <th className="text-right py-3 px-4">В ожидании</th>
@@ -631,11 +631,11 @@ export function AdvertiserFinance() {
                 </thead>
                 <tbody>
                   {publisherBalances.map((balance: any) => (
-                    <tr key={balance.publisherId} className="border-b border-white/5 hover:bg-white/5">
+                    <tr key={balance.publisherId} className="border-b border-white/5 hover:bg-muted">
                       <td className="py-3 px-4">
                         <div>
-                          <p className="font-medium text-white">{balance.publisherName}</p>
-                          <p className="text-xs text-slate-400">{balance.publisherEmail}</p>
+                          <p className="font-medium text-foreground">{balance.publisherName}</p>
+                          <p className="text-xs text-muted-foreground">{balance.publisherEmail}</p>
                         </div>
                       </td>
                       <td className="text-right py-3 px-4 font-mono text-emerald-500">
@@ -644,16 +644,16 @@ export function AdvertiserFinance() {
                       <td className="text-right py-3 px-4 font-mono text-yellow-500">
                         ${balance.pending.toFixed(2)}
                       </td>
-                      <td className="text-right py-3 px-4 font-mono text-slate-400">
+                      <td className="text-right py-3 px-4 font-mono text-muted-foreground">
                         ${balance.hold.toFixed(2)}
                       </td>
-                      <td className="text-right py-3 px-4 font-mono text-white">
+                      <td className="text-right py-3 px-4 font-mono text-foreground">
                         ${balance.totalPaid.toFixed(2)}
                       </td>
                       <td className="text-right py-3 px-4">
                         <Button 
                           size="sm" 
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-foreground font-semibold"
                           onClick={() => {
                             setBonusPublisherId(balance.publisherId);
                             setShowBonusDialog(true);
@@ -681,7 +681,7 @@ export function AdvertiserFinance() {
                   Добавить способ оплаты
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#0A0A0A] border-white/10">
+              <DialogContent className="bg-card border-border">
                 <DialogHeader>
                   <DialogTitle>Новый способ оплаты</DialogTitle>
                 </DialogHeader>
@@ -689,7 +689,7 @@ export function AdvertiserFinance() {
                   <div>
                     <Label>Тип</Label>
                     <Select name="methodType" required>
-                      <SelectTrigger className="bg-[#111] border-white/10" data-testid="select-method-type">
+                      <SelectTrigger className="bg-[#111] border-border" data-testid="select-method-type">
                         <SelectValue placeholder="Выберите тип" />
                       </SelectTrigger>
                       <SelectContent>
@@ -709,14 +709,14 @@ export function AdvertiserFinance() {
                     <Input
                       name="methodName"
                       required
-                      className="bg-[#111] border-white/10"
+                      className="bg-[#111] border-border"
                       placeholder="Например: USDT TRC20"
                     />
                   </div>
                   <div>
                     <Label>Валюта</Label>
                     <Select name="currency" required>
-                      <SelectTrigger className="bg-[#111] border-white/10">
+                      <SelectTrigger className="bg-[#111] border-border">
                         <SelectValue placeholder="Выберите валюту" />
                       </SelectTrigger>
                       <SelectContent>
@@ -735,7 +735,7 @@ export function AdvertiserFinance() {
                         name="minPayout"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-white/10"
+                        className="bg-[#111] border-border"
                         placeholder="50"
                       />
                     </div>
@@ -745,7 +745,7 @@ export function AdvertiserFinance() {
                         name="maxPayout"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-white/10"
+                        className="bg-[#111] border-border"
                         placeholder="10000"
                       />
                     </div>
@@ -757,7 +757,7 @@ export function AdvertiserFinance() {
                         name="feePercent"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-white/10"
+                        className="bg-[#111] border-border"
                         placeholder="0"
                       />
                     </div>
@@ -767,7 +767,7 @@ export function AdvertiserFinance() {
                         name="feeFixed"
                         type="number"
                         step="0.01"
-                        className="bg-[#111] border-white/10"
+                        className="bg-[#111] border-border"
                         placeholder="0"
                       />
                     </div>
@@ -776,7 +776,7 @@ export function AdvertiserFinance() {
                     <Label>Инструкции</Label>
                     <Textarea
                       name="instructions"
-                      className="bg-[#111] border-white/10"
+                      className="bg-[#111] border-border"
                       placeholder="Инструкции для партнеров..."
                     />
                   </div>
@@ -798,13 +798,13 @@ export function AdvertiserFinance() {
 
           {methodsLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : paymentMethods.length === 0 ? (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="py-12 text-center">
-                <CreditCard className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">Добавьте способы оплаты для партнеров</p>
+                <CreditCard className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Добавьте способы оплаты для партнеров</p>
               </CardContent>
             </Card>
           ) : (
@@ -813,22 +813,22 @@ export function AdvertiserFinance() {
                 const typeInfo = PAYMENT_TYPES.find((t) => t.value === method.methodType);
                 const Icon = typeInfo?.icon || Wallet;
                 return (
-                  <Card key={method.id} className="bg-[#0A0A0A] border-white/10">
+                  <Card key={method.id} className="bg-card border-border">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center`}>
-                            <Icon className={`w-5 h-5 ${typeInfo?.color || "text-slate-400"}`} />
+                            <Icon className={`w-5 h-5 ${typeInfo?.color || "text-muted-foreground"}`} />
                           </div>
                           <div>
-                            <p className="font-medium text-white">{method.methodName}</p>
-                            <p className="text-xs text-slate-400">{method.currency}</p>
+                            <p className="font-medium text-foreground">{method.methodName}</p>
+                            <p className="text-xs text-muted-foreground">{method.currency}</p>
                           </div>
                         </div>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 text-slate-400 hover:text-red-500"
+                          className="h-8 w-8 text-muted-foreground hover:text-red-500"
                           onClick={() => deleteMethodMutation.mutate(method.id)}
                           data-testid={`button-delete-method-${method.id}`}
                         >
@@ -837,19 +837,19 @@ export function AdvertiserFinance() {
                       </div>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Мин. выплата</span>
-                          <span className="text-white">${method.minPayout}</span>
+                          <span className="text-muted-foreground">Мин. выплата</span>
+                          <span className="text-foreground">${method.minPayout}</span>
                         </div>
                         {method.maxPayout && (
                           <div className="flex justify-between">
-                            <span className="text-slate-400">Макс. выплата</span>
-                            <span className="text-white">${method.maxPayout}</span>
+                            <span className="text-muted-foreground">Макс. выплата</span>
+                            <span className="text-foreground">${method.maxPayout}</span>
                           </div>
                         )}
                         {(parseFloat(method.feePercent) > 0 || parseFloat(method.feeFixed) > 0) && (
                           <div className="flex justify-between">
-                            <span className="text-slate-400">Комиссия</span>
-                            <span className="text-white">
+                            <span className="text-muted-foreground">Комиссия</span>
+                            <span className="text-foreground">
                               {method.feePercent}% + ${method.feeFixed}
                             </span>
                           </div>
@@ -866,20 +866,20 @@ export function AdvertiserFinance() {
         <TabsContent value="history" className="space-y-4">
           {payoutsLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : payouts.length === 0 ? (
-            <Card className="bg-[#0A0A0A] border-white/10">
+            <Card className="bg-card border-border">
               <CardContent className="py-12 text-center">
-                <DollarSign className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">История выплат пуста</p>
+                <DollarSign className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">История выплат пуста</p>
               </CardContent>
             </Card>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 text-slate-400">
+                  <tr className="border-b border-border text-muted-foreground">
                     <th className="text-left py-3 px-4">Дата</th>
                     <th className="text-left py-3 px-4">Партнер</th>
                     <th className="text-left py-3 px-4">Тип</th>
@@ -891,11 +891,11 @@ export function AdvertiserFinance() {
                 </thead>
                 <tbody>
                   {payouts.map((payout: any) => (
-                    <tr key={payout.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="py-3 px-4 text-slate-400 font-mono text-xs">
+                    <tr key={payout.id} className="border-b border-white/5 hover:bg-muted">
+                      <td className="py-3 px-4 text-muted-foreground font-mono text-xs">
                         {new Date(payout.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4 text-white">
+                      <td className="py-3 px-4 text-foreground">
                         #{payout.publisherId?.slice(0, 8)}
                       </td>
                       <td className="py-3 px-4">
@@ -905,13 +905,13 @@ export function AdvertiserFinance() {
                               ? "bg-purple-500/20 text-purple-500"
                               : payout.payoutType === "auto"
                               ? "bg-blue-500/20 text-blue-500"
-                              : "bg-slate-500/20 text-slate-400"
+                              : "bg-muted text-muted-foreground"
                           }
                         >
                           {payout.payoutType}
                         </Badge>
                       </td>
-                      <td className="text-right py-3 px-4 font-mono text-white">
+                      <td className="text-right py-3 px-4 font-mono text-foreground">
                         ${payout.amount}
                       </td>
                       <td className="text-right py-3 px-4 font-mono text-red-400">
@@ -934,13 +934,13 @@ export function AdvertiserFinance() {
         </TabsContent>
 
         <TabsContent value="api-keys" className="space-y-4">
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Shield className="h-5 w-5 text-orange-500" />
                 API ключи криптобирж
               </CardTitle>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 Добавьте API ключи ваших биржевых аккаунтов для автоматических выплат.
                 Ключи хранятся в зашифрованном виде.
               </p>
@@ -968,14 +968,14 @@ export function AdvertiserFinance() {
                           <Building2 className={`w-5 h-5 text-${colorClass}`} />
                         </div>
                         <div>
-                          <p className="font-medium text-white">{exchange.name}</p>
-                          <p className="text-xs text-slate-400">
+                          <p className="font-medium text-foreground">{exchange.name}</p>
+                          <p className="text-xs text-muted-foreground">
                             {hasKeys ? (
                               <span className="text-emerald-500 flex items-center gap-1">
                                 <Check className="w-3 h-3" /> Ключи настроены
                               </span>
                             ) : (
-                              <span className="text-slate-500">Ключи не настроены</span>
+                              <span className="text-muted-foreground">Ключи не настроены</span>
                             )}
                           </p>
                         </div>
@@ -1004,9 +1004,9 @@ export function AdvertiserFinance() {
                     </div>
                     
                     {showForm && (
-                      <div className="space-y-3 pt-3 border-t border-white/10">
+                      <div className="space-y-3 pt-3 border-t border-border">
                         <div>
-                          <Label className="text-slate-400">API Key</Label>
+                          <Label className="text-muted-foreground">API Key</Label>
                           <Input
                             type="text"
                             value={inputs.apiKey}
@@ -1015,12 +1015,12 @@ export function AdvertiserFinance() {
                               [exchange.key]: { ...inputs, apiKey: e.target.value } 
                             }))}
                             placeholder="Введите API Key"
-                            className="bg-[#111] border-white/10 font-mono text-sm"
+                            className="bg-[#111] border-border font-mono text-sm"
                             data-testid={`input-${exchange.key}-api-key`}
                           />
                         </div>
                         <div>
-                          <Label className="text-slate-400">Secret Key</Label>
+                          <Label className="text-muted-foreground">Secret Key</Label>
                           <Input
                             type="password"
                             value={inputs.secretKey}
@@ -1029,13 +1029,13 @@ export function AdvertiserFinance() {
                               [exchange.key]: { ...inputs, secretKey: e.target.value } 
                             }))}
                             placeholder="Введите Secret Key"
-                            className="bg-[#111] border-white/10 font-mono text-sm"
+                            className="bg-[#111] border-border font-mono text-sm"
                             data-testid={`input-${exchange.key}-secret-key`}
                           />
                         </div>
                         {exchange.requiresPassphrase && (
                           <div>
-                            <Label className="text-slate-400">Passphrase (обязательно для OKX)</Label>
+                            <Label className="text-muted-foreground">Passphrase (обязательно для OKX)</Label>
                             <Input
                               type="password"
                               value={inputs.passphrase || ""}
@@ -1044,7 +1044,7 @@ export function AdvertiserFinance() {
                                 [exchange.key]: { ...inputs, passphrase: e.target.value } 
                               }))}
                               placeholder="Введите Passphrase"
-                              className="bg-[#111] border-white/10 font-mono text-sm"
+                              className="bg-[#111] border-border font-mono text-sm"
                               data-testid={`input-${exchange.key}-passphrase`}
                             />
                           </div>
@@ -1090,13 +1090,13 @@ export function AdvertiserFinance() {
         </TabsContent>
 
         <TabsContent value="instructions" className="space-y-6">
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <BookOpen className="h-6 w-6 text-blue-500" />
                 Руководство по работе с финансами
               </CardTitle>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 Полная инструкция по настройке платежей, выплат и работе с партнёрами
               </p>
             </CardHeader>
@@ -1109,10 +1109,10 @@ export function AdvertiserFinance() {
                       <CreditCard className="w-5 h-5" />
                       1. Способы оплаты (Рекламодатель)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Что это:</strong> Способы оплаты — это методы, которыми вы будете выплачивать деньги партнёрам.</p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Что это:</strong> Способы оплаты — это методы, которыми вы будете выплачивать деньги партнёрам.</p>
                       <div className="space-y-2">
-                        <p className="text-white font-medium">Как добавить способ оплаты:</p>
+                        <p className="text-foreground font-medium">Как добавить способ оплаты:</p>
                         <ol className="list-decimal list-inside space-y-1 ml-2">
                           <li>Перейдите на вкладку <Badge className="bg-yellow-500/20 text-yellow-500">Финансы</Badge></li>
                           <li>Нажмите кнопку <Badge className="bg-emerald-500/20 text-emerald-500">+ Способ оплаты</Badge></li>
@@ -1133,8 +1133,8 @@ export function AdvertiserFinance() {
                       <Send className="w-5 h-5" />
                       2. Запросы на выплату (Рекламодатель)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Процесс обработки запросов:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Процесс обработки запросов:</strong></p>
                       <ol className="list-decimal list-inside space-y-2 ml-2">
                         <li><strong>Новый запрос</strong> — партнёр создаёт запрос на выплату</li>
                         <li><strong>Рассмотрение</strong> — вы видите запрос во вкладке "Запросы на выплату"</li>
@@ -1157,8 +1157,8 @@ export function AdvertiserFinance() {
                       <CheckSquare className="w-5 h-5" />
                       3. Массовые выплаты (Рекламодатель)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Для обработки нескольких запросов сразу:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Для обработки нескольких запросов сразу:</strong></p>
                       <ol className="list-decimal list-inside space-y-2 ml-2">
                         <li>Отметьте галочками нужные запросы в списке</li>
                         <li>Нажмите кнопку <Badge className="bg-purple-500/20 text-purple-500">Массовая выплата</Badge></li>
@@ -1176,8 +1176,8 @@ export function AdvertiserFinance() {
                       <DollarSign className="w-5 h-5" />
                       4. Бонусные выплаты (Рекламодатель)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Как начислить бонус партнёру:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Как начислить бонус партнёру:</strong></p>
                       <ol className="list-decimal list-inside space-y-2 ml-2">
                         <li>Перейдите во вкладку <Badge className="bg-emerald-500/20 text-emerald-500">Балансы партнёров</Badge></li>
                         <li>Найдите нужного партнёра</li>
@@ -1197,8 +1197,8 @@ export function AdvertiserFinance() {
                       <Key className="w-5 h-5" />
                       5. API ключи бирж (Рекламодатель)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Для автоматических криптовыплат:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Для автоматических криптовыплат:</strong></p>
                       <ol className="list-decimal list-inside space-y-2 ml-2">
                         <li>Перейдите на вкладку <Badge className="bg-orange-500/20 text-orange-500">API ключи бирж</Badge></li>
                         <li>Выберите биржу (Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX)</li>
@@ -1210,7 +1210,7 @@ export function AdvertiserFinance() {
                         <p className="text-red-400"><AlertCircle className="w-4 h-4 inline mr-1" /> <strong>ВАЖНО:</strong> Создавайте API ключи ТОЛЬКО с правами на вывод (Withdraw). Никогда не давайте права на торговлю!</p>
                       </div>
                       <div className="mt-3 space-y-2">
-                        <p className="text-white font-medium">Как создать API ключ на бирже:</p>
+                        <p className="text-foreground font-medium">Как создать API ключ на бирже:</p>
                         <ul className="list-disc list-inside ml-2 space-y-1">
                           <li><strong>Binance:</strong> Настройки → API Management → Создать API → Включить только Withdraw</li>
                           <li><strong>Bybit:</strong> Аккаунт → API → Создать ключ → Выбрать Withdraw Only</li>
@@ -1220,7 +1220,7 @@ export function AdvertiserFinance() {
                     </div>
                   </section>
 
-                  <div className="border-t border-white/10 pt-6 mt-6">
+                  <div className="border-t border-border pt-6 mt-6">
                     <h2 className="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
                       <Users className="w-6 h-6" />
                       Инструкция для партнёров (Publisher)
@@ -1232,8 +1232,8 @@ export function AdvertiserFinance() {
                       <Wallet className="w-5 h-5" />
                       6. Привязка кошелька (Партнёр)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Как добавить кошелёк для выплат:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Как добавить кошелёк для выплат:</strong></p>
                       <ol className="list-decimal list-inside space-y-2 ml-2">
                         <li>Перейдите в раздел <Badge className="bg-emerald-500/20 text-emerald-500">Финансы</Badge></li>
                         <li>Нажмите <Badge className="bg-emerald-500/20 text-emerald-500">+ Добавить кошелёк</Badge></li>
@@ -1253,8 +1253,8 @@ export function AdvertiserFinance() {
                       <Send className="w-5 h-5" />
                       7. Запрос на выплату (Партнёр)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Как запросить выплату:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Как запросить выплату:</strong></p>
                       <ol className="list-decimal list-inside space-y-2 ml-2">
                         <li>Убедитесь, что у вас есть доступный баланс</li>
                         <li>Проверьте, что кошелёк привязан и верифицирован</li>
@@ -1265,7 +1265,7 @@ export function AdvertiserFinance() {
                         <li>Отправьте запрос</li>
                       </ol>
                       <div className="mt-3 space-y-2">
-                        <p className="text-white font-medium">Статусы запроса:</p>
+                        <p className="text-foreground font-medium">Статусы запроса:</p>
                         <ul className="space-y-1 ml-2">
                           <li><Badge className="bg-yellow-500/20 text-yellow-500">pending</Badge> — ожидает рассмотрения</li>
                           <li><Badge className="bg-emerald-500/20 text-emerald-500">approved</Badge> — одобрен</li>
@@ -1277,15 +1277,15 @@ export function AdvertiserFinance() {
                   </section>
 
                   <section className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-400 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
                       <Clock className="w-5 h-5" />
                       8. Hold период (Общее)
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                      <p><strong className="text-white">Что такое Hold:</strong></p>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Что такое Hold:</strong></p>
                       <p>Hold период — это время, в течение которого заработок партнёра заморожен и недоступен для вывода.</p>
                       <div className="mt-3 space-y-2">
-                        <p className="text-white font-medium">Как это работает:</p>
+                        <p className="text-foreground font-medium">Как это работает:</p>
                         <ul className="list-disc list-inside ml-2 space-y-1">
                           <li>Рекламодатель устанавливает Hold для каждого оффера (0-30 дней)</li>
                           <li>После конверсии деньги попадают в статус "Hold"</li>
@@ -1304,21 +1304,21 @@ export function AdvertiserFinance() {
                       <AlertCircle className="w-5 h-5" />
                       9. Частые вопросы
                     </h3>
-                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-4 text-sm text-slate-300">
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-4 text-sm text-muted-foreground">
                       <div>
-                        <p className="text-white font-medium">Почему я не могу вывести деньги?</p>
+                        <p className="text-foreground font-medium">Почему я не могу вывести деньги?</p>
                         <p className="mt-1">Проверьте: 1) Достаточно ли доступного баланса 2) Привязан ли кошелёк 3) Превышает ли сумма минимальный порог</p>
                       </div>
                       <div>
-                        <p className="text-white font-medium">Сколько ждать выплату?</p>
+                        <p className="text-foreground font-medium">Сколько ждать выплату?</p>
                         <p className="mt-1">Обычно рекламодатели обрабатывают запросы в течение 1-3 рабочих дней. Если автовыплаты настроены — мгновенно.</p>
                       </div>
                       <div>
-                        <p className="text-white font-medium">Что делать, если запрос отклонён?</p>
+                        <p className="text-foreground font-medium">Что делать, если запрос отклонён?</p>
                         <p className="mt-1">Свяжитесь с рекламодателем для уточнения причины. Возможно, нужно верифицировать кошелёк или дождаться окончания Hold.</p>
                       </div>
                       <div>
-                        <p className="text-white font-medium">Можно ли изменить адрес кошелька?</p>
+                        <p className="text-foreground font-medium">Можно ли изменить адрес кошелька?</p>
                         <p className="mt-1">Да, вы можете добавить новый кошелёк и сделать его основным. Старые запросы будут обработаны на указанный при создании адрес.</p>
                       </div>
                     </div>
@@ -1333,7 +1333,7 @@ export function AdvertiserFinance() {
 
       {/* Bonus Payout Dialog */}
       <Dialog open={showBonusDialog} onOpenChange={setShowBonusDialog}>
-        <DialogContent className="bg-[#0A0A0A] border-white/10">
+        <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-yellow-500" />
@@ -1346,13 +1346,13 @@ export function AdvertiserFinance() {
               <Input
                 value={publisherBalances.find((b: any) => b.publisherId === bonusPublisherId)?.publisherName || ""}
                 disabled
-                className="bg-[#111] border-white/10"
+                className="bg-[#111] border-border"
               />
             </div>
             <div>
               <Label>Способ оплаты</Label>
               <Select value={bonusMethodId} onValueChange={setBonusMethodId}>
-                <SelectTrigger className="bg-[#111] border-white/10" data-testid="select-bonus-method">
+                <SelectTrigger className="bg-[#111] border-border" data-testid="select-bonus-method">
                   <SelectValue placeholder="Выберите способ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1372,7 +1372,7 @@ export function AdvertiserFinance() {
                 value={bonusAmount}
                 onChange={(e) => setBonusAmount(e.target.value)}
                 placeholder="100.00"
-                className="bg-[#111] border-white/10"
+                className="bg-[#111] border-border"
                 data-testid="input-bonus-amount"
               />
             </div>
@@ -1382,7 +1382,7 @@ export function AdvertiserFinance() {
                 value={bonusNote}
                 onChange={(e) => setBonusNote(e.target.value)}
                 placeholder="За хорошую работу..."
-                className="bg-[#111] border-white/10"
+                className="bg-[#111] border-border"
                 data-testid="input-bonus-note"
               />
             </div>

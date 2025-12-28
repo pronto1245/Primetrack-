@@ -42,7 +42,7 @@ export function CountrySelector({ value, onChange, testId }: CountrySelectorProp
       <Button
         type="button"
         variant="outline"
-        className="w-full justify-between bg-[#0A0A0A] border-white/10 text-white hover:bg-white/5 h-8 text-sm font-mono"
+        className="w-full justify-between bg-card border-border text-foreground hover:bg-muted h-8 text-sm font-mono"
         onClick={() => setOpen(!open)}
         data-testid={testId}
       >
@@ -58,11 +58,11 @@ export function CountrySelector({ value, onChange, testId }: CountrySelectorProp
       </Button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-[#0A0A0A] border border-white/10 rounded-md shadow-lg">
-          <div className="p-2 border-b border-white/10">
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-md shadow-lg">
+          <div className="p-2 border-b border-border">
             <Input
               placeholder="Поиск по коду или названию..."
-              className="bg-white/5 border-white/10 text-white text-xs h-7"
+              className="bg-muted border-border text-foreground text-xs h-7"
               value={search}
               onChange={e => setSearch(e.target.value)}
               autoFocus
@@ -71,14 +71,14 @@ export function CountrySelector({ value, onChange, testId }: CountrySelectorProp
           </div>
           <div className="max-h-48 overflow-y-auto">
             {filteredCountries.length === 0 ? (
-              <div className="p-3 text-center text-slate-500 text-xs">Не найдено</div>
+              <div className="p-3 text-center text-muted-foreground text-xs">Не найдено</div>
             ) : (
               filteredCountries.map(country => (
                 <button
                   key={country.code}
                   type="button"
                   className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 transition-colors flex items-center gap-2 ${
-                    value === country.code ? "bg-blue-600/30 text-blue-400" : "text-slate-300"
+                    value === country.code ? "bg-blue-600/30 text-blue-400" : "text-muted-foreground"
                   }`}
                   onClick={() => {
                     onChange(country.code);
@@ -89,7 +89,7 @@ export function CountrySelector({ value, onChange, testId }: CountrySelectorProp
                 >
                   <span className="text-base">{getCountryFlag(country.code)}</span>
                   <span className="font-mono font-bold">{country.code}</span>
-                  <span className="text-slate-500">{country.name}</span>
+                  <span className="text-muted-foreground">{country.name}</span>
                 </button>
               ))
             )}
@@ -100,7 +100,7 @@ export function CountrySelector({ value, onChange, testId }: CountrySelectorProp
       {value && (
         <button
           type="button"
-          className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+          className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           onClick={() => onChange("")}
           data-testid={`${testId}-clear`}
         >

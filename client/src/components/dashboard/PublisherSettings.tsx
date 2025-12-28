@@ -569,13 +569,13 @@ function NotificationsTab() {
               <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                 <li>Нажмите «Получить код» ниже</li>
                 <li>Откройте бота рекламодателя в Telegram</li>
-                <li>Отправьте команду: <code className="bg-slate-800 px-1 rounded">/link ВАШ_КОД</code></li>
+                <li>Отправьте команду: <code className="bg-muted px-1 rounded">/link ВАШ_КОД</code></li>
               </ol>
             </div>
             
             {linkCode ? (
               <div className="flex items-center gap-2">
-                <code className="flex-1 bg-slate-800 px-4 py-2 rounded text-lg font-mono text-center">{linkCode}</code>
+                <code className="flex-1 bg-muted px-4 py-2 rounded text-lg font-mono text-center">{linkCode}</code>
                 <Button
                   variant="outline"
                   size="sm"

@@ -96,7 +96,7 @@ export function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -123,7 +123,7 @@ export function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Панель администратора</h1>
-          <p className="text-slate-400 text-sm">Общая статистика платформы</p>
+          <p className="text-muted-foreground text-sm">Общая статистика платформы</p>
         </div>
         <Button onClick={fetchData} variant="outline" size="sm" data-testid="button-refresh">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -136,7 +136,7 @@ export function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Доход платформы</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Доход платформы</p>
                 <p className="text-2xl font-bold text-foreground" data-testid="text-total-revenue">
                   {formatCurrency(platformStats?.totalRevenue)}
                 </p>
@@ -156,7 +156,7 @@ export function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Выплаты партнёрам</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Выплаты партнёрам</p>
                 <p className="text-2xl font-bold text-foreground" data-testid="text-total-payouts">
                   {formatCurrency(platformStats?.totalPayouts)}
                 </p>
@@ -175,7 +175,7 @@ export function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Всего конверсий</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Всего конверсий</p>
                 <p className="text-2xl font-bold text-foreground" data-testid="text-total-conversions">
                   {formatNumber(platformStats?.totalConversions)}
                 </p>
@@ -185,7 +185,7 @@ export function AdminDashboard() {
               </div>
             </div>
             <div className="mt-2 flex items-center text-xs">
-              <span className="text-slate-400">ROI: {safeNumber(platformStats?.avgROI).toFixed(1)}%</span>
+              <span className="text-muted-foreground">ROI: {safeNumber(platformStats?.avgROI).toFixed(1)}%</span>
             </div>
           </CardContent>
         </Card>
@@ -194,7 +194,7 @@ export function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Всего пользователей</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Всего пользователей</p>
                 <p className="text-2xl font-bold text-foreground" data-testid="text-total-users">
                   {formatNumber(adminStats?.totalUsers)}
                 </p>
@@ -203,7 +203,7 @@ export function AdminDashboard() {
                 <Users className="w-5 h-5 text-cyan-500" />
               </div>
             </div>
-            <div className="mt-2 flex items-center text-xs text-slate-400">
+            <div className="mt-2 flex items-center text-xs text-muted-foreground">
               <span>{safeNumber(platformStats?.activeAdvertisers)} адв. / {safeNumber(platformStats?.activePublishers)} парт.</span>
             </div>
           </CardContent>
@@ -213,7 +213,7 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-card border-border md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Target className="w-4 h-4" />
               Быстрые действия
             </CardTitle>
@@ -250,7 +250,7 @@ export function AdminDashboard() {
 
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4" />
               Распределение
             </CardTitle>
@@ -283,7 +283,7 @@ export function AdminDashboard() {
               {userDistribution.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 rounded" style={{ backgroundColor: COLORS[i] }} />
-                  <span className="text-slate-400">{item.name}: {item.value}</span>
+                  <span className="text-muted-foreground">{item.name}: {item.value}</span>
                 </div>
               ))}
             </div>
@@ -294,7 +294,7 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Building2 className="w-4 h-4" />
               Сводка платформы
             </CardTitle>
@@ -304,7 +304,7 @@ export function AdminDashboard() {
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Target className="w-5 h-5 text-orange-400" />
-                  <span className="text-sm text-slate-300">Всего офферов</span>
+                  <span className="text-sm text-muted-foreground">Всего офферов</span>
                 </div>
                 <span className="font-mono font-bold text-foreground" data-testid="text-total-offers">
                   {formatNumber(adminStats?.totalOffers)}
@@ -313,7 +313,7 @@ export function AdminDashboard() {
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <MousePointer2 className="w-5 h-5 text-blue-400" />
-                  <span className="text-sm text-slate-300">Всего кликов</span>
+                  <span className="text-sm text-muted-foreground">Всего кликов</span>
                 </div>
                 <span className="font-mono font-bold text-foreground" data-testid="text-total-clicks">
                   {formatNumber(adminStats?.totalClicks)}
@@ -322,7 +322,7 @@ export function AdminDashboard() {
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <UserCheck className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm text-slate-300">Всего конверсий</span>
+                  <span className="text-sm text-muted-foreground">Всего конверсий</span>
                 </div>
                 <span className="font-mono font-bold text-foreground" data-testid="text-admin-total-conversions">
                   {formatNumber(adminStats?.totalConversions)}
@@ -334,7 +334,7 @@ export function AdminDashboard() {
 
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4" />
               Новые пользователи
             </CardTitle>
@@ -358,7 +358,7 @@ export function AdminDashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">{user.username}</p>
-                      <p className="text-xs text-slate-500">{user.role}</p>
+                      <p className="text-xs text-muted-foreground">{user.role}</p>
                     </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded ${
@@ -370,7 +370,7 @@ export function AdminDashboard() {
                   </span>
                 </div>
               )) || (
-                <p className="text-center text-slate-500 py-4">Нет данных</p>
+                <p className="text-center text-muted-foreground py-4">Нет данных</p>
               )}
             </div>
           </CardContent>

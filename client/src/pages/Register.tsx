@@ -77,23 +77,23 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[310px] w-[310px] rounded-full bg-emerald-500 opacity-10 blur-[100px]" />
 
-      <Card className="w-full max-w-md bg-[#0A0A0A] border-white/10 relative z-10">
+      <Card className="w-full max-w-md bg-card border-border relative z-10">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-white">Create Account</CardTitle>
-          <CardDescription className="text-slate-400">
+          <CardTitle className="text-2xl font-bold text-foreground">Create Account</CardTitle>
+          <CardDescription className="text-muted-foreground">
             Register as a publisher to start earning
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {referralCode && (
-            <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+            <div className="p-4 rounded-lg border border-border bg-muted">
               {isValidating ? (
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Validating referral code...</span>
                 </div>
@@ -119,9 +119,9 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-slate-300">Username</Label>
+              <Label htmlFor="username" className="text-muted-foreground">Username</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="username"
                   data-testid="input-username"
@@ -129,15 +129,15 @@ export default function Register() {
                   placeholder="Enter username"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  className="pl-10 bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">Email</Label>
+              <Label htmlFor="email" className="text-muted-foreground">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   data-testid="input-email"
@@ -145,15 +145,15 @@ export default function Register() {
                   placeholder="Enter email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  className="pl-10 bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <Label htmlFor="password" className="text-muted-foreground">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
                   data-testid="input-password"
@@ -161,15 +161,15 @@ export default function Register() {
                   placeholder="Enter password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  className="pl-10 bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-slate-300">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-muted-foreground">Confirm Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="confirmPassword"
                   data-testid="input-confirm-password"
@@ -177,7 +177,7 @@ export default function Register() {
                   placeholder="Confirm password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  className="pl-10 bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
             </div>
@@ -186,7 +186,7 @@ export default function Register() {
               type="submit"
               data-testid="button-register"
               disabled={registerMutation.isPending || (!!referralCode && !referralData?.valid)}
-              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-foreground font-medium"
             >
               {registerMutation.isPending ? (
                 <>
@@ -199,7 +199,7 @@ export default function Register() {
             </Button>
           </form>
 
-          <div className="text-center text-sm text-slate-500">
+          <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <button
               onClick={() => setLocation("/")}

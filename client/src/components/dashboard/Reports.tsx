@@ -112,13 +112,13 @@ export function Reports({ role }: ReportsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">{t('dashboard.menu.reports') || 'Reports'}</h1>
+        <h1 className="text-xl font-bold text-foreground">{t('dashboard.menu.reports') || 'Reports'}</h1>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleRefresh}
-            className="border-white/10 bg-transparent text-white hover:bg-white/5"
+            className="border-border bg-transparent text-foreground hover:bg-muted"
             data-testid="button-refresh-reports"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -127,9 +127,9 @@ export function Reports({ role }: ReportsProps) {
         </div>
       </div>
 
-      <Card className="bg-[#0A0A0A] border-white/10">
-        <CardHeader className="border-b border-white/10 pb-4">
-          <CardTitle className="text-sm font-mono text-slate-400 flex items-center gap-2">
+      <Card className="bg-card border-border">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="text-sm font-mono text-muted-foreground flex items-center gap-2">
             <Filter className="w-4 h-4" />
             {t('reports.filters') || 'Filters'}
           </CardTitle>
@@ -137,42 +137,42 @@ export function Reports({ role }: ReportsProps) {
         <CardContent className="pt-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <Label className="text-xs text-slate-400">{t('reports.dateFrom') || 'Date From'}</Label>
+              <Label className="text-xs text-muted-foreground">{t('reports.dateFrom') || 'Date From'}</Label>
               <Input
                 type="date"
                 data-testid="input-date-from"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters(f => ({ ...f, dateFrom: e.target.value }))}
-                className="mt-1 bg-[#111] border-white/10 text-white font-mono text-sm"
+                className="mt-1 bg-[#111] border-border text-foreground font-mono text-sm"
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-400">{t('reports.dateTo') || 'Date To'}</Label>
+              <Label className="text-xs text-muted-foreground">{t('reports.dateTo') || 'Date To'}</Label>
               <Input
                 type="date"
                 data-testid="input-date-to"
                 value={filters.dateTo}
                 onChange={(e) => setFilters(f => ({ ...f, dateTo: e.target.value }))}
-                className="mt-1 bg-[#111] border-white/10 text-white font-mono text-sm"
+                className="mt-1 bg-[#111] border-border text-foreground font-mono text-sm"
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-400">{t('reports.geo') || 'GEO'}</Label>
+              <Label className="text-xs text-muted-foreground">{t('reports.geo') || 'GEO'}</Label>
               <Input
                 data-testid="input-geo"
                 placeholder="US, DE, RU..."
                 value={filters.geo}
                 onChange={(e) => setFilters(f => ({ ...f, geo: e.target.value.toUpperCase() }))}
-                className="mt-1 bg-[#111] border-white/10 text-white font-mono text-sm"
+                className="mt-1 bg-[#111] border-border text-foreground font-mono text-sm"
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-400">{t('reports.device') || 'Device'}</Label>
+              <Label className="text-xs text-muted-foreground">{t('reports.device') || 'Device'}</Label>
               <Select value={filters.device || "all"} onValueChange={(v) => setFilters(f => ({ ...f, device: v === "all" ? "" : v }))}>
-                <SelectTrigger className="mt-1 bg-[#111] border-white/10 text-white" data-testid="select-device">
+                <SelectTrigger className="mt-1 bg-[#111] border-border text-foreground" data-testid="select-device">
                   <SelectValue placeholder={t('reports.all') || 'All'} />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-white/10">
+                <SelectContent className="bg-[#111] border-border">
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="mobile">Mobile</SelectItem>
                   <SelectItem value="desktop">Desktop</SelectItem>
@@ -182,12 +182,12 @@ export function Reports({ role }: ReportsProps) {
             </div>
             {role !== "publisher" && (
               <div>
-                <Label className="text-xs text-slate-400">Вебмастер</Label>
+                <Label className="text-xs text-muted-foreground">Вебмастер</Label>
                 <Select value={filters.publisherId || "all"} onValueChange={(v) => setFilters(f => ({ ...f, publisherId: v === "all" ? "" : v }))}>
-                  <SelectTrigger className="mt-1 bg-[#111] border-white/10 text-white" data-testid="select-publisher">
+                  <SelectTrigger className="mt-1 bg-[#111] border-border text-foreground" data-testid="select-publisher">
                     <SelectValue placeholder="Все" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#111] border-white/10">
+                  <SelectContent className="bg-[#111] border-border">
                     <SelectItem value="all">Все вебмастера</SelectItem>
                     {publishers.map((pub) => (
                       <SelectItem key={pub.id} value={pub.id}>{pub.username || pub.email}</SelectItem>
@@ -197,12 +197,12 @@ export function Reports({ role }: ReportsProps) {
               </div>
             )}
             <div>
-              <Label className="text-xs text-slate-400">{t('reports.groupBy') || 'Group By'}</Label>
+              <Label className="text-xs text-muted-foreground">{t('reports.groupBy') || 'Group By'}</Label>
               <Select value={filters.groupBy} onValueChange={(v) => setFilters(f => ({ ...f, groupBy: v }))}>
-                <SelectTrigger className="mt-1 bg-[#111] border-white/10 text-white" data-testid="select-group-by">
+                <SelectTrigger className="mt-1 bg-[#111] border-border text-foreground" data-testid="select-group-by">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-white/10">
+                <SelectContent className="bg-[#111] border-border">
                   <SelectItem value="date">Date</SelectItem>
                   <SelectItem value="geo">GEO</SelectItem>
                   <SelectItem value="offer">Offer</SelectItem>
@@ -220,7 +220,7 @@ export function Reports({ role }: ReportsProps) {
               <Button 
                 variant="outline"
                 onClick={() => { setFilters({ dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date" }); setPage(1); }}
-                className="w-full border-white/10 bg-transparent text-slate-400 hover:bg-white/5 hover:text-white"
+                className="w-full border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                 data-testid="button-clear-filters"
               >
                 {t('reports.clearFilters') || 'Clear'}
@@ -231,7 +231,7 @@ export function Reports({ role }: ReportsProps) {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-[#0A0A0A] border border-white/10 gap-2 p-1">
+        <TabsList className="bg-card border border-border gap-2 p-1">
           <TabsTrigger value="clicks" className="px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-clicks">
             <MousePointer className="w-4 h-4 mr-2 text-blue-400" />
             {t('reports.clicks') || 'Клики'}
@@ -309,7 +309,7 @@ function SummaryCards({ data, loading, role, t }: any) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="bg-[#0A0A0A] border-white/10 animate-pulse">
+          <Card key={i} className="bg-card border-border animate-pulse">
             <CardContent className="p-4 h-20" />
           </Card>
         ))}
@@ -319,45 +319,45 @@ function SummaryCards({ data, loading, role, t }: any) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-      <Card className="bg-[#0A0A0A] border-white/10">
+      <Card className="bg-card border-border">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.clicks') || 'Clicks'}</div>
-          <div className="text-xl font-bold text-white">{totals.clicks.toLocaleString()}</div>
-          <div className="text-[10px] text-slate-500">{totals.uniqueClicks.toLocaleString()} unique</div>
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.clicks') || 'Clicks'}</div>
+          <div className="text-xl font-bold text-foreground">{totals.clicks.toLocaleString()}</div>
+          <div className="text-[10px] text-muted-foreground">{totals.uniqueClicks.toLocaleString()} unique</div>
         </CardContent>
       </Card>
-      <Card className="bg-[#0A0A0A] border-white/10">
+      <Card className="bg-card border-border">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.conversions') || 'Conv'}</div>
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.conversions') || 'Conv'}</div>
           <div className="text-xl font-bold text-emerald-400">{totals.conversions}</div>
           <div className="text-[10px] text-yellow-400">CR: {cr.toFixed(2)}%</div>
         </CardContent>
       </Card>
-      <Card className="bg-[#0A0A0A] border-white/10">
+      <Card className="bg-card border-border">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
           <div className="text-xl font-bold text-emerald-400">${totals.payout.toFixed(2)}</div>
         </CardContent>
       </Card>
       {isAdvertiser && (
         <>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.advertiserCost') || 'Cost'}</div>
+              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.advertiserCost') || 'Cost'}</div>
               <div className="text-xl font-bold text-blue-400">${totals.cost.toFixed(2)}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.margin') || 'Margin'}</div>
+              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.margin') || 'Margin'}</div>
               <div className={`text-xl font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 ${margin.toFixed(2)}
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.roi') || 'ROI'}</div>
+              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.roi') || 'ROI'}</div>
               <div className={`text-xl font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {roi.toFixed(1)}%
               </div>
@@ -367,15 +367,15 @@ function SummaryCards({ data, loading, role, t }: any) {
       )}
       {isPublisher && (
         <>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.leads') || 'Leads'}</div>
+              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.leads') || 'Leads'}</div>
               <div className="text-xl font-bold text-purple-400">{totals.leads}</div>
             </CardContent>
           </Card>
-          <Card className="bg-[#0A0A0A] border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-slate-500 mb-1">{t('stats.sales') || 'Sales'}</div>
+              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.sales') || 'Sales'}</div>
               <div className="text-xl font-bold text-orange-400">{totals.sales}</div>
             </CardContent>
           </Card>
@@ -389,7 +389,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -419,12 +419,12 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   const colSpan = role !== "publisher" ? 16 : 15;
 
   return (
-    <Card className="bg-[#0A0A0A] border-white/10">
+    <Card className="bg-card border-border">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-white/10 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-border bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3 font-medium">{t('reports.table.date') || 'Date'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.offer') || 'Offer'}</th>
@@ -450,20 +450,20 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
             <tbody className="divide-y divide-white/5">
               {clicks.length === 0 ? (
                 <tr>
-                  <td colSpan={colSpan} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={colSpan} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
               ) : (
                 clicks.map((click: any) => (
-                  <tr key={click.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 text-slate-400">
+                  <tr key={click.id} className="hover:bg-muted transition-colors">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(click.createdAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-emerald-400">{click.clickId?.slice(0, 12)}...</td>
-                    <td className="px-4 py-3 text-white">{click.offerName || click.offerId}</td>
+                    <td className="px-4 py-3 text-foreground">{click.offerName || click.offerId}</td>
                     {role !== "publisher" && (
-                      <td className="px-4 py-3 text-slate-300">{click.publisherName || click.publisherId}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{click.publisherName || click.publisherId}</td>
                     )}
                     <td className="px-4 py-3">
                       <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
@@ -474,30 +474,30 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                       {click.isUnique ? (
                         <span className="text-emerald-500">✓</span>
                       ) : (
-                        <span className="text-slate-600">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-600">-</td>
-                    <td className="px-4 py-3 text-right text-slate-600">-</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">-</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">-</td>
                     {isAdvertiser && (
                       <>
-                        <td className="px-4 py-3 text-right text-slate-600">-</td>
-                        <td className="px-4 py-3 text-right text-slate-600">-</td>
-                        <td className="px-4 py-3 text-right text-slate-600">-</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground">-</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground">-</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground">-</td>
                       </>
                     )}
-                    <td className="px-4 py-3 text-slate-500">{click.sub1 || '-'}</td>
-                    <td className="px-4 py-3 text-slate-500">{click.sub2 || '-'}</td>
-                    <td className="px-4 py-3 text-slate-500">{click.sub3 || '-'}</td>
-                    <td className="px-4 py-3 text-slate-500">{click.sub4 || '-'}</td>
-                    <td className="px-4 py-3 text-slate-500">{click.sub5 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub1 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub2 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub3 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub4 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub5 || '-'}</td>
                   </tr>
                 ))
               )}
             </tbody>
             <tfoot>
               <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
-                <td colSpan={6} className="px-4 py-3 text-slate-300 uppercase text-[10px]">
+                <td colSpan={6} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
                   {t('reports.total') || 'Total'}
                 </td>
                 <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>
@@ -520,8 +520,8 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
         </div>
         
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/10">
-            <div className="text-xs text-slate-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <div className="text-xs text-muted-foreground">
               {t('reports.showing') || 'Showing'} {((page - 1) * 50) + 1}-{Math.min(page * 50, total)} {t('reports.of') || 'of'} {total}
             </div>
             <div className="flex gap-2">
@@ -530,18 +530,18 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 size="sm"
                 onClick={() => setPage((p: number) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="border-white/10 bg-transparent"
+                className="border-border bg-transparent"
                 data-testid="button-prev-page"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="text-sm text-slate-400 px-3 py-1">{page} / {totalPages}</span>
+              <span className="text-sm text-muted-foreground px-3 py-1">{page} / {totalPages}</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p: number) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="border-white/10 bg-transparent"
+                className="border-border bg-transparent"
                 data-testid="button-next-page"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -558,7 +558,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -570,12 +570,12 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
   const isAdvertiser = role === "advertiser" || role === "admin";
 
   return (
-    <Card className="bg-[#0A0A0A] border-white/10">
+    <Card className="bg-card border-border">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-white/10 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-border bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3 font-medium">{t('reports.table.date') || 'Date'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.type') || 'Type'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.status') || 'Status'}</th>
@@ -601,7 +601,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
             <tbody className="divide-y divide-white/5">
               {conversions.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdvertiser ? 16 : 13} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={isAdvertiser ? 16 : 13} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -614,8 +614,8 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                   const roi = hasCost && cost > 0 ? ((margin / cost) * 100) : 0;
                   
                   return (
-                    <tr key={conv.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 text-slate-400">
+                    <tr key={conv.id} className="hover:bg-muted transition-colors">
+                      <td className="px-4 py-3 text-muted-foreground">
                         {new Date(conv.createdAt).toLocaleString()}
                       </td>
                       <td className="px-4 py-3">
@@ -630,14 +630,14 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                           conv.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
                           conv.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                           conv.status === 'hold' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-slate-500/20 text-slate-400'
+                          'bg-slate-500/20 text-muted-foreground'
                         }`}>
                           {conv.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-white">{conv.offerName || conv.offerId}</td>
+                      <td className="px-4 py-3 text-foreground">{conv.offerName || conv.offerId}</td>
                       {role !== "publisher" && (
-                        <td className="px-4 py-3 text-slate-300">{conv.publisherName || conv.publisherId}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{conv.publisherName || conv.publisherId}</td>
                       )}
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
                         ${payout.toFixed(2)}
@@ -655,17 +655,17 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                           </td>
                         </>
                       )}
-                      <td className="px-4 py-3 text-slate-500">{conv.clickId?.slice(0, 8)}...</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.clickId?.slice(0, 8)}...</td>
                       <td className="px-4 py-3">
                         <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
                           {conv.geo || 'N/A'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-500">{conv.sub1 || '-'}</td>
-                      <td className="px-4 py-3 text-slate-500">{conv.sub2 || '-'}</td>
-                      <td className="px-4 py-3 text-slate-500">{conv.sub3 || '-'}</td>
-                      <td className="px-4 py-3 text-slate-500">{conv.sub4 || '-'}</td>
-                      <td className="px-4 py-3 text-slate-500">{conv.sub5 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub1 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub2 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub3 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub4 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub5 || '-'}</td>
                     </tr>
                   );
                 })
@@ -675,8 +675,8 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
         </div>
         
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/10">
-            <div className="text-xs text-slate-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <div className="text-xs text-muted-foreground">
               {t('reports.showing') || 'Showing'} {((page - 1) * 50) + 1}-{Math.min(page * 50, total)} {t('reports.of') || 'of'} {total}
             </div>
             <div className="flex gap-2">
@@ -685,17 +685,17 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                 size="sm"
                 onClick={() => setPage((p: number) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="border-white/10 bg-transparent"
+                className="border-border bg-transparent"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="text-sm text-slate-400 px-3 py-1">{page} / {totalPages}</span>
+              <span className="text-sm text-muted-foreground px-3 py-1">{page} / {totalPages}</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p: number) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="border-white/10 bg-transparent"
+                className="border-border bg-transparent"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -711,7 +711,7 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -735,12 +735,12 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
   const totalCR = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
 
   return (
-    <Card className="bg-[#0A0A0A] border-white/10">
+    <Card className="bg-card border-border">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-white/10 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-border bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3 font-medium">{groupBy.toUpperCase()}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.clicks') || 'Clicks'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.unique') || 'Unique'}</th>
@@ -761,7 +761,7 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
             <tbody className="divide-y divide-white/5">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdvertiser ? 11 : 8} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={isAdvertiser ? 11 : 8} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -773,13 +773,13 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                   const cr = row.clicks > 0 ? ((row.conversions / row.clicks) * 100) : 0;
                   
                   return (
-                    <tr key={i} className="hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 text-white font-medium">{row.groupKey}</td>
-                      <td className="px-4 py-3 text-right text-slate-300">{row.clicks?.toLocaleString() || 0}</td>
-                      <td className="px-4 py-3 text-right text-slate-400">{row.uniqueClicks?.toLocaleString() || 0}</td>
+                    <tr key={i} className="hover:bg-muted transition-colors">
+                      <td className="px-4 py-3 text-foreground font-medium">{row.groupKey}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks?.toLocaleString() || 0}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.uniqueClicks?.toLocaleString() || 0}</td>
                       <td className="px-4 py-3 text-right text-emerald-400">{row.leads || 0}</td>
                       <td className="px-4 py-3 text-right text-purple-400">{row.sales || 0}</td>
-                      <td className="px-4 py-3 text-right text-white font-bold">{row.conversions || 0}</td>
+                      <td className="px-4 py-3 text-right text-foreground font-bold">{row.conversions || 0}</td>
                       <td className="px-4 py-3 text-right text-yellow-400">{cr.toFixed(2)}%</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">${(row.payout || 0).toFixed(2)}</td>
                       {isAdvertiser && hasCost && (
@@ -801,12 +801,12 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
             {rows.length > 0 && (
               <tfoot>
                 <tr className="border-t-2 border-white/20 bg-white/[0.03] font-bold">
-                  <td className="px-4 py-3 text-white">{t('reports.total') || 'TOTAL'}</td>
-                  <td className="px-4 py-3 text-right text-white">{totals.clicks.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{totals.uniqueClicks.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-foreground">{t('reports.total') || 'TOTAL'}</td>
+                  <td className="px-4 py-3 text-right text-foreground">{totals.clicks.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right text-muted-foreground">{totals.uniqueClicks.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-emerald-400">{totals.leads}</td>
                   <td className="px-4 py-3 text-right text-purple-400">{totals.sales}</td>
-                  <td className="px-4 py-3 text-right text-white">{totals.conversions}</td>
+                  <td className="px-4 py-3 text-right text-foreground">{totals.conversions}</td>
                   <td className="px-4 py-3 text-right text-yellow-400">{totalCR.toFixed(2)}%</td>
                   <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                   {isAdvertiser && (

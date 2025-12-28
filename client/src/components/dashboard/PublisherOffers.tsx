@@ -149,17 +149,17 @@ export function PublisherOffers({ role }: { role: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-offers-title">
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-offers-title">
             {t('dashboard.offers.title')}
           </h2>
-          <p className="text-slate-400 text-sm font-mono">{t('dashboard.offers.subtitle')}</p>
+          <p className="text-muted-foreground text-sm font-mono">{t('dashboard.offers.subtitle')}</p>
         </div>
       </div>
 
       <div className="flex gap-2">
         <Button
           variant="outline"
-          className={`font-mono ${!showMyOffers ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' : 'text-slate-300 border-white/10'}`}
+          className={`font-mono ${!showMyOffers ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' : 'text-muted-foreground border-border'}`}
           onClick={() => setShowMyOffers(false)}
           data-testid="button-all-offers"
         >
@@ -167,7 +167,7 @@ export function PublisherOffers({ role }: { role: string }) {
         </Button>
         <Button
           variant="outline"
-          className={`font-mono ${showMyOffers ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' : 'text-slate-300 border-white/10'}`}
+          className={`font-mono ${showMyOffers ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' : 'text-muted-foreground border-border'}`}
           onClick={() => setShowMyOffers(true)}
           data-testid="button-my-offers"
         >
@@ -175,28 +175,28 @@ export function PublisherOffers({ role }: { role: string }) {
         </Button>
       </div>
 
-      <Card className="bg-[#0A0A0A] border-white/10">
-        <div className="p-4 border-b border-white/10 flex flex-col gap-4">
+      <Card className="bg-card border-border">
+        <div className="p-4 border-b border-border flex flex-col gap-4">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder={t('dashboard.offers.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                className="w-full bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-emerald-500 font-mono"
                 data-testid="input-search-offers"
               />
             </div>
 
             <div className="flex gap-3 flex-wrap">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-white font-mono text-xs" data-testid="select-category">
-                  <Tag className="w-3 h-3 mr-2 text-slate-500" />
+                <SelectTrigger className="w-[140px] bg-muted border-border text-foreground font-mono text-xs" data-testid="select-category">
+                  <Tag className="w-3 h-3 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Категория" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all" className="font-mono text-xs">Все категории</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat} value={cat} className="font-mono text-xs">{cat}</SelectItem>
@@ -205,11 +205,11 @@ export function PublisherOffers({ role }: { role: string }) {
               </Select>
 
               <Select value={selectedGeo} onValueChange={setSelectedGeo}>
-                <SelectTrigger className="w-[120px] bg-white/5 border-white/10 text-white font-mono text-xs" data-testid="select-geo">
-                  <Globe className="w-3 h-3 mr-2 text-slate-500" />
+                <SelectTrigger className="w-[120px] bg-muted border-border text-foreground font-mono text-xs" data-testid="select-geo">
+                  <Globe className="w-3 h-3 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="ГЕО" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A0A0A] border-white/10 max-h-[300px]">
+                <SelectContent className="bg-card border-border max-h-[300px]">
                   <SelectItem value="all" className="font-mono text-xs">Все ГЕО</SelectItem>
                   {allGeos.map((geo) => (
                     <SelectItem key={geo} value={geo} className="font-mono text-xs">{geo}</SelectItem>
@@ -218,11 +218,11 @@ export function PublisherOffers({ role }: { role: string }) {
               </Select>
 
               <Select value={selectedSource} onValueChange={setSelectedSource}>
-                <SelectTrigger className="w-[150px] bg-white/5 border-white/10 text-white font-mono text-xs" data-testid="select-source">
-                  <Megaphone className="w-3 h-3 mr-2 text-slate-500" />
+                <SelectTrigger className="w-[150px] bg-muted border-border text-foreground font-mono text-xs" data-testid="select-source">
+                  <Megaphone className="w-3 h-3 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Источник" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all" className="font-mono text-xs">Все источники</SelectItem>
                   {allSources.map((source) => (
                     <SelectItem key={source} value={source} className="font-mono text-xs">{source}</SelectItem>
@@ -235,14 +235,14 @@ export function PublisherOffers({ role }: { role: string }) {
         
         {filteredOffers.length === 0 ? (
           <div className="text-center py-12">
-            <Tag className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500">Офферы не найдены</p>
+            <Tag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Офферы не найдены</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3 font-medium">ID</th>
                   <th className="px-4 py-3 font-medium">{t('dashboard.offers.name')}</th>
                   <th className="px-4 py-3 font-medium">{t('dashboard.offers.category')}</th>
@@ -257,23 +257,23 @@ export function PublisherOffers({ role }: { role: string }) {
                 {filteredOffers.map((offer) => {
                   const maxPayout = getMaxPayout(offer);
                   return (
-                    <tr key={offer.id} className="hover:bg-white/5 transition-colors group" data-testid={`row-offer-${offer.id}`}>
-                      <td className="px-4 py-3 text-slate-500">#{offer.id.slice(0, 8)}</td>
+                    <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
+                      <td className="px-4 py-3 text-muted-foreground">#{offer.id.slice(0, 8)}</td>
                       <td className="px-4 py-3">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <span className="font-medium text-white group-hover:text-emerald-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
+                          <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
                             {offer.name}
                           </span>
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-slate-300">{offer.category}</td>
-                      <td className="px-4 py-3 text-slate-300">
+                      <td className="px-4 py-3 text-muted-foreground">{offer.category}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
                         {offer.geo.slice(0, 3).join(", ")}{offer.geo.length > 3 ? ` +${offer.geo.length - 3}` : ""}
                       </td>
                       <td className="px-4 py-3 text-emerald-400 font-bold">
                         ${maxPayout}
                       </td>
-                      <td className="px-4 py-3 text-slate-300 uppercase">
+                      <td className="px-4 py-3 text-muted-foreground uppercase">
                         {offer.payoutModel}
                       </td>
                       <td className="px-4 py-3">
@@ -281,7 +281,7 @@ export function PublisherOffers({ role }: { role: string }) {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <Button size="sm" variant="ghost" className="h-7 px-3 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10" data-testid={`button-view-${offer.id}`}>
+                          <Button size="sm" variant="ghost" className="h-7 px-3 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10" data-testid={`button-view-${offer.id}`}>
                             <Eye className="w-3 h-3 mr-1" />
                             View
                           </Button>

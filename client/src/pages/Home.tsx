@@ -35,7 +35,7 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="h-14 px-8 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] border border-emerald-500 transition-all">
+                <Button size="lg" className="h-14 px-8 rounded bg-emerald-600 hover:bg-emerald-500 text-foreground font-medium text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] border border-emerald-500 transition-all">
                   {t('hero.cta')}
                 </Button>
                 <Button size="lg" variant="outline" className="h-14 px-8 rounded border-border hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-lg">
@@ -43,7 +43,7 @@ export default function Home() {
                 </Button>
               </div>
 
-              <div className="mt-12 flex items-center gap-6 text-sm text-slate-500 font-mono">
+              <div className="mt-12 flex items-center gap-6 text-sm text-muted-foreground font-mono">
                 <div className="flex items-center gap-2">
                   <Terminal className="w-4 h-4" />
                   <span>{t('hero.specs.selfHosted')}</span>
@@ -66,7 +66,7 @@ export default function Home() {
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
-                  <div className="ml-2 text-[10px] font-mono text-slate-500">root@orchestrator:~</div>
+                  <div className="ml-2 text-[10px] font-mono text-muted-foreground">root@orchestrator:~</div>
                 </div>
                 <img 
                   src={heroImage} 
@@ -124,7 +124,7 @@ export default function Home() {
                 <Cpu className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold mb-3">{t('features.reporting.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('features.reporting.desc')}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{t('features.reporting.desc')}</p>
             </div>
             
             <div className="p-6 rounded border border-border bg-card/50 hover:border-emerald-500/30 transition-colors group">
@@ -132,7 +132,7 @@ export default function Home() {
                 <Activity className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold mb-3">{t('features.automation.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('features.automation.desc')}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{t('features.automation.desc')}</p>
             </div>
 
             <div className="p-6 rounded border border-border bg-card/50 hover:border-emerald-500/30 transition-colors group">
@@ -140,7 +140,7 @@ export default function Home() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold mb-3">{t('features.protection.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('features.protection.desc')}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{t('features.protection.desc')}</p>
             </div>
           </div>
         </div>

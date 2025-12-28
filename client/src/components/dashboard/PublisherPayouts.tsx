@@ -27,7 +27,7 @@ const PAYMENT_ICONS: Record<string, any> = {
   crypto_usdt_bep20: { icon: Bitcoin, color: "text-yellow-400" },
   crypto_btc: { icon: Bitcoin, color: "text-orange-500" },
   crypto_eth: { icon: Bitcoin, color: "text-purple-400" },
-  crypto_ltc: { icon: Bitcoin, color: "text-slate-400" },
+  crypto_ltc: { icon: Bitcoin, color: "text-muted-foreground" },
   bank_card: { icon: CreditCard, color: "text-blue-500" },
   bank_transfer: { icon: CreditCard, color: "text-cyan-500" },
   binance: { icon: Building2, color: "text-yellow-500" },
@@ -36,7 +36,7 @@ const PAYMENT_ICONS: Record<string, any> = {
   coinbase: { icon: Building2, color: "text-blue-400" },
   exmo: { icon: Building2, color: "text-cyan-500" },
   mexc: { icon: Building2, color: "text-teal-500" },
-  okx: { icon: Building2, color: "text-slate-400" },
+  okx: { icon: Building2, color: "text-muted-foreground" },
   paypal: { icon: CreditCard, color: "text-blue-600" },
   webmoney: { icon: CreditCard, color: "text-blue-500" },
   capitalist: { icon: CreditCard, color: "text-red-500" },
@@ -159,8 +159,8 @@ export function PublisherPayouts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Выплаты</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-2xl font-bold text-foreground">Выплаты</h1>
+          <p className="text-muted-foreground text-sm">
             Управление кошельками и запросы на выплату
             {advertiserInfo && (
               <span className="ml-2 text-blue-400">• {advertiserInfo.username}</span>
@@ -170,11 +170,11 @@ export function PublisherPayouts() {
       </div>
 
       {!selectedAdvertiser ? (
-        <Card className="bg-[#0A0A0A] border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="py-12 text-center">
-            <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">Нет подключенных рекламодателей</p>
-            <p className="text-sm text-slate-500 mt-2">
+            <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Нет подключенных рекламодателей</p>
+            <p className="text-sm text-muted-foreground mt-2">
               Сначала подайте заявку на доступ к офферам
             </p>
           </CardContent>
@@ -182,57 +182,57 @@ export function PublisherPayouts() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-available-balance">
+            <Card className="bg-card border-border" data-testid="card-available-balance">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                     <DollarSign className="w-5 h-5 text-emerald-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">Доступно к выводу</p>
+                    <p className="text-xs text-muted-foreground">Доступно к выводу</p>
                     <p className="text-xl font-bold text-emerald-500" data-testid="text-available-balance">${availableBalance.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-pending-balance">
+            <Card className="bg-card border-border" data-testid="card-pending-balance">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                     <Clock className="w-5 h-5 text-yellow-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">В обработке</p>
+                    <p className="text-xs text-muted-foreground">В обработке</p>
                     <p className="text-xl font-bold text-yellow-500" data-testid="text-pending-balance">${pendingBalance.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-hold-balance">
+            <Card className="bg-card border-border" data-testid="card-hold-balance">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
                     <AlertCircle className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">На холде</p>
+                    <p className="text-xs text-muted-foreground">На холде</p>
                     <p className="text-xl font-bold text-red-400" data-testid="text-hold-balance">${holdBalance.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-[#0A0A0A] border-white/10" data-testid="card-total-paid">
+            <Card className="bg-card border-border" data-testid="card-total-paid">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                     <Check className="w-5 h-5 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">Всего выплачено</p>
-                    <p className="text-xl font-bold text-white" data-testid="text-total-paid">${totalPaid.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">Всего выплачено</p>
+                    <p className="text-xl font-bold text-foreground" data-testid="text-total-paid">${totalPaid.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -251,20 +251,20 @@ export function PublisherPayouts() {
                   Запросить выплату
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#0A0A0A] border-white/10">
+              <DialogContent className="bg-card border-border">
                 <DialogHeader>
                   <DialogTitle>Запрос на выплату</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                    <p className="text-sm text-slate-400">Доступно к выводу</p>
+                    <p className="text-sm text-muted-foreground">Доступно к выводу</p>
                     <p className="text-2xl font-bold text-emerald-500">${availableBalance.toFixed(2)}</p>
                   </div>
 
                   <div>
                     <Label>Кошелек для выплаты</Label>
                     <Select value={selectedWallet} onValueChange={setSelectedWallet}>
-                      <SelectTrigger className="bg-[#111] border-white/10">
+                      <SelectTrigger className="bg-[#111] border-border">
                         <SelectValue placeholder="Выберите кошелек" />
                       </SelectTrigger>
                       <SelectContent>
@@ -274,7 +274,7 @@ export function PublisherPayouts() {
                             <SelectItem key={wallet.id} value={wallet.id}>
                               <div className="flex items-center gap-2">
                                 <span>{method?.methodName || "Wallet"}</span>
-                                <span className="text-slate-400 text-xs">
+                                <span className="text-muted-foreground text-xs">
                                   {wallet.walletAddress.slice(0, 10)}...
                                 </span>
                               </div>
@@ -293,7 +293,7 @@ export function PublisherPayouts() {
                       onChange={(e) => setRequestAmount(e.target.value)}
                       max={availableBalance}
                       step="0.01"
-                      className="bg-[#111] border-white/10"
+                      className="bg-[#111] border-border"
                       placeholder="100.00"
                       data-testid="input-request-amount"
                     />
@@ -312,7 +312,7 @@ export function PublisherPayouts() {
                     <Textarea
                       value={requestNote}
                       onChange={(e) => setRequestNote(e.target.value)}
-                      className="bg-[#111] border-white/10"
+                      className="bg-[#111] border-border"
                       placeholder="Дополнительная информация..."
                     />
                   </div>
@@ -347,7 +347,7 @@ export function PublisherPayouts() {
           </div>
 
           <Tabs defaultValue="wallets" className="space-y-4">
-            <TabsList className="bg-[#0A0A0A] border border-white/10 gap-2 p-1">
+            <TabsList className="bg-card border border-border gap-2 p-1">
               <TabsTrigger value="wallets" data-testid="tab-wallets" className="px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
                 <Wallet className="w-4 h-4 mr-2 text-blue-400" />
                 Мои кошельки
@@ -384,7 +384,7 @@ export function PublisherPayouts() {
                       Добавить кошелек
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-[#0A0A0A] border-white/10">
+                  <DialogContent className="bg-card border-border">
                     <DialogHeader>
                       <DialogTitle>Добавить кошелек</DialogTitle>
                     </DialogHeader>
@@ -392,12 +392,12 @@ export function PublisherPayouts() {
                       <div>
                         <Label>Способ оплаты</Label>
                         <Select name="paymentMethodId" required>
-                          <SelectTrigger className="bg-[#111] border-white/10">
+                          <SelectTrigger className="bg-[#111] border-border">
                             <SelectValue placeholder="Выберите способ" />
                           </SelectTrigger>
                           <SelectContent>
                             {paymentMethods.map((method: any) => {
-                              const iconInfo = PAYMENT_ICONS[method.methodType] || { icon: Wallet, color: "text-slate-400" };
+                              const iconInfo = PAYMENT_ICONS[method.methodType] || { icon: Wallet, color: "text-muted-foreground" };
                               const Icon = iconInfo.icon;
                               return (
                                 <SelectItem key={method.id} value={method.id}>
@@ -416,7 +416,7 @@ export function PublisherPayouts() {
                         <Input
                           name="walletAddress"
                           required
-                          className="bg-[#111] border-white/10"
+                          className="bg-[#111] border-border"
                           placeholder="TRC20 адрес, номер карты и т.д."
                         />
                       </div>
@@ -424,7 +424,7 @@ export function PublisherPayouts() {
                         <Label>Имя владельца (опционально)</Label>
                         <Input
                           name="accountName"
-                          className="bg-[#111] border-white/10"
+                          className="bg-[#111] border-border"
                           placeholder="Имя на карте / UID"
                         />
                       </div>
@@ -432,7 +432,7 @@ export function PublisherPayouts() {
                         <Label>Дополнительная информация</Label>
                         <Textarea
                           name="additionalInfo"
-                          className="bg-[#111] border-white/10"
+                          className="bg-[#111] border-border"
                           placeholder="Банк, страна и т.д."
                         />
                       </div>
@@ -453,27 +453,27 @@ export function PublisherPayouts() {
               </div>
 
               {paymentMethods.length === 0 ? (
-                <Card className="bg-[#0A0A0A] border-white/10">
+                <Card className="bg-card border-border">
                   <CardContent className="py-12 text-center">
-                    <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">Рекламодатель не настроил способы оплаты</p>
+                    <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Рекламодатель не настроил способы оплаты</p>
                   </CardContent>
                 </Card>
               ) : wallets.length === 0 ? (
-                <Card className="bg-[#0A0A0A] border-white/10">
+                <Card className="bg-card border-border">
                   <CardContent className="py-12 text-center">
-                    <Wallet className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">Добавьте кошелек для получения выплат</p>
+                    <Wallet className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Добавьте кошелек для получения выплат</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {wallets.map((wallet: any) => {
                     const method = paymentMethods.find((m: any) => m.id === wallet.paymentMethodId);
-                    const iconInfo = PAYMENT_ICONS[method?.methodType] || { icon: Wallet, color: "text-slate-400" };
+                    const iconInfo = PAYMENT_ICONS[method?.methodType] || { icon: Wallet, color: "text-muted-foreground" };
                     const Icon = iconInfo.icon;
                     return (
-                      <Card key={wallet.id} className="bg-[#0A0A0A] border-white/10">
+                      <Card key={wallet.id} className="bg-card border-border">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
@@ -481,14 +481,14 @@ export function PublisherPayouts() {
                                 <Icon className={`w-5 h-5 ${iconInfo.color}`} />
                               </div>
                               <div>
-                                <p className="font-medium text-white">{method?.methodName}</p>
-                                <p className="text-xs text-slate-400">{method?.currency}</p>
+                                <p className="font-medium text-foreground">{method?.methodName}</p>
+                                <p className="text-xs text-muted-foreground">{method?.currency}</p>
                               </div>
                             </div>
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-8 w-8 text-slate-400 hover:text-red-500"
+                              className="h-8 w-8 text-muted-foreground hover:text-red-500"
                               onClick={() => deleteWalletMutation.mutate(wallet.id)}
                               data-testid={`button-delete-wallet-${wallet.id}`}
                             >
@@ -497,21 +497,21 @@ export function PublisherPayouts() {
                           </div>
                           <div className="space-y-2 text-sm">
                             <div>
-                              <p className="text-slate-400 text-xs">Адрес</p>
-                              <p className="text-white font-mono text-xs break-all">
+                              <p className="text-muted-foreground text-xs">Адрес</p>
+                              <p className="text-foreground font-mono text-xs break-all">
                                 {wallet.walletAddress}
                               </p>
                             </div>
                             {wallet.accountName && (
                               <div>
-                                <p className="text-slate-400 text-xs">Владелец</p>
-                                <p className="text-white">{wallet.accountName}</p>
+                                <p className="text-muted-foreground text-xs">Владелец</p>
+                                <p className="text-foreground">{wallet.accountName}</p>
                               </div>
                             )}
                             {method?.minPayout && (
                               <div className="pt-2 border-t border-white/5">
-                                <p className="text-xs text-slate-400">
-                                  Мин. выплата: <span className="text-white">${method.minPayout}</span>
+                                <p className="text-xs text-muted-foreground">
+                                  Мин. выплата: <span className="text-foreground">${method.minPayout}</span>
                                 </p>
                               </div>
                             )}
@@ -526,10 +526,10 @@ export function PublisherPayouts() {
 
             <TabsContent value="requests" className="space-y-4">
               {payoutRequests.length === 0 ? (
-                <Card className="bg-[#0A0A0A] border-white/10">
+                <Card className="bg-card border-border">
                   <CardContent className="py-12 text-center">
-                    <Clock className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">Нет запросов на выплату</p>
+                    <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Нет запросов на выплату</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -538,7 +538,7 @@ export function PublisherPayouts() {
                     const wallet = wallets.find((w: any) => w.id === request.walletId);
                     const method = paymentMethods.find((m: any) => m.id === request.paymentMethodId);
                     return (
-                      <Card key={request.id} className="bg-[#0A0A0A] border-white/10">
+                      <Card key={request.id} className="bg-card border-border">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
@@ -559,16 +559,16 @@ export function PublisherPayouts() {
                                 {request.status === "rejected" && <X className="w-5 h-5 text-red-500" />}
                               </div>
                               <div>
-                                <p className="font-medium text-white font-mono">
+                                <p className="font-medium text-foreground font-mono">
                                   ${request.requestedAmount}
                                   {request.approvedAmount &&
                                     request.approvedAmount !== request.requestedAmount && (
-                                      <span className="text-slate-400 text-sm ml-2">
+                                      <span className="text-muted-foreground text-sm ml-2">
                                         (одобрено: ${request.approvedAmount})
                                       </span>
                                     )}
                                 </p>
-                                <p className="text-sm text-slate-400">
+                                <p className="text-sm text-muted-foreground">
                                   {method?.methodName} •{" "}
                                   {new Date(request.createdAt).toLocaleDateString()}
                                 </p>
@@ -610,17 +610,17 @@ export function PublisherPayouts() {
 
             <TabsContent value="history" className="space-y-4">
               {payouts.length === 0 ? (
-                <Card className="bg-[#0A0A0A] border-white/10">
+                <Card className="bg-card border-border">
                   <CardContent className="py-12 text-center">
-                    <History className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">История выплат пуста</p>
+                    <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">История выплат пуста</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-white/10 text-slate-400">
+                      <tr className="border-b border-border text-muted-foreground">
                         <th className="text-left py-3 px-4">Дата</th>
                         <th className="text-left py-3 px-4">Способ</th>
                         <th className="text-right py-3 px-4">Сумма</th>
@@ -633,14 +633,14 @@ export function PublisherPayouts() {
                       {payouts.map((payout: any) => {
                         const method = paymentMethods.find((m: any) => m.id === payout.paymentMethodId);
                         return (
-                          <tr key={payout.id} className="border-b border-white/5 hover:bg-white/5">
-                            <td className="py-3 px-4 text-slate-400 font-mono text-xs">
+                          <tr key={payout.id} className="border-b border-white/5 hover:bg-muted">
+                            <td className="py-3 px-4 text-muted-foreground font-mono text-xs">
                               {new Date(payout.createdAt).toLocaleDateString()}
                             </td>
-                            <td className="py-3 px-4 text-white">
+                            <td className="py-3 px-4 text-foreground">
                               {method?.methodName || payout.currency}
                             </td>
-                            <td className="text-right py-3 px-4 font-mono text-white">
+                            <td className="text-right py-3 px-4 font-mono text-foreground">
                               ${payout.amount}
                             </td>
                             <td className="text-right py-3 px-4 font-mono text-red-400">
@@ -664,13 +664,13 @@ export function PublisherPayouts() {
             </TabsContent>
 
             <TabsContent value="instructions" className="space-y-6">
-              <Card className="bg-[#0A0A0A] border-white/10">
+              <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <BookOpen className="h-6 w-6 text-cyan-500" />
                     Руководство для партнёра
                   </CardTitle>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-muted-foreground">
                     Как работать с выплатами, кошельками и балансами
                   </p>
                 </CardHeader>
@@ -683,10 +683,10 @@ export function PublisherPayouts() {
                           <Wallet className="w-5 h-5" />
                           1. Привязка кошелька
                         </h3>
-                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                          <p><strong className="text-white">Зачем нужен кошелёк:</strong> Чтобы получать выплаты, вам нужно привязать свой кошелёк к способу оплаты рекламодателя.</p>
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                          <p><strong className="text-foreground">Зачем нужен кошелёк:</strong> Чтобы получать выплаты, вам нужно привязать свой кошелёк к способу оплаты рекламодателя.</p>
                           <div className="space-y-2">
-                            <p className="text-white font-medium">Как добавить кошелёк:</p>
+                            <p className="text-foreground font-medium">Как добавить кошелёк:</p>
                             <ol className="list-decimal list-inside space-y-1 ml-2">
                               <li>Нажмите кнопку <Badge className="bg-blue-500/20 text-blue-500">+ Добавить кошелек</Badge></li>
                               <li>Выберите способ оплаты из списка рекламодателя</li>
@@ -707,12 +707,12 @@ export function PublisherPayouts() {
                           <DollarSign className="w-5 h-5" />
                           2. Ваш баланс
                         </h3>
-                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                          <p><strong className="text-white">Типы баланса:</strong></p>
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                          <p><strong className="text-foreground">Типы баланса:</strong></p>
                           <ul className="space-y-2 ml-2">
                             <li><Badge className="bg-emerald-500/20 text-emerald-500">Доступно</Badge> — средства, которые можно вывести прямо сейчас</li>
                             <li><Badge className="bg-yellow-500/20 text-yellow-500">В ожидании</Badge> — средства в процессе обработки (запрос отправлен)</li>
-                            <li><Badge className="bg-slate-500/20 text-slate-400">На холде</Badge> — средства заморожены на период Hold</li>
+                            <li><Badge className="bg-muted text-muted-foreground">На холде</Badge> — средства заморожены на период Hold</li>
                           </ul>
                           <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3 mt-2">
                             <p className="text-blue-400"><HelpCircle className="w-4 h-4 inline mr-1" /> Баланс обновляется автоматически при получении новых конверсий и после окончания Hold периода.</p>
@@ -725,8 +725,8 @@ export function PublisherPayouts() {
                           <Send className="w-5 h-5" />
                           3. Запрос на выплату
                         </h3>
-                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                          <p><strong className="text-white">Как запросить выплату:</strong></p>
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                          <p><strong className="text-foreground">Как запросить выплату:</strong></p>
                           <ol className="list-decimal list-inside space-y-2 ml-2">
                             <li>Убедитесь, что у вас есть <strong>доступный баланс</strong></li>
                             <li>Проверьте, что кошелёк привязан</li>
@@ -737,7 +737,7 @@ export function PublisherPayouts() {
                             <li>Отправьте запрос</li>
                           </ol>
                           <div className="mt-3 space-y-2">
-                            <p className="text-white font-medium">Статусы запроса:</p>
+                            <p className="text-foreground font-medium">Статусы запроса:</p>
                             <ul className="space-y-1 ml-2">
                               <li><Badge className="bg-yellow-500/20 text-yellow-500">pending</Badge> — ожидает рассмотрения рекламодателем</li>
                               <li><Badge className="bg-emerald-500/20 text-emerald-500">approved</Badge> — одобрен, ожидает перевода</li>
@@ -749,15 +749,15 @@ export function PublisherPayouts() {
                       </section>
 
                       <section className="space-y-4">
-                        <h3 className="text-lg font-semibold text-slate-400 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
                           <Clock className="w-5 h-5" />
                           4. Hold период
                         </h3>
-                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                          <p><strong className="text-white">Что такое Hold:</strong></p>
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                          <p><strong className="text-foreground">Что такое Hold:</strong></p>
                           <p>Hold — это период заморозки средств после конверсии. В течение этого времени рекламодатель проверяет качество лида.</p>
                           <div className="mt-3 space-y-2">
-                            <p className="text-white font-medium">Как это работает:</p>
+                            <p className="text-foreground font-medium">Как это работает:</p>
                             <ul className="list-disc list-inside ml-2 space-y-1">
                               <li>Каждый оффер имеет свой Hold период (0-30 дней)</li>
                               <li>После конверсии деньги попадают в "На холде"</li>
@@ -776,8 +776,8 @@ export function PublisherPayouts() {
                           <History className="w-5 h-5" />
                           5. История выплат
                         </h3>
-                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-                          <p><strong className="text-white">Что отображается в истории:</strong></p>
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm text-muted-foreground">
+                          <p><strong className="text-foreground">Что отображается в истории:</strong></p>
                           <ul className="list-disc list-inside ml-2 space-y-1">
                             <li>Дата выплаты</li>
                             <li>Способ оплаты</li>
@@ -797,25 +797,25 @@ export function PublisherPayouts() {
                           <AlertCircle className="w-5 h-5" />
                           6. Частые вопросы
                         </h3>
-                        <div className="bg-slate-900/50 rounded-lg p-4 space-y-4 text-sm text-slate-300">
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-4 text-sm text-muted-foreground">
                           <div>
-                            <p className="text-white font-medium">Почему я не могу запросить выплату?</p>
+                            <p className="text-foreground font-medium">Почему я не могу запросить выплату?</p>
                             <p className="mt-1">Проверьте: 1) Достаточно ли доступного баланса 2) Привязан ли кошелёк 3) Сумма не меньше минимальной</p>
                           </div>
                           <div>
-                            <p className="text-white font-medium">Сколько ждать выплату?</p>
+                            <p className="text-foreground font-medium">Сколько ждать выплату?</p>
                             <p className="mt-1">Обычно 1-3 рабочих дня. Если у рекламодателя настроены автовыплаты — быстрее.</p>
                           </div>
                           <div>
-                            <p className="text-white font-medium">Мой запрос отклонён. Что делать?</p>
+                            <p className="text-foreground font-medium">Мой запрос отклонён. Что делать?</p>
                             <p className="mt-1">Посмотрите причину отказа в карточке запроса. Часто это связано с Hold или верификацией кошелька.</p>
                           </div>
                           <div>
-                            <p className="text-white font-medium">Почему мой баланс на холде?</p>
+                            <p className="text-foreground font-medium">Почему мой баланс на холде?</p>
                             <p className="mt-1">Конверсии находятся в периоде проверки. Дождитесь окончания Hold периода оффера.</p>
                           </div>
                           <div>
-                            <p className="text-white font-medium">Где узнать минимальную сумму выплаты?</p>
+                            <p className="text-foreground font-medium">Где узнать минимальную сумму выплаты?</p>
                             <p className="mt-1">Минимальная сумма указана в способе оплаты рекламодателя при выборе кошелька.</p>
                           </div>
                         </div>

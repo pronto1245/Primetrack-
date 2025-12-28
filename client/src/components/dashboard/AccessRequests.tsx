@@ -146,10 +146,10 @@ export function AccessRequests() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-requests-title">
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-requests-title">
             Заявки на доступ
           </h2>
-          <p className="text-slate-400 text-sm font-mono">
+          <p className="text-muted-foreground text-sm font-mono">
             Управление запросами партнёров на доступ к офферам
           </p>
         </div>
@@ -161,16 +161,16 @@ export function AccessRequests() {
         )}
       </div>
 
-      <Card className="bg-[#0A0A0A] border-white/10">
-        <div className="p-4 border-b border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <Card className="bg-card border-border">
+        <div className="p-4 border-b border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search by offer or publisher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
+              className="w-full bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500 font-mono"
               data-testid="input-search-requests"
             />
           </div>
@@ -178,7 +178,7 @@ export function AccessRequests() {
             <Button
               variant="outline"
               size="sm"
-              className={`border-white/10 font-mono ${!statusFilter ? 'text-blue-400 border-blue-500/50 bg-blue-500/10' : 'text-slate-300'}`}
+              className={`border-border font-mono ${!statusFilter ? 'text-blue-400 border-blue-500/50 bg-blue-500/10' : 'text-muted-foreground'}`}
               onClick={() => setStatusFilter(null)}
               data-testid="button-filter-all"
             >
@@ -187,7 +187,7 @@ export function AccessRequests() {
             <Button
               variant="outline"
               size="sm"
-              className={`border-white/10 font-mono ${statusFilter === 'pending' ? 'text-yellow-400 border-yellow-500/50 bg-yellow-500/10' : 'text-slate-300'}`}
+              className={`border-border font-mono ${statusFilter === 'pending' ? 'text-yellow-400 border-yellow-500/50 bg-yellow-500/10' : 'text-muted-foreground'}`}
               onClick={() => setStatusFilter('pending')}
               data-testid="button-filter-pending"
             >
@@ -196,7 +196,7 @@ export function AccessRequests() {
             <Button
               variant="outline"
               size="sm"
-              className={`border-white/10 font-mono ${statusFilter === 'approved' ? 'text-emerald-400 border-emerald-500/50 bg-emerald-500/10' : 'text-slate-300'}`}
+              className={`border-border font-mono ${statusFilter === 'approved' ? 'text-emerald-400 border-emerald-500/50 bg-emerald-500/10' : 'text-muted-foreground'}`}
               onClick={() => setStatusFilter('approved')}
               data-testid="button-filter-approved"
             >
@@ -205,7 +205,7 @@ export function AccessRequests() {
             <Button
               variant="outline"
               size="sm"
-              className={`border-white/10 font-mono ${statusFilter === 'rejected' ? 'text-red-400 border-red-500/50 bg-red-500/10' : 'text-slate-300'}`}
+              className={`border-border font-mono ${statusFilter === 'rejected' ? 'text-red-400 border-red-500/50 bg-red-500/10' : 'text-muted-foreground'}`}
               onClick={() => setStatusFilter('rejected')}
               data-testid="button-filter-rejected"
             >
@@ -216,14 +216,14 @@ export function AccessRequests() {
 
         {filteredRequests.length === 0 ? (
           <div className="text-center py-12">
-            <UserPlus className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500">No access requests found</p>
+            <UserPlus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No access requests found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Publisher</th>
                   <th className="px-4 py-3 font-medium">Offer</th>
@@ -234,25 +234,25 @@ export function AccessRequests() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-white/5 transition-colors" data-testid={`row-request-${req.id}`}>
-                    <td className="px-4 py-3 text-slate-500">
+                  <tr key={req.id} className="hover:bg-muted transition-colors" data-testid={`row-request-${req.id}`}>
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(req.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <div className="font-medium text-white">{req.publisher.username}</div>
-                        <div className="text-slate-500 text-[10px]">{req.publisher.email}</div>
+                        <div className="font-medium text-foreground">{req.publisher.username}</div>
+                        <div className="text-muted-foreground text-[10px]">{req.publisher.email}</div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <Link href={`/dashboard/advertiser/offer/${req.offerId}`}>
-                        <span className="font-medium text-white hover:text-blue-400 transition-colors cursor-pointer">
+                        <span className="font-medium text-foreground hover:text-blue-400 transition-colors cursor-pointer">
                           {req.offer.name}
                         </span>
                       </Link>
-                      <div className="text-slate-500 text-[10px]">{req.offer.category}</div>
+                      <div className="text-muted-foreground text-[10px]">{req.offer.category}</div>
                     </td>
-                    <td className="px-4 py-3 text-slate-400 max-w-[200px] truncate">
+                    <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">
                       {req.message || "-"}
                     </td>
                     <td className="px-4 py-3">
@@ -263,7 +263,7 @@ export function AccessRequests() {
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             size="sm"
-                            className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-white"
+                            className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-foreground"
                             onClick={() => updateMutation.mutate({ requestId: req.id, action: "approve" })}
                             disabled={updateMutation.isPending}
                             data-testid={`button-approve-${req.id}`}
@@ -304,7 +304,7 @@ export function AccessRequests() {
                       {req.status === "revoked" && (
                         <Button
                           size="sm"
-                          className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-white"
+                          className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-foreground"
                           onClick={() => updateMutation.mutate({ requestId: req.id, action: "approve" })}
                           disabled={updateMutation.isPending}
                           data-testid={`button-reapprove-${req.id}`}
@@ -314,7 +314,7 @@ export function AccessRequests() {
                         </Button>
                       )}
                       {req.status === "rejected" && (
-                        <span className="text-slate-500">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </td>
                   </tr>
@@ -326,19 +326,19 @@ export function AccessRequests() {
       </Card>
 
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent className="bg-[#0A0A0A] border-white/10">
+        <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="text-white font-mono">Отклонить заявку</DialogTitle>
+            <DialogTitle className="text-foreground font-mono">Отклонить заявку</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm text-slate-400 font-mono mb-2 block">
+            <label className="text-sm text-muted-foreground font-mono mb-2 block">
               Причина отклонения (опционально)
             </label>
             <Textarea
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Укажите причину отклонения..."
-              className="bg-white/5 border-white/10 text-white font-mono"
+              className="bg-muted border-border text-foreground font-mono"
               data-testid="input-rejection-reason"
             />
           </div>
@@ -346,7 +346,7 @@ export function AccessRequests() {
             <Button
               variant="outline"
               onClick={() => setRejectDialogOpen(false)}
-              className="border-white/10 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               Отмена
             </Button>
@@ -362,7 +362,7 @@ export function AccessRequests() {
                 }
               }}
               disabled={updateMutation.isPending}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
               data-testid="button-confirm-reject"
             >
               {updateMutation.isPending ? (

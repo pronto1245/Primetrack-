@@ -47,10 +47,10 @@ export function AdminPostbacks() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-mono text-white mb-2" data-testid="text-admin-postbacks-title">
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-admin-postbacks-title">
             Мониторинг постбеков
           </h2>
-          <p className="text-slate-400 text-sm font-mono">
+          <p className="text-muted-foreground text-sm font-mono">
             Обзор всех постбеков в системе
           </p>
         </div>
@@ -58,9 +58,9 @@ export function AdminPostbacks() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-[#0A0A0A] border-white/10 p-4">
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Всего</div>
-          <div className="text-2xl font-bold text-white font-mono">{logs?.length || 0}</div>
+        <Card className="bg-card border-border p-4">
+          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Всего</div>
+          <div className="text-2xl font-bold text-foreground font-mono">{logs?.length || 0}</div>
         </Card>
         <Card className="bg-emerald-500/10 border-emerald-500/20 p-4">
           <div className="text-xs text-emerald-400 uppercase tracking-wider mb-1">Успешных</div>
@@ -72,29 +72,29 @@ export function AdminPostbacks() {
         </Card>
       </div>
 
-      <Card className="bg-[#0A0A0A] border-white/10">
-        <div className="p-4 border-b border-white/10 flex flex-wrap items-center gap-4">
+      <Card className="bg-card border-border">
+        <div className="p-4 border-b border-border flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 text-slate-500" />
+            <Search className="w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Поиск по URL..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/5 border-white/10 text-white text-sm"
+              className="bg-muted border-border text-foreground text-sm"
               data-testid="input-search-postbacks"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40 bg-white/5 border-white/10 text-white" data-testid="select-status-filter">
+            <SelectTrigger className="w-40 bg-muted border-border text-foreground" data-testid="select-status-filter">
               <SelectValue placeholder="Статус" />
             </SelectTrigger>
-            <SelectContent className="bg-[#0A0A0A] border-white/10">
+            <SelectContent className="bg-card border-border">
               <SelectItem value="all">Все</SelectItem>
               <SelectItem value="success">Успешные</SelectItem>
               <SelectItem value="failed">С ошибками</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="ghost" size="sm" onClick={() => refetch()} className="text-slate-400">
+          <Button variant="ghost" size="sm" onClick={() => refetch()} className="text-muted-foreground">
             <RefreshCw className="w-4 h-4" />
           </Button>
         </div>
@@ -102,7 +102,7 @@ export function AdminPostbacks() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02] text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3">Время</th>
                 <th className="px-4 py-3">URL</th>
                 <th className="px-4 py-3">Метод</th>
@@ -113,14 +113,14 @@ export function AdminPostbacks() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {filteredLogs?.map((log) => (
-                <tr key={log.id} className="hover:bg-white/5">
-                  <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
+                <tr key={log.id} className="hover:bg-muted">
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                     {new Date(log.createdAt).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-slate-300 max-w-xs truncate" title={log.url}>
+                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate" title={log.url}>
                     {log.url}
                   </td>
-                  <td className="px-4 py-3 text-slate-400">{log.method}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{log.method}</td>
                   <td className="px-4 py-3">
                     {log.success ? (
                       <span className="text-emerald-400 flex items-center gap-1">
@@ -132,13 +132,13 @@ export function AdminPostbacks() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-400">{log.responseCode || "-"}</td>
-                  <td className="px-4 py-3 text-slate-400">{log.retryCount}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{log.responseCode || "-"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{log.retryCount}</td>
                 </tr>
               ))}
               {(!filteredLogs || filteredLogs.length === 0) && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                     Нет данных о постбеках
                   </td>
                 </tr>
