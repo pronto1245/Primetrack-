@@ -27,12 +27,11 @@ const MemorySessionStore = MemoryStore(session);
 const PgSessionStore = pgSession(session);
 
 async function setupAuth(app: Express) {
-  const isProduction = process.env.NODE_ENV === "production";
+  // Check for Replit deployment OR NODE_ENV=production
+  const isProduction = process.env.REPLIT_DEPLOYMENT === "1" || process.env.NODE_ENV === "production";
   
   // Trust proxy for Replit deployment (reverse proxy)
-  if (isProduction) {
-    app.set("trust proxy", 1);
-  }
+  app.set("trust proxy", 1);
   
   // Use PostgreSQL session store in production, memory store in development
   let store;
@@ -73,7 +72,7 @@ async function setupAuth(app: Express) {
 
 async function seedUsers() {
   // Only seed test users in development mode
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = process.env.REPLIT_DEPLOYMENT === "1" || process.env.NODE_ENV === "production";
   if (isProduction) {
     console.log("Skipping test user seeding in production mode");
     return;
