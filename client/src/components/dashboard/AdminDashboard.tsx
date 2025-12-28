@@ -70,7 +70,7 @@ export function AdminDashboard() {
       ]);
 
       if (platformRes.status === 401 || statsRes.status === 401) {
-        setLocation("/auth");
+        setLocation("/login");
         return;
       }
 

@@ -100,7 +100,7 @@ export function AdvertiserDashboard() {
       ]);
 
       if (statsRes.status === 401 || publishersRes.status === 401 || offersRes.status === 401) {
-        setLocation("/auth");
+        setLocation("/login");
         return;
       }
 
