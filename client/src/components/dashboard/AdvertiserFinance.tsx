@@ -14,8 +14,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Users, Loader2, Trash2, Edit,
-  Send, AlertCircle, CheckSquare, History, Key, Shield, Eye, EyeOff
+  Send, AlertCircle, CheckSquare, History, Key, Shield, Eye, EyeOff,
+  BookOpen, HelpCircle
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -338,6 +340,10 @@ export function AdvertiserFinance() {
           <TabsTrigger value="api-keys" data-testid="tab-api-keys" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             <Key className="h-4 w-4 mr-1 text-orange-500" />
             API ключи бирж
+          </TabsTrigger>
+          <TabsTrigger value="instructions" data-testid="tab-instructions" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <BookOpen className="h-4 w-4 mr-1 text-blue-500" />
+            Инструкция
           </TabsTrigger>
         </TabsList>
 
@@ -1064,6 +1070,247 @@ export function AdvertiserFinance() {
                   Никогда не делитесь своими ключами с третьими лицами.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="instructions" className="space-y-6">
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <BookOpen className="h-6 w-6 text-blue-500" />
+                Руководство по работе с финансами
+              </CardTitle>
+              <p className="text-sm text-slate-400">
+                Полная инструкция по настройке платежей, выплат и работе с партнёрами
+              </p>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[600px] pr-4">
+                <div className="space-y-8">
+                  
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-emerald-500 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5" />
+                      1. Способы оплаты (Рекламодатель)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Что это:</strong> Способы оплаты — это методы, которыми вы будете выплачивать деньги партнёрам.</p>
+                      <div className="space-y-2">
+                        <p className="text-white font-medium">Как добавить способ оплаты:</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Перейдите на вкладку <Badge className="bg-yellow-500/20 text-yellow-500">Финансы</Badge></li>
+                          <li>Нажмите кнопку <Badge className="bg-emerald-500/20 text-emerald-500">+ Способ оплаты</Badge></li>
+                          <li>Выберите тип (USDT TRC20, Bitcoin, Binance Pay, Bank Card)</li>
+                          <li>Укажите название, валюту, мин/макс суммы</li>
+                          <li>Установите комиссию (% и/или фикс.)</li>
+                          <li>Добавьте инструкции для партнёров</li>
+                        </ol>
+                      </div>
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3 mt-2">
+                        <p className="text-blue-400"><HelpCircle className="w-4 h-4 inline mr-1" /> Партнёры увидят только те способы, которые вы создали. Они смогут привязать свои кошельки к вашим способам оплаты.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-yellow-500 flex items-center gap-2">
+                      <Send className="w-5 h-5" />
+                      2. Запросы на выплату (Рекламодатель)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Процесс обработки запросов:</strong></p>
+                      <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <li><strong>Новый запрос</strong> — партнёр создаёт запрос на выплату</li>
+                        <li><strong>Рассмотрение</strong> — вы видите запрос во вкладке "Запросы на выплату"</li>
+                        <li><strong>Одобрение/Отклонение</strong> — нажмите на запрос:
+                          <ul className="list-disc list-inside ml-4 mt-1">
+                            <li><span className="text-emerald-400">Одобрить</span> — подтвердите сумму (можно изменить)</li>
+                            <li><span className="text-red-400">Отклонить</span> — укажите причину отказа</li>
+                          </ul>
+                        </li>
+                        <li><strong>Выплата</strong> — после одобрения переведите средства и нажмите "Выплачено"</li>
+                      </ol>
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-3 mt-2">
+                        <p className="text-emerald-400"><Check className="w-4 h-4 inline mr-1" /> При одобрении система автоматически создаст запись в истории выплат и обновит баланс партнёра.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-500 flex items-center gap-2">
+                      <CheckSquare className="w-5 h-5" />
+                      3. Массовые выплаты (Рекламодатель)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Для обработки нескольких запросов сразу:</strong></p>
+                      <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <li>Отметьте галочками нужные запросы в списке</li>
+                        <li>Нажмите кнопку <Badge className="bg-purple-500/20 text-purple-500">Массовая выплата</Badge></li>
+                        <li>Проверьте список выбранных запросов</li>
+                        <li>Подтвердите массовую выплату</li>
+                      </ol>
+                      <div className="bg-amber-500/10 border border-amber-500/30 rounded p-3 mt-2">
+                        <p className="text-amber-400"><AlertCircle className="w-4 h-4 inline mr-1" /> Массовая выплата одобряет все выбранные запросы на полную сумму. Для частичного одобрения обрабатывайте запросы по отдельности.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-cyan-500 flex items-center gap-2">
+                      <DollarSign className="w-5 h-5" />
+                      4. Бонусные выплаты (Рекламодатель)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Как начислить бонус партнёру:</strong></p>
+                      <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <li>Перейдите во вкладку <Badge className="bg-emerald-500/20 text-emerald-500">Балансы партнёров</Badge></li>
+                        <li>Найдите нужного партнёра</li>
+                        <li>Нажмите кнопку <Badge className="bg-yellow-500/20 text-yellow-500">$ Бонус</Badge></li>
+                        <li>Выберите способ оплаты</li>
+                        <li>Укажите сумму и комментарий (например: "Бонус за отличную работу")</li>
+                        <li>Подтвердите выплату</li>
+                      </ol>
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3 mt-2">
+                        <p className="text-blue-400"><HelpCircle className="w-4 h-4 inline mr-1" /> Бонусы отображаются отдельно в истории выплат с типом "bonus". Партнёр увидит уведомление о получении бонуса.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-orange-500 flex items-center gap-2">
+                      <Key className="w-5 h-5" />
+                      5. API ключи бирж (Рекламодатель)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Для автоматических криптовыплат:</strong></p>
+                      <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <li>Перейдите на вкладку <Badge className="bg-orange-500/20 text-orange-500">API ключи бирж</Badge></li>
+                        <li>Выберите биржу (Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX)</li>
+                        <li>Создайте API ключ на бирже с правами <strong>только на вывод</strong></li>
+                        <li>Введите API Key и Secret Key (для OKX также Passphrase)</li>
+                        <li>Нажмите "Сохранить"</li>
+                      </ol>
+                      <div className="bg-red-500/10 border border-red-500/30 rounded p-3 mt-2">
+                        <p className="text-red-400"><AlertCircle className="w-4 h-4 inline mr-1" /> <strong>ВАЖНО:</strong> Создавайте API ключи ТОЛЬКО с правами на вывод (Withdraw). Никогда не давайте права на торговлю!</p>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        <p className="text-white font-medium">Как создать API ключ на бирже:</p>
+                        <ul className="list-disc list-inside ml-2 space-y-1">
+                          <li><strong>Binance:</strong> Настройки → API Management → Создать API → Включить только Withdraw</li>
+                          <li><strong>Bybit:</strong> Аккаунт → API → Создать ключ → Выбрать Withdraw Only</li>
+                          <li><strong>OKX:</strong> Настройки → API → Создать ключ + Passphrase → Права Withdraw</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="border-t border-white/10 pt-6 mt-6">
+                    <h2 className="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
+                      <Users className="w-6 h-6" />
+                      Инструкция для партнёров (Publisher)
+                    </h2>
+                  </div>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-emerald-500 flex items-center gap-2">
+                      <Wallet className="w-5 h-5" />
+                      6. Привязка кошелька (Партнёр)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Как добавить кошелёк для выплат:</strong></p>
+                      <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <li>Перейдите в раздел <Badge className="bg-emerald-500/20 text-emerald-500">Финансы</Badge></li>
+                        <li>Нажмите <Badge className="bg-emerald-500/20 text-emerald-500">+ Добавить кошелёк</Badge></li>
+                        <li>Выберите способ оплаты рекламодателя</li>
+                        <li>Введите адрес кошелька (проверьте правильность!)</li>
+                        <li>Укажите имя владельца и доп. информацию</li>
+                        <li>Сохраните кошелёк</li>
+                      </ol>
+                      <div className="bg-amber-500/10 border border-amber-500/30 rounded p-3 mt-2">
+                        <p className="text-amber-400"><AlertCircle className="w-4 h-4 inline mr-1" /> Внимательно проверяйте адрес кошелька! Ошибка в адресе может привести к потере средств.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-yellow-500 flex items-center gap-2">
+                      <Send className="w-5 h-5" />
+                      7. Запрос на выплату (Партнёр)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Как запросить выплату:</strong></p>
+                      <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <li>Убедитесь, что у вас есть доступный баланс</li>
+                        <li>Проверьте, что кошелёк привязан и верифицирован</li>
+                        <li>Нажмите кнопку <Badge className="bg-yellow-500/20 text-yellow-500">Запросить выплату</Badge></li>
+                        <li>Выберите кошелёк для получения</li>
+                        <li>Укажите сумму (учитывая минимальную сумму)</li>
+                        <li>Добавьте комментарий (опционально)</li>
+                        <li>Отправьте запрос</li>
+                      </ol>
+                      <div className="mt-3 space-y-2">
+                        <p className="text-white font-medium">Статусы запроса:</p>
+                        <ul className="space-y-1 ml-2">
+                          <li><Badge className="bg-yellow-500/20 text-yellow-500">pending</Badge> — ожидает рассмотрения</li>
+                          <li><Badge className="bg-emerald-500/20 text-emerald-500">approved</Badge> — одобрен</li>
+                          <li><Badge className="bg-blue-500/20 text-blue-500">paid</Badge> — выплачен</li>
+                          <li><Badge className="bg-red-500/20 text-red-500">rejected</Badge> — отклонён</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-slate-400 flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      8. Hold период (Общее)
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+                      <p><strong className="text-white">Что такое Hold:</strong></p>
+                      <p>Hold период — это время, в течение которого заработок партнёра заморожен и недоступен для вывода.</p>
+                      <div className="mt-3 space-y-2">
+                        <p className="text-white font-medium">Как это работает:</p>
+                        <ul className="list-disc list-inside ml-2 space-y-1">
+                          <li>Рекламодатель устанавливает Hold для каждого оффера (0-30 дней)</li>
+                          <li>После конверсии деньги попадают в статус "Hold"</li>
+                          <li>По истечении Hold периода средства переходят в "Доступно"</li>
+                          <li>Только доступные средства можно вывести</li>
+                        </ul>
+                      </div>
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3 mt-2">
+                        <p className="text-blue-400"><HelpCircle className="w-4 h-4 inline mr-1" /> Hold защищает рекламодателя от фрода. Если лид окажется невалидным, он будет отклонён до окончания Hold периода.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold text-red-500 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      9. Частые вопросы
+                    </h3>
+                    <div className="bg-slate-900/50 rounded-lg p-4 space-y-4 text-sm text-slate-300">
+                      <div>
+                        <p className="text-white font-medium">Почему я не могу вывести деньги?</p>
+                        <p className="mt-1">Проверьте: 1) Достаточно ли доступного баланса 2) Привязан ли кошелёк 3) Превышает ли сумма минимальный порог</p>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">Сколько ждать выплату?</p>
+                        <p className="mt-1">Обычно рекламодатели обрабатывают запросы в течение 1-3 рабочих дней. Если автовыплаты настроены — мгновенно.</p>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">Что делать, если запрос отклонён?</p>
+                        <p className="mt-1">Свяжитесь с рекламодателем для уточнения причины. Возможно, нужно верифицировать кошелёк или дождаться окончания Hold.</p>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">Можно ли изменить адрес кошелька?</p>
+                        <p className="mt-1">Да, вы можете добавить новый кошелёк и сделать его основным. Старые запросы будут обработаны на указанный при создании адрес.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </TabsContent>
