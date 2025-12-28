@@ -207,6 +207,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
     ],
     publisher: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
@@ -214,6 +215,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
     ]
   };
 
