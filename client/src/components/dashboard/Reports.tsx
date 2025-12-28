@@ -247,7 +247,7 @@ export function Reports({ role }: ReportsProps) {
         </TabsList>
 
         <TabsContent value="clicks" className="mt-0 space-y-4">
-          <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} />
+          <SummaryCards data={clicksData} loading={clicksLoading} role={role} t={t} useClicksSummary={true} />
           <ClicksTable 
             data={clicksData} 
             loading={clicksLoading} 
@@ -286,24 +286,47 @@ export function Reports({ role }: ReportsProps) {
   );
 }
 
-function SummaryCards({ data, loading, role, t }: any) {
-  const rows = data?.rows || [];
+function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any) {
   const isAdvertiser = role === "advertiser";
   const isPublisher = role === "publisher";
   
-  const totals = rows.reduce((acc: any, row: any) => ({
-    clicks: acc.clicks + (row.clicks || 0),
-    uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
-    conversions: acc.conversions + (row.conversions || 0),
-    leads: acc.leads + (row.leads || 0),
-    sales: acc.sales + (row.sales || 0),
-    payout: acc.payout + (row.payout || 0),
-    cost: acc.cost + (row.cost || 0),
-  }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
-
-  const margin = totals.cost - totals.payout;
-  const roi = totals.cost > 0 ? ((margin / totals.cost) * 100) : 0;
-  const cr = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
+  // Use summary from clicksData if available, otherwise calculate from rows
+  let totals: any;
+  let margin: number;
+  let roi: number;
+  let cr: number;
+  
+  if (useClicksSummary && data?.summary) {
+    // Use pre-calculated summary from /api/reports/clicks
+    totals = {
+      clicks: data.summary.clicks || 0,
+      uniqueClicks: data.summary.uniqueClicks || 0,
+      conversions: data.summary.conversions || 0,
+      leads: 0,
+      sales: 0,
+      payout: data.summary.payout || 0,
+      cost: data.summary.advertiserCost || 0,
+    };
+    margin = data.summary.margin || 0;
+    roi = data.summary.roi || 0;
+    cr = data.summary.cr || 0;
+  } else {
+    // Calculate from rows (grouped data)
+    const rows = data?.rows || [];
+    totals = rows.reduce((acc: any, row: any) => ({
+      clicks: acc.clicks + (row.clicks || 0),
+      uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
+      conversions: acc.conversions + (row.conversions || 0),
+      leads: acc.leads + (row.leads || 0),
+      sales: acc.sales + (row.sales || 0),
+      payout: acc.payout + (row.payout || 0),
+      cost: acc.cost + (row.cost || 0),
+    }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+    
+    margin = totals.cost - totals.payout;
+    roi = totals.cost > 0 ? ((margin / totals.cost) * 100) : 0;
+    cr = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
+  }
 
   if (loading) {
     return (
@@ -401,20 +424,21 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   const isAdvertiser = role === "advertiser" || role === "admin";
   const isPublisher = role === "publisher";
   
-  const rows = groupedData?.rows || [];
-  const totals = rows.reduce((acc: any, row: any) => ({
-    clicks: acc.clicks + (row.clicks || 0),
-    uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
-    conversions: acc.conversions + (row.conversions || 0),
-    leads: acc.leads + (row.leads || 0),
-    sales: acc.sales + (row.sales || 0),
-    payout: acc.payout + (row.payout || 0),
-    cost: acc.cost + (row.cost || 0),
-  }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+  // Use summary from clicksData if available
+  const summary = data?.summary;
+  const totals = summary ? {
+    clicks: summary.clicks || 0,
+    uniqueClicks: summary.uniqueClicks || 0,
+    conversions: summary.conversions || 0,
+    leads: 0,
+    sales: 0,
+    payout: summary.payout || 0,
+    cost: summary.advertiserCost || 0,
+  } : { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 };
   
-  const cr = totals.clicks > 0 ? (totals.conversions / totals.clicks * 100) : 0;
-  const margin = totals.cost - totals.payout;
-  const roi = totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0;
+  const cr = summary?.cr || (totals.clicks > 0 ? (totals.conversions / totals.clicks * 100) : 0);
+  const margin = summary?.margin || (totals.cost - totals.payout);
+  const roi = summary?.roi || (totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0);
 
   const colSpan = role !== "publisher" ? 16 : 15;
 

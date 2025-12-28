@@ -1569,7 +1569,7 @@ export async function registerRoutes(
         const payout = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.publisherPayout || '0'), 0);
         const cost = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
-        const roi = payout > 0 ? ((margin / payout) * 100) : 0;
+        const roi = cost > 0 ? ((margin / cost) * 100) : 0;
         const cr = hasConversion ? 100 : 0;
         
         // Check if this is unique IP for the offer
@@ -2102,7 +2102,7 @@ export async function registerRoutes(
         const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
-        const roi = payout > 0 ? ((margin / payout) * 100) : 0;
+        const roi = cost > 0 ? ((margin / cost) * 100) : 0;
         // CR for a single click: 0% or 100% (or more if multiple conversions)
         const cr = hasConversion ? (conversionCount * 100) : 0;
         
@@ -2134,7 +2134,20 @@ export async function registerRoutes(
         };
       });
 
-      res.json(result);
+      // Calculate summary totals from enriched clicks
+      const summary = result.clicks.reduce((acc: any, click: any) => ({
+        clicks: acc.clicks + 1,
+        uniqueClicks: acc.uniqueClicks + (click.isUnique ? 1 : 0),
+        conversions: acc.conversions + (click.conversions || 0),
+        payout: acc.payout + (click.payout || 0),
+        advertiserCost: acc.advertiserCost + (click.advertiserCost || 0),
+      }), { clicks: 0, uniqueClicks: 0, conversions: 0, payout: 0, advertiserCost: 0 });
+
+      summary.margin = summary.advertiserCost - summary.payout;
+      summary.roi = summary.advertiserCost > 0 ? ((summary.margin / summary.advertiserCost) * 100) : 0;
+      summary.cr = summary.clicks > 0 ? ((summary.conversions / summary.clicks) * 100) : 0;
+
+      res.json({ ...result, summary });
     } catch (error: any) {
       console.error("Reports clicks error:", error);
       res.status(500).json({ message: "Failed to fetch clicks report" });
