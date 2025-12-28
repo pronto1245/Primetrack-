@@ -25,6 +25,7 @@ import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
 import { OfferDetail } from "@/components/dashboard/OfferDetail";
 import { AdvertiserDashboard } from "@/components/dashboard/AdvertiserDashboard";
 import { PublisherDashboard } from "@/components/dashboard/PublisherDashboard";
+import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { AdvertiserPartners } from "@/components/dashboard/AdvertiserPartners";
 import { AdminUsers } from "@/components/dashboard/AdminUsers";
 import { Reports } from "@/components/dashboard/Reports";
@@ -195,10 +196,11 @@ function Sidebar({ role, t }: { role: string, t: any }) {
   const menus = {
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
-      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-purple-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-slate-400" },
     ],
     advertiser: [
@@ -437,6 +439,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
 
     // Default Overview Dashboard - use real data
+    if (role === 'admin') {
+      return <AdminDashboard />;
+    }
+
     if (role === 'advertiser') {
       return <AdvertiserDashboard />;
     }
@@ -445,7 +451,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
       return <PublisherDashboard />;
     }
 
-    // Mock dashboard for admin role
+    // Fallback
     return (
       <>
         {/* Stats Row */}
