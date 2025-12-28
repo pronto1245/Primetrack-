@@ -414,6 +414,8 @@ export class DatabaseStorage implements IStorage {
     telegramChatId: string | null;
     telegramLinkCode: string | null;
     telegramLinkExpires: Date | null;
+    twoFactorEnabled: boolean;
+    twoFactorSecret: string | null;
   }>): Promise<User | undefined> {
     const [user] = await db.update(users)
       .set(data)

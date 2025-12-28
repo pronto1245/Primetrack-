@@ -208,13 +208,18 @@ function SecurityTab() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [setupMode, setSetupMode] = useState(false);
+  const [totpSecret, setTotpSecret] = useState("");
+  const [qrCode, setQrCode] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [disableCode, setDisableCode] = useState("");
 
   const { data: user } = useQuery<any>({
     queryKey: ["/api/user"],
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/user/change-password", data),
+    mutationFn: (data: any) => apiRequest("PATCH", "/api/user/password", data),
     onSuccess: () => {
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       toast({ title: "Пароль изменён" });
@@ -224,11 +229,39 @@ function SecurityTab() {
     },
   });
 
-  const toggle2FAMutation = useMutation({
-    mutationFn: (enabled: boolean) => apiRequest("POST", "/api/user/2fa/toggle", { enabled }),
+  const setup2FAMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/user/2fa/setup", {}),
+    onSuccess: (data: any) => {
+      setTotpSecret(data.secret);
+      setQrCode(data.qrCode);
+      setSetupMode(true);
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const enable2FAMutation = useMutation({
+    mutationFn: (data: { secret: string; token: string }) => apiRequest("POST", "/api/user/2fa/enable", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      toast({ title: user?.twoFactorEnabled ? "2FA отключена" : "2FA включена" });
+      setSetupMode(false);
+      setTotpSecret("");
+      setQrCode("");
+      setVerificationCode("");
+      toast({ title: "2FA включена", description: "Двухфакторная аутентификация успешно активирована" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const disable2FAMutation = useMutation({
+    mutationFn: (token: string) => apiRequest("POST", "/api/user/2fa/disable", { token }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      setDisableCode("");
+      toast({ title: "2FA отключена" });
     },
     onError: (error: any) => {
       toast({ title: "Ошибка", description: error.message, variant: "destructive" });
@@ -248,6 +281,14 @@ function SecurityTab() {
       currentPassword: passwordData.currentPassword,
       newPassword: passwordData.newPassword,
     });
+  };
+
+  const handleEnable2FA = () => {
+    if (verificationCode.length !== 6) {
+      toast({ title: "Ошибка", description: "Введите 6-значный код", variant: "destructive" });
+      return;
+    }
+    enable2FAMutation.mutate({ secret: totpSecret, token: verificationCode });
   };
 
   return (
@@ -330,27 +371,95 @@ function SecurityTab() {
             <Shield className="h-5 w-5" />
             Двухфакторная аутентификация (2FA)
           </CardTitle>
-          <CardDescription>Дополнительный уровень защиты вашего аккаунта</CardDescription>
+          <CardDescription>Дополнительный уровень защиты вашего аккаунта через TOTP</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <div className="font-medium">2FA через TOTP</div>
-              <div className="text-sm text-muted-foreground">
-                Используйте Google Authenticator или аналогичное приложение
+          {user?.twoFactorEnabled ? (
+            <>
+              <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <span className="text-sm">2FA активирована. Ваш аккаунт защищён.</span>
+              </div>
+              <Separator />
+              <div className="space-y-4">
+                <Label>Для отключения введите код из приложения</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="000000"
+                    value={disableCode}
+                    onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    maxLength={6}
+                    className="w-32 text-center font-mono text-lg"
+                    data-testid="input-disable-2fa-code"
+                  />
+                  <Button
+                    variant="destructive"
+                    onClick={() => disable2FAMutation.mutate(disableCode)}
+                    disabled={disable2FAMutation.isPending || disableCode.length !== 6}
+                    data-testid="button-disable-2fa"
+                  >
+                    {disable2FAMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Отключить 2FA"}
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : setupMode ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Отсканируйте QR-код в приложении Google Authenticator или введите секретный ключ вручную
+                </p>
+                {qrCode && (
+                  <img src={qrCode} alt="QR Code" className="mx-auto border rounded-lg" data-testid="img-qr-code" />
+                )}
+                <div className="mt-4 p-3 bg-muted rounded-lg">
+                  <Label className="text-xs text-muted-foreground">Секретный ключ (для ручного ввода)</Label>
+                  <p className="font-mono text-sm select-all" data-testid="text-totp-secret">{totpSecret}</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <Label>Введите 6-значный код из приложения</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    maxLength={6}
+                    className="w-32 text-center font-mono text-lg"
+                    data-testid="input-verification-code"
+                  />
+                  <Button
+                    onClick={handleEnable2FA}
+                    disabled={enable2FAMutation.isPending || verificationCode.length !== 6}
+                    data-testid="button-verify-2fa"
+                  >
+                    {enable2FAMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Подтвердить"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setSetupMode(false)}>
+                    Отмена
+                  </Button>
+                </div>
               </div>
             </div>
-            <Switch
-              checked={user?.twoFactorEnabled || false}
-              onCheckedChange={(checked) => toggle2FAMutation.mutate(checked)}
-              disabled={toggle2FAMutation.isPending}
-              data-testid="switch-2fa"
-            />
-          </div>
-          {user?.twoFactorEnabled && (
-            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <span className="text-sm">2FA активирована. Ваш аккаунт защищён.</span>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="font-medium">2FA через TOTP</div>
+                  <div className="text-sm text-muted-foreground">
+                    Используйте Google Authenticator, Authy или аналогичное приложение
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setup2FAMutation.mutate()}
+                  disabled={setup2FAMutation.isPending}
+                  data-testid="button-setup-2fa"
+                >
+                  {setup2FAMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Shield className="h-4 w-4 mr-2" />}
+                  Настроить 2FA
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

@@ -3231,31 +3231,96 @@ export async function registerRoutes(
     }
   });
 
-  // Toggle 2FA (all roles)
-  app.post("/api/user/2fa/toggle", requireAuth, async (req: Request, res: Response) => {
+  // Generate TOTP secret and QR code for 2FA setup
+  app.post("/api/user/2fa/setup", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
-      const parseResult = twoFactorToggleSchema.safeParse(req.body);
-      if (!parseResult.success) {
-        return res.status(400).json({ message: "Invalid data" });
-      }
-      const { enabled } = parseResult.data;
+      const { totpService } = await import("./services/totp-service");
+      const { secret, qrCode, otpAuthUrl } = await totpService.generateSecret(userId);
+      res.json({ secret, qrCode, otpAuthUrl });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to generate 2FA secret" });
+    }
+  });
+
+  // Enable 2FA with TOTP verification
+  app.post("/api/user/2fa/enable", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { secret, token } = req.body;
       
-      // Generate TOTP secret for 2FA (base32 encoded for authenticator apps)
-      const secret = enabled ? crypto.randomBytes(20).toString('base64').replace(/[^A-Z2-7]/gi, '').substring(0, 16) : undefined;
-      
-      const user = await storage.updateUser2FA(userId, enabled, secret);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (!secret || !token) {
+        return res.status(400).json({ message: "Secret and token are required" });
       }
+
+      const { totpService } = await import("./services/totp-service");
+      const success = await totpService.enableTwoFactor(userId, secret, token);
+      
+      if (!success) {
+        return res.status(400).json({ message: "Invalid verification code" });
+      }
+      
+      res.json({ success: true, message: "2FA enabled successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to enable 2FA" });
+    }
+  });
+
+  // Disable 2FA with TOTP verification
+  app.post("/api/user/2fa/disable", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ message: "Verification code is required" });
+      }
+
+      const { totpService } = await import("./services/totp-service");
+      const success = await totpService.disableTwoFactor(userId, token);
+      
+      if (!success) {
+        return res.status(400).json({ message: "Invalid verification code" });
+      }
+      
+      res.json({ success: true, message: "2FA disabled successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to disable 2FA" });
+    }
+  });
+
+  // Verify 2FA token during login
+  app.post("/api/user/2fa/verify", async (req: Request, res: Response) => {
+    try {
+      const { userId, token } = req.body;
+      
+      if (!userId || !token) {
+        return res.status(400).json({ message: "User ID and token are required" });
+      }
+
+      const { totpService } = await import("./services/totp-service");
+      const success = await totpService.verifyToken(userId, token);
+      
+      if (!success) {
+        return res.status(401).json({ message: "Invalid verification code" });
+      }
+      
+      // Complete login by setting session
+      req.session.userId = userId;
+      const user = await storage.getUser(userId);
       
       res.json({ 
         success: true, 
-        twoFactorEnabled: user.twoFactorEnabled,
-        message: enabled ? "2FA enabled successfully" : "2FA disabled successfully"
+        user: user ? {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        } : null
       });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to toggle 2FA" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to verify 2FA" });
     }
   });
 
