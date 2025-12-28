@@ -410,6 +410,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async updateUser(userId: string, data: Partial<{
+    telegramChatId: string | null;
+    telegramLinkCode: string | null;
+    telegramLinkExpires: Date | null;
+  }>): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set(data)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getUserByTelegramLinkCode(code: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users)
+      .where(eq(users.telegramLinkCode, code));
+    return user;
+  }
+
   async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }

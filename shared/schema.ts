@@ -30,6 +30,8 @@ export const users = pgTable("users", {
   telegramNotifySales: boolean("telegram_notify_sales").default(true),
   telegramNotifyPayouts: boolean("telegram_notify_payouts").default(true),
   telegramNotifySystem: boolean("telegram_notify_system").default(true),
+  telegramLinkCode: text("telegram_link_code"),
+  telegramLinkExpires: timestamp("telegram_link_expires"),
   
   // API Tokens (for publishers)
   apiToken: text("api_token"),
