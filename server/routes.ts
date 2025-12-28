@@ -27,11 +27,12 @@ const MemorySessionStore = MemoryStore(session);
 const PgSessionStore = pgSession(session);
 
 async function setupAuth(app: Express) {
-  // Check for Replit deployment OR NODE_ENV=production
-  const isProduction = process.env.REPLIT_DEPLOYMENT === "1" || process.env.NODE_ENV === "production";
+  const isProduction = process.env.NODE_ENV === "production";
   
   // Trust proxy for Replit deployment (reverse proxy)
-  app.set("trust proxy", 1);
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
   
   // Use PostgreSQL session store in production, memory store in development
   let store;
@@ -53,7 +54,7 @@ async function setupAuth(app: Express) {
   
   app.use(
     session({
-      name: isProduction ? "__Host-sid" : "sid",
+      name: "sid",
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
       resave: false,
       saveUninitialized: false,
@@ -63,7 +64,7 @@ async function setupAuth(app: Express) {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
+        sameSite: "lax",
         path: "/",
       },
     })
@@ -72,7 +73,7 @@ async function setupAuth(app: Express) {
 
 async function seedUsers() {
   // Only seed test users in development mode
-  const isProduction = process.env.REPLIT_DEPLOYMENT === "1" || process.env.NODE_ENV === "production";
+  const isProduction = process.env.NODE_ENV === "production";
   if (isProduction) {
     console.log("Skipping test user seeding in production mode");
     return;
@@ -205,18 +206,11 @@ export async function registerRoutes(
       req.session.userId = user.id;
       req.session.role = user.role;
 
-      // Explicitly save session before sending response
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).json({ message: "Session error" });
-        }
-        res.json({ 
-          id: user.id, 
-          username: user.username, 
-          role: user.role,
-          email: user.email 
-        });
+      res.json({ 
+        id: user.id, 
+        username: user.username, 
+        role: user.role,
+        email: user.email 
       });
     } catch (error) {
       res.status(500).json({ message: "Login failed" });
