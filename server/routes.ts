@@ -1555,6 +1555,38 @@ export async function registerRoutes(
     }
   });
 
+  // Approve or reject conversion manually
+  app.put("/api/advertiser/conversions/:id/status", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const conversionId = req.params.id;
+      const { status } = req.body;
+      
+      if (!status || !["approved", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be 'approved' or 'rejected'" });
+      }
+      
+      const conversion = await storage.getConversion(conversionId);
+      if (!conversion) {
+        return res.status(404).json({ message: "Conversion not found" });
+      }
+      
+      // Check if advertiser owns this offer
+      const offer = await storage.getOffer(conversion.offerId);
+      const user = await storage.getUser(req.session.userId!);
+      if (!offer || (offer.advertiserId !== req.session.userId && user?.role !== "admin")) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Update conversion status
+      await storage.updateConversionStatus(conversionId, status);
+      
+      res.json({ message: `Conversion ${status}`, id: conversionId, status });
+    } catch (error) {
+      console.error("Error updating conversion status:", error);
+      res.status(500).json({ message: "Failed to update conversion status" });
+    }
+  });
+
   // Get clicks with filters
   app.get("/api/advertiser/clicks", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
