@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Users, Search, UserCheck, UserX, Clock, Loader2, 
-  Building2, User, Shield, Filter, TrendingUp
+  Building2, User, Shield, Filter, TrendingUp, KeyRound, Copy, Check
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -41,6 +42,8 @@ export function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("advertisers");
+  const [resetPasswordDialog, setResetPasswordDialog] = useState<{ open: boolean; username: string; password: string }>({ open: false, username: "", password: "" });
+  const [copied, setCopied] = useState(false);
 
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ["admin-stats"],
@@ -85,6 +88,22 @@ export function AdminUsers() {
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
     },
   });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await apiRequest("POST", `/api/admin/users/${userId}/reset-password`, {});
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setResetPasswordDialog({ open: true, username: data.username, password: data.newPassword });
+    },
+  });
+
+  const copyPassword = () => {
+    navigator.clipboard.writeText(resetPasswordDialog.password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const advertisers = users.filter(u => u.role === "advertiser");
   const filteredPublishers = publishers.filter(p => 
@@ -319,6 +338,16 @@ export function AdminUsers() {
                                   Разблокировать
                                 </Button>
                               )}
+                              <Button
+                                data-testid={`button-reset-password-${user.id}`}
+                                size="sm"
+                                variant="outline"
+                                onClick={() => resetPasswordMutation.mutate(user.id)}
+                                disabled={resetPasswordMutation.isPending}
+                              >
+                                <KeyRound className="w-4 h-4 mr-1" />
+                                Сброс пароля
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -418,6 +447,16 @@ export function AdminUsers() {
                                   Разблокировать
                                 </Button>
                               )}
+                              <Button
+                                data-testid={`button-reset-password-pub-${pub.id}`}
+                                size="sm"
+                                variant="outline"
+                                onClick={() => resetPasswordMutation.mutate(pub.id)}
+                                disabled={resetPasswordMutation.isPending}
+                              >
+                                <KeyRound className="w-4 h-4 mr-1" />
+                                Сброс пароля
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -430,6 +469,46 @@ export function AdminUsers() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={resetPasswordDialog.open} onOpenChange={(open) => setResetPasswordDialog({ ...resetPasswordDialog, open })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-emerald-500" />
+              Пароль сброшен
+            </DialogTitle>
+            <DialogDescription>
+              Новый пароль для пользователя <strong>{resetPasswordDialog.username}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={resetPasswordDialog.password}
+                className="font-mono bg-muted"
+              />
+              <Button
+                data-testid="button-copy-password"
+                variant="outline"
+                size="icon"
+                onClick={copyPassword}
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Скопируйте и передайте пользователю этот пароль. После закрытия окна пароль нельзя будет просмотреть снова.
+            </p>
+            <Button
+              className="w-full"
+              onClick={() => setResetPasswordDialog({ open: false, username: "", password: "" })}
+            >
+              Готово
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

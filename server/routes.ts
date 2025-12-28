@@ -516,6 +516,36 @@ export async function registerRoutes(
     }
   });
 
+  // Admin reset user password
+  app.post("/api/admin/users/:id/reset-password", async (req: Request, res: Response) => {
+    try {
+      if (!req.session.userId || req.session.role !== "admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { id } = req.params;
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Generate random password
+      const newPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+      
+      await storage.updateUserPassword(id, newPassword);
+
+      res.json({ 
+        success: true, 
+        message: "Password reset successfully",
+        newPassword,
+        username: user.username
+      });
+    } catch (error) {
+      console.error("Reset user password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   // Reset admin password (requires SETUP_KEY)
   app.post("/api/reset-admin-password", async (req: Request, res: Response) => {
     try {
