@@ -223,6 +223,7 @@ export interface IStorage {
   // Payout Requests
   getPayoutRequestsByPublisher(publisherId: string, advertiserId?: string): Promise<(PayoutRequest & { wallet: PublisherWallet; paymentMethod: PaymentMethod })[]>;
   getPayoutRequestsByAdvertiser(advertiserId: string): Promise<(PayoutRequest & { publisher: User; wallet: PublisherWallet; paymentMethod: PaymentMethod })[]>;
+  getAllPayoutRequests(): Promise<(PayoutRequest & { publisherName?: string; advertiserName?: string })[]>;
   getPayoutRequest(id: string): Promise<PayoutRequest | undefined>;
   createPayoutRequest(request: InsertPayoutRequest): Promise<PayoutRequest>;
   updatePayoutRequest(id: string, data: Partial<InsertPayoutRequest>): Promise<PayoutRequest | undefined>;
@@ -1753,6 +1754,22 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
   
+  async getAllPayoutRequests(): Promise<(PayoutRequest & { publisherName?: string; advertiserName?: string })[]> {
+    const requests = await db.select().from(payoutRequests).orderBy(desc(payoutRequests.createdAt)).limit(100);
+    
+    const result = [];
+    for (const req of requests) {
+      const publisher = await this.getUser(req.publisherId);
+      const advertiser = await this.getUser(req.advertiserId);
+      result.push({ 
+        ...req, 
+        publisherName: publisher?.username,
+        advertiserName: advertiser?.username 
+      });
+    }
+    return result;
+  }
+
   async getPayoutRequest(id: string): Promise<PayoutRequest | undefined> {
     const [request] = await db.select().from(payoutRequests).where(eq(payoutRequests.id, id));
     return request;

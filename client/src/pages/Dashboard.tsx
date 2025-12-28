@@ -30,6 +30,7 @@ import { AdminUsers } from "@/components/dashboard/AdminUsers";
 import { Reports } from "@/components/dashboard/Reports";
 import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
+import { AdminFinance } from "@/components/dashboard/AdminFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
 import { PostbackSettings } from "@/components/dashboard/PostbackSettings";
 import { useState, useEffect } from "react";
@@ -372,6 +373,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
 
     if (showFinance) {
+      if (role === 'admin') {
+        return <AdminFinance />;
+      }
       return <AdvertiserFinance />;
     }
 

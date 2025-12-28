@@ -1162,8 +1162,8 @@ export async function registerRoutes(
     }
   });
 
-  // Test postback URL (universal)
-  app.post("/api/advertiser/postbacks/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  // Test postback URL (universal for all roles)
+  app.post("/api/postback-test", requireAuth, async (req: Request, res: Response) => {
     try {
       const { url, method = "GET" } = req.body;
       
@@ -1821,6 +1821,56 @@ export async function registerRoutes(
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // Admin platform financial stats
+  app.get("/api/admin/platform-stats", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const conversionsResult = await storage.getConversionsReport({}, undefined, 1, 10000);
+      const allConversions = conversionsResult.conversions;
+      const allUsers = await storage.getAllUsers();
+      const allPayoutRequests = await storage.getAllPayoutRequests();
+      
+      const advertisers = allUsers.filter(u => u.role === 'advertiser');
+      const publishers = allUsers.filter(u => u.role === 'publisher');
+      
+      let totalRevenue = 0;
+      let totalPayouts = 0;
+      
+      for (const conv of allConversions) {
+        if (conv.status === 'approved' || conv.status === 'paid') {
+          totalRevenue += parseFloat(conv.advertiserPrice || '0');
+          totalPayouts += parseFloat(conv.publisherPayout || '0');
+        }
+      }
+      
+      const pendingPayouts = allPayoutRequests
+        .filter(r => r.status === 'pending' || r.status === 'approved')
+        .reduce((sum, r) => sum + parseFloat(r.requestedAmount || '0'), 0);
+      
+      res.json({
+        totalRevenue,
+        totalPayouts,
+        platformMargin: totalRevenue - totalPayouts,
+        pendingPayouts,
+        activeAdvertisers: advertisers.filter(a => a.status === 'active').length,
+        activePublishers: publishers.filter(p => p.status === 'active').length,
+        totalConversions: conversionsResult.total,
+        avgROI: totalPayouts > 0 ? ((totalRevenue - totalPayouts) / totalPayouts * 100) : 0
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch platform stats" });
+    }
+  });
+
+  // Admin all payout requests
+  app.get("/api/admin/all-payout-requests", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const requests = await storage.getAllPayoutRequests();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payout requests" });
     }
   });
 
