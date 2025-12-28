@@ -728,3 +728,114 @@ export const insertAntifraudMetricSchema = createInsertSchema(antifraudMetrics).
 
 export type InsertAntifraudMetric = z.infer<typeof insertAntifraudMetricSchema>;
 export type AntifraudMetric = typeof antifraudMetrics.$inferSelect;
+
+// ============================================
+// VELOCITY COUNTERS
+// Real-time click counting for rate limiting
+// ============================================
+export const velocityCounters = pgTable("velocity_counters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Counter key (IP, fingerprint, publisherId)
+  counterType: text("counter_type").notNull(), // ip, fingerprint, publisher, device
+  counterKey: text("counter_key").notNull(), // actual value (IP address, fingerprint hash, etc.)
+  
+  // Context
+  advertiserId: varchar("advertiser_id").references(() => users.id),
+  offerId: varchar("offer_id").references(() => offers.id),
+  
+  // Counters for different periods
+  clicksMinute: integer("clicks_minute").notNull().default(0),
+  clicksHour: integer("clicks_hour").notNull().default(0),
+  clicksDay: integer("clicks_day").notNull().default(0),
+  
+  // Last update timestamps for counter reset
+  minuteReset: timestamp("minute_reset").notNull().defaultNow(),
+  hourReset: timestamp("hour_reset").notNull().defaultNow(),
+  dayReset: timestamp("day_reset").notNull().defaultNow(),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertVelocityCounterSchema = createInsertSchema(velocityCounters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVelocityCounter = z.infer<typeof insertVelocityCounterSchema>;
+export type VelocityCounter = typeof velocityCounters.$inferSelect;
+
+// ============================================
+// CONVERSION FINGERPRINTS
+// For duplicate detection by email, phone, transaction_id
+// ============================================
+export const conversionFingerprints = pgTable("conversion_fingerprints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  offerId: varchar("offer_id").references(() => offers.id),
+  advertiserId: varchar("advertiser_id").references(() => users.id),
+  publisherId: varchar("publisher_id").references(() => users.id),
+  
+  // Fingerprint data (hashed)
+  emailHash: text("email_hash"),
+  phoneHash: text("phone_hash"),
+  transactionId: text("transaction_id"),
+  deviceFingerprint: text("device_fingerprint"),
+  
+  // Original conversion
+  conversionId: varchar("conversion_id").references(() => conversions.id),
+  clickId: varchar("click_id").references(() => clicks.id),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertConversionFingerprintSchema = createInsertSchema(conversionFingerprints).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertConversionFingerprint = z.infer<typeof insertConversionFingerprintSchema>;
+export type ConversionFingerprint = typeof conversionFingerprints.$inferSelect;
+
+// ============================================
+// PUBLISHER STATS CACHE
+// For CR anomaly detection
+// ============================================
+export const publisherStatsCache = pgTable("publisher_stats_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").references(() => users.id),
+  offerId: varchar("offer_id").references(() => offers.id),
+  
+  // Stats for period (rolling 7 days)
+  totalClicks: integer("total_clicks").notNull().default(0),
+  totalConversions: integer("total_conversions").notNull().default(0),
+  approvedConversions: integer("approved_conversions").notNull().default(0),
+  rejectedConversions: integer("rejected_conversions").notNull().default(0),
+  
+  // Calculated rates (updated periodically)
+  conversionRate: numeric("conversion_rate", { precision: 5, scale: 4 }), // CR = conversions/clicks
+  approvalRate: numeric("approval_rate", { precision: 5, scale: 4 }), // AR = approved/total conversions
+  
+  // Baseline for anomaly detection (historical average)
+  baselineCr: numeric("baseline_cr", { precision: 5, scale: 4 }),
+  baselineAr: numeric("baseline_ar", { precision: 5, scale: 4 }),
+  
+  // Anomaly flags
+  isCrAnomaly: boolean("is_cr_anomaly").default(false),
+  isArAnomaly: boolean("is_ar_anomaly").default(false),
+  
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPublisherStatsCacheSchema = createInsertSchema(publisherStatsCache).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPublisherStatsCache = z.infer<typeof insertPublisherStatsCacheSchema>;
+export type PublisherStatsCache = typeof publisherStatsCache.$inferSelect;

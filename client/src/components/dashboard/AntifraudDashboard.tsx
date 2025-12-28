@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Shield, AlertTriangle, Bot, Globe, Activity, Plus, Trash2, Edit2, Eye, HelpCircle, CheckCircle, XCircle, Clock, Flag } from "lucide-react";
+import { Shield, AlertTriangle, Bot, Globe, Activity, Plus, Trash2, Edit2, Eye, HelpCircle, CheckCircle, XCircle, Clock, Flag, Zap, Copy, TrendingUp, Fingerprint } from "lucide-react";
 
 interface AntifraudRule {
   id: string;
@@ -55,12 +55,21 @@ interface AntifraudSummary {
 }
 
 const RULE_TYPES = [
-  { value: "fraud_score", label: "Fraud Score", description: "Block by fraud score threshold" },
-  { value: "proxy_vpn", label: "Proxy/VPN", description: "Detect proxy and VPN traffic" },
-  { value: "bot", label: "Bot Detection", description: "Block automated bots" },
-  { value: "datacenter", label: "Datacenter IP", description: "Detect datacenter IPs" },
-  { value: "duplicate_click", label: "Duplicate Click", description: "Block duplicate clicks" },
-  { value: "geo_mismatch", label: "GEO Mismatch", description: "Detect geo mismatch" },
+  { value: "fraud_score", label: "Fraud Score", description: "Блокировать по порогу fraud score", category: "score" },
+  { value: "proxy_vpn", label: "Proxy/VPN", description: "Определять прокси и VPN трафик", category: "detection" },
+  { value: "bot", label: "Боты", description: "Блокировать автоматизированных ботов", category: "detection" },
+  { value: "datacenter", label: "Datacenter IP", description: "Определять IP датацентров", category: "detection" },
+  { value: "duplicate_click", label: "Дубль клика", description: "Блокировать повторные клики", category: "duplicate" },
+  { value: "duplicate_conversion", label: "Дубль конверсии", description: "Блокировать дубликаты конверсий (email/телефон/transaction)", category: "duplicate" },
+  { value: "geo_mismatch", label: "GEO несоответствие", description: "Определять несоответствие геолокации", category: "detection" },
+  { value: "device_fingerprint", label: "Fingerprint", description: "Подозрительный отпечаток устройства", category: "detection" },
+  { value: "velocity_ip_minute", label: "Velocity IP/мин", description: "Лимит кликов с IP за минуту", category: "velocity" },
+  { value: "velocity_ip_hour", label: "Velocity IP/час", description: "Лимит кликов с IP за час", category: "velocity" },
+  { value: "velocity_ip_day", label: "Velocity IP/день", description: "Лимит кликов с IP за день", category: "velocity" },
+  { value: "velocity_fingerprint", label: "Velocity Fingerprint", description: "Лимит кликов с устройства за час", category: "velocity" },
+  { value: "velocity_publisher", label: "Velocity Publisher", description: "Лимит кликов паблишера за минуту", category: "velocity" },
+  { value: "cr_anomaly", label: "CR аномалия", description: "Аномальный CR паблишера (отклонение >50%)", category: "anomaly" },
+  { value: "ar_anomaly", label: "AR аномалия", description: "Аномальный Approval Rate паблишера", category: "anomaly" },
 ];
 
 const ACTIONS = [
@@ -168,6 +177,18 @@ export default function AntifraudDashboard({ role }: { role: string }) {
       case "bot": return <Bot className="h-4 w-4" />;
       case "proxy_vpn": return <Globe className="h-4 w-4" />;
       case "fraud_score": return <AlertTriangle className="h-4 w-4" />;
+      case "datacenter": return <Globe className="h-4 w-4 text-purple-500" />;
+      case "duplicate_click":
+      case "duplicate_conversion": return <Copy className="h-4 w-4 text-orange-500" />;
+      case "geo_mismatch": return <Globe className="h-4 w-4 text-yellow-500" />;
+      case "device_fingerprint": return <Fingerprint className="h-4 w-4 text-blue-500" />;
+      case "velocity_ip_minute":
+      case "velocity_ip_hour":
+      case "velocity_ip_day":
+      case "velocity_fingerprint":
+      case "velocity_publisher": return <Zap className="h-4 w-4 text-purple-500" />;
+      case "cr_anomaly":
+      case "ar_anomaly": return <TrendingUp className="h-4 w-4 text-red-500" />;
       default: return <Shield className="h-4 w-4" />;
     }
   };
@@ -246,7 +267,7 @@ export default function AntifraudDashboard({ role }: { role: string }) {
           <TabsTrigger value="logs" data-testid="tab-logs">Логи</TabsTrigger>
           <TabsTrigger value="help" data-testid="tab-help">
             <HelpCircle className="h-4 w-4 mr-1" />
-            Справка
+            Инструкция
           </TabsTrigger>
         </TabsList>
 
@@ -301,15 +322,28 @@ export default function AntifraudDashboard({ role }: { role: string }) {
                       </SelectContent>
                     </Select>
                   </div>
-                  {newRule.ruleType === "fraud_score" && (
+                  {(newRule.ruleType === "fraud_score" || newRule.ruleType.startsWith("velocity_")) && (
                     <div>
-                      <Label>Порог (fraud score)</Label>
+                      <Label>
+                        {newRule.ruleType === "fraud_score" ? "Порог (fraud score 0-100)" : 
+                         newRule.ruleType === "velocity_ip_minute" ? "Лимит кликов/минуту" :
+                         newRule.ruleType === "velocity_ip_hour" ? "Лимит кликов/час" :
+                         newRule.ruleType === "velocity_ip_day" ? "Лимит кликов/день" :
+                         newRule.ruleType === "velocity_fingerprint" ? "Лимит кликов/час" :
+                         "Лимит кликов/минуту"}
+                      </Label>
                       <Input
                         type="number"
                         value={newRule.threshold}
                         onChange={(e) => setNewRule({ ...newRule, threshold: parseInt(e.target.value) })}
+                        placeholder={newRule.ruleType === "fraud_score" ? "80" : "10"}
                         data-testid="input-rule-threshold"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {newRule.ruleType === "fraud_score" 
+                          ? "Рекомендуется: 60-80 для баланса точности" 
+                          : "Рекомендуется: 10/мин, 100/час, 500/день"}
+                      </p>
                     </div>
                   )}
                   <div>
@@ -607,26 +641,83 @@ export default function AntifraudDashboard({ role }: { role: string }) {
               </div>
 
               <div className="border-t pt-4 space-y-4">
+                <h4 className="font-semibold text-base">Категории правил</h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-3 border rounded-lg">
+                    <div className="font-medium text-blue-400 mb-2">Детекция</div>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Proxy/VPN, Боты</li>
+                      <li>• Datacenter IP</li>
+                      <li>• GEO несоответствие</li>
+                      <li>• Fingerprint</li>
+                    </ul>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <div className="font-medium text-purple-400 mb-2">Velocity (лимиты)</div>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• IP/минуту (10)</li>
+                      <li>• IP/час (100)</li>
+                      <li>• IP/день (500)</li>
+                      <li>• Fingerprint/час (30)</li>
+                      <li>• Publisher/минуту (100)</li>
+                    </ul>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <div className="font-medium text-orange-400 mb-2">Дубликаты</div>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Дубль клика</li>
+                      <li>• Дубль конверсии</li>
+                      <li>• По email/телефону</li>
+                      <li>• По transaction_id</li>
+                    </ul>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <div className="font-medium text-red-400 mb-2">Аномалии</div>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• CR аномалия (&gt;50%)</li>
+                      <li>• AR аномалия (&gt;30%)</li>
+                      <li>• Авто-расчёт baseline</li>
+                      <li>• Требуется 50+ кликов</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
                 <h4 className="font-semibold text-base">Рекомендуемые настройки</h4>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-3 gap-4">
                   <Card className="border-green-500/30 bg-green-500/5">
                     <CardContent className="pt-4">
                       <h5 className="font-medium text-green-600 mb-2">Базовая защита</h5>
-                      <ul className="text-sm space-y-1 text-muted-foreground">
+                      <ul className="text-xs space-y-1 text-muted-foreground">
                         <li>• Fraud Score ≥ 80 → Block</li>
                         <li>• Bot Detection → Reject</li>
-                        <li>• Datacenter IP → Flag</li>
+                        <li>• Velocity IP/мин ≥ 10 → Block</li>
+                        <li>• Дубль конверсии → Reject</li>
                       </ul>
                     </CardContent>
                   </Card>
                   <Card className="border-orange-500/30 bg-orange-500/5">
                     <CardContent className="pt-4">
                       <h5 className="font-medium text-orange-600 mb-2">Строгая защита</h5>
-                      <ul className="text-sm space-y-1 text-muted-foreground">
+                      <ul className="text-xs space-y-1 text-muted-foreground">
                         <li>• Fraud Score ≥ 60 → Block</li>
                         <li>• Proxy/VPN → Reject</li>
-                        <li>• Bot Detection → Block</li>
+                        <li>• Velocity IP/час ≥ 50 → Flag</li>
+                        <li>• CR аномалия → Hold</li>
                         <li>• Datacenter IP → Reject</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-red-500/30 bg-red-500/5">
+                    <CardContent className="pt-4">
+                      <h5 className="font-medium text-red-600 mb-2">Максимальная защита</h5>
+                      <ul className="text-xs space-y-1 text-muted-foreground">
+                        <li>• Fraud Score ≥ 50 → Block</li>
+                        <li>• Все velocity → Block</li>
+                        <li>• Proxy/VPN → Block</li>
+                        <li>• Все аномалии → Reject</li>
+                        <li>• GEO mismatch → Reject</li>
                       </ul>
                     </CardContent>
                   </Card>
