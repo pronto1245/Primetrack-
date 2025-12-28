@@ -30,23 +30,31 @@ async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === "production";
   
   // Trust proxy for Replit deployment (reverse proxy)
-  if (isProduction) {
-    app.set("trust proxy", 1);
-  }
+  app.set("trust proxy", 1);
   
-  // Use PostgreSQL session store in production, memory store in development
+  // Always use PostgreSQL session store if DATABASE_URL is available
   let store;
-  if (isProduction && process.env.DATABASE_URL) {
-    const pool = new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-    });
-    store = new PgSessionStore({
-      pool,
-      tableName: "session",
-      createTableIfMissing: true,
-    });
+  let storeType = "memory";
+  
+  if (process.env.DATABASE_URL) {
+    try {
+      const pool = new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: isProduction ? { rejectUnauthorized: false } : false,
+      });
+      store = new PgSessionStore({
+        pool,
+        tableName: "session",
+        createTableIfMissing: true,
+      });
+      storeType = "postgresql";
+      console.log("[session] Using PostgreSQL session store");
+    } catch (err) {
+      console.error("[session] Failed to connect to PostgreSQL, falling back to memory store:", err);
+      store = new MemorySessionStore({ checkPeriod: 86400000 });
+    }
   } else {
+    console.log("[session] DATABASE_URL not found, using memory store (sessions will not persist)");
     store = new MemorySessionStore({
       checkPeriod: 86400000,
     });
@@ -206,6 +214,19 @@ export async function registerRoutes(
       req.session.userId = user.id;
       req.session.role = user.role;
 
+      // Explicitly save session before responding to ensure it's persisted
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("[session] Failed to save session:", err);
+            reject(err);
+          } else {
+            console.log("[session] Session saved successfully for user:", user.username);
+            resolve();
+          }
+        });
+      });
+
       res.json({ 
         id: user.id, 
         username: user.username, 
@@ -213,6 +234,7 @@ export async function registerRoutes(
         email: user.email 
       });
     } catch (error) {
+      console.error("[auth] Login error:", error);
       res.status(500).json({ message: "Login failed" });
     }
   });
