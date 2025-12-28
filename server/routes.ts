@@ -700,6 +700,11 @@ export async function registerRoutes(
           geoCode = geoData.country;
         }
       }
+      
+      // Final fallback for localhost/private IPs that can't be geolocated
+      if (!geoCode) {
+        geoCode = "XX"; // Unknown/unidentified country code
+      }
 
       const result = await clickHandler.processClick({
         offerId: offer_id as string,
