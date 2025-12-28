@@ -596,16 +596,15 @@ export function AdvertiserFinance() {
                       </td>
                       <td className="text-right py-3 px-4">
                         <Button 
-                          variant="outline" 
                           size="sm" 
-                          className="text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/10"
+                          className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
                           onClick={() => {
                             setBonusPublisherId(balance.publisherId);
                             setShowBonusDialog(true);
                           }}
                           data-testid={`button-bonus-${balance.publisherId}`}
                         >
-                          <DollarSign className="w-3 h-3 mr-1" />
+                          <DollarSign className="w-4 h-4 mr-1" />
                           Бонус
                         </Button>
                       </td>
