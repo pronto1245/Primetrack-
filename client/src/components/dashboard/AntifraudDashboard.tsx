@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Shield, AlertTriangle, Bot, Globe, Activity, Plus, Trash2, Edit2, Eye } from "lucide-react";
+import { Shield, AlertTriangle, Bot, Globe, Activity, Plus, Trash2, Edit2, Eye, HelpCircle, CheckCircle, XCircle, Clock, Flag } from "lucide-react";
 
 interface AntifraudRule {
   id: string;
@@ -244,6 +244,10 @@ export default function AntifraudDashboard({ role }: { role: string }) {
         <TabsList>
           <TabsTrigger value="rules" data-testid="tab-rules">Правила</TabsTrigger>
           <TabsTrigger value="logs" data-testid="tab-logs">Логи</TabsTrigger>
+          <TabsTrigger value="help" data-testid="tab-help">
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Справка
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="rules" className="space-y-4">
@@ -476,6 +480,176 @@ export default function AntifraudDashboard({ role }: { role: string }) {
               </table>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="help" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-500" />
+                Как работает система антифрода
+              </CardTitle>
+              <CardDescription>
+                Система защищает от фродового трафика и помогает сохранить качество конверсий
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold text-base">Принцип работы</h4>
+                <div className="grid gap-3">
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-blue-500/20 rounded">
+                      <Activity className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <div className="font-medium">1. Анализ клика</div>
+                      <div className="text-sm text-muted-foreground">
+                        При каждом клике собираются данные: IP, User-Agent, страна, fingerprint браузера
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-orange-500/20 rounded">
+                      <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div>
+                      <div className="font-medium">2. Проверка на угрозы</div>
+                      <div className="text-sm text-muted-foreground">
+                        Проверяется использование прокси/VPN, datacenter IP, ботов, автоматизации
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-purple-500/20 rounded">
+                      <Shield className="h-4 w-4 text-purple-500" />
+                    </div>
+                    <div>
+                      <div className="font-medium">3. Расчёт Fraud Score</div>
+                      <div className="text-sm text-muted-foreground">
+                        Каждому клику присваивается оценка от 0 до 100 (выше = более подозрительный)
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-green-500/20 rounded">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </div>
+                    <div>
+                      <div className="font-medium">4. Применение правил</div>
+                      <div className="text-sm text-muted-foreground">
+                        Правила проверяются по приоритету, первое сработавшее определяет действие
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h4 className="font-semibold text-base">Типы правил</h4>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {RULE_TYPES.map(type => (
+                    <div key={type.value} className="flex items-start gap-3 p-3 border rounded-lg">
+                      <div className="p-2 bg-muted rounded">
+                        {getRuleTypeIcon(type.value)}
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">{type.label}</div>
+                        <div className="text-xs text-muted-foreground">{type.description}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h4 className="font-semibold text-base">Действия при срабатывании</h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <div className="p-3 border rounded-lg text-center">
+                    <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                    <div className="font-medium text-sm">Allow</div>
+                    <div className="text-xs text-muted-foreground">Пропустить клик</div>
+                  </div>
+                  <div className="p-3 border rounded-lg text-center">
+                    <Flag className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+                    <div className="font-medium text-sm">Flag</div>
+                    <div className="text-xs text-muted-foreground">Пометить как подозрительный</div>
+                  </div>
+                  <div className="p-3 border rounded-lg text-center">
+                    <Clock className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+                    <div className="font-medium text-sm">Hold</div>
+                    <div className="text-xs text-muted-foreground">Задержать для проверки</div>
+                  </div>
+                  <div className="p-3 border rounded-lg text-center">
+                    <XCircle className="h-6 w-6 text-red-400 mx-auto mb-2" />
+                    <div className="font-medium text-sm">Reject</div>
+                    <div className="text-xs text-muted-foreground">Отклонить конверсию</div>
+                  </div>
+                  <div className="p-3 border rounded-lg text-center">
+                    <XCircle className="h-6 w-6 text-red-600 mx-auto mb-2" />
+                    <div className="font-medium text-sm">Block</div>
+                    <div className="text-xs text-muted-foreground">Полностью заблокировать</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h4 className="font-semibold text-base">Как добавить правило</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                  <li>Перейдите на вкладку <span className="font-medium text-foreground">«Правила»</span></li>
+                  <li>Нажмите кнопку <span className="font-medium text-foreground">«Добавить правило»</span></li>
+                  <li>Укажите название и описание правила</li>
+                  <li>Выберите тип правила (например, Fraud Score или Proxy/VPN)</li>
+                  <li>Если выбран Fraud Score — укажите пороговое значение (рекомендуется 60-80)</li>
+                  <li>Выберите действие при срабатывании (Block, Reject, Hold, Flag или Allow)</li>
+                  <li>Укажите приоритет (меньшее число = выше приоритет)</li>
+                  <li>Нажмите <span className="font-medium text-foreground">«Создать правило»</span></li>
+                </ol>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h4 className="font-semibold text-base">Рекомендуемые настройки</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="border-green-500/30 bg-green-500/5">
+                    <CardContent className="pt-4">
+                      <h5 className="font-medium text-green-600 mb-2">Базовая защита</h5>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>• Fraud Score ≥ 80 → Block</li>
+                        <li>• Bot Detection → Reject</li>
+                        <li>• Datacenter IP → Flag</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-orange-500/30 bg-orange-500/5">
+                    <CardContent className="pt-4">
+                      <h5 className="font-medium text-orange-600 mb-2">Строгая защита</h5>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>• Fraud Score ≥ 60 → Block</li>
+                        <li>• Proxy/VPN → Reject</li>
+                        <li>• Bot Detection → Block</li>
+                        <li>• Datacenter IP → Reject</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {role === "advertiser" && (
+                <div className="border-t pt-4">
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <h5 className="font-medium text-blue-400 mb-2 flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Для рекламодателей
+                    </h5>
+                    <p className="text-sm text-muted-foreground">
+                      Вы можете создавать собственные правила, которые будут применяться только к вашим офферам. 
+                      Глобальные правила платформы (отмеченные как «Глобальное») создаются администратором 
+                      и действуют для всех рекламодателей.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
