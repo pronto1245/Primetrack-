@@ -231,18 +231,18 @@ export function Reports({ role }: ReportsProps) {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-[#0A0A0A] border border-white/10">
-          <TabsTrigger value="clicks" className="data-[state=active]:bg-white/10" data-testid="tab-clicks">
-            <MousePointer className="w-4 h-4 mr-2" />
-            {t('reports.clicks') || 'Clicks'}
+        <TabsList className="bg-[#0A0A0A] border border-white/10 gap-2 p-1">
+          <TabsTrigger value="clicks" className="px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-clicks">
+            <MousePointer className="w-4 h-4 mr-2 text-blue-400" />
+            {t('reports.clicks') || 'Клики'}
           </TabsTrigger>
-          <TabsTrigger value="conversions" className="data-[state=active]:bg-white/10" data-testid="tab-conversions">
-            <Target className="w-4 h-4 mr-2" />
-            {t('reports.conversions') || 'Conversions'}
+          <TabsTrigger value="conversions" className="px-4 py-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white" data-testid="tab-conversions">
+            <Target className="w-4 h-4 mr-2 text-emerald-400" />
+            {t('reports.conversions') || 'Конверсии'}
           </TabsTrigger>
-          <TabsTrigger value="grouped" className="data-[state=active]:bg-white/10" data-testid="tab-grouped">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            {t('reports.grouped') || 'Grouped'}
+          <TabsTrigger value="grouped" className="px-4 py-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white" data-testid="tab-grouped">
+            <TrendingUp className="w-4 h-4 mr-2 text-purple-400" />
+            {t('reports.grouped') || 'Сводка'}
           </TabsTrigger>
         </TabsList>
 

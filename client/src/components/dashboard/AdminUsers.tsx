@@ -202,16 +202,16 @@ export function AdminUsers() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-[#0A0A0A] border border-white/10">
-          <TabsTrigger value="advertisers" className="data-[state=active]:bg-blue-600">
-            <Building2 className="w-4 h-4 mr-2" />
+        <TabsList className="bg-[#0A0A0A] border border-white/10 gap-2 p-1">
+          <TabsTrigger value="advertisers" className="px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <Building2 className="w-4 h-4 mr-2 text-blue-400" />
             Рекламодатели
             {pendingCount > 0 && (
               <Badge variant="destructive" className="ml-2 text-xs">{pendingCount}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="publishers" className="data-[state=active]:bg-emerald-600">
-            <User className="w-4 h-4 mr-2" />
+          <TabsTrigger value="publishers" className="px-4 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
+            <User className="w-4 h-4 mr-2 text-emerald-400" />
             Партнёры
           </TabsTrigger>
         </TabsList>

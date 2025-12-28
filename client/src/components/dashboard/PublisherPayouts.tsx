@@ -331,17 +331,24 @@ export function PublisherPayouts() {
           </div>
 
           <Tabs defaultValue="wallets" className="space-y-4">
-            <TabsList className="bg-[#0A0A0A] border border-white/10">
-              <TabsTrigger value="wallets" data-testid="tab-wallets">Мои кошельки</TabsTrigger>
-              <TabsTrigger value="requests" data-testid="tab-requests">
+            <TabsList className="bg-[#0A0A0A] border border-white/10 gap-2 p-1">
+              <TabsTrigger value="wallets" data-testid="tab-wallets" className="px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+                <Wallet className="w-4 h-4 mr-2 text-blue-400" />
+                Мои кошельки
+              </TabsTrigger>
+              <TabsTrigger value="requests" data-testid="tab-requests" className="px-4 py-2 data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
+                <Clock className="w-4 h-4 mr-2 text-yellow-400" />
                 Запросы
                 {payoutRequests.filter((r: any) => r.status === "pending").length > 0 && (
-                  <Badge className="ml-2 bg-yellow-500 text-black">
+                  <Badge className="ml-2 bg-yellow-600 text-black">
                     {payoutRequests.filter((r: any) => r.status === "pending").length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="history" data-testid="tab-history">История</TabsTrigger>
+              <TabsTrigger value="history" data-testid="tab-history" className="px-4 py-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                <History className="w-4 h-4 mr-2 text-purple-400" />
+                История
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="wallets" className="space-y-4">
