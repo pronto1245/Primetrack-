@@ -572,9 +572,16 @@ function WhiteLabelTab() {
             onChange={(e) => setFormData({ ...formData, customDomain: e.target.value })}
             placeholder="tracking.yourdomain.com"
           />
-          <p className="text-sm text-muted-foreground">
-            Укажите CNAME запись на наш сервер. SSL сертификат будет выпущен автоматически.
-          </p>
+          <div className="text-sm text-muted-foreground space-y-2 mt-2">
+            <p>Настройте DNS у вашего регистратора домена:</p>
+            <div className="bg-muted p-3 rounded-md font-mono text-xs space-y-1">
+              <div><span className="text-muted-foreground">Тип:</span> <span className="text-foreground">CNAME</span></div>
+              <div><span className="text-muted-foreground">Имя/Host:</span> <span className="text-foreground">tracking</span> <span className="text-muted-foreground">(или ваш поддомен)</span></div>
+              <div><span className="text-muted-foreground">Значение/Target:</span> <span className="text-foreground select-all">{window.location.host}</span></div>
+              <div><span className="text-muted-foreground">TTL:</span> <span className="text-foreground">3600</span> <span className="text-muted-foreground">(или Auto)</span></div>
+            </div>
+            <p className="text-xs">После настройки DNS, SSL сертификат будет выпущен автоматически (до 24 часов).</p>
+          </div>
         </div>
 
         <div className="flex items-center justify-between p-4 border rounded-lg">
