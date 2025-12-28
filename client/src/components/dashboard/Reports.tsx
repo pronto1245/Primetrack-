@@ -477,13 +477,23 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                         <span className="text-muted-foreground">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">-</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">-</td>
+                    <td className="px-4 py-3 text-right text-cyan-400">
+                      {click.cr !== undefined ? `${click.cr.toFixed(0)}%` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-emerald-400">
+                      {click.payout !== undefined ? `$${click.payout.toFixed(2)}` : '-'}
+                    </td>
                     {isAdvertiser && (
                       <>
-                        <td className="px-4 py-3 text-right text-muted-foreground">-</td>
-                        <td className="px-4 py-3 text-right text-muted-foreground">-</td>
-                        <td className="px-4 py-3 text-right text-muted-foreground">-</td>
+                        <td className="px-4 py-3 text-right text-red-400">
+                          {click.advertiserCost !== undefined ? `$${click.advertiserCost.toFixed(2)}` : '-'}
+                        </td>
+                        <td className={`px-4 py-3 text-right ${(click.margin || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {click.margin !== undefined ? `$${click.margin.toFixed(2)}` : '-'}
+                        </td>
+                        <td className={`px-4 py-3 text-right ${(click.roi || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {click.roi !== undefined ? `${click.roi.toFixed(1)}%` : '-'}
+                        </td>
                       </>
                     )}
                     <td className="px-4 py-3 text-muted-foreground">{click.sub1 || '-'}</td>
