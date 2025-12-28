@@ -18,6 +18,23 @@ export const users = pgTable("users", {
   telegram: text("telegram"),
   phone: text("phone"),
   companyName: text("company_name"),
+  
+  // 2FA Settings
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  twoFactorSecret: text("two_factor_secret"), // encrypted TOTP secret
+  
+  // Telegram Notifications
+  telegramChatId: text("telegram_chat_id"),
+  telegramNotifyClicks: boolean("telegram_notify_clicks").default(false),
+  telegramNotifyLeads: boolean("telegram_notify_leads").default(true),
+  telegramNotifySales: boolean("telegram_notify_sales").default(true),
+  telegramNotifyPayouts: boolean("telegram_notify_payouts").default(true),
+  telegramNotifySystem: boolean("telegram_notify_system").default(true),
+  
+  // API Tokens (for publishers)
+  apiToken: text("api_token"),
+  apiTokenCreatedAt: timestamp("api_token_created_at"),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -297,6 +314,23 @@ export const advertiserSettings = pgTable("advertiser_settings", {
   okxApiKey: text("okx_api_key"),
   okxSecretKey: text("okx_secret_key"),
   okxPassphrase: text("okx_passphrase"),
+  
+  // Telegram Bot for notifications (advertiser's own bot)
+  telegramBotToken: text("telegram_bot_token"), // encrypted
+  
+  // Email notification settings
+  emailNotifyLeads: boolean("email_notify_leads").default(true),
+  emailNotifySales: boolean("email_notify_sales").default(true),
+  emailNotifyPayouts: boolean("email_notify_payouts").default(true),
+  emailNotifySystem: boolean("email_notify_system").default(true),
+  
+  // SMTP settings for custom email sending
+  smtpHost: text("smtp_host"),
+  smtpPort: integer("smtp_port"),
+  smtpUser: text("smtp_user"),
+  smtpPassword: text("smtp_password"), // encrypted
+  smtpFromEmail: text("smtp_from_email"),
+  smtpFromName: text("smtp_from_name"),
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -859,3 +893,94 @@ export const insertPublisherStatsCacheSchema = createInsertSchema(publisherStats
 
 export type InsertPublisherStatsCache = z.infer<typeof insertPublisherStatsCacheSchema>;
 export type PublisherStatsCache = typeof publisherStatsCache.$inferSelect;
+
+// ============================================
+// PLATFORM SETTINGS (Admin only)
+// Global platform configuration
+// ============================================
+export const platformSettings = pgTable("platform_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Platform branding
+  platformName: text("platform_name").default("PrimeTrack"),
+  platformLogoUrl: text("platform_logo_url"),
+  platformFaviconUrl: text("platform_favicon_url"),
+  supportEmail: text("support_email"),
+  
+  // Default notification settings
+  defaultTelegramBotToken: text("default_telegram_bot_token"), // encrypted - platform bot for system notifications
+  
+  // Registration settings
+  allowPublisherRegistration: boolean("allow_publisher_registration").default(true),
+  allowAdvertiserRegistration: boolean("allow_advertiser_registration").default(true),
+  requireAdvertiserApproval: boolean("require_advertiser_approval").default(true),
+  
+  // Anti-fraud global settings
+  enableProxyDetection: boolean("enable_proxy_detection").default(true),
+  enableVpnDetection: boolean("enable_vpn_detection").default(true),
+  enableFingerprintTracking: boolean("enable_fingerprint_tracking").default(true),
+  maxFraudScore: integer("max_fraud_score").default(70),
+  
+  // Billing settings (for future Stripe integration)
+  stripePublicKey: text("stripe_public_key"),
+  stripeSecretKey: text("stripe_secret_key"), // encrypted
+  
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPlatformSettingsSchema = createInsertSchema(platformSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPlatformSettings = z.infer<typeof insertPlatformSettingsSchema>;
+export type PlatformSettings = typeof platformSettings.$inferSelect;
+
+// ============================================
+// DATA MIGRATIONS
+// Track imports from external trackers
+// ============================================
+export const dataMigrations = pgTable("data_migrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Source tracker
+  sourceTracker: text("source_tracker").notNull(), // scaleo, affilka, affise, voluum, keitaro
+  
+  // Credentials (encrypted)
+  apiUrl: text("api_url"),
+  apiKey: text("api_key"), // encrypted
+  apiSecret: text("api_secret"), // encrypted
+  
+  // Migration status
+  status: text("status").notNull().default("pending"), // pending, in_progress, completed, failed
+  
+  // What to migrate
+  migrateOffers: boolean("migrate_offers").default(true),
+  migratePublishers: boolean("migrate_publishers").default(true),
+  migrateClicks: boolean("migrate_clicks").default(false),
+  migrateConversions: boolean("migrate_conversions").default(true),
+  
+  // Progress
+  totalRecords: integer("total_records").default(0),
+  processedRecords: integer("processed_records").default(0),
+  failedRecords: integer("failed_records").default(0),
+  
+  // Logs
+  errorLog: text("error_log"),
+  
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertDataMigrationSchema = createInsertSchema(dataMigrations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDataMigration = z.infer<typeof insertDataMigrationSchema>;
+export type DataMigration = typeof dataMigrations.$inferSelect;

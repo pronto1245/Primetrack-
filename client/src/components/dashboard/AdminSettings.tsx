@@ -1,0 +1,690 @@
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { 
+  User, Lock, Bell, Settings, Loader2, Save, Eye, EyeOff,
+  Send, MessageSquare, Shield, Key, CheckCircle2, Globe,
+  Users, ShieldAlert, CreditCard, Upload
+} from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+export function AdminSettings() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("profile");
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold" data-testid="text-settings-title">Настройки администратора</h2>
+        <p className="text-muted-foreground">Управление платформой, безопасностью и глобальными настройками</p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
+            <User className="h-4 w-4" />
+            Профиль
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2" data-testid="tab-security">
+            <Lock className="h-4 w-4" />
+            Безопасность
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2" data-testid="tab-notifications">
+            <Bell className="h-4 w-4" />
+            Уведомления
+          </TabsTrigger>
+          <TabsTrigger value="platform" className="flex items-center gap-2" data-testid="tab-platform">
+            <Settings className="h-4 w-4" />
+            Платформа
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile">
+          <ProfileTab />
+        </TabsContent>
+        <TabsContent value="security">
+          <SecurityTab />
+        </TabsContent>
+        <TabsContent value="notifications">
+          <NotificationsTab />
+        </TabsContent>
+        <TabsContent value="platform">
+          <PlatformTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function ProfileTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    phone: "",
+    telegram: "",
+  });
+
+  const { data: user, isLoading } = useQuery<any>({
+    queryKey: ["/api/user"],
+  });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        telegram: user.telegram || "",
+      });
+    }
+  }, [user]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("PATCH", "/api/user/profile", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({ title: "Профиль обновлён" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <User className="h-5 w-5" />
+          Профиль администратора
+        </CardTitle>
+        <CardDescription>Ваши контактные данные</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="username">Имя пользователя</Label>
+            <Input
+              id="username"
+              data-testid="input-username"
+              value={formData.username}
+              disabled
+              className="bg-muted"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              data-testid="input-email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="admin@platform.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Телефон</Label>
+            <Input
+              id="phone"
+              data-testid="input-phone"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              placeholder="+7 999 123-45-67"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="telegram">Telegram</Label>
+            <Input
+              id="telegram"
+              data-testid="input-telegram"
+              value={formData.telegram}
+              onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
+              placeholder="@admin"
+            />
+          </div>
+        </div>
+
+        <Button 
+          onClick={() => updateMutation.mutate(formData)} 
+          disabled={updateMutation.isPending}
+          data-testid="button-save-profile"
+        >
+          {updateMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+          Сохранить
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SecurityTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const { data: user } = useQuery<any>({
+    queryKey: ["/api/user"],
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/user/change-password", data),
+    onSuccess: () => {
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      toast({ title: "Пароль изменён" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const toggle2FAMutation = useMutation({
+    mutationFn: (enabled: boolean) => apiRequest("POST", "/api/user/2fa/toggle", { enabled }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({ title: user?.twoFactorEnabled ? "2FA отключена" : "2FA включена" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleChangePassword = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({ title: "Ошибка", description: "Пароли не совпадают", variant: "destructive" });
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      toast({ title: "Ошибка", description: "Пароль должен быть не менее 6 символов", variant: "destructive" });
+      return;
+    }
+    changePasswordMutation.mutate({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Смена пароля
+          </CardTitle>
+          <CardDescription>Изменить пароль администратора</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="currentPassword">Текущий пароль</Label>
+            <div className="relative">
+              <Input
+                id="currentPassword"
+                type={showCurrentPassword ? "text" : "password"}
+                data-testid="input-current-password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              >
+                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">Новый пароль</Label>
+            <div className="relative">
+              <Input
+                id="newPassword"
+                type={showNewPassword ? "text" : "password"}
+                data-testid="input-new-password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+              >
+                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              data-testid="input-confirm-password"
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+            />
+          </div>
+          <Button 
+            onClick={handleChangePassword} 
+            disabled={changePasswordMutation.isPending}
+            data-testid="button-change-password"
+          >
+            {changePasswordMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
+            Изменить пароль
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Двухфакторная аутентификация (2FA)
+          </CardTitle>
+          <CardDescription>Обязательно для администраторов</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <div className="font-medium">2FA через TOTP</div>
+              <div className="text-sm text-muted-foreground">
+                Используйте Google Authenticator или аналогичное приложение
+              </div>
+            </div>
+            <Switch
+              checked={user?.twoFactorEnabled || false}
+              onCheckedChange={(checked) => toggle2FAMutation.mutate(checked)}
+              disabled={toggle2FAMutation.isPending}
+              data-testid="switch-2fa"
+            />
+          </div>
+          {user?.twoFactorEnabled ? (
+            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <span className="text-sm">2FA активирована. Ваш аккаунт защищён.</span>
+            </div>
+          ) : (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3">
+              <ShieldAlert className="h-5 w-5 text-red-500" />
+              <span className="text-sm">Рекомендуется включить 2FA для административного аккаунта!</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function NotificationsTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showBotToken, setShowBotToken] = useState(false);
+  const [telegramData, setTelegramData] = useState({
+    telegramChatId: "",
+    telegramNotifySystem: true,
+    telegramNotifyPayouts: true,
+  });
+
+  const { data: user } = useQuery<any>({
+    queryKey: ["/api/user"],
+  });
+
+  useEffect(() => {
+    if (user) {
+      setTelegramData({
+        telegramChatId: user.telegramChatId || "",
+        telegramNotifySystem: user.telegramNotifySystem ?? true,
+        telegramNotifyPayouts: user.telegramNotifyPayouts ?? true,
+      });
+    }
+  }, [user]);
+
+  const saveTelegramMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/user/notifications/telegram", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({ title: "Настройки уведомлений сохранены" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const testTelegramMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/user/notifications/telegram/test"),
+    onSuccess: () => {
+      toast({ title: "Тестовое сообщение отправлено" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          Telegram уведомления для администратора
+        </CardTitle>
+        <CardDescription>Получайте системные уведомления платформы</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="chatId">Chat ID администратора</Label>
+          <Input
+            id="chatId"
+            data-testid="input-chat-id"
+            value={telegramData.telegramChatId}
+            onChange={(e) => setTelegramData({ ...telegramData, telegramChatId: e.target.value })}
+            placeholder="123456789"
+          />
+          <p className="text-sm text-muted-foreground">
+            Узнайте свой Chat ID через @userinfobot в Telegram
+          </p>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <h4 className="font-medium">Типы уведомлений</h4>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { key: "telegramNotifySystem", label: "Системные события", description: "Регистрации, ошибки, предупреждения" },
+              { key: "telegramNotifyPayouts", label: "Финансовые операции", description: "Крупные выплаты, подозрительная активность" },
+            ].map((item) => (
+              <div key={item.key} className="flex items-start gap-3 p-3 border rounded-lg">
+                <Switch
+                  checked={(telegramData as any)[item.key]}
+                  onCheckedChange={(checked) => setTelegramData({ ...telegramData, [item.key]: checked })}
+                  data-testid={`switch-${item.key}`}
+                />
+                <div>
+                  <div className="font-medium">{item.label}</div>
+                  <div className="text-sm text-muted-foreground">{item.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => saveTelegramMutation.mutate(telegramData)} 
+            disabled={saveTelegramMutation.isPending}
+            data-testid="button-save-telegram"
+          >
+            {saveTelegramMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            Сохранить
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => testTelegramMutation.mutate()}
+            disabled={testTelegramMutation.isPending || !telegramData.telegramChatId}
+            data-testid="button-test-telegram"
+          >
+            {testTelegramMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+            Тест
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PlatformTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showBotToken, setShowBotToken] = useState(false);
+  const [formData, setFormData] = useState({
+    platformName: "PrimeTrack",
+    platformLogoUrl: "",
+    platformFaviconUrl: "",
+    supportEmail: "",
+    defaultTelegramBotToken: "",
+    allowPublisherRegistration: true,
+    allowAdvertiserRegistration: true,
+    requireAdvertiserApproval: true,
+    enableProxyDetection: true,
+    enableVpnDetection: true,
+    enableFingerprintTracking: true,
+    maxFraudScore: 70,
+  });
+
+  const { data: settings, isLoading } = useQuery<any>({
+    queryKey: ["/api/admin/platform-settings"],
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setFormData({
+        platformName: settings.platformName || "PrimeTrack",
+        platformLogoUrl: settings.platformLogoUrl || "",
+        platformFaviconUrl: settings.platformFaviconUrl || "",
+        supportEmail: settings.supportEmail || "",
+        defaultTelegramBotToken: "",
+        allowPublisherRegistration: settings.allowPublisherRegistration ?? true,
+        allowAdvertiserRegistration: settings.allowAdvertiserRegistration ?? true,
+        requireAdvertiserApproval: settings.requireAdvertiserApproval ?? true,
+        enableProxyDetection: settings.enableProxyDetection ?? true,
+        enableVpnDetection: settings.enableVpnDetection ?? true,
+        enableFingerprintTracking: settings.enableFingerprintTracking ?? true,
+        maxFraudScore: settings.maxFraudScore ?? 70,
+      });
+    }
+  }, [settings]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("PATCH", "/api/admin/platform-settings", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/platform-settings"] });
+      toast({ title: "Настройки платформы сохранены" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Брендинг платформы
+          </CardTitle>
+          <CardDescription>Настройте внешний вид платформы</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="platformName">Название платформы</Label>
+              <Input
+                id="platformName"
+                data-testid="input-platform-name"
+                value={formData.platformName}
+                onChange={(e) => setFormData({ ...formData, platformName: e.target.value })}
+                placeholder="PrimeTrack"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supportEmail">Email поддержки</Label>
+              <Input
+                id="supportEmail"
+                type="email"
+                data-testid="input-support-email"
+                value={formData.supportEmail}
+                onChange={(e) => setFormData({ ...formData, supportEmail: e.target.value })}
+                placeholder="support@primetrack.io"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="platformLogoUrl">URL логотипа</Label>
+              <Input
+                id="platformLogoUrl"
+                data-testid="input-platform-logo"
+                value={formData.platformLogoUrl}
+                onChange={(e) => setFormData({ ...formData, platformLogoUrl: e.target.value })}
+                placeholder="https://example.com/logo.png"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="platformFaviconUrl">URL фавикона</Label>
+              <Input
+                id="platformFaviconUrl"
+                data-testid="input-platform-favicon"
+                value={formData.platformFaviconUrl}
+                onChange={(e) => setFormData({ ...formData, platformFaviconUrl: e.target.value })}
+                placeholder="https://example.com/favicon.ico"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="defaultBotToken">Telegram бот платформы</Label>
+            <div className="relative">
+              <Input
+                id="defaultBotToken"
+                type={showBotToken ? "text" : "password"}
+                data-testid="input-default-bot-token"
+                value={formData.defaultTelegramBotToken}
+                onChange={(e) => setFormData({ ...formData, defaultTelegramBotToken: e.target.value })}
+                placeholder="Токен бота для системных уведомлений"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => setShowBotToken(!showBotToken)}
+              >
+                {showBotToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Бот для отправки системных уведомлений платформы
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Регистрация пользователей
+          </CardTitle>
+          <CardDescription>Управление регистрацией на платформе</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[
+            { key: "allowPublisherRegistration", label: "Разрешить регистрацию партнёров", description: "Партнёры могут регистрироваться самостоятельно" },
+            { key: "allowAdvertiserRegistration", label: "Разрешить регистрацию рекламодателей", description: "Рекламодатели могут подавать заявки на регистрацию" },
+            { key: "requireAdvertiserApproval", label: "Требовать одобрение рекламодателей", description: "Новые рекламодатели ожидают одобрения администратора" },
+          ].map((item) => (
+            <div key={item.key} className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <div className="font-medium">{item.label}</div>
+                <div className="text-sm text-muted-foreground">{item.description}</div>
+              </div>
+              <Switch
+                checked={(formData as any)[item.key]}
+                onCheckedChange={(checked) => setFormData({ ...formData, [item.key]: checked })}
+                data-testid={`switch-${item.key}`}
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldAlert className="h-5 w-5" />
+            Глобальные настройки антифрода
+          </CardTitle>
+          <CardDescription>Настройки защиты от мошенничества для всей платформы</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[
+            { key: "enableProxyDetection", label: "Детекция прокси", description: "Определять трафик через прокси-серверы" },
+            { key: "enableVpnDetection", label: "Детекция VPN", description: "Определять трафик через VPN" },
+            { key: "enableFingerprintTracking", label: "Трекинг отпечатков", description: "Собирать fingerprint устройств" },
+          ].map((item) => (
+            <div key={item.key} className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <div className="font-medium">{item.label}</div>
+                <div className="text-sm text-muted-foreground">{item.description}</div>
+              </div>
+              <Switch
+                checked={(formData as any)[item.key]}
+                onCheckedChange={(checked) => setFormData({ ...formData, [item.key]: checked })}
+                data-testid={`switch-${item.key}`}
+              />
+            </div>
+          ))}
+
+          <div className="space-y-2">
+            <Label htmlFor="maxFraudScore">Максимальный fraud score</Label>
+            <div className="flex items-center gap-4">
+              <Input
+                id="maxFraudScore"
+                type="number"
+                min={0}
+                max={100}
+                data-testid="input-max-fraud-score"
+                value={formData.maxFraudScore}
+                onChange={(e) => setFormData({ ...formData, maxFraudScore: parseInt(e.target.value) || 70 })}
+                className="w-24"
+              />
+              <span className="text-sm text-muted-foreground">
+                Конверсии с fraud score выше этого значения будут отклоняться автоматически
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button 
+        onClick={() => updateMutation.mutate(formData)} 
+        disabled={updateMutation.isPending}
+        className="w-full"
+        data-testid="button-save-platform"
+      >
+        {updateMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+        Сохранить все настройки платформы
+      </Button>
+    </div>
+  );
+}
