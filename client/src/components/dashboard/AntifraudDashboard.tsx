@@ -243,14 +243,14 @@ export default function AntifraudDashboard({ role }: { role: string }) {
         </Card>
       </div>
 
-      {summary?.byType && summary.byType.length > 0 && (
+      {summary?.byType && summary.byType.length > 0 && summary.byType.some(item => item.count > 0) && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">По типу угрозы</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-8">
-              {summary.byType.map(item => (
+              {summary.byType.filter(item => item.count > 0).map(item => (
                 <div key={item.type} className="text-center">
                   <div className="text-xl font-bold">{item.count}</div>
                   <div className="text-sm text-muted-foreground">{item.type}</div>
@@ -262,17 +262,17 @@ export default function AntifraudDashboard({ role }: { role: string }) {
       )}
 
       <Tabs defaultValue="rules">
-        <TabsList>
-          <TabsTrigger value="rules" data-testid="tab-rules" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-            <Shield className="h-4 w-4 mr-1 text-blue-500 data-[state=active]:text-white" />
+        <TabsList className="gap-2 p-1">
+          <TabsTrigger value="rules" data-testid="tab-rules" className="px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <Shield className="h-4 w-4 mr-2 text-blue-500" />
             Правила
           </TabsTrigger>
-          <TabsTrigger value="logs" data-testid="tab-logs" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-            <Activity className="h-4 w-4 mr-1 text-orange-500" />
+          <TabsTrigger value="logs" data-testid="tab-logs" className="px-4 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+            <Activity className="h-4 w-4 mr-2 text-orange-500" />
             Логи
           </TabsTrigger>
-          <TabsTrigger value="help" data-testid="tab-help" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
-            <HelpCircle className="h-4 w-4 mr-1 text-green-500" />
+          <TabsTrigger value="help" data-testid="tab-help" className="px-4 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white">
+            <HelpCircle className="h-4 w-4 mr-2 text-green-500" />
             Инструкция
           </TabsTrigger>
         </TabsList>
