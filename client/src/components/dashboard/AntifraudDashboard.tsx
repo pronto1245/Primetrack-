@@ -243,15 +243,15 @@ export default function AntifraudDashboard({ role }: { role: string }) {
         </Card>
       </div>
 
-      {summary?.byType && summary.byType.length > 0 && summary.byType.some(item => item.count > 0) && (
+      {summary?.byType && summary.byType.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">По типу угрозы</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-8">
-              {summary.byType.filter(item => item.count > 0).map(item => (
-                <div key={item.type} className="text-center">
+            <div className="flex flex-wrap gap-6">
+              {summary.byType.map(item => (
+                <div key={item.type} className="text-center px-4 py-2 rounded-lg bg-muted/50">
                   <div className="text-xl font-bold">{item.count}</div>
                   <div className="text-sm text-muted-foreground">{item.type}</div>
                 </div>
