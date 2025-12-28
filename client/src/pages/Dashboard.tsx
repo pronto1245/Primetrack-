@@ -3,13 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Link, useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { 
   Shield, Briefcase, User, LayoutDashboard, Settings, LogOut, 
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
-  ArrowUpRight, Activity, Filter, RefreshCw, Calendar, ArrowRight,
-  Plus, Search, Loader2, UserPlus, ChevronDown, Building2,
+  ArrowUpRight, Activity, Filter, RefreshCw, Calendar,
+  Plus, Search, UserPlus, ChevronDown, Building2,
   Phone, Send, Globe
 } from "lucide-react";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
@@ -55,7 +53,9 @@ export default function Dashboard() {
   const role = paramsSubSub?.role || paramsSub?.role || paramsBase?.role;
 
   if (!role) {
-    return <RoleSelectionScreen t={t} />;
+    // Redirect to login page instead of showing role selection
+    window.location.href = "/login";
+    return null;
   }
 
   return (
@@ -66,126 +66,6 @@ export default function Dashboard() {
       </div>
     </AdvertiserProvider>
   );
-}
-
-function RoleSelectionScreen({ t }: { t: any }) {
-  const [, setLocation] = useLocation();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // Quick login only in development mode
-  const isDevelopment = import.meta.env.DEV;
-  const testUsers = isDevelopment ? [
-    { username: "admin", password: "admin123", role: "admin", label: t('dashboard.roles.admin'), icon: Shield, color: "bg-red-500", hoverColor: "hover:bg-red-600" },
-    { username: "advertiser", password: "adv123", role: "advertiser", label: t('dashboard.roles.advertiser'), icon: Briefcase, color: "bg-blue-500", hoverColor: "hover:bg-blue-600" },
-    { username: "publisher", password: "pub123", role: "publisher", label: t('dashboard.roles.publisher'), icon: User, color: "bg-emerald-500", hoverColor: "hover:bg-emerald-600" },
-  ] : [];
-
-  const handleLogin = async (user: string, pass: string) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: user, password: pass }),
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setLocation(`/dashboard/${data.role}`);
-      } else {
-        setError(t('dashboard.loginError') || "Invalid credentials");
-      }
-    } catch {
-      setError(t('dashboard.loginError') || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-lg bg-emerald-600 flex items-center justify-center text-primary-foreground font-bold font-mono text-2xl mx-auto mb-4 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
-            PT
-          </div>
-          <h1 className="text-2xl font-mono font-bold text-foreground mb-2">{t('dashboard.welcome')}</h1>
-          <p className="text-muted-foreground font-mono text-sm">{t('dashboard.loginPrompt') || "Enter credentials or use quick login"}</p>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6 mb-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="username" className="text-muted-foreground font-mono text-xs">{t('dashboard.username') || "USERNAME"}</Label>
-              <Input
-                id="username"
-                data-testid="input-username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 bg-secondary border-border text-foreground font-mono"
-                placeholder="admin"
-              />
-            </div>
-            <div>
-              <Label htmlFor="password" className="text-muted-foreground font-mono text-xs">{t('dashboard.password') || "PASSWORD"}</Label>
-              <Input
-                id="password"
-                data-testid="input-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 bg-secondary border-border text-foreground font-mono"
-                placeholder="••••••"
-              />
-            </div>
-            {error && <p className="text-red-500 text-xs font-mono">{error}</p>}
-            <Button
-              data-testid="button-login"
-              onClick={() => handleLogin(username, password)}
-              disabled={loading || !username || !password}
-              className="w-full bg-white text-black hover:bg-muted font-mono font-bold"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (t('dashboard.login') || "LOGIN")}
-            </Button>
-          </div>
-        </div>
-
-        {testUsers.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-center text-muted-foreground font-mono text-xs uppercase tracking-wider">{t('dashboard.quickLogin') || "Quick Login (Dev Only)"}</p>
-            {testUsers.map((user) => (
-              <button
-                key={user.role}
-                data-testid={`button-quick-login-${user.role}`}
-                onClick={() => handleLogin(user.username, user.password)}
-                disabled={loading}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg ${user.color} ${user.hoverColor} transition-all hover:-translate-y-0.5 disabled:opacity-50`}
-              >
-                <user.icon className="w-5 h-5 text-foreground" />
-                <div className="flex-1 text-left">
-                  <div className="text-foreground font-bold text-sm">{user.label}</div>
-                  <div className="text-muted-foreground font-mono text-xs">{user.username} / {user.password}</div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        )}
-        
-        <div className="mt-8 text-center">
-          <Link href="/">
-            <Button variant="link" className="text-muted-foreground hover:text-foreground font-mono text-xs">
-              ← {t('nav.exit')}
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
 }
 
 function ManagerCard() {
