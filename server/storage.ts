@@ -16,7 +16,10 @@ import {
   type Payout, type InsertPayout, payouts,
   type PublisherBalance, type InsertPublisherBalance, publisherBalances,
   type OfferPostbackSetting, type InsertOfferPostbackSetting, offerPostbackSettings,
-  type UserPostbackSetting, type InsertUserPostbackSetting, userPostbackSettings
+  type UserPostbackSetting, type InsertUserPostbackSetting, userPostbackSettings,
+  type AntifraudRule, type InsertAntifraudRule, antifraudRules,
+  type AntifraudLog, type InsertAntifraudLog, antifraudLogs,
+  type AntifraudMetric, type InsertAntifraudMetric, antifraudMetrics
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
@@ -2032,6 +2035,215 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return result.map(c => c.id);
+  }
+
+  // ============================================
+  // ANTI-FRAUD RULES
+  // ============================================
+  async getAntifraudRules(advertiserId?: string): Promise<AntifraudRule[]> {
+    if (advertiserId) {
+      // Get global rules + advertiser-specific rules
+      return db.select().from(antifraudRules)
+        .where(sql`(${antifraudRules.scope} = 'global' OR ${antifraudRules.advertiserId} = ${advertiserId})`)
+        .orderBy(antifraudRules.priority);
+    }
+    // Admin: get all rules
+    return db.select().from(antifraudRules).orderBy(antifraudRules.priority);
+  }
+
+  async getAntifraudRule(id: string): Promise<AntifraudRule | undefined> {
+    const [rule] = await db.select().from(antifraudRules).where(eq(antifraudRules.id, id));
+    return rule;
+  }
+
+  async createAntifraudRule(rule: InsertAntifraudRule): Promise<AntifraudRule> {
+    const [created] = await db.insert(antifraudRules).values(rule).returning();
+    return created;
+  }
+
+  async updateAntifraudRule(id: string, data: Partial<InsertAntifraudRule>): Promise<AntifraudRule | undefined> {
+    const [updated] = await db.update(antifraudRules)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(antifraudRules.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAntifraudRule(id: string): Promise<boolean> {
+    const result = await db.delete(antifraudRules).where(eq(antifraudRules.id, id));
+    return true;
+  }
+
+  // ============================================
+  // ANTI-FRAUD LOGS
+  // ============================================
+  async createAntifraudLog(log: InsertAntifraudLog): Promise<AntifraudLog> {
+    const [created] = await db.insert(antifraudLogs).values(log).returning();
+    return created;
+  }
+
+  async getAntifraudLogs(filters: {
+    advertiserId?: string;
+    offerId?: string;
+    publisherId?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    action?: string;
+    limit?: number;
+  }): Promise<AntifraudLog[]> {
+    let query = db.select().from(antifraudLogs);
+    
+    const conditions: any[] = [];
+    
+    if (filters.advertiserId) {
+      conditions.push(eq(antifraudLogs.advertiserId, filters.advertiserId));
+    }
+    if (filters.offerId) {
+      conditions.push(eq(antifraudLogs.offerId, filters.offerId));
+    }
+    if (filters.publisherId) {
+      conditions.push(eq(antifraudLogs.publisherId, filters.publisherId));
+    }
+    if (filters.action) {
+      conditions.push(eq(antifraudLogs.action, filters.action));
+    }
+    if (filters.dateFrom) {
+      conditions.push(gte(antifraudLogs.createdAt, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      conditions.push(lte(antifraudLogs.createdAt, filters.dateTo));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+    
+    const result = await query.orderBy(desc(antifraudLogs.createdAt)).limit(filters.limit || 1000);
+    return result;
+  }
+
+  // ============================================
+  // ANTI-FRAUD METRICS
+  // ============================================
+  async getAntifraudMetrics(filters: {
+    advertiserId?: string;
+    offerId?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }): Promise<AntifraudMetric[]> {
+    const conditions: any[] = [];
+    
+    if (filters.advertiserId) {
+      conditions.push(eq(antifraudMetrics.advertiserId, filters.advertiserId));
+    }
+    if (filters.offerId) {
+      conditions.push(eq(antifraudMetrics.offerId, filters.offerId));
+    }
+    if (filters.dateFrom) {
+      conditions.push(gte(antifraudMetrics.date, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      conditions.push(lte(antifraudMetrics.date, filters.dateTo));
+    }
+    
+    let query = db.select().from(antifraudMetrics);
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+    
+    return query.orderBy(desc(antifraudMetrics.date));
+  }
+
+  async upsertAntifraudMetric(data: InsertAntifraudMetric): Promise<AntifraudMetric> {
+    // Try to find existing metric for same date/advertiser/offer
+    const dateStart = new Date(data.date);
+    dateStart.setHours(0, 0, 0, 0);
+    const dateEnd = new Date(data.date);
+    dateEnd.setHours(23, 59, 59, 999);
+    
+    const conditions: any[] = [
+      gte(antifraudMetrics.date, dateStart),
+      lte(antifraudMetrics.date, dateEnd)
+    ];
+    
+    if (data.advertiserId) {
+      conditions.push(eq(antifraudMetrics.advertiserId, data.advertiserId));
+    } else {
+      conditions.push(sql`${antifraudMetrics.advertiserId} IS NULL`);
+    }
+    
+    if (data.offerId) {
+      conditions.push(eq(antifraudMetrics.offerId, data.offerId));
+    } else {
+      conditions.push(sql`${antifraudMetrics.offerId} IS NULL`);
+    }
+    
+    const [existing] = await db.select().from(antifraudMetrics).where(and(...conditions));
+    
+    if (existing) {
+      const [updated] = await db.update(antifraudMetrics)
+        .set({
+          totalClicks: (existing.totalClicks || 0) + (data.totalClicks || 0),
+          blockedClicks: (existing.blockedClicks || 0) + (data.blockedClicks || 0),
+          flaggedClicks: (existing.flaggedClicks || 0) + (data.flaggedClicks || 0),
+          proxyVpnCount: (existing.proxyVpnCount || 0) + (data.proxyVpnCount || 0),
+          botCount: (existing.botCount || 0) + (data.botCount || 0),
+          datacenterCount: (existing.datacenterCount || 0) + (data.datacenterCount || 0),
+          lowRiskCount: (existing.lowRiskCount || 0) + (data.lowRiskCount || 0),
+          mediumRiskCount: (existing.mediumRiskCount || 0) + (data.mediumRiskCount || 0),
+          highRiskCount: (existing.highRiskCount || 0) + (data.highRiskCount || 0),
+        })
+        .where(eq(antifraudMetrics.id, existing.id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(antifraudMetrics).values(data).returning();
+    return created;
+  }
+
+  async getAntifraudSummary(advertiserId?: string): Promise<{
+    totalClicks: number;
+    blockedClicks: number;
+    flaggedClicks: number;
+    blockRate: number;
+    avgFraudScore: number;
+    byType: { type: string; count: number }[];
+  }> {
+    // Get metrics for last 30 days
+    const dateFrom = new Date();
+    dateFrom.setDate(dateFrom.getDate() - 30);
+    
+    const metrics = await this.getAntifraudMetrics({ advertiserId, dateFrom });
+    
+    let totalClicks = 0;
+    let blockedClicks = 0;
+    let flaggedClicks = 0;
+    let proxyVpnCount = 0;
+    let botCount = 0;
+    let datacenterCount = 0;
+    
+    for (const m of metrics) {
+      totalClicks += m.totalClicks || 0;
+      blockedClicks += m.blockedClicks || 0;
+      flaggedClicks += m.flaggedClicks || 0;
+      proxyVpnCount += m.proxyVpnCount || 0;
+      botCount += m.botCount || 0;
+      datacenterCount += m.datacenterCount || 0;
+    }
+    
+    return {
+      totalClicks,
+      blockedClicks,
+      flaggedClicks,
+      blockRate: totalClicks > 0 ? (blockedClicks / totalClicks) * 100 : 0,
+      avgFraudScore: 0, // Would need to calculate from logs
+      byType: [
+        { type: "Proxy/VPN", count: proxyVpnCount },
+        { type: "Bot", count: botCount },
+        { type: "Datacenter", count: datacenterCount }
+      ]
+    };
   }
 }
 

@@ -207,6 +207,8 @@ export const conversions = pgTable("conversions", {
   // Status
   status: text("status").notNull().default("pending"), // pending, approved, rejected, hold
   holdUntil: timestamp("hold_until"),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
   
   // External reference (from advertiser postback)
   externalId: text("external_id"),

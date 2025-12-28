@@ -525,8 +525,8 @@ export async function registerRoutes(
       }
 
       // Calculate advertiser cost and publisher payout from offer
-      const advertiserCost = payout || offer.advertiserPrice || "0";
-      const publisherPayout = offer.payoutAmount || "0";
+      const advertiserCost = payout || offer.internalCost || "0";
+      const publisherPayout = offer.partnerPayout || "0";
 
       // Determine initial status based on hold period
       let finalStatus = inputStatus || "pending";
@@ -2662,6 +2662,232 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Bulk payout error:", error);
       res.status(500).json({ message: "Failed to process bulk payout" });
+    }
+  });
+
+  // ============================================
+  // ANTI-FRAUD API
+  // Admin: full access to all data
+  // Advertiser: only their own offers/data
+  // Publisher: NO ACCESS (per business requirement)
+  // ============================================
+
+  // Get antifraud rules (admin: all, advertiser: global + own)
+  app.get("/api/antifraud/rules", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const advertiserId = role === "advertiser" ? userId : undefined;
+      const rules = await storage.getAntifraudRules(advertiserId);
+      res.json(rules);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch antifraud rules" });
+    }
+  });
+
+  // Create antifraud rule
+  app.post("/api/antifraud/rules", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { name, description, ruleType, threshold, action, priority } = req.body;
+      
+      if (!name || !ruleType) {
+        return res.status(400).json({ message: "Name and ruleType are required" });
+      }
+
+      // Build safe rule data - never trust client for scope/advertiserId
+      const safeRuleData: any = {
+        name,
+        description,
+        ruleType,
+        threshold: threshold || null,
+        action: action || "flag",
+        priority: priority || 100,
+      };
+
+      // Advertisers can ONLY create rules for themselves
+      if (role === "advertiser") {
+        safeRuleData.scope = "advertiser";
+        safeRuleData.advertiserId = userId;
+      } else if (role === "admin") {
+        // Admin can choose scope
+        safeRuleData.scope = req.body.scope || "global";
+        safeRuleData.advertiserId = req.body.scope === "advertiser" ? req.body.advertiserId : null;
+      }
+
+      const rule = await storage.createAntifraudRule(safeRuleData);
+      res.json(rule);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create antifraud rule" });
+    }
+  });
+
+  // Update antifraud rule
+  app.patch("/api/antifraud/rules/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+      const ruleId = req.params.id;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const existingRule = await storage.getAntifraudRule(ruleId);
+      if (!existingRule) {
+        return res.status(404).json({ message: "Rule not found" });
+      }
+
+      // Advertisers can only edit their own (non-global) rules
+      if (role === "advertiser") {
+        if (existingRule.scope === "global" || existingRule.advertiserId !== userId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Build safe update data - only allow safe fields
+      const { name, description, ruleType, threshold, action, priority, isActive } = req.body;
+      const safeUpdateData: any = {};
+      
+      if (name !== undefined) safeUpdateData.name = name;
+      if (description !== undefined) safeUpdateData.description = description;
+      if (ruleType !== undefined) safeUpdateData.ruleType = ruleType;
+      if (threshold !== undefined) safeUpdateData.threshold = threshold;
+      if (action !== undefined) safeUpdateData.action = action;
+      if (priority !== undefined) safeUpdateData.priority = priority;
+      if (isActive !== undefined) safeUpdateData.isActive = isActive;
+      
+      // Advertisers can NEVER change scope or advertiserId
+      // Admin can only change these fields (scope, advertiserId excluded for safety)
+
+      const rule = await storage.updateAntifraudRule(ruleId, safeUpdateData);
+      res.json(rule);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update antifraud rule" });
+    }
+  });
+
+  // Delete antifraud rule
+  app.delete("/api/antifraud/rules/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+      const ruleId = req.params.id;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const existingRule = await storage.getAntifraudRule(ruleId);
+      if (!existingRule) {
+        return res.status(404).json({ message: "Rule not found" });
+      }
+
+      // Advertisers can only delete their own rules
+      if (role === "advertiser" && existingRule.advertiserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Only admin can delete global rules
+      if (existingRule.scope === "global" && role !== "admin") {
+        return res.status(403).json({ message: "Only admin can delete global rules" });
+      }
+
+      await storage.deleteAntifraudRule(ruleId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete antifraud rule" });
+    }
+  });
+
+  // Get antifraud logs
+  app.get("/api/antifraud/logs", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { offerId, publisherId, dateFrom, dateTo, action, limit } = req.query;
+
+      const filters: any = {};
+      
+      // Advertisers can only see logs for their offers
+      if (role === "advertiser") {
+        filters.advertiserId = userId;
+      }
+
+      if (offerId) filters.offerId = offerId as string;
+      if (publisherId) filters.publisherId = publisherId as string;
+      if (action) filters.action = action as string;
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (limit) filters.limit = parseInt(limit as string);
+
+      const logs = await storage.getAntifraudLogs(filters);
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch antifraud logs" });
+    }
+  });
+
+  // Get antifraud summary/dashboard data
+  app.get("/api/antifraud/summary", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const advertiserId = role === "advertiser" ? userId : undefined;
+      const summary = await storage.getAntifraudSummary(advertiserId);
+      res.json(summary);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch antifraud summary" });
+    }
+  });
+
+  // Get antifraud metrics
+  app.get("/api/antifraud/metrics", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { offerId, dateFrom, dateTo } = req.query;
+
+      const filters: any = {};
+      
+      if (role === "advertiser") {
+        filters.advertiserId = userId;
+      }
+
+      if (offerId) filters.offerId = offerId as string;
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+
+      const metrics = await storage.getAntifraudMetrics(filters);
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch antifraud metrics" });
     }
   });
 
