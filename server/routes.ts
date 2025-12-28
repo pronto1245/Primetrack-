@@ -30,13 +30,16 @@ async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === "production";
   
   // Trust proxy for Replit deployment (reverse proxy)
-  app.set("trust proxy", 1);
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
   
   // Use PostgreSQL session store in production, memory store in development
   let store;
   if (isProduction && process.env.DATABASE_URL) {
     const pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
     });
     store = new PgSessionStore({
       pool,
