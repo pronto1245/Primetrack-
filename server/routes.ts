@@ -873,16 +873,24 @@ export async function registerRoutes(
           const advertiserOffers = await storage.getOffersByAdvertiser(advertiser.id);
           const offersCount = advertiserOffers.filter(o => publisherOfferIds.has(o.id)).length;
           
+          // Get white-label settings
+          const advSettings = await storage.getAdvertiserSettings(advertiser.id);
+          
           return {
             id: advertiser.id,
             username: advertiser.username,
             email: advertiser.email,
             offersCount,
             status: rel.status as "active" | "pending" | "inactive" | "rejected",
-            logoUrl: (advertiser as any).logoUrl || null,
+            logoUrl: advSettings?.logoUrl || (advertiser as any).logoUrl || null,
             telegram: (advertiser as any).telegram || null,
             phone: (advertiser as any).phone || null,
-            companyName: (advertiser as any).companyName || null,
+            companyName: advSettings?.brandName || (advertiser as any).companyName || null,
+            // White-label
+            brandName: advSettings?.brandName || null,
+            primaryColor: advSettings?.primaryColor || null,
+            customDomain: advSettings?.customDomain || null,
+            hidePlatformBranding: advSettings?.hidePlatformBranding || false,
           };
         })
       );

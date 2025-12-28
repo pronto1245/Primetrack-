@@ -170,14 +170,46 @@ function ProfileTab() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="logoUrl">URL логотипа</Label>
-          <Input
-            id="logoUrl"
-            data-testid="input-logo-url"
-            value={formData.logoUrl}
-            onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-            placeholder="https://example.com/logo.png"
-          />
+          <Label htmlFor="logoUrl">Логотип</Label>
+          <div className="flex gap-2">
+            <Input
+              id="logoUrl"
+              data-testid="input-logo-url"
+              value={formData.logoUrl}
+              onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+              placeholder="https://example.com/logo.png"
+              className="flex-1"
+            />
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                data-testid="input-logo-file"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const res = await fetch("/api/uploads/request-url", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+                    });
+                    const { uploadURL, objectPath } = await res.json();
+                    await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+                    const logoUrl = window.location.origin + objectPath;
+                    setFormData({ ...formData, logoUrl });
+                  } catch (err) {
+                    console.error("Upload failed:", err);
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" size="sm" className="pointer-events-none">
+                <Upload className="w-4 h-4 mr-1" />
+                Загрузить
+              </Button>
+            </div>
+          </div>
           {formData.logoUrl && (
             <div className="mt-2">
               <img src={formData.logoUrl} alt="Logo preview" className="h-16 w-16 object-contain border rounded" />

@@ -11,6 +11,11 @@ interface AdvertiserInfo {
   telegram: string | null;
   phone: string | null;
   companyName: string | null;
+  // White-label
+  brandName: string | null;
+  primaryColor: string | null;
+  customDomain: string | null;
+  hidePlatformBranding: boolean;
 }
 
 interface AdvertiserContextType {
