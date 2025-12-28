@@ -597,7 +597,7 @@ export function AdvertiserFinance() {
                       <td className="text-right py-3 px-4">
                         <Button 
                           size="sm" 
-                          className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
                           onClick={() => {
                             setBonusPublisherId(balance.publisherId);
                             setShowBonusDialog(true);
