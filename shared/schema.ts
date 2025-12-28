@@ -253,6 +253,10 @@ export const postbackLogs = pgTable("postback_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   conversionId: varchar("conversion_id").notNull().references(() => conversions.id),
   
+  // Recipient info (who receives this postback)
+  recipientType: text("recipient_type").notNull().default("advertiser"), // advertiser, publisher
+  recipientId: varchar("recipient_id").references(() => users.id),
+  
   // Postback info
   url: text("url").notNull(),
   method: text("method").notNull().default("GET"),

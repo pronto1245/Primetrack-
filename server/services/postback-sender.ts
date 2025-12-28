@@ -1,11 +1,11 @@
 import { storage } from "../storage";
 import type { Conversion, Click, Offer, PostbackLog } from "@shared/schema";
 
-interface PostbackContext {
-  conversion: Conversion;
-  click: Click;
-  offer: Offer;
-  publisherPostbackUrl?: string;
+interface PostbackTarget {
+  url: string;
+  method: string;
+  recipientType: "advertiser" | "publisher";
+  recipientId: string;
 }
 
 const MAX_RETRIES = 5;
@@ -31,72 +31,129 @@ export class PostbackSender {
       return;
     }
 
-    const advertiserSettings = await storage.getAdvertiserSettings(offer.advertiserId);
-    const publisherPostbackUrl = advertiserSettings?.postbackUrl;
+    const targets: PostbackTarget[] = [];
 
-    if (!publisherPostbackUrl) {
-      console.log(`[PostbackSender] No postback URL configured for advertiser: ${offer.advertiserId}`);
+    // 1. Get ADVERTISER postback settings
+    // Priority: offer_postback_settings > advertiser_settings
+    const offerPostbackSettings = await storage.getOfferPostbackSetting(offer.id);
+    
+    if (offerPostbackSettings?.isActive && offerPostbackSettings.postbackUrl) {
+      // Check if this event type should trigger postback
+      const shouldSend = 
+        (conversion.conversionType === "lead" && offerPostbackSettings.sendOnLead) ||
+        (conversion.conversionType === "sale" && offerPostbackSettings.sendOnSale) ||
+        (conversion.status === "rejected" && offerPostbackSettings.sendOnRejected);
+      
+      if (shouldSend) {
+        targets.push({
+          url: offerPostbackSettings.postbackUrl,
+          method: offerPostbackSettings.httpMethod || "GET",
+          recipientType: "advertiser",
+          recipientId: offer.advertiserId,
+        });
+      }
+    } else {
+      // Fallback to advertiser global settings
+      const advertiserSettings = await storage.getAdvertiserSettings(offer.advertiserId);
+      if (advertiserSettings?.postbackUrl) {
+        targets.push({
+          url: advertiserSettings.postbackUrl,
+          method: advertiserSettings.postbackMethod || "GET",
+          recipientType: "advertiser",
+          recipientId: offer.advertiserId,
+        });
+      }
+    }
+
+    // 2. Get PUBLISHER postback settings
+    const publisherPostbackSettings = await storage.getUserPostbackSettings(conversion.publisherId);
+    
+    if (publisherPostbackSettings) {
+      // Send to appropriate URL based on conversion type
+      if (conversion.conversionType === "lead" && publisherPostbackSettings.leadPostbackUrl) {
+        targets.push({
+          url: publisherPostbackSettings.leadPostbackUrl,
+          method: publisherPostbackSettings.leadPostbackMethod || "GET",
+          recipientType: "publisher",
+          recipientId: conversion.publisherId,
+        });
+      } else if (conversion.conversionType === "sale" && publisherPostbackSettings.salePostbackUrl) {
+        targets.push({
+          url: publisherPostbackSettings.salePostbackUrl,
+          method: publisherPostbackSettings.salePostbackMethod || "GET",
+          recipientType: "publisher",
+          recipientId: conversion.publisherId,
+        });
+      }
+    }
+
+    if (targets.length === 0) {
+      console.log(`[PostbackSender] No postback URLs configured for conversion: ${conversionId}`);
       return;
     }
 
-    const context: PostbackContext = {
-      conversion,
-      click,
-      offer,
-      publisherPostbackUrl,
-    };
-
-    await this.executePostback(context);
+    // Send postbacks to all targets
+    console.log(`[PostbackSender] Sending ${targets.length} postback(s) for conversion: ${conversionId}`);
+    
+    for (const target of targets) {
+      await this.executePostback(conversion, click, offer, target);
+    }
   }
 
-  private async executePostback(context: PostbackContext, retryCount = 0): Promise<void> {
-    const { conversion, click, offer, publisherPostbackUrl } = context;
-    
-    if (!publisherPostbackUrl) return;
-
-    const postbackUrl = this.buildPostbackUrl(publisherPostbackUrl, conversion, click, offer);
+  private async executePostback(
+    conversion: Conversion,
+    click: Click,
+    offer: Offer,
+    target: PostbackTarget,
+    retryCount = 0
+  ): Promise<void> {
+    const postbackUrl = this.buildPostbackUrl(target.url, conversion, click, offer);
 
     let responseCode: number | undefined;
     let responseBody: string | undefined;
     let success = false;
 
     try {
-      console.log(`[PostbackSender] Sending postback: ${postbackUrl}`);
+      console.log(`[PostbackSender] Sending ${target.recipientType} postback: ${postbackUrl}`);
       
-      const response = await fetch(postbackUrl, {
-        method: "GET",
+      const fetchOptions: RequestInit = {
+        method: target.method,
         headers: {
           "User-Agent": "PrimeTrack/1.0",
         },
         signal: AbortSignal.timeout(10000),
-      });
+      };
+
+      const response = await fetch(postbackUrl, fetchOptions);
 
       responseCode = response.status;
       responseBody = await response.text().catch(() => "");
       success = response.ok;
 
-      console.log(`[PostbackSender] Response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
+      console.log(`[PostbackSender] ${target.recipientType} response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
     } catch (error: any) {
-      console.error(`[PostbackSender] Request failed: ${error.message}`);
+      console.error(`[PostbackSender] ${target.recipientType} request failed: ${error.message}`);
       responseBody = error.message;
     }
 
     await storage.createPostbackLog({
       conversionId: conversion.id,
       url: postbackUrl,
-      method: "GET",
+      method: target.method,
       responseCode,
       responseBody,
       success,
       retryCount,
+      recipientType: target.recipientType,
+      recipientId: target.recipientId,
     });
 
     if (!success && retryCount < MAX_RETRIES) {
       const delay = RETRY_DELAYS[retryCount] || RETRY_DELAYS[RETRY_DELAYS.length - 1];
-      console.log(`[PostbackSender] Scheduling retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms`);
+      console.log(`[PostbackSender] Scheduling ${target.recipientType} retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms`);
       
       setTimeout(() => {
-        this.executePostback(context, retryCount + 1);
+        this.executePostback(conversion, click, offer, target, retryCount + 1);
       }, delay);
     }
   }
@@ -112,9 +169,11 @@ export class PostbackSender {
       "{conversion_id}": conversion.id,
       "{status}": conversion.conversionType,
       "{payout}": conversion.publisherPayout,
+      "{advertiser_cost}": conversion.advertiserCost,
       "{sum}": conversion.transactionSum || "0",
       "{external_id}": conversion.externalId || "",
       "{offer_id}": offer.id,
+      "{offer_name}": offer.name || "",
       "{publisher_id}": conversion.publisherId,
       "{sub1}": click.sub1 || "",
       "{sub2}": click.sub2 || "",
