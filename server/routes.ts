@@ -214,7 +214,31 @@ export async function registerRoutes(
       username: user.username, 
       role: user.role,
       email: user.email,
-      referralCode: user.referralCode
+      referralCode: user.referralCode,
+      status: user.status,
+      twoFactorEnabled: user.twoFactorEnabled || false,
+    });
+  });
+
+  // Alias for /api/auth/me
+  app.get("/api/user", async (req: Request, res: Response) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    res.json({ 
+      id: user.id, 
+      username: user.username, 
+      role: user.role,
+      email: user.email,
+      referralCode: user.referralCode,
+      status: user.status,
+      twoFactorEnabled: user.twoFactorEnabled || false,
     });
   });
 

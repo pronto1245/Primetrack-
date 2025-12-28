@@ -308,6 +308,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
 }
 
 function MainContent({ role, t }: { role: string, t: any }) {
+  const [, setLocation] = useLocation();
   const [matchOffers] = useRoute("/dashboard/:role/offers");
   const [matchCreateOffer] = useRoute("/dashboard/:role/offers/new");
   const [matchLinks] = useRoute("/dashboard/:role/links");
@@ -321,6 +322,34 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchPostbacks] = useRoute("/dashboard/:role/postbacks");
   const [matchAntifraud] = useRoute("/dashboard/:role/antifraud");
   const [matchSettings] = useRoute("/dashboard/:role/settings");
+
+  // Check if user needs to setup 2FA
+  const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
+    queryKey: ["/api/user"],
+    queryFn: async () => {
+      const res = await fetch("/api/user", { credentials: "include" });
+      if (!res.ok) throw new Error("Not authenticated");
+      return res.json();
+    },
+    retry: false,
+  });
+
+  // Handle auth error - redirect to login
+  useEffect(() => {
+    if (userError) {
+      setLocation("/login");
+    }
+  }, [userError, setLocation]);
+
+  // Redirect to 2FA setup if not enabled (for any authenticated user)
+  useEffect(() => {
+    if (!userLoading && currentUser && !currentUser.twoFactorEnabled) {
+      // Allow pending users to see "waiting for approval" but redirect active users to 2FA
+      if (currentUser.status === "active" || currentUser.role === "publisher") {
+        setLocation("/setup-2fa");
+      }
+    }
+  }, [userLoading, currentUser, setLocation]);
 
   // Global advertiser context for publisher
   const { advertisers, selectedAdvertiserId, selectedAdvertiser, setSelectedAdvertiserId, isLoading: advertisersLoading } = useAdvertiserContext();

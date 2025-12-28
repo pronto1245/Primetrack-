@@ -12,6 +12,7 @@ import Login from "@/pages/Login";
 import AdvertiserRegister from "@/pages/AdvertiserRegister";
 import PublisherRegister from "@/pages/PublisherRegister";
 import SetupAdmin from "@/pages/SetupAdmin";
+import Setup2FA from "@/pages/Setup2FA";
 import "./lib/i18n";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/setup-admin" component={SetupAdmin} />
+      <Route path="/setup-2fa" component={Setup2FA} />
       <Route path="/register" component={Register} />
       <Route path="/register/advertiser" component={AdvertiserRegister} />
       <Route path="/register/:ref" component={PublisherRegister} />
