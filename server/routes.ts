@@ -231,6 +231,13 @@ export async function registerRoutes(
       return res.status(401).json({ message: "User not found" });
     }
 
+    // For publishers, check if they have at least one approved advertiser
+    let hasApprovedAdvertiser = false;
+    if (user.role === "publisher") {
+      const advertisers = await storage.getAdvertisersForPublisher(user.id);
+      hasApprovedAdvertiser = advertisers.some((a: any) => a.status === "active");
+    }
+
     res.json({ 
       id: user.id, 
       username: user.username, 
@@ -239,6 +246,7 @@ export async function registerRoutes(
       referralCode: user.referralCode,
       status: user.status,
       twoFactorEnabled: user.twoFactorEnabled || false,
+      hasApprovedAdvertiser,
     });
   });
 
