@@ -68,15 +68,17 @@ export function Navbar() {
 
           <div className="h-4 w-px bg-border" />
 
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button variant="ghost" size="sm" className="h-8 text-xs font-mono text-foreground hover:bg-muted">
               LOG_IN
             </Button>
           </Link>
           
-          <Button size="sm" className="h-8 bg-white text-black hover:bg-muted text-xs font-bold font-mono px-4 rounded-sm">
-             GET_STARTED <ArrowRight className="w-3 h-3 ml-2" />
-          </Button>
+          <Link href="/register/advertiser">
+            <Button size="sm" className="h-8 bg-white text-black hover:bg-muted text-xs font-bold font-mono px-4 rounded-sm">
+               GET_STARTED <ArrowRight className="w-3 h-3 ml-2" />
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
