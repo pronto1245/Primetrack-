@@ -169,14 +169,9 @@ export default function Login() {
             >
               Регистрация рекламодателя
             </Button>
-            <Button
-              variant="ghost"
-              className="w-full text-muted-foreground hover:text-foreground"
-              onClick={() => setLocation("/register")}
-              data-testid="link-register"
-            >
-              Регистрация партнера
-            </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Для регистрации партнера нужна ссылка от рекламодателя
+            </p>
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
