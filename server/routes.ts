@@ -23,6 +23,8 @@ declare module "express-session" {
 const SessionStore = MemoryStore(session);
 
 async function setupAuth(app: Express) {
+  const isProduction = process.env.NODE_ENV === "production";
+  
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
@@ -34,8 +36,8 @@ async function setupAuth(app: Express) {
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "lax" : false,
       },
     })
   );
