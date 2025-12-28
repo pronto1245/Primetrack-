@@ -446,6 +446,35 @@ export async function registerRoutes(
     }
   });
 
+  // Add landing to offer
+  app.post("/api/offers/:offerId/landings", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.offerId);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      if (offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const result = insertOfferLandingSchema.safeParse({
+        ...req.body,
+        offerId: req.params.offerId,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid landing data", errors: result.error.issues });
+      }
+
+      const landing = await storage.createOfferLanding(result.data);
+      res.status(201).json(landing);
+    } catch (error) {
+      console.error("Create landing error:", error);
+      res.status(500).json({ message: "Failed to create landing" });
+    }
+  });
+
   // MARKETPLACE API - все активные офферы для publishers (без internalCost и landingUrl до одобрения)
   app.get("/api/marketplace", requireAuth, async (req: Request, res: Response) => {
     try {
