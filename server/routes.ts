@@ -54,17 +54,17 @@ async function setupAuth(app: Express) {
   
   app.use(
     session({
-      name: isProduction ? "__Host-sid" : "connect.sid",
+      name: "sid",
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
       resave: false,
       saveUninitialized: false,
       store,
-      proxy: isProduction,
+      proxy: true,
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
+        sameSite: "lax",
         path: "/",
       },
     })
