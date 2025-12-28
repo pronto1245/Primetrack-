@@ -272,6 +272,55 @@ export async function registerRoutes(
     }
   });
 
+  // Setup first admin (works only if no admins exist)
+  app.post("/api/setup-admin", async (req: Request, res: Response) => {
+    try {
+      const { username, password, email, setupKey } = req.body;
+      
+      // Проверка секретного ключа (обязательно установить SETUP_KEY в Secrets)
+      const validKey = process.env.SETUP_KEY;
+      if (!validKey) {
+        return res.status(403).json({ message: "SETUP_KEY not configured in Secrets" });
+      }
+      if (setupKey !== validKey) {
+        return res.status(403).json({ message: "Invalid setup key" });
+      }
+      
+      if (!username || !password || !email) {
+        return res.status(400).json({ message: "All fields required" });
+      }
+      
+      // Проверяем есть ли уже админы
+      const existingAdmin = await storage.getUserByUsername("admin");
+      const admins = await storage.getUsersByRole("admin");
+      if (admins.length > 0) {
+        return res.status(400).json({ message: "Admin already exists. Use login." });
+      }
+      
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      const newAdmin = await storage.createUser({
+        username,
+        password,
+        email,
+        role: "admin",
+        status: "active",
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Admin created successfully!",
+        username: newAdmin.username 
+      });
+    } catch (error) {
+      console.error("Setup admin error:", error);
+      res.status(500).json({ message: "Failed to create admin" });
+    }
+  });
+
   app.get("/api/auth/validate-referral/:code", async (req: Request, res: Response) => {
     try {
       const { code } = req.params;

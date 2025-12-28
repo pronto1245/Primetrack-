@@ -8,12 +8,14 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard";
 import Register from "@/pages/Register";
+import SetupAdmin from "@/pages/SetupAdmin";
 import "./lib/i18n";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/setup-admin" component={SetupAdmin} />
       <Route path="/register" component={Register} />
       <Route path="/register/:ref" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
