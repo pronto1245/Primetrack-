@@ -5,7 +5,6 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { postbackSender } from "./services/postback-sender";
 import { holdReleaseJob } from "./services/hold-release-job";
-import { cryptoPayoutService } from "./services/crypto-payout-service";
 
 const app = express();
 const httpServer = createServer(app);
@@ -101,13 +100,8 @@ app.use((req, res, next) => {
       // Start hold release job (every 5 minutes)
       holdReleaseJob.start(5 * 60 * 1000);
       
-      // Initialize crypto payout providers
-      cryptoPayoutService.initializeProviders().then(() => {
-        const providers = cryptoPayoutService.getAvailableProviders();
-        if (providers.length > 0) {
-          log(`Crypto payout providers initialized: ${providers.join(", ")}`, "crypto");
-        }
-      });
+      // Crypto payout providers are now per-advertiser (encrypted keys in DB)
+      log(`Crypto payout service ready (per-advertiser keys)`, "crypto");
     },
   );
 })();

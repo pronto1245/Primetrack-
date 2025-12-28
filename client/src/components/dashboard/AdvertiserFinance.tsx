@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Users, Loader2, Trash2, Edit,
-  Send, AlertCircle, CheckSquare, History
+  Send, AlertCircle, CheckSquare, History, Key, Shield, Eye, EyeOff
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +45,8 @@ export function AdvertiserFinance() {
   const [bonusMethodId, setBonusMethodId] = useState("");
   const [bonusAmount, setBonusAmount] = useState("");
   const [bonusNote, setBonusNote] = useState("");
+  const [exchangeKeyForms, setExchangeKeyForms] = useState<Record<string, boolean>>({});
+  const [exchangeInputs, setExchangeInputs] = useState<Record<string, { apiKey: string; secretKey: string; passphrase?: string }>>({});
 
   const { data: paymentMethods = [], isLoading: methodsLoading } = useQuery<any[]>({
     queryKey: ["/api/advertiser/payment-methods"],
@@ -60,6 +62,35 @@ export function AdvertiserFinance() {
 
   const { data: payouts = [], isLoading: payoutsLoading } = useQuery<any[]>({
     queryKey: ["/api/advertiser/payouts"],
+  });
+
+  const { data: cryptoKeysStatus = {} } = useQuery<Record<string, boolean>>({
+    queryKey: ["/api/advertiser/crypto/keys/status"],
+  });
+
+  const saveCryptoKeysMutation = useMutation({
+    mutationFn: (data: { exchange: string; apiKey: string; secretKey: string; passphrase?: string }) => 
+      apiRequest("POST", "/api/advertiser/crypto/keys", data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/crypto/keys/status"] });
+      setExchangeInputs(prev => ({ ...prev, [variables.exchange]: { apiKey: "", secretKey: "", passphrase: "" } }));
+      setExchangeKeyForms(prev => ({ ...prev, [variables.exchange]: false }));
+      toast({ title: "API ключи сохранены" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteCryptoKeysMutation = useMutation({
+    mutationFn: (exchange: string) => apiRequest("DELETE", `/api/advertiser/crypto/keys/${exchange}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/crypto/keys/status"] });
+      toast({ title: "API ключи удалены" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
   });
 
   const createMethodMutation = useMutation({
@@ -303,6 +334,10 @@ export function AdvertiserFinance() {
           <TabsTrigger value="history" data-testid="tab-history" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
             <History className="h-4 w-4 mr-1 text-purple-500" />
             История выплат
+          </TabsTrigger>
+          <TabsTrigger value="api-keys" data-testid="tab-api-keys" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+            <Key className="h-4 w-4 mr-1 text-orange-500" />
+            API ключи бирж
           </TabsTrigger>
         </TabsList>
 
@@ -875,6 +910,162 @@ export function AdvertiserFinance() {
               </table>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="api-keys" className="space-y-4">
+          <Card className="bg-[#0A0A0A] border-white/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Shield className="h-5 w-5 text-orange-500" />
+                API ключи криптобирж
+              </CardTitle>
+              <p className="text-sm text-slate-400">
+                Добавьте API ключи ваших биржевых аккаунтов для автоматических выплат.
+                Ключи хранятся в зашифрованном виде.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {[
+                { key: "binance", name: "Binance", color: "yellow", statusKey: "hasBinance" },
+                { key: "bybit", name: "Bybit", color: "purple", statusKey: "hasBybit" },
+                { key: "kraken", name: "Kraken", color: "blue", statusKey: "hasKraken" },
+                { key: "coinbase", name: "Coinbase", color: "blue", statusKey: "hasCoinbase" },
+                { key: "exmo", name: "EXMO", color: "cyan", statusKey: "hasExmo" },
+                { key: "mexc", name: "MEXC", color: "teal", statusKey: "hasMexc" },
+                { key: "okx", name: "OKX", color: "slate", statusKey: "hasOkx", requiresPassphrase: true },
+              ].map((exchange) => {
+                const hasKeys = cryptoKeysStatus[exchange.statusKey as keyof typeof cryptoKeysStatus];
+                const showForm = exchangeKeyForms[exchange.key];
+                const inputs = exchangeInputs[exchange.key] || { apiKey: "", secretKey: "", passphrase: "" };
+                const colorClass = `${exchange.color}-500`;
+                
+                return (
+                  <div key={exchange.key} className={`border border-${colorClass}/30 rounded-lg p-4 space-y-4`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg bg-${colorClass}/20 flex items-center justify-center`}>
+                          <Building2 className={`w-5 h-5 text-${colorClass}`} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">{exchange.name}</p>
+                          <p className="text-xs text-slate-400">
+                            {hasKeys ? (
+                              <span className="text-emerald-500 flex items-center gap-1">
+                                <Check className="w-3 h-3" /> Ключи настроены
+                              </span>
+                            ) : (
+                              <span className="text-slate-500">Ключи не настроены</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {hasKeys && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteCryptoKeysMutation.mutate(exchange.key)}
+                            disabled={deleteCryptoKeysMutation.isPending}
+                            data-testid={`button-delete-${exchange.key}-keys`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setExchangeKeyForms(prev => ({ ...prev, [exchange.key]: !prev[exchange.key] }))}
+                          data-testid={`button-toggle-${exchange.key}-form`}
+                        >
+                          {showForm ? "Скрыть" : hasKeys ? "Обновить" : "Добавить"}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {showForm && (
+                      <div className="space-y-3 pt-3 border-t border-white/10">
+                        <div>
+                          <Label className="text-slate-400">API Key</Label>
+                          <Input
+                            type="text"
+                            value={inputs.apiKey}
+                            onChange={(e) => setExchangeInputs(prev => ({ 
+                              ...prev, 
+                              [exchange.key]: { ...inputs, apiKey: e.target.value } 
+                            }))}
+                            placeholder="Введите API Key"
+                            className="bg-[#111] border-white/10 font-mono text-sm"
+                            data-testid={`input-${exchange.key}-api-key`}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-slate-400">Secret Key</Label>
+                          <Input
+                            type="password"
+                            value={inputs.secretKey}
+                            onChange={(e) => setExchangeInputs(prev => ({ 
+                              ...prev, 
+                              [exchange.key]: { ...inputs, secretKey: e.target.value } 
+                            }))}
+                            placeholder="Введите Secret Key"
+                            className="bg-[#111] border-white/10 font-mono text-sm"
+                            data-testid={`input-${exchange.key}-secret-key`}
+                          />
+                        </div>
+                        {exchange.requiresPassphrase && (
+                          <div>
+                            <Label className="text-slate-400">Passphrase (обязательно для OKX)</Label>
+                            <Input
+                              type="password"
+                              value={inputs.passphrase || ""}
+                              onChange={(e) => setExchangeInputs(prev => ({ 
+                                ...prev, 
+                                [exchange.key]: { ...inputs, passphrase: e.target.value } 
+                              }))}
+                              placeholder="Введите Passphrase"
+                              className="bg-[#111] border-white/10 font-mono text-sm"
+                              data-testid={`input-${exchange.key}-passphrase`}
+                            />
+                          </div>
+                        )}
+                        <Button
+                          className="w-full"
+                          disabled={
+                            !inputs.apiKey || 
+                            !inputs.secretKey || 
+                            (exchange.requiresPassphrase && !inputs.passphrase) ||
+                            saveCryptoKeysMutation.isPending
+                          }
+                          onClick={() => saveCryptoKeysMutation.mutate({
+                            exchange: exchange.key,
+                            apiKey: inputs.apiKey,
+                            secretKey: inputs.secretKey,
+                            passphrase: inputs.passphrase
+                          })}
+                          data-testid={`button-save-${exchange.key}-keys`}
+                        >
+                          {saveCryptoKeysMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : (
+                            <Key className="w-4 h-4 mr-2" />
+                          )}
+                          Сохранить {exchange.name} ключи
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                <p className="text-sm text-amber-500">
+                  <AlertCircle className="w-4 h-4 inline mr-2" />
+                  Убедитесь, что API ключи имеют права только на вывод средств (Withdraw) без доступа к торговле.
+                  Никогда не делитесь своими ключами с третьими лицами.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

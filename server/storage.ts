@@ -24,6 +24,7 @@ import {
 import { db } from "../db";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import { encrypt, decrypt, hasSecret } from "./services/encryption";
 
 export interface AdvertiserStatsFilters {
   dateFrom?: Date;
@@ -175,6 +176,51 @@ export interface IStorage {
   getAdvertiserSettings(advertiserId: string): Promise<AdvertiserSettings | undefined>;
   createAdvertiserSettings(settings: InsertAdvertiserSettings): Promise<AdvertiserSettings>;
   updateAdvertiserSettings(advertiserId: string, settings: Partial<InsertAdvertiserSettings>): Promise<AdvertiserSettings | undefined>;
+  
+  // Crypto API Keys (encrypted)
+  saveAdvertiserCryptoKeys(advertiserId: string, keys: {
+    binanceApiKey?: string;
+    binanceSecretKey?: string;
+    bybitApiKey?: string;
+    bybitSecretKey?: string;
+    krakenApiKey?: string;
+    krakenSecretKey?: string;
+    coinbaseApiKey?: string;
+    coinbaseSecretKey?: string;
+    exmoApiKey?: string;
+    exmoSecretKey?: string;
+    mexcApiKey?: string;
+    mexcSecretKey?: string;
+    okxApiKey?: string;
+    okxSecretKey?: string;
+    okxPassphrase?: string;
+  }): Promise<AdvertiserSettings>;
+  getDecryptedCryptoKeys(advertiserId: string): Promise<{
+    binanceApiKey: string | null;
+    binanceSecretKey: string | null;
+    bybitApiKey: string | null;
+    bybitSecretKey: string | null;
+    krakenApiKey: string | null;
+    krakenSecretKey: string | null;
+    coinbaseApiKey: string | null;
+    coinbaseSecretKey: string | null;
+    exmoApiKey: string | null;
+    exmoSecretKey: string | null;
+    mexcApiKey: string | null;
+    mexcSecretKey: string | null;
+    okxApiKey: string | null;
+    okxSecretKey: string | null;
+    okxPassphrase: string | null;
+  } | null>;
+  getCryptoKeysStatus(advertiserId: string): Promise<{
+    hasBinance: boolean;
+    hasBybit: boolean;
+    hasKraken: boolean;
+    hasCoinbase: boolean;
+    hasExmo: boolean;
+    hasMexc: boolean;
+    hasOkx: boolean;
+  }>;
   
   // Offer Access Requests
   getOfferAccessRequest(id: string): Promise<OfferAccessRequest | undefined>;
@@ -461,6 +507,112 @@ export class DatabaseStorage implements IStorage {
       .where(eq(advertiserSettings.advertiserId, advertiserId))
       .returning();
     return result;
+  }
+
+  async saveAdvertiserCryptoKeys(advertiserId: string, keys: {
+    binanceApiKey?: string;
+    binanceSecretKey?: string;
+    bybitApiKey?: string;
+    bybitSecretKey?: string;
+    krakenApiKey?: string;
+    krakenSecretKey?: string;
+    coinbaseApiKey?: string;
+    coinbaseSecretKey?: string;
+    exmoApiKey?: string;
+    exmoSecretKey?: string;
+    mexcApiKey?: string;
+    mexcSecretKey?: string;
+    okxApiKey?: string;
+    okxSecretKey?: string;
+    okxPassphrase?: string;
+  }): Promise<AdvertiserSettings> {
+    const encryptedData: Partial<InsertAdvertiserSettings> = {};
+    
+    const keyFields = [
+      'binanceApiKey', 'binanceSecretKey', 'bybitApiKey', 'bybitSecretKey',
+      'krakenApiKey', 'krakenSecretKey', 'coinbaseApiKey', 'coinbaseSecretKey',
+      'exmoApiKey', 'exmoSecretKey', 'mexcApiKey', 'mexcSecretKey',
+      'okxApiKey', 'okxSecretKey', 'okxPassphrase'
+    ] as const;
+    
+    for (const field of keyFields) {
+      if ((keys as any)[field] !== undefined) {
+        (encryptedData as any)[field] = (keys as any)[field] ? encrypt((keys as any)[field]) : null;
+      }
+    }
+
+    let settings = await this.getAdvertiserSettings(advertiserId);
+    if (!settings) {
+      settings = await this.createAdvertiserSettings({ advertiserId, ...encryptedData });
+    } else {
+      settings = await this.updateAdvertiserSettings(advertiserId, encryptedData) || settings;
+    }
+    return settings;
+  }
+
+  async getDecryptedCryptoKeys(advertiserId: string): Promise<{
+    binanceApiKey: string | null;
+    binanceSecretKey: string | null;
+    bybitApiKey: string | null;
+    bybitSecretKey: string | null;
+    krakenApiKey: string | null;
+    krakenSecretKey: string | null;
+    coinbaseApiKey: string | null;
+    coinbaseSecretKey: string | null;
+    exmoApiKey: string | null;
+    exmoSecretKey: string | null;
+    mexcApiKey: string | null;
+    mexcSecretKey: string | null;
+    okxApiKey: string | null;
+    okxSecretKey: string | null;
+    okxPassphrase: string | null;
+  } | null> {
+    const settings = await this.getAdvertiserSettings(advertiserId);
+    if (!settings) return null;
+
+    return {
+      binanceApiKey: settings.binanceApiKey ? decrypt(settings.binanceApiKey) : null,
+      binanceSecretKey: settings.binanceSecretKey ? decrypt(settings.binanceSecretKey) : null,
+      bybitApiKey: settings.bybitApiKey ? decrypt(settings.bybitApiKey) : null,
+      bybitSecretKey: settings.bybitSecretKey ? decrypt(settings.bybitSecretKey) : null,
+      krakenApiKey: settings.krakenApiKey ? decrypt(settings.krakenApiKey) : null,
+      krakenSecretKey: settings.krakenSecretKey ? decrypt(settings.krakenSecretKey) : null,
+      coinbaseApiKey: settings.coinbaseApiKey ? decrypt(settings.coinbaseApiKey) : null,
+      coinbaseSecretKey: settings.coinbaseSecretKey ? decrypt(settings.coinbaseSecretKey) : null,
+      exmoApiKey: settings.exmoApiKey ? decrypt(settings.exmoApiKey) : null,
+      exmoSecretKey: settings.exmoSecretKey ? decrypt(settings.exmoSecretKey) : null,
+      mexcApiKey: settings.mexcApiKey ? decrypt(settings.mexcApiKey) : null,
+      mexcSecretKey: settings.mexcSecretKey ? decrypt(settings.mexcSecretKey) : null,
+      okxApiKey: settings.okxApiKey ? decrypt(settings.okxApiKey) : null,
+      okxSecretKey: settings.okxSecretKey ? decrypt(settings.okxSecretKey) : null,
+      okxPassphrase: settings.okxPassphrase ? decrypt(settings.okxPassphrase) : null,
+    };
+  }
+
+  async getCryptoKeysStatus(advertiserId: string): Promise<{
+    hasBinance: boolean;
+    hasBybit: boolean;
+    hasKraken: boolean;
+    hasCoinbase: boolean;
+    hasExmo: boolean;
+    hasMexc: boolean;
+    hasOkx: boolean;
+  }> {
+    const settings = await this.getAdvertiserSettings(advertiserId);
+    if (!settings) return { 
+      hasBinance: false, hasBybit: false, hasKraken: false, 
+      hasCoinbase: false, hasExmo: false, hasMexc: false, hasOkx: false 
+    };
+
+    return {
+      hasBinance: hasSecret(settings.binanceApiKey) && hasSecret(settings.binanceSecretKey),
+      hasBybit: hasSecret(settings.bybitApiKey) && hasSecret(settings.bybitSecretKey),
+      hasKraken: hasSecret(settings.krakenApiKey) && hasSecret(settings.krakenSecretKey),
+      hasCoinbase: hasSecret(settings.coinbaseApiKey) && hasSecret(settings.coinbaseSecretKey),
+      hasExmo: hasSecret(settings.exmoApiKey) && hasSecret(settings.exmoSecretKey),
+      hasMexc: hasSecret(settings.mexcApiKey) && hasSecret(settings.mexcSecretKey),
+      hasOkx: hasSecret(settings.okxApiKey) && hasSecret(settings.okxSecretKey) && hasSecret(settings.okxPassphrase),
+    };
   }
 
   // Offer Access Requests

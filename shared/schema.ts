@@ -281,6 +281,23 @@ export const advertiserSettings = pgTable("advertiser_settings", {
   // Financial settings
   defaultHoldPeriodDays: integer("default_hold_period_days").default(7),
   
+  // Crypto exchange API keys (encrypted)
+  binanceApiKey: text("binance_api_key"),
+  binanceSecretKey: text("binance_secret_key"),
+  bybitApiKey: text("bybit_api_key"),
+  bybitSecretKey: text("bybit_secret_key"),
+  krakenApiKey: text("kraken_api_key"),
+  krakenSecretKey: text("kraken_secret_key"),
+  coinbaseApiKey: text("coinbase_api_key"),
+  coinbaseSecretKey: text("coinbase_secret_key"),
+  exmoApiKey: text("exmo_api_key"),
+  exmoSecretKey: text("exmo_secret_key"),
+  mexcApiKey: text("mexc_api_key"),
+  mexcSecretKey: text("mexc_secret_key"),
+  okxApiKey: text("okx_api_key"),
+  okxSecretKey: text("okx_secret_key"),
+  okxPassphrase: text("okx_passphrase"),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

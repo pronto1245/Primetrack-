@@ -2674,7 +2674,8 @@ export async function registerRoutes(
   app.get("/api/advertiser/crypto/providers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const { cryptoPayoutService } = await import("./services/crypto-payout-service");
-      const providers = cryptoPayoutService.getAvailableProviders();
+      const userId = req.session.userId!;
+      const providers = await cryptoPayoutService.getAvailableProvidersForAdvertiser(userId);
       res.json({ providers });
     } catch (error: any) {
       console.error("Get crypto providers error:", error);
@@ -2686,7 +2687,8 @@ export async function registerRoutes(
   app.get("/api/advertiser/crypto/balances", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const { cryptoPayoutService } = await import("./services/crypto-payout-service");
-      const balances = await cryptoPayoutService.getBalances();
+      const userId = req.session.userId!;
+      const balances = await cryptoPayoutService.getBalancesForAdvertiser(userId);
       res.json(balances);
     } catch (error: any) {
       console.error("Get crypto balances error:", error);
@@ -2705,7 +2707,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Missing required fields" });
       }
       
-      const result = await cryptoPayoutService.sendPayout(provider, {
+      const result = await cryptoPayoutService.sendPayoutForAdvertiser(userId, provider, {
         walletAddress,
         amount,
         currency,
@@ -2743,6 +2745,119 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Crypto payout error:", error);
       res.status(500).json({ message: "Failed to process crypto payout" });
+    }
+  });
+
+  // ============================================
+  // ADVERTISER CRYPTO KEYS MANAGEMENT
+  // Encrypted storage of per-advertiser exchange API keys
+  // ============================================
+
+  // Get crypto keys status (never return actual keys)
+  app.get("/api/advertiser/crypto/keys/status", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const status = await storage.getCryptoKeysStatus(userId);
+      res.json(status);
+    } catch (error: any) {
+      console.error("Get crypto keys status error:", error);
+      res.status(500).json({ message: "Failed to fetch crypto keys status" });
+    }
+  });
+
+  // Save crypto API keys (encrypted)
+  app.post("/api/advertiser/crypto/keys", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { exchange, apiKey, secretKey } = req.body;
+
+      const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
+      if (!exchange || !validExchanges.includes(exchange)) {
+        return res.status(400).json({ message: `Invalid exchange. Use one of: ${validExchanges.join(", ")}` });
+      }
+
+      if (!apiKey || !secretKey) {
+        return res.status(400).json({ message: "API Key and Secret Key are required" });
+      }
+
+      const keys: any = {};
+      const { passphrase } = req.body;
+      
+      const keyMappings: Record<string, { apiKey: string; secretKey: string; passphrase?: string }> = {
+        binance: { apiKey: 'binanceApiKey', secretKey: 'binanceSecretKey' },
+        bybit: { apiKey: 'bybitApiKey', secretKey: 'bybitSecretKey' },
+        kraken: { apiKey: 'krakenApiKey', secretKey: 'krakenSecretKey' },
+        coinbase: { apiKey: 'coinbaseApiKey', secretKey: 'coinbaseSecretKey' },
+        exmo: { apiKey: 'exmoApiKey', secretKey: 'exmoSecretKey' },
+        mexc: { apiKey: 'mexcApiKey', secretKey: 'mexcSecretKey' },
+        okx: { apiKey: 'okxApiKey', secretKey: 'okxSecretKey', passphrase: 'okxPassphrase' },
+      };
+      
+      const mapping = keyMappings[exchange];
+      if (mapping) {
+        keys[mapping.apiKey] = apiKey;
+        keys[mapping.secretKey] = secretKey;
+        if (mapping.passphrase && passphrase) {
+          keys[mapping.passphrase] = passphrase;
+        }
+      }
+
+      if (exchange === 'okx' && !passphrase) {
+        return res.status(400).json({ message: "OKX requires passphrase" });
+      }
+
+      await storage.saveAdvertiserCryptoKeys(userId, keys);
+      const status = await storage.getCryptoKeysStatus(userId);
+      
+      res.json({ 
+        success: true, 
+        message: `${exchange} API keys saved successfully`,
+        status 
+      });
+    } catch (error: any) {
+      console.error("Save crypto keys error:", error);
+      res.status(500).json({ message: "Failed to save crypto keys" });
+    }
+  });
+
+  // Delete crypto API keys
+  app.delete("/api/advertiser/crypto/keys/:exchange", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { exchange } = req.params;
+
+      const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
+      if (!validExchanges.includes(exchange)) {
+        return res.status(400).json({ message: "Invalid exchange" });
+      }
+
+      const keyMappings: Record<string, string[]> = {
+        binance: ['binanceApiKey', 'binanceSecretKey'],
+        bybit: ['bybitApiKey', 'bybitSecretKey'],
+        kraken: ['krakenApiKey', 'krakenSecretKey'],
+        coinbase: ['coinbaseApiKey', 'coinbaseSecretKey'],
+        exmo: ['exmoApiKey', 'exmoSecretKey'],
+        mexc: ['mexcApiKey', 'mexcSecretKey'],
+        okx: ['okxApiKey', 'okxSecretKey', 'okxPassphrase'],
+      };
+
+      const keys: any = {};
+      const fieldsToDelete = keyMappings[exchange] || [];
+      for (const field of fieldsToDelete) {
+        keys[field] = "";
+      }
+
+      await storage.saveAdvertiserCryptoKeys(userId, keys);
+      const status = await storage.getCryptoKeysStatus(userId);
+      
+      res.json({ 
+        success: true, 
+        message: `${exchange} API keys deleted`,
+        status 
+      });
+    } catch (error: any) {
+      console.error("Delete crypto keys error:", error);
+      res.status(500).json({ message: "Failed to delete crypto keys" });
     }
   });
 
