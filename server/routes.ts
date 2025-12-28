@@ -54,7 +54,7 @@ async function setupAuth(app: Express) {
   
   app.use(
     session({
-      name: "sid",
+      name: isProduction ? "__Host-sid" : "sid",
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
       resave: false,
       saveUninitialized: false,
@@ -64,7 +64,7 @@ async function setupAuth(app: Express) {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: isProduction,
-        sameSite: "lax",
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
       },
     })
@@ -206,11 +206,18 @@ export async function registerRoutes(
       req.session.userId = user.id;
       req.session.role = user.role;
 
-      res.json({ 
-        id: user.id, 
-        username: user.username, 
-        role: user.role,
-        email: user.email 
+      // Explicitly save session before sending response
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Session error" });
+        }
+        res.json({ 
+          id: user.id, 
+          username: user.username, 
+          role: user.role,
+          email: user.email 
+        });
       });
     } catch (error) {
       res.status(500).json({ message: "Login failed" });
