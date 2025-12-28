@@ -82,6 +82,18 @@ export function Reports({ role }: ReportsProps) {
     }
   });
 
+  // Fetch publishers list for filter (advertiser/admin only)
+  const { data: publishers = [] } = useQuery<{ id: string; username: string; email: string }[]>({
+    queryKey: ["/api/advertiser/publishers", role],
+    queryFn: async () => {
+      const endpoint = role === "admin" ? "/api/admin/publishers" : "/api/advertiser/publishers";
+      const res = await fetch(endpoint);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: role === "advertiser" || role === "admin"
+  });
+
   const handleRefresh = () => {
     if (activeTab === "clicks") refetchClicks();
     else if (activeTab === "conversions") refetchConversions();
@@ -168,6 +180,22 @@ export function Reports({ role }: ReportsProps) {
                 </SelectContent>
               </Select>
             </div>
+            {role !== "publisher" && (
+              <div>
+                <Label className="text-xs text-slate-400">Вебмастер</Label>
+                <Select value={filters.publisherId || "all"} onValueChange={(v) => setFilters(f => ({ ...f, publisherId: v === "all" ? "" : v }))}>
+                  <SelectTrigger className="mt-1 bg-[#111] border-white/10 text-white" data-testid="select-publisher">
+                    <SelectValue placeholder="Все" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#111] border-white/10">
+                    <SelectItem value="all">Все вебмастера</SelectItem>
+                    {publishers.map((pub) => (
+                      <SelectItem key={pub.id} value={pub.id}>{pub.username || pub.email}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label className="text-xs text-slate-400">{t('reports.groupBy') || 'Group By'}</Label>
               <Select value={filters.groupBy} onValueChange={(v) => setFilters(f => ({ ...f, groupBy: v }))}>

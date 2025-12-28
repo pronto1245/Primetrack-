@@ -1386,8 +1386,7 @@ export class DatabaseStorage implements IStorage {
   // REPORTS - Centralized statistics (primary source of truth)
   // ============================================
   
-  async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: Click[]; total: number; page: number; limit: number }> {
-    let query = db.select().from(clicks);
+  async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: any[]; total: number; page: number; limit: number }> {
     const conditions: any[] = [];
     
     if (filters.publisherId) conditions.push(eq(clicks.publisherId, filters.publisherId));
@@ -1410,15 +1409,27 @@ export class DatabaseStorage implements IStorage {
     
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
     
-    const allClicks = whereCondition 
+    const allClicksRaw = whereCondition 
       ? await db.select().from(clicks).where(whereCondition).orderBy(desc(clicks.createdAt))
       : await db.select().from(clicks).orderBy(desc(clicks.createdAt));
     
-    const total = allClicks.length;
+    const total = allClicksRaw.length;
     const offset = (page - 1) * limit;
-    const paginatedClicks = allClicks.slice(offset, offset + limit);
+    const paginatedClicks = allClicksRaw.slice(offset, offset + limit);
     
-    return { clicks: paginatedClicks, total, page, limit };
+    // Enrich with publisher names
+    const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
+    const publishersData = publisherIds.length > 0 
+      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, publisherIds))
+      : [];
+    const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
+    
+    const enrichedClicks = paginatedClicks.map(click => ({
+      ...click,
+      publisherName: publisherMap.get(click.publisherId) || click.publisherId
+    }));
+    
+    return { clicks: enrichedClicks, total, page, limit };
   }
 
   async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: any[]; total: number; page: number; limit: number }> {
@@ -1482,7 +1493,19 @@ export class DatabaseStorage implements IStorage {
     const offset = (page - 1) * limit;
     const paginatedConversions = allConversions.slice(offset, offset + limit);
     
-    return { conversions: paginatedConversions, total, page, limit };
+    // Enrich with publisher names
+    const publisherIds = Array.from(new Set(paginatedConversions.map(c => c.publisherId)));
+    const publishersData = publisherIds.length > 0 
+      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, publisherIds))
+      : [];
+    const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
+    
+    const enrichedConversions = paginatedConversions.map(conv => ({
+      ...conv,
+      publisherName: publisherMap.get(conv.publisherId) || conv.publisherId
+    }));
+    
+    return { conversions: enrichedConversions, total, page, limit };
   }
 
   async getGroupedReport(filters: any, groupBy: string, role: string): Promise<any> {
