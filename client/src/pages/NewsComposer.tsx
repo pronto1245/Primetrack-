@@ -55,10 +55,10 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
         title: "Успешно",
         description: "Новость опубликована",
       });
-      if (embedded && currentUser?.role) {
+      if (currentUser?.role) {
         setLocation(`/dashboard/${currentUser.role}/news`);
       } else {
-        setLocation("/news");
+        setLocation("/dashboard/admin/news");
       }
     },
     onError: (error: any) => {
@@ -151,10 +151,10 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
   const isAdmin = currentUser?.role === "admin";
 
   const goBack = () => {
-    if (embedded && currentUser?.role) {
+    if (currentUser?.role) {
       setLocation(`/dashboard/${currentUser.role}/news`);
     } else {
-      setLocation("/news");
+      setLocation("/dashboard/admin/news");
     }
   };
 

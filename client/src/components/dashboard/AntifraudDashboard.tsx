@@ -36,12 +36,18 @@ interface AntifraudLog {
   isVpn: boolean;
   isBot: boolean;
   isDatacenter: boolean;
+  isTor: boolean;
   signals?: string;
   matchedRuleIds?: string[];
   action: string;
   ip?: string;
   userAgent?: string;
   country?: string;
+  region?: string;
+  isp?: string;
+  asn?: string;
+  visitorId?: string;
+  fpConfidence?: number;
   createdAt: string;
 }
 
@@ -478,15 +484,16 @@ export default function AntifraudDashboard({ role }: { role: string }) {
               </CardContent>
             </Card>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="p-3 text-left text-sm font-medium">Время</th>
-                    <th className="p-3 text-left text-sm font-medium">IP</th>
-                    <th className="p-3 text-left text-sm font-medium">Страна</th>
+                    <th className="p-3 text-left text-sm font-medium">IP / ISP</th>
+                    <th className="p-3 text-left text-sm font-medium">GEO</th>
                     <th className="p-3 text-left text-sm font-medium">Score</th>
                     <th className="p-3 text-left text-sm font-medium">Сигналы</th>
+                    <th className="p-3 text-left text-sm font-medium">Fingerprint</th>
                     <th className="p-3 text-left text-sm font-medium">Действие</th>
                   </tr>
                 </thead>
@@ -496,8 +503,15 @@ export default function AntifraudDashboard({ role }: { role: string }) {
                       <td className="p-3 text-sm">
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
-                      <td className="p-3 text-sm font-mono">{log.ip || "-"}</td>
-                      <td className="p-3 text-sm">{log.country || "-"}</td>
+                      <td className="p-3 text-sm">
+                        <div className="font-mono text-xs">{log.ip || "-"}</div>
+                        {log.isp && <div className="text-xs text-muted-foreground truncate max-w-[150px]">{log.isp}</div>}
+                        {log.asn && <div className="text-xs text-muted-foreground">AS{log.asn}</div>}
+                      </td>
+                      <td className="p-3 text-sm">
+                        <div>{log.country || "-"}</div>
+                        {log.region && <div className="text-xs text-muted-foreground">{log.region}</div>}
+                      </td>
                       <td className="p-3">
                         <Badge
                           variant={log.fraudScore > 60 ? "destructive" : log.fraudScore > 30 ? "outline" : "secondary"}
@@ -507,11 +521,32 @@ export default function AntifraudDashboard({ role }: { role: string }) {
                       </td>
                       <td className="p-3 text-sm">
                         <div className="flex gap-1 flex-wrap">
-                          {log.isProxy && <Badge variant="outline" className="text-xs">Proxy</Badge>}
-                          {log.isVpn && <Badge variant="outline" className="text-xs">VPN</Badge>}
-                          {log.isBot && <Badge variant="outline" className="text-xs">Bot</Badge>}
-                          {log.isDatacenter && <Badge variant="outline" className="text-xs">DC</Badge>}
+                          {log.isProxy && <Badge variant="outline" className="text-xs bg-orange-500/20 text-orange-400 border-orange-500/30">Proxy</Badge>}
+                          {log.isVpn && <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30">VPN</Badge>}
+                          {log.isTor && <Badge variant="outline" className="text-xs bg-red-500/20 text-red-400 border-red-500/30">TOR</Badge>}
+                          {log.isBot && <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Bot</Badge>}
+                          {log.isDatacenter && <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">DC</Badge>}
                         </div>
+                      </td>
+                      <td className="p-3 text-sm">
+                        {log.visitorId ? (
+                          <div className="space-y-1">
+                            <div className="font-mono text-xs truncate max-w-[100px]" title={log.visitorId}>
+                              <Fingerprint className="h-3 w-3 inline mr-1" />
+                              {log.visitorId.substring(0, 8)}...
+                            </div>
+                            {log.fpConfidence !== undefined && (
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs ${log.fpConfidence > 0.8 ? 'bg-emerald-500/20 text-emerald-400' : log.fpConfidence > 0.5 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}
+                              >
+                                {(log.fpConfidence * 100).toFixed(0)}%
+                              </Badge>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
                       </td>
                       <td className="p-3">{getActionBadge(log.action)}</td>
                     </tr>
