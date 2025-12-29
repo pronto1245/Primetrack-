@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Newspaper, Plus, Pin, Calendar } from "lucide-react";
@@ -27,7 +27,6 @@ interface CurrentUser {
 }
 
 export function NewsFeed() {
-  const [, setLocation] = useLocation();
 
   const { data: currentUser } = useQuery<CurrentUser>({
     queryKey: ["/api/user"],
@@ -88,7 +87,7 @@ export function NewsFeed() {
         </div>
         
         {canCreateNews && (
-          <Link href={`/dashboard/${currentUser?.role}/news/create`}>
+          <Link href="/news/create">
             <Button data-testid="create-news-button">
               <Plus className="h-4 w-4 mr-2" />
               Создать новость
