@@ -108,7 +108,7 @@ export function NotificationBell() {
           className="relative h-8 w-8 text-muted-foreground hover:text-foreground"
           data-testid="notification-bell"
         >
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4 text-amber-500" />
           {unreadCount && unreadCount.count > 0 && (
             <span 
               className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center"

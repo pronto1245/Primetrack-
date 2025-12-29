@@ -263,7 +263,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       <div className="p-4 border-t border-border">
         <Link href="/dashboard">
           <button className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full">
-            <LogOut className="w-3 h-3" />
+            <LogOut className="w-3 h-3 text-red-500" />
             {t('dashboard.menu.logout')}
           </button>
         </Link>
