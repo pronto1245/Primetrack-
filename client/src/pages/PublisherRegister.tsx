@@ -35,7 +35,6 @@ export default function PublisherRegister() {
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showExistingUserDialog, setShowExistingUserDialog] = useState(false);
-  const [existingUserData, setExistingUserData] = useState<any>(null);
   const [loginData, setLoginData] = useState({ username: "", password: "" });
 
   const { data: referralData, isLoading: isValidating } = useQuery({
@@ -47,22 +46,6 @@ export default function PublisherRegister() {
       return response.json();
     },
     enabled: !!referralCode,
-  });
-
-  const checkEmailMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await apiRequest("POST", "/api/auth/check-email", { 
-        email, 
-        advertiserId: referralData?.advertiserId 
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.exists && data.differentAdvertiser) {
-        setExistingUserData(data);
-        setShowExistingUserDialog(true);
-      }
-    },
   });
 
   const registerMutation = useMutation({
@@ -86,7 +69,8 @@ export default function PublisherRegister() {
       const result = await response.json();
       
       if (response.status === 409 && result.code === "EMAIL_EXISTS_DIFFERENT_ADVERTISER") {
-        throw { type: "EMAIL_EXISTS_DIFFERENT_ADVERTISER" };
+        // Сразу показываем диалог привязки без дополнительного запроса
+        return { showLinkDialog: true };
       }
       
       if (!response.ok) {
@@ -95,15 +79,16 @@ export default function PublisherRegister() {
       
       return result;
     },
-    onSuccess: () => {
-      setShowSuccess(true);
+    onSuccess: (result) => {
+      if (result?.showLinkDialog) {
+        // Показываем диалог привязки к рекламодателю
+        setShowExistingUserDialog(true);
+      } else {
+        setShowSuccess(true);
+      }
     },
     onError: (error: any) => {
-      if (error?.type === "EMAIL_EXISTS_DIFFERENT_ADVERTISER") {
-        checkEmailMutation.mutate(formData.email);
-      } else {
-        setError(error.message || "Ошибка регистрации");
-      }
+      setError(error.message || "Ошибка регистрации");
     },
   });
 
