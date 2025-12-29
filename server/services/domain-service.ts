@@ -168,28 +168,45 @@ class DomainService {
         return;
       }
       
-      console.warn(`[Domain] ACME provisioning failed for ${domain.domain}: ${result.error}`);
-      console.log(`[Domain] Falling back to simulated SSL for ${domain.domain}`);
+      console.error(`[Domain] ACME provisioning failed for ${domain.domain}: ${result.error}`);
       
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 90);
-
       await storage.updateCustomDomain(domainId, {
-        sslStatus: "active",
-        sslExpiresAt: expiresAt,
-        lastError: `ACME failed, using simulated SSL: ${result.error}`,
+        sslStatus: "failed",
+        lastError: result.error || "Certificate provisioning failed",
       });
     } catch (error: any) {
       console.error(`[Domain] SSL provisioning error for ${domain.domain}:`, error.message);
       
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 90);
-
       await storage.updateCustomDomain(domainId, {
-        sslStatus: "active",
-        sslExpiresAt: expiresAt,
-        lastError: `SSL simulation: ${error.message}`,
+        sslStatus: "failed",
+        lastError: error.message || "SSL provisioning error",
       });
+    }
+  }
+
+  async retryProvisionSsl(domainId: string): Promise<{ success: boolean; error?: string }> {
+    const domain = await storage.getCustomDomain(domainId);
+    if (!domain) {
+      return { success: false, error: "Domain not found" };
+    }
+    if (!domain.isVerified) {
+      return { success: false, error: "Domain must be verified first" };
+    }
+
+    await storage.updateCustomDomain(domainId, {
+      sslStatus: "provisioning",
+      lastError: null,
+    });
+
+    try {
+      await this.provisionSsl(domainId);
+      const updated = await storage.getCustomDomain(domainId);
+      return { 
+        success: updated?.sslStatus === "active",
+        error: updated?.lastError || undefined
+      };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   }
 

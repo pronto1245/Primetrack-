@@ -126,7 +126,7 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Let's Encrypt ACME интеграция (acme-client, HTTP-01 challenge)
 - ✅ ACME accounts/challenges таблицы в БД (персистентное хранение)
 - ✅ HTTP-01 challenge endpoint: `/.well-known/acme-challenge/:token`
-- ✅ Fallback на симуляцию если ACME недоступен
+- ✅ Retry SSL provisioning endpoint
 - ⚠️ UI: только в White-label настройках (поле customDomain)
 
 ### IP Intelligence (ipinfo.io)

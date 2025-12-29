@@ -4955,6 +4955,31 @@ export async function registerRoutes(
     }
   });
 
+  // Retry SSL provisioning
+  app.post("/api/domains/:id/retry-ssl", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      const { domainService } = await import("./services/domain-service");
+      const result = await domainService.retryProvisionSsl(id);
+      
+      if (result.success) {
+        const updated = await storage.getCustomDomain(id);
+        res.json(updated);
+      } else {
+        res.status(400).json({ message: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retry SSL provisioning" });
+    }
+  });
+
   // Set primary domain
   app.post("/api/domains/:id/set-primary", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
