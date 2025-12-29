@@ -659,8 +659,59 @@ function WhiteLabelTab() {
               <div><span className="text-muted-foreground">Значение/Target:</span> <span className="text-foreground select-all">{window.location.host}</span></div>
               <div><span className="text-muted-foreground">TTL:</span> <span className="text-foreground">3600</span> <span className="text-muted-foreground">(или Auto)</span></div>
             </div>
-            <p className="text-xs">После настройки DNS, SSL сертификат будет выпущен автоматически (до 24 часов).</p>
           </div>
+          
+          {settings?.domainStatus && (
+            <div className="mt-4 p-3 border rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Статус домена</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  settings.domainStatus === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
+                  settings.domainStatus === 'pending_dns' ? 'bg-yellow-500/20 text-yellow-400' :
+                  settings.domainStatus === 'pending_ssl' ? 'bg-blue-500/20 text-blue-400' :
+                  'bg-red-500/20 text-red-400'
+                }`}>
+                  {settings.domainStatus === 'active' ? 'Активен' :
+                   settings.domainStatus === 'pending_dns' ? 'Ожидание DNS' :
+                   settings.domainStatus === 'pending_ssl' ? 'Выпуск SSL' :
+                   settings.domainStatus === 'failed' ? 'Ошибка' : settings.domainStatus}
+                </span>
+              </div>
+              
+              {settings.sslStatus && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">SSL сертификат</span>
+                  <div className="flex items-center gap-2">
+                    {settings.sslStatus === 'valid' ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    ) : settings.sslStatus === 'pending' ? (
+                      <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-400" />
+                    )}
+                    <span className={`text-xs ${
+                      settings.sslStatus === 'valid' ? 'text-emerald-400' :
+                      settings.sslStatus === 'pending' ? 'text-blue-400' :
+                      'text-red-400'
+                    }`}>
+                      {settings.sslStatus === 'valid' ? 'Действителен' :
+                       settings.sslStatus === 'pending' ? 'Выпускается...' :
+                       settings.sslStatus === 'expired' ? 'Истёк' : 'Ошибка'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {settings.sslExpiresAt && settings.sslStatus === 'valid' && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Действителен до</span>
+                  <span>{new Date(settings.sslExpiresAt).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <p className="text-xs text-muted-foreground">После настройки DNS, SSL сертификат будет выпущен автоматически (Let's Encrypt).</p>
         </div>
 
         <div className="flex items-center justify-between p-4 border rounded-lg">
