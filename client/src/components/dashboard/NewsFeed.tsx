@@ -86,8 +86,8 @@ export function NewsFeed() {
           </p>
         </div>
         
-        {canCreateNews && (
-          <Link href="/news/create">
+        {canCreateNews && currentUser?.role && (
+          <Link href={`/dashboard/${currentUser.role}/news/create`}>
             <Button data-testid="create-news-button">
               <Plus className="h-4 w-4 mr-2" />
               Создать новость

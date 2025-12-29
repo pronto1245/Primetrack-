@@ -38,6 +38,7 @@ import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
 import { NewsFeed } from "@/components/dashboard/NewsFeed";
+import NewsComposer from "@/pages/NewsComposer";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState, useEffect } from "react";
@@ -287,6 +288,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchSettings] = useRoute("/dashboard/:role/settings");
   const [matchTeam] = useRoute("/dashboard/:role/team");
   const [matchNews] = useRoute("/dashboard/:role/news");
+  const [matchNewsCreate] = useRoute("/dashboard/:role/news/create");
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
@@ -371,7 +373,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showAntifraud = matchAntifraud && (role === 'admin' || role === 'advertiser');
   const showSettings = matchSettings;
   const showTeam = matchTeam && (role === 'advertiser' || role === 'admin');
-  const showNews = matchNews;
+  const showNews = matchNews && !matchNewsCreate;
+  const showNewsCreate = matchNewsCreate && (role === 'admin' || role === 'advertiser');
 
   const renderContent = () => {
     if (showSettings) {
@@ -405,6 +408,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showPostbacks) {
       return <PostbackSettings />;
+    }
+
+    if (showNewsCreate) {
+      return <NewsComposer embedded />;
     }
 
     if (showNews) {

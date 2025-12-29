@@ -17,7 +17,11 @@ interface CurrentUser {
   role: string;
 }
 
-export default function NewsComposer() {
+interface NewsComposerProps {
+  embedded?: boolean;
+}
+
+export default function NewsComposer({ embedded = false }: NewsComposerProps) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -51,7 +55,11 @@ export default function NewsComposer() {
         title: "Успешно",
         description: "Новость опубликована",
       });
-      setLocation("/news");
+      if (embedded && currentUser?.role) {
+        setLocation(`/dashboard/${currentUser.role}/news`);
+      } else {
+        setLocation("/news");
+      }
     },
     onError: (error: any) => {
       toast({
@@ -142,17 +150,16 @@ export default function NewsComposer() {
 
   const isAdmin = currentUser?.role === "admin";
 
-  return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/news")} data-testid="back-button">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold text-foreground">Создать новость</h1>
-        </div>
+  const goBack = () => {
+    if (embedded && currentUser?.role) {
+      setLocation(`/dashboard/${currentUser.role}/news`);
+    } else {
+      setLocation("/news");
+    }
+  };
 
-        <form onSubmit={handleSubmit}>
+  const content = (
+    <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
               <CardTitle>Содержимое новости</CardTitle>
@@ -293,7 +300,7 @@ export default function NewsComposer() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setLocation("/news")}
+              onClick={goBack}
               data-testid="cancel-button"
             >
               Отмена
@@ -312,6 +319,32 @@ export default function NewsComposer() {
             </Button>
           </div>
         </form>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={goBack} data-testid="back-button">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground">Создать новость</h1>
+        </div>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" size="icon" onClick={goBack} data-testid="back-button">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground">Создать новость</h1>
+        </div>
+        {content}
       </div>
     </div>
   );
