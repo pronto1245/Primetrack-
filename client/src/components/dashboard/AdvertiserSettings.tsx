@@ -16,6 +16,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { WebhooksSettings } from "./WebhooksSettings";
+import { CustomDomainsSettings } from "./CustomDomainsSettings";
 
 export function AdvertiserSettings() {
   const { t } = useTranslation();
@@ -552,6 +553,7 @@ function WhiteLabelTab() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -809,6 +811,9 @@ function WhiteLabelTab() {
         </Button>
       </CardContent>
     </Card>
+
+    <CustomDomainsSettings />
+  </>
   );
 }
 
