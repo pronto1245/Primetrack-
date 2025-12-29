@@ -108,8 +108,9 @@ export class ClickHandler {
       landingId: landing.id,
       ip: params.ip,
       userAgent: params.userAgent,
-      geo: params.geo,
-      city: undefined, // Would require IP geolocation service
+      geo: detectedGeo,
+      city: ipIntel?.city,
+      region: ipIntel?.region,
       referer: params.referer,
       device: parsedUA.device,
       os: parsedUA.os,
@@ -125,6 +126,12 @@ export class ClickHandler {
       fraudScore: fraudCheck.score,
       isProxy: fraudCheck.isProxy,
       isVpn: fraudCheck.isVpn,
+      isTor: fraudCheck.isTor,
+      isDatacenter: fraudCheck.isDatacenter,
+      isp: ipIntel?.isp,
+      asn: ipIntel?.asn,
+      visitorId: params.visitorId,
+      fingerprintConfidence: params.fingerprintConfidence?.toString(),
       redirectUrl,
     };
     
@@ -330,6 +337,23 @@ export class ClickHandler {
     }
     
     return { score, isProxy, isVpn };
+  }
+
+  private mergeFraudChecks(
+    basic: { score: number; isProxy: boolean; isVpn: boolean },
+    ipIntel: { isProxy: boolean; isVpn: boolean; isTor: boolean; isDatacenter: boolean; fraudScore: number } | null
+  ): { score: number; isProxy: boolean; isVpn: boolean; isTor: boolean; isDatacenter: boolean } {
+    if (!ipIntel) {
+      return { ...basic, isTor: false, isDatacenter: false };
+    }
+
+    return {
+      score: Math.min(100, basic.score + ipIntel.fraudScore),
+      isProxy: basic.isProxy || ipIntel.isProxy,
+      isVpn: basic.isVpn || ipIntel.isVpn,
+      isTor: ipIntel.isTor,
+      isDatacenter: ipIntel.isDatacenter,
+    };
   }
 }
 
