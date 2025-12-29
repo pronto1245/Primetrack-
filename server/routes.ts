@@ -4683,5 +4683,323 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // WEBHOOK ENDPOINTS (Advertisers only)
+  // ============================================
+  
+  // Get all webhooks for advertiser
+  app.get("/api/webhooks", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const webhooks = await storage.getWebhookEndpointsByAdvertiser(advertiserId);
+      res.json(webhooks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get webhooks" });
+    }
+  });
+
+  // Create webhook endpoint
+  app.post("/api/webhooks", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { name, url, events, offerIds, publisherIds, method, headers } = req.body;
+      
+      if (!name || !url || !events || !Array.isArray(events)) {
+        return res.status(400).json({ message: "Missing required fields: name, url, events" });
+      }
+
+      const { webhookService } = await import("./services/webhook-service");
+      const secret = webhookService.generateSecret();
+
+      const webhook = await storage.createWebhookEndpoint({
+        advertiserId,
+        name,
+        url,
+        secret,
+        events,
+        offerIds: offerIds || null,
+        publisherIds: publisherIds || null,
+        method: method || "POST",
+        headers: headers ? JSON.stringify(headers) : null,
+        isActive: true,
+      });
+
+      res.status(201).json(webhook);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create webhook" });
+    }
+  });
+
+  // Update webhook endpoint
+  app.patch("/api/webhooks/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getWebhookEndpoint(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+
+      const { name, url, events, offerIds, publisherIds, method, headers, isActive } = req.body;
+      
+      const updated = await storage.updateWebhookEndpoint(id, {
+        name,
+        url,
+        events,
+        offerIds,
+        publisherIds,
+        method,
+        headers: headers ? JSON.stringify(headers) : undefined,
+        isActive,
+      });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update webhook" });
+    }
+  });
+
+  // Delete webhook endpoint
+  app.delete("/api/webhooks/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getWebhookEndpoint(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+
+      await storage.deleteWebhookEndpoint(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete webhook" });
+    }
+  });
+
+  // Test webhook
+  app.post("/api/webhooks/:id/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getWebhookEndpoint(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+
+      const { webhookService } = await import("./services/webhook-service");
+      const result = await webhookService.testWebhook(id);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to test webhook" });
+    }
+  });
+
+  // Get webhook logs
+  app.get("/api/webhooks/:id/logs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getWebhookEndpoint(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+
+      const logs = await storage.getWebhookLogs(id);
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get webhook logs" });
+    }
+  });
+
+  // Regenerate webhook secret
+  app.post("/api/webhooks/:id/regenerate-secret", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getWebhookEndpoint(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+
+      const { webhookService } = await import("./services/webhook-service");
+      const newSecret = webhookService.generateSecret();
+      
+      const updated = await storage.updateWebhookEndpoint(id, { secret: newSecret });
+      res.json({ secret: newSecret });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to regenerate secret" });
+    }
+  });
+
+  // ============================================
+  // CUSTOM DOMAINS (Advertisers only)
+  // ============================================
+
+  // Get all domains for advertiser
+  app.get("/api/domains", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const domains = await storage.getCustomDomainsByAdvertiser(advertiserId);
+      res.json(domains);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get domains" });
+    }
+  });
+
+  // Add new domain
+  app.post("/api/domains", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { domain, verificationMethod } = req.body;
+      
+      if (!domain) {
+        return res.status(400).json({ message: "Domain is required" });
+      }
+
+      const { domainService } = await import("./services/domain-service");
+      
+      const validation = domainService.validateDomainFormat(domain);
+      if (!validation.valid) {
+        return res.status(400).json({ message: validation.error });
+      }
+
+      const availability = await domainService.checkDomainAvailability(domain);
+      if (!availability.available) {
+        return res.status(400).json({ message: availability.error });
+      }
+
+      const verificationToken = domainService.generateVerificationToken();
+      const dnsInstructions = domainService.getDnsInstructions(domain, verificationToken, verificationMethod || "cname");
+
+      const newDomain = await storage.createCustomDomain({
+        advertiserId,
+        domain,
+        verificationToken,
+        verificationMethod: verificationMethod || "cname",
+        isVerified: false,
+        sslStatus: "pending",
+        isPrimary: false,
+        isActive: true,
+      });
+
+      res.status(201).json({
+        ...newDomain,
+        dnsInstructions,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add domain" });
+    }
+  });
+
+  // Verify domain
+  app.post("/api/domains/:id/verify", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      const { domainService } = await import("./services/domain-service");
+      const result = await domainService.verifyDomain(id);
+      
+      if (result.success) {
+        const updated = await storage.getCustomDomain(id);
+        res.json(updated);
+      } else {
+        res.status(400).json({ message: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify domain" });
+    }
+  });
+
+  // Set primary domain
+  app.post("/api/domains/:id/set-primary", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      if (!existing.isVerified) {
+        return res.status(400).json({ message: "Domain must be verified first" });
+      }
+
+      await storage.setPrimaryDomain(advertiserId, id);
+      const updated = await storage.getCustomDomain(id);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to set primary domain" });
+    }
+  });
+
+  // Get DNS instructions for domain
+  app.get("/api/domains/:id/dns-instructions", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      const { domainService } = await import("./services/domain-service");
+      const dnsInstructions = domainService.getDnsInstructions(
+        existing.domain, 
+        existing.verificationToken,
+        (existing.verificationMethod as "cname" | "txt") || "cname"
+      );
+
+      res.json({ dnsInstructions });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get DNS instructions" });
+    }
+  });
+
+  // Delete domain
+  app.delete("/api/domains/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      await storage.deleteCustomDomain(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete domain" });
+    }
+  });
+
+  // Get tracking links with custom domain
+  app.get("/api/domains/tracking-links/:offerId/:landingId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { offerId, landingId } = req.params;
+      const advertiserId = req.session.userId!;
+
+      const { domainService } = await import("./services/domain-service");
+      const links = await domainService.generateTrackingLinks(advertiserId, offerId, landingId);
+      
+      res.json(links);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate tracking links" });
+    }
+  });
+
   return httpServer;
 }

@@ -1,6 +1,7 @@
 import { storage } from "../storage";
 import type { InsertConversion } from "@shared/schema";
 import { postbackSender } from "./postback-sender";
+import { webhookService } from "./webhook-service";
 
 interface ConversionEvent {
   clickId: string;
@@ -77,6 +78,36 @@ export class Orchestrator {
     postbackSender.sendPostback(conversion.id).catch((error) => {
       console.error(`[Orchestrator] Postback send failed for conversion ${conversion.id}:`, error);
     });
+
+    // Send webhook notification to advertiser
+    const webhookEventType = event.status as "lead" | "sale" | "install";
+    if (webhookEventType === "lead") {
+      webhookService.notifyLead(offer.advertiserId, conversion.id, click.offerId, click.publisherId, {
+        clickId: click.clickId,
+        payout: publisherPayout,
+        revenue: advertiserCost,
+        country: click.geo || undefined,
+        subId: click.sub1 || undefined,
+      }).catch(console.error);
+    } else if (webhookEventType === "sale") {
+      webhookService.notifySale(offer.advertiserId, conversion.id, click.offerId, click.publisherId, {
+        clickId: click.clickId,
+        amount: event.sum,
+        payout: publisherPayout,
+        revenue: advertiserCost,
+        currency: offer.currency || undefined,
+        orderId: event.externalId,
+      }).catch(console.error);
+    } else if (webhookEventType === "install") {
+      webhookService.triggerEvent(offer.advertiserId, "install", {
+        conversionId: conversion.id,
+        offerId: click.offerId,
+        publisherId: click.publisherId,
+        clickId: click.clickId,
+        payout: publisherPayout,
+        revenue: advertiserCost,
+      }, click.offerId, click.publisherId).catch(console.error);
+    }
     
     return {
       id: conversion.id,
@@ -159,15 +190,38 @@ export class Orchestrator {
   }
   
   async approveConversion(conversionId: string): Promise<void> {
+    const conversion = await storage.getConversion(conversionId);
+    const previousStatus = conversion?.status;
     await storage.updateConversionStatus(conversionId, "approved");
+    
+    // If released from hold, send webhook
+    if (previousStatus === "hold" && conversion) {
+      const offer = await storage.getOffer(conversion.offerId);
+      if (offer) {
+        webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "hold_released", {
+          reason: "Approved after hold period",
+          previousStatus,
+        }).catch(console.error);
+      }
+    }
   }
   
-  async rejectConversion(conversionId: string): Promise<void> {
+  async rejectConversion(conversionId: string, reason?: string): Promise<void> {
     const conversion = await storage.getConversion(conversionId);
+    const previousStatus = conversion?.status;
     await storage.updateConversionStatus(conversionId, "rejected");
     // Decrement caps when conversion is rejected (using conversion date)
     if (conversion) {
       await storage.decrementOfferCapsStats(conversion.offerId, conversion.createdAt);
+      
+      // Send webhook notification
+      const offer = await storage.getOffer(conversion.offerId);
+      if (offer) {
+        webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "rejected", {
+          reason: reason || "Rejected by advertiser",
+          previousStatus,
+        }).catch(console.error);
+      }
     }
   }
   
