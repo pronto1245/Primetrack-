@@ -32,7 +32,7 @@ export function AdvertiserSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 gap-1">
+        <TabsList className="grid w-full grid-cols-7 gap-1">
           <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
             <User className="h-4 w-4" />
             Профиль
@@ -44,6 +44,10 @@ export function AdvertiserSettings() {
           <TabsTrigger value="whitelabel" className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white" data-testid="tab-whitelabel">
             <Palette className="h-4 w-4" />
             White-label
+          </TabsTrigger>
+          <TabsTrigger value="domains" className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white" data-testid="tab-domains">
+            <Globe className="h-4 w-4" />
+            Домены
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-white" data-testid="tab-notifications">
             <Bell className="h-4 w-4" />
@@ -67,6 +71,9 @@ export function AdvertiserSettings() {
         </TabsContent>
         <TabsContent value="whitelabel">
           <WhiteLabelTab />
+        </TabsContent>
+        <TabsContent value="domains">
+          <CustomDomainsSettings />
         </TabsContent>
         <TabsContent value="notifications">
           <NotificationsTab />
@@ -551,7 +558,6 @@ function WhiteLabelTab() {
   }
 
   return (
-    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -737,9 +743,6 @@ function WhiteLabelTab() {
         </Button>
       </CardContent>
     </Card>
-
-    <CustomDomainsSettings />
-  </>
   );
 }
 
