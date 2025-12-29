@@ -340,11 +340,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Username, password and email are required" });
       }
 
-      const existingUsername = await storage.getUserByUsername(username);
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
+      // ВАЖНО: Сначала проверяем email, потом username
+      // Если email существует у publisher - показываем диалог привязки
       const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
         // Если партнер существует, предлагаем привязать к новому рекламодателю
@@ -355,6 +352,12 @@ export async function registerRoutes(
           });
         }
         return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Теперь проверяем username (только если email новый)
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username already exists" });
       }
 
       let advertiserId: string | null = null;
