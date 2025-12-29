@@ -38,7 +38,6 @@ import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
 import { WebhooksSettings } from "@/components/dashboard/WebhooksSettings";
-import { CustomDomainsSettings } from "@/components/dashboard/CustomDomainsSettings";
 import { NewsFeed } from "@/components/dashboard/NewsFeed";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -167,7 +166,6 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Globe, label: "Webhooks", path: `/dashboard/${role}/webhooks`, color: "text-teal-400" },
-      { icon: Globe, label: "Домены", path: `/dashboard/${role}/domains`, color: "text-sky-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
@@ -291,7 +289,6 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchSettings] = useRoute("/dashboard/:role/settings");
   const [matchTeam] = useRoute("/dashboard/:role/team");
   const [matchWebhooks] = useRoute("/dashboard/:role/webhooks");
-  const [matchDomains] = useRoute("/dashboard/:role/domains");
   const [matchNews] = useRoute("/dashboard/:role/news");
 
   // Check if user needs to setup 2FA
@@ -378,7 +375,6 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showSettings = matchSettings;
   const showTeam = matchTeam && (role === 'advertiser' || role === 'admin');
   const showWebhooks = matchWebhooks && role === 'advertiser';
-  const showDomains = matchDomains && role === 'advertiser';
   const showNews = matchNews;
 
   const renderContent = () => {
@@ -417,10 +413,6 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showWebhooks) {
       return <WebhooksSettings />;
-    }
-
-    if (showDomains) {
-      return <CustomDomainsSettings />;
     }
 
     if (showNews) {
