@@ -51,9 +51,10 @@ export default function Dashboard() {
   const [matchBase, paramsBase] = useRoute("/dashboard/:role");
   const [matchSub, paramsSub] = useRoute("/dashboard/:role/:section");
   const [matchSubSub, paramsSubSub] = useRoute("/dashboard/:role/:section/:action");
+  const [matchSubSubSub, paramsSubSubSub] = useRoute("/dashboard/:role/:section/:action/:id");
   
   // Extract role from any matching route
-  const role = paramsSubSub?.role || paramsSub?.role || paramsBase?.role;
+  const role = paramsSubSubSub?.role || paramsSubSub?.role || paramsSub?.role || paramsBase?.role;
 
   if (!role) {
     // Redirect to login page instead of showing role selection
