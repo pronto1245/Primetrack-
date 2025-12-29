@@ -123,8 +123,23 @@ Preferred communication style: Simple, everyday language (Russian).
 ### Custom Domains (Backend)
 - ✅ Таблица custom_domains
 - ✅ DNS верификация (CNAME/TXT)
-- ✅ SSL provisioning (симуляция)
+- ✅ Let's Encrypt ACME интеграция (acme-client, HTTP-01 challenge)
+- ✅ ACME accounts/challenges таблицы в БД (персистентное хранение)
+- ✅ HTTP-01 challenge endpoint: `/.well-known/acme-challenge/:token`
+- ✅ Fallback на симуляцию если ACME недоступен
 - ⚠️ UI: только в White-label настройках (поле customDomain)
+
+### IP Intelligence (ipinfo.io)
+- ✅ Токен хранится зашифрованно в platformSettings (ipinfoToken)
+- ✅ UI в AdminSettings → Antifraud секция
+- ✅ ip-intel-service.ts читает токен из БД или fallback на env
+- ✅ Маскирование с SENTINEL "***configured***"
+
+### FingerprintJS
+- ✅ Библиотека @fingerprintjs/fingerprintjs установлена
+- ✅ UI интеграционного скрипта в AdvertiserSettings → White-label
+- ✅ Click endpoint принимает visitor_id и fp_confidence параметры
+- ✅ client/src/lib/fingerprint.ts утилита
 
 ---
 
@@ -136,11 +151,12 @@ Preferred communication style: Simple, everyday language (Russian).
 - Auth: Session-based (connect-pg-simple)
 - 2FA: TOTP (otplib + qrcode)
 - GEO: geoip-lite
+- SSL: Let's Encrypt ACME (acme-client)
+- IP Intel: ipinfo.io (опционально)
+- Fingerprinting: FingerprintJS (опционально)
 
 ---
 
 ## НЕ РЕАЛИЗОВАНО
 
-- ⏳ Let's Encrypt (реальные SSL сертификаты)
-- ⏳ IP2Location / ipinfo.io
-- ⏳ FingerprintJS
+- ⏳ Расширенный FingerprintJS Pro API (платная версия)

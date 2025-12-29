@@ -1,3 +1,5 @@
+import { storage } from "../storage";
+
 interface IpInfo {
   ip: string;
   city?: string;
@@ -38,9 +40,33 @@ export interface IpIntelligence {
 }
 
 class IpIntelService {
-  private token: string | null = process.env.IPINFO_TOKEN || null;
   private cache = new Map<string, { data: IpIntelligence; expires: number }>();
   private cacheTTL = 3600000;
+  private tokenCache: { token: string | null; expires: number } | null = null;
+  private tokenCacheTTL = 60000; // 1 minute
+
+  private async getToken(): Promise<string | null> {
+    // Check env first
+    if (process.env.IPINFO_TOKEN) {
+      return process.env.IPINFO_TOKEN;
+    }
+    
+    // Check cached DB token
+    if (this.tokenCache && this.tokenCache.expires > Date.now()) {
+      return this.tokenCache.token;
+    }
+    
+    // Fetch from DB
+    try {
+      const settings = await storage.getPlatformSettings();
+      const token = settings?.ipinfoToken || null;
+      this.tokenCache = { token, expires: Date.now() + this.tokenCacheTTL };
+      return token;
+    } catch (error) {
+      console.error("[IpIntel] Failed to fetch token from DB:", error);
+      return null;
+    }
+  }
 
   async getIpIntelligence(ip: string): Promise<IpIntelligence> {
     if (!ip || ip === "127.0.0.1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
@@ -52,12 +78,13 @@ class IpIntelService {
       return cached.data;
     }
 
-    if (!this.token) {
+    const token = await this.getToken();
+    if (!token) {
       return this.getFallbackIntelligence(ip);
     }
 
     try {
-      const response = await fetch(`https://ipinfo.io/${ip}?token=${this.token}`);
+      const response = await fetch(`https://ipinfo.io/${ip}?token=${token}`);
       
       if (!response.ok) {
         console.warn(`[IpIntel] ipinfo.io returned ${response.status} for ${ip}`);

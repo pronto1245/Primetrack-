@@ -577,12 +577,16 @@ function PlatformTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showBotToken, setShowBotToken] = useState(false);
+  const [showIpinfoToken, setShowIpinfoToken] = useState(false);
+  const [showFingerprintKey, setShowFingerprintKey] = useState(false);
   const [formData, setFormData] = useState({
     platformName: "PrimeTrack",
     platformLogoUrl: "",
     platformFaviconUrl: "",
     supportEmail: "",
     defaultTelegramBotToken: "",
+    ipinfoToken: "",
+    fingerprintjsApiKey: "",
     allowPublisherRegistration: true,
     allowAdvertiserRegistration: true,
     requireAdvertiserApproval: true,
@@ -604,6 +608,8 @@ function PlatformTab() {
         platformFaviconUrl: settings.platformFaviconUrl || "",
         supportEmail: settings.supportEmail || "",
         defaultTelegramBotToken: "",
+        ipinfoToken: "",
+        fingerprintjsApiKey: "",
         allowPublisherRegistration: settings.allowPublisherRegistration ?? true,
         allowAdvertiserRegistration: settings.allowAdvertiserRegistration ?? true,
         requireAdvertiserApproval: settings.requireAdvertiserApproval ?? true,
@@ -788,6 +794,74 @@ function PlatformTab() {
               <span className="text-sm text-muted-foreground">
                 Конверсии с fraud score выше этого значения будут отклоняться автоматически
               </span>
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ipinfoToken">IPinfo.io API Token</Label>
+              <CardDescription className="text-xs">Токен для определения геолокации, ISP, ASN, прокси/VPN детекции</CardDescription>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="ipinfoToken"
+                    type={showIpinfoToken ? "text" : "password"}
+                    placeholder={settings?.ipinfoToken ? "***configured***" : "Введите токен ipinfo.io"}
+                    value={formData.ipinfoToken}
+                    onChange={(e) => setFormData({ ...formData, ipinfoToken: e.target.value })}
+                    data-testid="input-ipinfo-token"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full"
+                    onClick={() => setShowIpinfoToken(!showIpinfoToken)}
+                    data-testid="button-toggle-ipinfo-token"
+                  >
+                    {showIpinfoToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              {settings?.ipinfoToken && (
+                <p className="text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Токен настроен
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fingerprintjsApiKey">FingerprintJS API Key (опционально)</Label>
+              <CardDescription className="text-xs">Для Pro версии FingerprintJS. Оставьте пустым для open-source версии</CardDescription>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="fingerprintjsApiKey"
+                    type={showFingerprintKey ? "text" : "password"}
+                    placeholder={settings?.fingerprintjsApiKey ? "***configured***" : "Введите API ключ (опционально)"}
+                    value={formData.fingerprintjsApiKey}
+                    onChange={(e) => setFormData({ ...formData, fingerprintjsApiKey: e.target.value })}
+                    data-testid="input-fingerprintjs-key"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full"
+                    onClick={() => setShowFingerprintKey(!showFingerprintKey)}
+                    data-testid="button-toggle-fingerprintjs-key"
+                  >
+                    {showFingerprintKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              {settings?.fingerprintjsApiKey && (
+                <p className="text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> API ключ настроен (Pro версия)
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

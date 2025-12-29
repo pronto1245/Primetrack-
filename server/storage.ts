@@ -26,7 +26,9 @@ import {
   type NewsPost, type InsertNewsPost, newsPosts,
   type WebhookEndpoint, type InsertWebhookEndpoint, webhookEndpoints,
   type WebhookLog, type InsertWebhookLog, webhookLogs,
-  type CustomDomain, type InsertCustomDomain, customDomains
+  type CustomDomain, type InsertCustomDomain, customDomains,
+  type AcmeAccount, acmeAccounts,
+  type AcmeChallenge, acmeChallenges
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -2848,6 +2850,42 @@ export class DatabaseStorage implements IStorage {
   async getVerifiedDomains(): Promise<CustomDomain[]> {
     return db.select().from(customDomains)
       .where(and(eq(customDomains.isVerified, true), eq(customDomains.isActive, true)));
+  }
+
+  async getAcmeAccount(): Promise<AcmeAccount | undefined> {
+    const [account] = await db.select().from(acmeAccounts)
+      .where(eq(acmeAccounts.isActive, true))
+      .orderBy(desc(acmeAccounts.createdAt))
+      .limit(1);
+    return account;
+  }
+
+  async createAcmeAccount(data: { email: string; privateKey: string; isActive: boolean }): Promise<AcmeAccount> {
+    const [created] = await db.insert(acmeAccounts).values(data).returning();
+    return created;
+  }
+
+  async createAcmeChallenge(data: { domainId: string; token: string; keyAuthorization: string; expiresAt: Date }): Promise<AcmeChallenge> {
+    const [created] = await db.insert(acmeChallenges).values({
+      ...data,
+      challengeType: "http-01",
+      status: "pending",
+    }).returning();
+    return created;
+  }
+
+  async getAcmeChallengeByToken(token: string): Promise<AcmeChallenge | undefined> {
+    const [challenge] = await db.select().from(acmeChallenges)
+      .where(eq(acmeChallenges.token, token));
+    return challenge;
+  }
+
+  async deleteAcmeChallenge(token: string): Promise<void> {
+    await db.delete(acmeChallenges).where(eq(acmeChallenges.token, token));
+  }
+
+  async deleteExpiredAcmeChallenges(): Promise<void> {
+    await db.delete(acmeChallenges).where(lte(acmeChallenges.expiresAt, new Date()));
   }
 }
 

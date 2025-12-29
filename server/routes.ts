@@ -1202,6 +1202,28 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // ACME HTTP-01 CHALLENGE ENDPOINT
+  // ============================================
+
+  // Let's Encrypt HTTP-01 challenge verification (public, no auth required)
+  app.get("/.well-known/acme-challenge/:token", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const { acmeService } = await import("./services/acme-service");
+      const response = await acmeService.getChallengeResponse(token);
+      
+      if (response) {
+        res.type("text/plain").send(response);
+      } else {
+        res.status(404).send("Challenge not found");
+      }
+    } catch (error: any) {
+      console.error("[ACME] Challenge lookup error:", error.message);
+      res.status(500).send("Challenge lookup failed");
+    }
+  });
+
+  // ============================================
   // MINI-TRACKER ENDPOINTS
   // ============================================
 
@@ -1209,7 +1231,7 @@ export async function registerRoutes(
   // Usage: /api/click?offer_id=XXX&partner_id=YYY&geo=US&sub1=...&sub2=...
   app.get("/api/click", async (req: Request, res: Response) => {
     try {
-      const { offer_id, partner_id, geo, sub1, sub2, sub3, sub4, sub5 } = req.query;
+      const { offer_id, partner_id, geo, sub1, sub2, sub3, sub4, sub5, visitor_id, fp_confidence } = req.query;
 
       if (!offer_id || !partner_id) {
         return res.status(400).json({ 
@@ -1254,6 +1276,8 @@ export async function registerRoutes(
         userAgent,
         referer,
         geo: geoCode,
+        visitorId: visitor_id as string,
+        fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
       });
 
       if (result.isBlocked) {
@@ -3940,6 +3964,8 @@ export async function registerRoutes(
     supportEmail: z.string().email().optional().or(z.literal("")),
     defaultTelegramBotToken: secretFieldSchema,
     stripeSecretKey: secretFieldSchema,
+    ipinfoToken: secretFieldSchema,
+    fingerprintjsApiKey: secretFieldSchema,
     allowPublisherRegistration: z.boolean().optional(),
     allowAdvertiserRegistration: z.boolean().optional(),
     requireAdvertiserApproval: z.boolean().optional(),
@@ -4369,7 +4395,9 @@ export async function registerRoutes(
       res.json({
         ...settings,
         defaultTelegramBotToken: settings.defaultTelegramBotToken ? SENTINEL_CONFIGURED : null,
-        stripeSecretKey: settings.stripeSecretKey ? SENTINEL_CONFIGURED : null
+        stripeSecretKey: settings.stripeSecretKey ? SENTINEL_CONFIGURED : null,
+        ipinfoToken: settings.ipinfoToken ? SENTINEL_CONFIGURED : null,
+        fingerprintjsApiKey: settings.fingerprintjsApiKey ? SENTINEL_CONFIGURED : null
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch platform settings" });
@@ -4385,7 +4413,7 @@ export async function registerRoutes(
       }
       const {
         platformName, platformLogoUrl, platformFaviconUrl, supportEmail,
-        defaultTelegramBotToken, stripeSecretKey,
+        defaultTelegramBotToken, stripeSecretKey, ipinfoToken, fingerprintjsApiKey,
         allowPublisherRegistration, allowAdvertiserRegistration, requireAdvertiserApproval,
         enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore
       } = parseResult.data;
@@ -4410,6 +4438,12 @@ export async function registerRoutes(
       }
       if (stripeSecretKey !== undefined && stripeSecretKey !== SENTINEL_CONFIGURED) {
         updateData.stripeSecretKey = stripeSecretKey === "" ? null : stripeSecretKey;
+      }
+      if (ipinfoToken !== undefined && ipinfoToken !== SENTINEL_CONFIGURED) {
+        updateData.ipinfoToken = ipinfoToken === "" ? null : ipinfoToken;
+      }
+      if (fingerprintjsApiKey !== undefined && fingerprintjsApiKey !== SENTINEL_CONFIGURED) {
+        updateData.fingerprintjsApiKey = fingerprintjsApiKey === "" ? null : fingerprintjsApiKey;
       }
       
       const settings = await storage.updatePlatformSettings(updateData);

@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Palette, Database, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Mail, Globe, Upload, Shield, Key, AlertCircle,
-  CheckCircle2, Copy, ExternalLink, Webhook
+  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -726,6 +726,77 @@ function WhiteLabelTab() {
             onCheckedChange={(checked) => setFormData({ ...formData, hidePlatformBranding: checked })}
             data-testid="switch-hide-branding"
           />
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Fingerprint className="h-5 w-5" />
+            <div className="font-medium">FingerprintJS интеграция</div>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Добавьте этот скрипт на ваш landing page для сбора fingerprint и улучшения антифрод аналитики.
+            Скрипт автоматически добавит visitor_id к tracking ссылкам.
+          </p>
+          <div className="relative">
+            <pre className="bg-muted p-3 rounded-md font-mono text-xs overflow-x-auto max-h-48 whitespace-pre-wrap">
+{`<!-- PrimeTrack FingerprintJS Integration -->
+<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+<script>
+(function() {
+  var fpPromise = FingerprintJS.load();
+  
+  window.PrimeTrack = {
+    getVisitorId: function() {
+      return fpPromise.then(function(fp) {
+        return fp.get();
+      }).then(function(result) {
+        return {
+          visitorId: result.visitorId,
+          confidence: result.confidence.score
+        };
+      });
+    },
+    
+    enhanceLinks: function() {
+      var domain = '${formData.customDomain || window.location.host}';
+      this.getVisitorId().then(function(data) {
+        document.querySelectorAll('a[href*="' + domain + '"]').forEach(function(link) {
+          var url = new URL(link.href);
+          url.searchParams.set('visitor_id', data.visitorId);
+          url.searchParams.set('fp_confidence', data.confidence.toString());
+          link.href = url.toString();
+        });
+      });
+    }
+  };
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      window.PrimeTrack.enhanceLinks();
+    });
+  } else {
+    window.PrimeTrack.enhanceLinks();
+  }
+})();
+</script>`}
+            </pre>
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute top-2 right-2"
+              onClick={() => {
+                const script = document.querySelector('pre')?.textContent || '';
+                navigator.clipboard.writeText(script);
+                toast({ title: "Скрипт скопирован в буфер обмена" });
+              }}
+              data-testid="button-copy-fingerprint-script"
+            >
+              <Copy className="h-3 w-3 mr-1" />
+              Копировать
+            </Button>
+          </div>
         </div>
 
         <Button 

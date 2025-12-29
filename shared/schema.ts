@@ -963,6 +963,12 @@ export const platformSettings = pgTable("platform_settings", {
   enableFingerprintTracking: boolean("enable_fingerprint_tracking").default(true),
   maxFraudScore: integer("max_fraud_score").default(70),
   
+  // IP Intelligence (ipinfo.io)
+  ipinfoToken: text("ipinfo_token"), // encrypted
+  
+  // FingerprintJS settings
+  fingerprintjsApiKey: text("fingerprintjs_api_key"), // encrypted (for Pro version, optional)
+  
   // Billing settings (for future Stripe integration)
   stripePublicKey: text("stripe_public_key"),
   stripeSecretKey: text("stripe_secret_key"), // encrypted
