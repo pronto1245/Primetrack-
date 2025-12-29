@@ -271,11 +271,18 @@ export function PublisherOffers({ role }: { role: string }) {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
-                            {offer.name}
-                          </span>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link href={`/dashboard/${role}/offer/${offer.id}`}>
+                            <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
+                              {offer.name}
+                            </span>
+                          </Link>
+                          {offer.createdAt && new Date(offer.createdAt) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-blue-500/20 text-blue-400 animate-pulse">
+                              NEW
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{offer.category}</td>
                       <td className="px-4 py-3 text-muted-foreground">
