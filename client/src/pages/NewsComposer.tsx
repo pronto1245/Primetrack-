@@ -94,22 +94,31 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("directory", "public/news");
-
-      const res = await fetch("/api/object-storage/upload", {
+      const res = await fetch("/api/uploads/request-url", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: formData,
+        body: JSON.stringify({ 
+          name: file.name, 
+          size: file.size, 
+          contentType: file.type 
+        }),
       });
 
       if (!res.ok) {
-        throw new Error("Upload failed");
+        throw new Error("Failed to get upload URL");
       }
 
-      const data = await res.json();
-      setImageUrl(data.url);
+      const { uploadURL, objectPath } = await res.json();
+      
+      await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      const imageFullUrl = window.location.origin + objectPath;
+      setImageUrl(imageFullUrl);
       toast({
         title: "Успешно",
         description: "Изображение загружено",
