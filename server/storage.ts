@@ -21,7 +21,9 @@ import {
   type AntifraudLog, type InsertAntifraudLog, antifraudLogs,
   type AntifraudMetric, type InsertAntifraudMetric, antifraudMetrics,
   type PlatformSettings, type InsertPlatformSettings, platformSettings,
-  type AdvertiserStaff, type InsertAdvertiserStaff, advertiserStaff
+  type AdvertiserStaff, type InsertAdvertiserStaff, advertiserStaff,
+  type Notification, type InsertNotification, notifications,
+  type NewsPost, type InsertNewsPost, newsPosts
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -329,6 +331,21 @@ export interface IStorage {
   createAdvertiserStaff(staff: InsertAdvertiserStaff): Promise<AdvertiserStaff>;
   updateAdvertiserStaff(id: string, data: Partial<InsertAdvertiserStaff>): Promise<AdvertiserStaff | undefined>;
   deleteAdvertiserStaff(id: string): Promise<void>;
+  
+  // Notifications
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
+  markNotificationRead(id: string): Promise<Notification | undefined>;
+  markAllNotificationsRead(userId: string): Promise<void>;
+  
+  // News Posts
+  createNewsPost(news: InsertNewsPost): Promise<NewsPost>;
+  updateNewsPost(id: string, data: Partial<InsertNewsPost>): Promise<NewsPost | undefined>;
+  deleteNewsPost(id: string): Promise<void>;
+  getNewsPost(id: string): Promise<NewsPost | undefined>;
+  getNewsFeed(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]>;
+  getPinnedNews(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2605,6 +2622,127 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAdvertiserStaff(id: string): Promise<void> {
     await db.delete(advertiserStaff).where(eq(advertiserStaff.id, id));
+  }
+
+  // ============================================
+  // NOTIFICATIONS
+  // ============================================
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [created] = await db.insert(notifications).values(notification).returning();
+    return created;
+  }
+
+  async getNotifications(userId: string, limit: number = 50): Promise<Notification[]> {
+    return db.select().from(notifications)
+      .where(eq(notifications.recipientId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(notifications)
+      .where(and(
+        eq(notifications.recipientId, userId),
+        eq(notifications.isRead, false)
+      ));
+    return result[0]?.count || 0;
+  }
+
+  async markNotificationRead(id: string): Promise<Notification | undefined> {
+    const [updated] = await db.update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(notifications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(and(
+        eq(notifications.recipientId, userId),
+        eq(notifications.isRead, false)
+      ));
+  }
+
+  // ============================================
+  // NEWS POSTS
+  // ============================================
+  async createNewsPost(news: InsertNewsPost): Promise<NewsPost> {
+    const [created] = await db.insert(newsPosts).values(news).returning();
+    return created;
+  }
+
+  async updateNewsPost(id: string, data: Partial<InsertNewsPost>): Promise<NewsPost | undefined> {
+    const [updated] = await db.update(newsPosts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(newsPosts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteNewsPost(id: string): Promise<void> {
+    await db.delete(newsPosts).where(eq(newsPosts.id, id));
+  }
+
+  async getNewsPost(id: string): Promise<NewsPost | undefined> {
+    const [post] = await db.select().from(newsPosts).where(eq(newsPosts.id, id));
+    return post;
+  }
+
+  async getNewsFeed(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]> {
+    // Get news based on user role and advertiser scope
+    if (userRole === 'admin') {
+      // Admin sees all news
+      return db.select().from(newsPosts)
+        .where(eq(newsPosts.isPublished, true))
+        .orderBy(desc(newsPosts.isPinned), desc(newsPosts.publishedAt))
+        .limit(50);
+    }
+    
+    if (userRole === 'advertiser') {
+      // Advertiser sees: admin news for all/advertisers + own news
+      return db.select().from(newsPosts)
+        .where(and(
+          eq(newsPosts.isPublished, true),
+          sql`(
+            (${newsPosts.authorRole} = 'admin' AND ${newsPosts.targetAudience} IN ('all', 'advertisers'))
+            OR ${newsPosts.authorId} = ${userId}
+          )`
+        ))
+        .orderBy(desc(newsPosts.isPinned), desc(newsPosts.publishedAt))
+        .limit(50);
+    }
+    
+    if (userRole === 'publisher' && advertiserId) {
+      // Publisher sees: admin news for all/publishers + advertiser news for this advertiser
+      return db.select().from(newsPosts)
+        .where(and(
+          eq(newsPosts.isPublished, true),
+          sql`(
+            (${newsPosts.authorRole} = 'admin' AND ${newsPosts.targetAudience} IN ('all', 'publishers'))
+            OR (${newsPosts.advertiserScopeId} = ${advertiserId})
+          )`
+        ))
+        .orderBy(desc(newsPosts.isPinned), desc(newsPosts.publishedAt))
+        .limit(50);
+    }
+    
+    // Fallback: only admin public news
+    return db.select().from(newsPosts)
+      .where(and(
+        eq(newsPosts.isPublished, true),
+        eq(newsPosts.authorRole, 'admin'),
+        eq(newsPosts.targetAudience, 'all')
+      ))
+      .orderBy(desc(newsPosts.isPinned), desc(newsPosts.publishedAt))
+      .limit(50);
+  }
+
+  async getPinnedNews(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]> {
+    const allNews = await this.getNewsFeed(userId, userRole, advertiserId);
+    return allNews.filter(n => n.isPinned);
   }
 }
 
