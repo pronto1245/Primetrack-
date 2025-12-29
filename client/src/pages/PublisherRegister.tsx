@@ -165,10 +165,14 @@ export default function PublisherRegister() {
       setError("Введите логин и пароль");
       return;
     }
+    if (!referralData?.advertiserId) {
+      setError("Ошибка: рекламодатель не найден. Попробуйте перейти по ссылке заново.");
+      return;
+    }
     linkToAdvertiserMutation.mutate({
       username: loginData.username,
       password: loginData.password,
-      advertiserId: referralData?.advertiserId,
+      advertiserId: referralData.advertiserId,
     });
   };
 

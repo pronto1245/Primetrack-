@@ -507,8 +507,14 @@ export async function registerRoutes(
     try {
       const { username, password, advertiserId } = req.body;
       
-      if (!username || !password || !advertiserId) {
-        return res.status(400).json({ message: "All fields required" });
+      if (!username) {
+        return res.status(400).json({ message: "Введите логин" });
+      }
+      if (!password) {
+        return res.status(400).json({ message: "Введите пароль" });
+      }
+      if (!advertiserId) {
+        return res.status(400).json({ message: "Рекламодатель не указан. Перейдите по ссылке заново." });
       }
 
       const user = await storage.getUserByUsername(username);
