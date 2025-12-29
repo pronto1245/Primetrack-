@@ -33,6 +33,10 @@ interface Offer {
   trafficSources: string[];
   appTypes: string[];
   status: string;
+  isTop: boolean;
+  isExclusive: boolean;
+  isPrivate: boolean;
+  createdAt: string;
   landings?: OfferLanding[];
 }
 

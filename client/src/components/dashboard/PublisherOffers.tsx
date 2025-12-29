@@ -33,6 +33,10 @@ interface MarketplaceOffer {
   trafficSources: string[];
   appTypes: string[];
   status: string;
+  isTop: boolean;
+  isExclusive: boolean;
+  isPrivate: boolean;
+  createdAt: string;
   landings: OfferLanding[];
   hasAccess?: boolean;
   accessStatus?: string | null;
@@ -60,21 +64,21 @@ export function PublisherOffers({ role }: { role: string }) {
 
   const categories = useMemo(() => {
     if (!offers) return [];
-    return [...new Set(offers.map(o => o.category).filter(Boolean))];
+    return Array.from(new Set(offers.map(o => o.category).filter(Boolean)));
   }, [offers]);
 
   const allGeos = useMemo(() => {
     if (!offers) return [];
     const geos = new Set<string>();
     offers.forEach(o => o.geo.forEach(g => geos.add(g)));
-    return [...geos].sort();
+    return Array.from(geos).sort();
   }, [offers]);
 
   const allSources = useMemo(() => {
     if (!offers) return [];
     const sources = new Set<string>();
     offers.forEach(o => o.trafficSources?.forEach(s => sources.add(s)));
-    return [...sources].sort();
+    return Array.from(sources).sort();
   }, [offers]);
 
   const filteredOffers = useMemo(() => {

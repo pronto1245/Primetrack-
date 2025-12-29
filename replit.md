@@ -51,7 +51,7 @@ Preferred communication style: Simple, everyday language (Russian).
 9. Постбеки
 10. Webhooks
 11. Команда
-12. Настройки (Профиль, Безопасность, White-label, Уведомления)
+12. Настройки (Профиль, Безопасность, White-label, Домены, Уведомления, Webhooks, Миграция)
 
 ### Publisher
 1. Обзор
