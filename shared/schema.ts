@@ -1017,3 +1017,88 @@ export const insertDataMigrationSchema = createInsertSchema(dataMigrations).omit
 
 export type InsertDataMigration = z.infer<typeof insertDataMigrationSchema>;
 export type DataMigration = typeof dataMigrations.$inferSelect;
+
+// ============================================
+// NOTIFICATIONS
+// In-app notifications system
+// ============================================
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Sender (null for system notifications)
+  senderId: varchar("sender_id").references(() => users.id),
+  senderRole: text("sender_role"), // admin, advertiser
+  
+  // Recipient
+  recipientId: varchar("recipient_id").notNull().references(() => users.id),
+  
+  // For advertiser-scoped notifications (advertiser → their publishers)
+  advertiserScopeId: varchar("advertiser_scope_id").references(() => users.id),
+  
+  // Notification content
+  type: text("type").notNull(), // system, offer_approved, offer_rejected, payout, new_lead, account_approved, etc.
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  
+  // Link to related entity
+  entityType: text("entity_type"), // offer, payout, conversion, etc.
+  entityId: varchar("entity_id"),
+  
+  // Status
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+// ============================================
+// NEWS POSTS
+// Platform and advertiser news/announcements
+// ============================================
+export const newsPosts = pgTable("news_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Author
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  authorRole: text("author_role").notNull(), // admin, advertiser
+  
+  // For advertiser news (only visible to their publishers)
+  advertiserScopeId: varchar("advertiser_scope_id").references(() => users.id),
+  
+  // Content
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  imageUrl: text("image_url"), // uploaded via Object Storage
+  
+  // Categorization
+  category: text("category").notNull().default("update"), // important, promo, update
+  
+  // Target audience (for admin posts)
+  targetAudience: text("target_audience").notNull().default("all"), // all, advertisers, publishers
+  
+  // Display settings
+  isPinned: boolean("is_pinned").default(false),
+  isPublished: boolean("is_published").default(true),
+  
+  publishedAt: timestamp("published_at").defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertNewsPostSchema = createInsertSchema(newsPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertNewsPost = z.infer<typeof insertNewsPostSchema>;
+export type NewsPost = typeof newsPosts.$inferSelect;
