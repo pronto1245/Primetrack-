@@ -23,7 +23,10 @@ import {
   type PlatformSettings, type InsertPlatformSettings, platformSettings,
   type AdvertiserStaff, type InsertAdvertiserStaff, advertiserStaff,
   type Notification, type InsertNotification, notifications,
-  type NewsPost, type InsertNewsPost, newsPosts
+  type NewsPost, type InsertNewsPost, newsPosts,
+  type WebhookEndpoint, type InsertWebhookEndpoint, webhookEndpoints,
+  type WebhookLog, type InsertWebhookLog, webhookLogs,
+  type CustomDomain, type InsertCustomDomain, customDomains
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -2743,6 +2746,108 @@ export class DatabaseStorage implements IStorage {
   async getPinnedNews(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]> {
     const allNews = await this.getNewsFeed(userId, userRole, advertiserId);
     return allNews.filter(n => n.isPinned);
+  }
+
+  // ============================================
+  // WEBHOOK ENDPOINTS
+  // ============================================
+  async getWebhookEndpointsByAdvertiser(advertiserId: string): Promise<WebhookEndpoint[]> {
+    return db.select().from(webhookEndpoints)
+      .where(eq(webhookEndpoints.advertiserId, advertiserId))
+      .orderBy(desc(webhookEndpoints.createdAt));
+  }
+
+  async getWebhookEndpoint(id: string): Promise<WebhookEndpoint | undefined> {
+    const [endpoint] = await db.select().from(webhookEndpoints).where(eq(webhookEndpoints.id, id));
+    return endpoint;
+  }
+
+  async createWebhookEndpoint(endpoint: InsertWebhookEndpoint): Promise<WebhookEndpoint> {
+    const [created] = await db.insert(webhookEndpoints).values(endpoint).returning();
+    return created;
+  }
+
+  async updateWebhookEndpoint(id: string, data: Partial<WebhookEndpoint>): Promise<WebhookEndpoint | undefined> {
+    const [updated] = await db.update(webhookEndpoints)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(webhookEndpoints.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteWebhookEndpoint(id: string): Promise<void> {
+    await db.delete(webhookLogs).where(eq(webhookLogs.webhookEndpointId, id));
+    await db.delete(webhookEndpoints).where(eq(webhookEndpoints.id, id));
+  }
+
+  async createWebhookLog(log: InsertWebhookLog): Promise<WebhookLog> {
+    const [created] = await db.insert(webhookLogs).values(log).returning();
+    return created;
+  }
+
+  async getWebhookLogs(webhookEndpointId: string, limit: number = 50): Promise<WebhookLog[]> {
+    return db.select().from(webhookLogs)
+      .where(eq(webhookLogs.webhookEndpointId, webhookEndpointId))
+      .orderBy(desc(webhookLogs.createdAt))
+      .limit(limit);
+  }
+
+  async getWebhookLogsByAdvertiser(advertiserId: string, limit: number = 100): Promise<WebhookLog[]> {
+    return db.select().from(webhookLogs)
+      .where(eq(webhookLogs.advertiserId, advertiserId))
+      .orderBy(desc(webhookLogs.createdAt))
+      .limit(limit);
+  }
+
+  // ============================================
+  // CUSTOM DOMAINS
+  // ============================================
+  async getCustomDomainsByAdvertiser(advertiserId: string): Promise<CustomDomain[]> {
+    return db.select().from(customDomains)
+      .where(eq(customDomains.advertiserId, advertiserId))
+      .orderBy(desc(customDomains.createdAt));
+  }
+
+  async getCustomDomain(id: string): Promise<CustomDomain | undefined> {
+    const [domain] = await db.select().from(customDomains).where(eq(customDomains.id, id));
+    return domain;
+  }
+
+  async getCustomDomainByDomain(domain: string): Promise<CustomDomain | undefined> {
+    const [result] = await db.select().from(customDomains).where(eq(customDomains.domain, domain));
+    return result;
+  }
+
+  async createCustomDomain(domain: InsertCustomDomain): Promise<CustomDomain> {
+    const [created] = await db.insert(customDomains).values(domain).returning();
+    return created;
+  }
+
+  async updateCustomDomain(id: string, data: Partial<CustomDomain>): Promise<CustomDomain | undefined> {
+    const [updated] = await db.update(customDomains)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(customDomains.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCustomDomain(id: string): Promise<void> {
+    await db.delete(customDomains).where(eq(customDomains.id, id));
+  }
+
+  async setPrimaryDomain(advertiserId: string, domainId: string): Promise<void> {
+    await db.update(customDomains)
+      .set({ isPrimary: false })
+      .where(eq(customDomains.advertiserId, advertiserId));
+    
+    await db.update(customDomains)
+      .set({ isPrimary: true })
+      .where(eq(customDomains.id, domainId));
+  }
+
+  async getVerifiedDomains(): Promise<CustomDomain[]> {
+    return db.select().from(customDomains)
+      .where(and(eq(customDomains.isVerified, true), eq(customDomains.isActive, true)));
   }
 }
 

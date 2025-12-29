@@ -1102,3 +1102,128 @@ export const insertNewsPostSchema = createInsertSchema(newsPosts).omit({
 
 export type InsertNewsPost = z.infer<typeof insertNewsPostSchema>;
 export type NewsPost = typeof newsPosts.$inferSelect;
+
+// ============================================
+// WEBHOOK ENDPOINTS
+// Custom webhook notifications for advertisers
+// ============================================
+export const webhookEndpoints = pgTable("webhook_endpoints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Endpoint configuration
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  secret: text("secret"), // For HMAC signature verification
+  
+  // Events to trigger
+  events: text("events").array().notNull().default(sql`'{}'::text[]`), // click, lead, sale, install, rejected, hold_released
+  
+  // Filters (optional)
+  offerIds: text("offer_ids").array(), // Filter by specific offers (null = all)
+  publisherIds: text("publisher_ids").array(), // Filter by specific publishers (null = all)
+  
+  // Request configuration
+  method: text("method").notNull().default("POST"), // POST, PUT
+  headers: text("headers"), // JSON string of custom headers
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  lastTriggeredAt: timestamp("last_triggered_at"),
+  lastError: text("last_error"),
+  failedAttempts: integer("failed_attempts").default(0),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertWebhookEndpointSchema = createInsertSchema(webhookEndpoints).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastTriggeredAt: true,
+  lastError: true,
+  failedAttempts: true,
+});
+
+export type InsertWebhookEndpoint = z.infer<typeof insertWebhookEndpointSchema>;
+export type WebhookEndpoint = typeof webhookEndpoints.$inferSelect;
+
+// ============================================
+// WEBHOOK LOGS
+// Log of webhook delivery attempts
+// ============================================
+export const webhookLogs = pgTable("webhook_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  webhookEndpointId: varchar("webhook_endpoint_id").notNull().references(() => webhookEndpoints.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Event details
+  eventType: text("event_type").notNull(),
+  payload: text("payload").notNull(), // JSON
+  
+  // Delivery status
+  status: text("status").notNull().default("pending"), // pending, success, failed
+  statusCode: integer("status_code"),
+  response: text("response"),
+  
+  // Retry info
+  attemptNumber: integer("attempt_number").default(1),
+  nextRetryAt: timestamp("next_retry_at"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertWebhookLogSchema = createInsertSchema(webhookLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+
+// ============================================
+// CUSTOM DOMAINS
+// Domain verification and management for advertisers
+// ============================================
+export const customDomains = pgTable("custom_domains", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Domain info
+  domain: text("domain").notNull().unique(),
+  
+  // Verification
+  verificationToken: text("verification_token").notNull(),
+  verificationMethod: text("verification_method").notNull().default("cname"), // cname, txt
+  isVerified: boolean("is_verified").default(false),
+  verifiedAt: timestamp("verified_at"),
+  
+  // SSL status
+  sslStatus: text("ssl_status").default("pending"), // pending, provisioning, active, failed
+  sslExpiresAt: timestamp("ssl_expires_at"),
+  
+  // Usage
+  isPrimary: boolean("is_primary").default(false),
+  isActive: boolean("is_active").default(true),
+  
+  // Error tracking
+  lastError: text("last_error"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCustomDomainSchema = createInsertSchema(customDomains).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  verifiedAt: true,
+  sslExpiresAt: true,
+});
+
+export type InsertCustomDomain = z.infer<typeof insertCustomDomainSchema>;
+export type CustomDomain = typeof customDomains.$inferSelect;
