@@ -517,7 +517,6 @@ function WhiteLabelTab() {
     brandName: "",
     logoUrl: "",
     primaryColor: "#3b82f6",
-    customDomain: "",
     hidePlatformBranding: false,
   });
 
@@ -531,7 +530,6 @@ function WhiteLabelTab() {
         brandName: settings.brandName || "",
         logoUrl: settings.logoUrl || "",
         primaryColor: settings.primaryColor || "#3b82f6",
-        customDomain: settings.customDomain || "",
         hidePlatformBranding: settings.hidePlatformBranding || false,
       });
     }
@@ -644,78 +642,6 @@ function WhiteLabelTab() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="customDomain">Кастомный домен</Label>
-          <Input
-            id="customDomain"
-            data-testid="input-custom-domain"
-            value={formData.customDomain}
-            onChange={(e) => setFormData({ ...formData, customDomain: e.target.value })}
-            placeholder="tracking.yourdomain.com"
-          />
-          <div className="text-sm text-muted-foreground space-y-2 mt-2">
-            <p>Настройте DNS у вашего регистратора домена:</p>
-            <div className="bg-muted p-3 rounded-md font-mono text-xs space-y-1">
-              <div><span className="text-muted-foreground">Тип:</span> <span className="text-foreground">CNAME</span></div>
-              <div><span className="text-muted-foreground">Имя/Host:</span> <span className="text-foreground">tracking</span> <span className="text-muted-foreground">(или ваш поддомен)</span></div>
-              <div><span className="text-muted-foreground">Значение/Target:</span> <span className="text-foreground select-all">{window.location.host}</span></div>
-              <div><span className="text-muted-foreground">TTL:</span> <span className="text-foreground">3600</span> <span className="text-muted-foreground">(или Auto)</span></div>
-            </div>
-          </div>
-          
-          {settings?.domainStatus && (
-            <div className="mt-4 p-3 border rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Статус домена</span>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  settings.domainStatus === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
-                  settings.domainStatus === 'pending_dns' ? 'bg-yellow-500/20 text-yellow-400' :
-                  settings.domainStatus === 'pending_ssl' ? 'bg-blue-500/20 text-blue-400' :
-                  'bg-red-500/20 text-red-400'
-                }`}>
-                  {settings.domainStatus === 'active' ? 'Активен' :
-                   settings.domainStatus === 'pending_dns' ? 'Ожидание DNS' :
-                   settings.domainStatus === 'pending_ssl' ? 'Выпуск SSL' :
-                   settings.domainStatus === 'failed' ? 'Ошибка' : settings.domainStatus}
-                </span>
-              </div>
-              
-              {settings.sslStatus && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">SSL сертификат</span>
-                  <div className="flex items-center gap-2">
-                    {settings.sslStatus === 'valid' ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    ) : settings.sslStatus === 'pending' ? (
-                      <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-400" />
-                    )}
-                    <span className={`text-xs ${
-                      settings.sslStatus === 'valid' ? 'text-emerald-400' :
-                      settings.sslStatus === 'pending' ? 'text-blue-400' :
-                      'text-red-400'
-                    }`}>
-                      {settings.sslStatus === 'valid' ? 'Действителен' :
-                       settings.sslStatus === 'pending' ? 'Выпускается...' :
-                       settings.sslStatus === 'expired' ? 'Истёк' : 'Ошибка'}
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              {settings.sslExpiresAt && settings.sslStatus === 'valid' && (
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Действителен до</span>
-                  <span>{new Date(settings.sslExpiresAt).toLocaleDateString()}</span>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <p className="text-xs text-muted-foreground">После настройки DNS, SSL сертификат будет выпущен автоматически (Let's Encrypt).</p>
-        </div>
-
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="space-y-0.5">
             <div className="font-medium">Скрыть брендинг платформы</div>
@@ -762,7 +688,7 @@ function WhiteLabelTab() {
     },
     
     enhanceLinks: function() {
-      var domain = '${formData.customDomain || window.location.host}';
+      var domain = '${window.location.host}';
       this.getVisitorId().then(function(data) {
         document.querySelectorAll('a[href*="' + domain + '"]').forEach(function(link) {
           var url = new URL(link.href);
