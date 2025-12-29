@@ -509,7 +509,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOffer(id: string): Promise<void> {
-    // Delete related data first
+    // Delete related data first (order matters due to foreign keys)
+    // First delete conversions (they reference clicks which reference offers)
+    const offerClicks = await db.select({ id: clicks.id }).from(clicks).where(eq(clicks.offerId, id));
+    const clickIds = offerClicks.map(c => c.id);
+    if (clickIds.length > 0) {
+      await db.delete(conversions).where(inArray(conversions.clickId, clickIds));
+    }
+    // Delete clicks
+    await db.delete(clicks).where(eq(clicks.offerId, id));
+    // Delete other related data
+    await db.delete(offerAccessRequests).where(eq(offerAccessRequests.offerId, id));
     await db.delete(offerLandings).where(eq(offerLandings.offerId, id));
     await db.delete(publisherOffers).where(eq(publisherOffers.offerId, id));
     await db.delete(offerPostbackSettings).where(eq(offerPostbackSettings.offerId, id));
