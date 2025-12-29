@@ -983,6 +983,25 @@ export async function registerRoutes(
     }
   });
 
+  // Удалить оффер
+  app.delete("/api/offers/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      if (offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteOffer(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete offer" });
+    }
+  });
+
   // Add landing to offer
   app.post("/api/offers/:offerId/landings", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {

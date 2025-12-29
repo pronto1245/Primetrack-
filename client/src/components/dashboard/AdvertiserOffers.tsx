@@ -1,11 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Search, Edit, Trash, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 
 interface OfferLanding {
   id: string;
@@ -58,11 +60,46 @@ function getOfferInternalCost(offer: Offer): string | null {
 
 export function AdvertiserOffers({ role }: { role: string }) {
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedGeo, setSelectedGeo] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+
+  const deleteOfferMutation = useMutation({
+    mutationFn: async (offerId: string) => {
+      const res = await fetch(`/api/offers/${offerId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete offer");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/offers"] });
+      toast.success("Оффер удалён");
+      setDeleteDialogOpen(false);
+      setOfferToDelete(null);
+    },
+    onError: () => {
+      toast.error("Не удалось удалить оффер");
+    },
+  });
+
+  const handleDeleteClick = (offer: Offer) => {
+    setOfferToDelete(offer);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (offerToDelete) {
+      deleteOfferMutation.mutate(offerToDelete.id);
+    }
+  };
 
   const { data: offers, isLoading, error } = useQuery<Offer[]>({
     queryKey: ["/api/offers"],
@@ -314,14 +351,26 @@ export function AdvertiserOffers({ role }: { role: string }) {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-foreground" data-testid={`button-view-${offer.id}`}>
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10" data-testid={`button-view-${offer.id}`}>
                             <Eye className="w-3 h-3" />
                           </Button>
                         </Link>
-                        <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-blue-400" data-testid={`button-edit-${offer.id}`}>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10" 
+                          data-testid={`button-edit-${offer.id}`}
+                          onClick={() => setLocation(`/dashboard/${role}/offer/${offer.id}/edit`)}
+                        >
                           <Edit className="w-3 h-3" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-red-400" data-testid={`button-delete-${offer.id}`}>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6 text-red-500 hover:text-red-400 hover:bg-red-500/10" 
+                          data-testid={`button-delete-${offer.id}`}
+                          onClick={() => handleDeleteClick(offer)}
+                        >
                           <Trash className="w-3 h-3" />
                         </Button>
                       </div>
@@ -333,6 +382,28 @@ export function AdvertiserOffers({ role }: { role: string }) {
           </div>
         )}
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить оффер?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить оффер "{offerToDelete?.name}"? 
+              Это действие нельзя отменить. Все связанные лендинги, доступы партнёров и настройки постбеков будут также удалены.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteOfferMutation.isPending}
+            >
+              {deleteOfferMutation.isPending ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

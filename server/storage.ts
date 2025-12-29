@@ -165,6 +165,7 @@ export interface IStorage {
   getActiveOffers(): Promise<Offer[]>;
   createOffer(offer: InsertOffer): Promise<Offer>;
   updateOffer(id: string, offer: Partial<InsertOffer>): Promise<Offer | undefined>;
+  deleteOffer(id: string): Promise<void>;
   
   // Offer Landings
   getOfferLandings(offerId: string): Promise<OfferLanding[]>;
@@ -505,6 +506,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(offers.id, id))
       .returning();
     return offer;
+  }
+
+  async deleteOffer(id: string): Promise<void> {
+    // Delete related data first
+    await db.delete(offerLandings).where(eq(offerLandings.offerId, id));
+    await db.delete(publisherOffers).where(eq(publisherOffers.offerId, id));
+    await db.delete(offerPostbackSettings).where(eq(offerPostbackSettings.offerId, id));
+    // Delete the offer
+    await db.delete(offers).where(eq(offers.id, id));
   }
 
   // Offer Landings
