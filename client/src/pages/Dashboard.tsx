@@ -37,6 +37,8 @@ import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
 import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
+import { WebhooksSettings } from "@/components/dashboard/WebhooksSettings";
+import { CustomDomainsSettings } from "@/components/dashboard/CustomDomainsSettings";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState, useEffect } from "react";
@@ -163,6 +165,8 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Globe, label: "Webhooks", path: `/dashboard/${role}/webhooks`, color: "text-teal-400" },
+      { icon: Globe, label: "Домены", path: `/dashboard/${role}/domains`, color: "text-sky-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
@@ -285,6 +289,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchAntifraud] = useRoute("/dashboard/:role/antifraud");
   const [matchSettings] = useRoute("/dashboard/:role/settings");
   const [matchTeam] = useRoute("/dashboard/:role/team");
+  const [matchWebhooks] = useRoute("/dashboard/:role/webhooks");
+  const [matchDomains] = useRoute("/dashboard/:role/domains");
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
@@ -369,6 +375,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showAntifraud = matchAntifraud && (role === 'admin' || role === 'advertiser');
   const showSettings = matchSettings;
   const showTeam = matchTeam && (role === 'advertiser' || role === 'admin');
+  const showWebhooks = matchWebhooks && role === 'advertiser';
+  const showDomains = matchDomains && role === 'advertiser';
 
   const renderContent = () => {
     if (showSettings) {
@@ -402,6 +410,14 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showPostbacks) {
       return <PostbackSettings />;
+    }
+
+    if (showWebhooks) {
+      return <WebhooksSettings />;
+    }
+
+    if (showDomains) {
+      return <CustomDomainsSettings />;
     }
 
     if (showAntifraud) {
