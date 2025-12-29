@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
 import session from "express-session";
@@ -11,6 +11,7 @@ import pg from "pg";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { ClickHandler } from "./services/click-handler";
 import { Orchestrator } from "./services/orchestrator";
+import { notificationService } from "./services/notification-service";
 import geoip from "geoip-lite";
 
 const clickHandler = new ClickHandler();
@@ -1418,6 +1419,17 @@ export async function registerRoutes(
         message: message || null,
       });
 
+      // Notify advertiser about new access request
+      const publisher = await storage.getUser(publisherId);
+      if (publisher) {
+        notificationService.notifyAccessRequest(
+          offer.advertiserId,
+          publisher.username,
+          offer.name,
+          request.id
+        ).catch(console.error);
+      }
+
       res.status(201).json(request);
     } catch (error) {
       res.status(500).json({ message: "Failed to create access request" });
@@ -1893,6 +1905,13 @@ export async function registerRoutes(
           publisherId: request.publisherId,
         });
         
+        // Send notification to publisher
+        notificationService.notifyAccessApproved(
+          request.publisherId,
+          req.session.userId!,
+          offer.name
+        ).catch(console.error);
+        
         res.json({ message: "Access request approved" });
       } else if (action === "revoke") {
         await storage.deletePublisherOffer(request.offerId, request.publisherId);
@@ -1904,6 +1923,14 @@ export async function registerRoutes(
           status: "rejected",
           rejectionReason: rejectionReason || null,
         });
+        
+        // Send notification to publisher
+        notificationService.notifyAccessRejected(
+          request.publisherId,
+          req.session.userId!,
+          offer.name,
+          rejectionReason
+        ).catch(console.error);
         
         res.json({ message: "Access request rejected" });
       }
@@ -4427,6 +4454,233 @@ export async function registerRoutes(
     }));
 
     res.json(info);
+  });
+
+  // ============================================
+  // NOTIFICATIONS API
+  // ============================================
+
+  // Get notifications for current user
+  app.get("/api/notifications", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const notifications = await storage.getNotifications(userId, limit);
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Get unread notification count
+  app.get("/api/notifications/unread-count", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const count = await storage.getUnreadNotificationCount(userId);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
+  // Mark notification as read
+  app.patch("/api/notifications/:id/read", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const notification = await storage.markNotificationRead(id);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      res.json(notification);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Mark all notifications as read
+  app.post("/api/notifications/mark-all-read", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      await storage.markAllNotificationsRead(userId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark all as read" });
+    }
+  });
+
+  // Create notification (admin/advertiser only)
+  app.post("/api/notifications", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const senderRole = req.session.role!;
+      const senderId = req.session.userId!;
+      
+      if (!["admin", "advertiser"].includes(senderRole)) {
+        return res.status(403).json({ message: "Only admin and advertisers can send notifications" });
+      }
+
+      const { recipientId, type, title, body, entityType, entityId, advertiserScopeId } = req.body;
+      
+      if (!recipientId || !type || !title || !body) {
+        return res.status(400).json({ message: "Missing required fields: recipientId, type, title, body" });
+      }
+
+      const notification = await storage.createNotification({
+        senderId,
+        senderRole,
+        recipientId,
+        type,
+        title,
+        body,
+        entityType,
+        entityId,
+        advertiserScopeId: senderRole === "advertiser" ? senderId : advertiserScopeId
+      });
+      
+      res.status(201).json(notification);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create notification" });
+    }
+  });
+
+  // ============================================
+  // NEWS API
+  // ============================================
+
+  // Get news feed for current user
+  app.get("/api/news", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const userRole = req.session.role!;
+      const advertiserId = req.query.advertiserId as string | undefined;
+      
+      const news = await storage.getNewsFeed(userId, userRole, advertiserId);
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch news" });
+    }
+  });
+
+  // Get pinned news
+  app.get("/api/news/pinned", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const userRole = req.session.role!;
+      const advertiserId = req.query.advertiserId as string | undefined;
+      
+      const pinned = await storage.getPinnedNews(userId, userRole, advertiserId);
+      res.json(pinned);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch pinned news" });
+    }
+  });
+
+  // Get single news post
+  app.get("/api/news/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const post = await storage.getNewsPost(req.params.id);
+      if (!post) {
+        return res.status(404).json({ message: "News post not found" });
+      }
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch news post" });
+    }
+  });
+
+  // Create news post (admin/advertiser only)
+  app.post("/api/news", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const authorRole = req.session.role!;
+      const authorId = req.session.userId!;
+      
+      if (!["admin", "advertiser"].includes(authorRole)) {
+        return res.status(403).json({ message: "Only admin and advertisers can create news" });
+      }
+
+      const { title, body, imageUrl, category, targetAudience, isPinned, isPublished } = req.body;
+      
+      if (!title || !body) {
+        return res.status(400).json({ message: "Missing required fields: title, body" });
+      }
+
+      const post = await storage.createNewsPost({
+        authorId,
+        authorRole,
+        title,
+        body,
+        imageUrl,
+        category: category || "update",
+        targetAudience: targetAudience || (authorRole === "admin" ? "all" : "publishers"),
+        isPinned: isPinned || false,
+        isPublished: isPublished !== false,
+        advertiserScopeId: authorRole === "advertiser" ? authorId : null,
+        publishedAt: isPublished !== false ? new Date() : null
+      });
+      
+      res.status(201).json(post);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create news post" });
+    }
+  });
+
+  // Update news post
+  app.patch("/api/news/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.userId!;
+      const userRole = req.session.role!;
+      
+      const existing = await storage.getNewsPost(id);
+      if (!existing) {
+        return res.status(404).json({ message: "News post not found" });
+      }
+      
+      // Only author or admin can edit
+      if (existing.authorId !== userId && userRole !== "admin") {
+        return res.status(403).json({ message: "You can only edit your own news posts" });
+      }
+
+      const { title, body, imageUrl, category, targetAudience, isPinned, isPublished } = req.body;
+      
+      const updated = await storage.updateNewsPost(id, {
+        title,
+        body,
+        imageUrl,
+        category,
+        targetAudience,
+        isPinned,
+        isPublished,
+        publishedAt: isPublished && !existing.isPublished ? new Date() : undefined
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update news post" });
+    }
+  });
+
+  // Delete news post
+  app.delete("/api/news/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.userId!;
+      const userRole = req.session.role!;
+      
+      const existing = await storage.getNewsPost(id);
+      if (!existing) {
+        return res.status(404).json({ message: "News post not found" });
+      }
+      
+      // Only author or admin can delete
+      if (existing.authorId !== userId && userRole !== "admin") {
+        return res.status(403).json({ message: "You can only delete your own news posts" });
+      }
+
+      await storage.deleteNewsPost(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete news post" });
+    }
   });
 
   return httpServer;

@@ -12,6 +12,9 @@ import Login from "@/pages/Login";
 import AdvertiserRegister from "@/pages/AdvertiserRegister";
 import PublisherRegister from "@/pages/PublisherRegister";
 import Setup2FA from "@/pages/Setup2FA";
+import NotificationsPage from "@/pages/NotificationsPage";
+import NewsPage from "@/pages/NewsPage";
+import NewsComposer from "@/pages/NewsComposer";
 import "./lib/i18n";
 
 function Router() {
@@ -26,6 +29,9 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/dashboard/:role" component={Dashboard} />
       <Route path="/dashboard/:role/*" component={Dashboard} />
+      <Route path="/notifications" component={NotificationsPage} />
+      <Route path="/news" component={NewsPage} />
+      <Route path="/news/create" component={NewsComposer} />
       <Route component={NotFound} />
     </Switch>
   );
