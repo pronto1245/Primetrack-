@@ -211,9 +211,18 @@ export const clicks = pgTable("clicks", {
   
   // Anti-fraud data (visible only to advertiser/admin)
   fingerprint: text("fingerprint"),
+  visitorId: text("visitor_id"), // FingerprintJS Pro visitor ID
+  fingerprintConfidence: numeric("fingerprint_confidence", { precision: 5, scale: 4 }), // FingerprintJS confidence score
   isProxy: boolean("is_proxy").default(false),
   isVpn: boolean("is_vpn").default(false),
+  isTor: boolean("is_tor").default(false),
+  isDatacenter: boolean("is_datacenter").default(false),
   fraudScore: integer("fraud_score").default(0),
+  
+  // Enhanced GEO from IP Intelligence (ipinfo.io)
+  region: text("region"), // State/Province
+  isp: text("isp"), // Internet Service Provider
+  asn: text("asn"), // Autonomous System Number
   
   // Redirect info
   redirectUrl: text("redirect_url"),
@@ -1206,6 +1215,11 @@ export const customDomains = pgTable("custom_domains", {
   sslStatus: text("ssl_status").default("pending"), // pending, provisioning, active, failed
   sslExpiresAt: timestamp("ssl_expires_at"),
   
+  // SSL Certificate (Let's Encrypt)
+  sslCertificate: text("ssl_certificate"), // PEM encoded certificate
+  sslPrivateKey: text("ssl_private_key"), // PEM encoded private key (encrypted)
+  sslChain: text("ssl_chain"), // PEM encoded certificate chain
+  
   // Usage
   isPrimary: boolean("is_primary").default(false),
   isActive: boolean("is_active").default(true),
@@ -1227,3 +1241,41 @@ export const insertCustomDomainSchema = createInsertSchema(customDomains).omit({
 
 export type InsertCustomDomain = z.infer<typeof insertCustomDomainSchema>;
 export type CustomDomain = typeof customDomains.$inferSelect;
+
+// ============================================
+// ACME ACCOUNTS (Let's Encrypt)
+// ============================================
+export const acmeAccounts = pgTable("acme_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  email: text("email").notNull(),
+  privateKey: text("private_key").notNull(), // PEM encoded (encrypted)
+  accountUrl: text("account_url"), // ACME account URL after registration
+  
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type AcmeAccount = typeof acmeAccounts.$inferSelect;
+
+// ============================================
+// ACME CHALLENGES (HTTP-01 or DNS-01)
+// ============================================
+export const acmeChallenges = pgTable("acme_challenges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  domainId: varchar("domain_id").notNull().references(() => customDomains.id),
+  
+  token: text("token").notNull(),
+  keyAuthorization: text("key_authorization").notNull(),
+  
+  challengeType: text("challenge_type").notNull().default("http-01"), // http-01, dns-01
+  status: text("status").notNull().default("pending"), // pending, processing, valid, invalid
+  
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type AcmeChallenge = typeof acmeChallenges.$inferSelect;
