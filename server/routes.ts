@@ -998,6 +998,7 @@ export async function registerRoutes(
       await storage.deleteOffer(req.params.id);
       res.json({ success: true });
     } catch (error) {
+      console.error("Delete offer error:", error);
       res.status(500).json({ message: "Failed to delete offer" });
     }
   });

@@ -523,6 +523,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(offerLandings).where(eq(offerLandings.offerId, id));
     await db.delete(publisherOffers).where(eq(publisherOffers.offerId, id));
     await db.delete(offerPostbackSettings).where(eq(offerPostbackSettings.offerId, id));
+    await db.delete(offerCapsStats).where(eq(offerCapsStats.offerId, id));
     // Delete the offer
     await db.delete(offers).where(eq(offers.id, id));
   }

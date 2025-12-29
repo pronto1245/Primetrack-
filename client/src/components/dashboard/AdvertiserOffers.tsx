@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Search, Edit, Trash, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -60,7 +60,6 @@ function getOfferInternalCost(offer: Offer): string | null {
 
 export function AdvertiserOffers({ role }: { role: string }) {
   const { t } = useTranslation();
-  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -355,15 +354,16 @@ export function AdvertiserOffers({ role }: { role: string }) {
                             <Eye className="w-3 h-3" />
                           </Button>
                         </Link>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-6 w-6 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10" 
-                          data-testid={`button-edit-${offer.id}`}
-                          onClick={() => setLocation(`/dashboard/${role}/offer/${offer.id}/edit`)}
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
+                        <Link href={`/dashboard/${role}/offer/${offer.id}`}>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10" 
+                            data-testid={`button-edit-${offer.id}`}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        </Link>
                         <Button 
                           size="icon" 
                           variant="ghost" 
@@ -395,7 +395,10 @@ export function AdvertiserOffers({ role }: { role: string }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={confirmDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
               className="bg-red-600 hover:bg-red-700"
               disabled={deleteOfferMutation.isPending}
             >
