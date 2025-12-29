@@ -8,103 +8,229 @@ PrimeTrack is a centralized SaaS affiliate tracking platform designed to be the 
 
 Preferred communication style: Simple, everyday language (Russian).
 
+---
+
+## РЕАЛИЗОВАННЫЙ ФУНКЦИОНАЛ (АКТУАЛЬНО)
+
+### Аутентификация и безопасность
+- ✅ Регистрация/вход по email + пароль (bcrypt)
+- ✅ Session-based аутентификация (connect-pg-simple)
+- ✅ Обязательная 2FA (TOTP) для активных пользователей
+- ✅ QR-код для настройки 2FA (Google Authenticator и др.)
+- ✅ Сброс 2FA через админа
+
+### Роли пользователей
+- ✅ **Admin** - полный доступ к платформе
+- ✅ **Advertiser** - управление офферами, партнёрами, финансами
+- ✅ **Publisher** - доступ к офферам, генерация ссылок, выплаты
+- ✅ **Advertiser Staff** - сотрудники рекламодателя (Manager, Support, Finance)
+
+### Панель Admin
+- ✅ Обзор (статистика платформы)
+- ✅ Отчёты
+- ✅ Пользователи (список, модерация, сброс 2FA)
+- ✅ Антифрод
+- ✅ Финансы
+- ✅ Новости
+- ✅ Постбеки
+- ✅ Команда
+- ✅ Настройки (профиль, безопасность, уведомления)
+
+### Панель Advertiser
+- ✅ Обзор (дашборд с графиками)
+- ✅ Офферы (создание, редактирование, список)
+- ✅ Запросы на доступ к офферам
+- ✅ Партнёры (список, управление)
+- ✅ Отчёты (статистика по офферам)
+- ✅ Антифрод (fraud_score, proxy, VPN детекция)
+- ✅ Финансы (балансы, транзакции, выплаты партнёрам)
+- ✅ Новости (создание, публикация)
+- ✅ Постбеки (настройка внешних постбеков)
+- ✅ Webhooks (уведомления на внешние URL с HMAC подписью)
+- ✅ Команда (приглашение сотрудников)
+- ✅ Настройки:
+  - Профиль
+  - Безопасность
+  - White-label (логотип, цвета, кастомный домен)
+  - Уведомления (in-app, Telegram)
+
+### Панель Publisher
+- ✅ Обзор (статистика по выбранному рекламодателю)
+- ✅ Офферы/Ссылки (маркетплейс офферов, генерация трекинг-ссылок)
+- ✅ Отчёты
+- ✅ Выплаты (запрос выплаты, история)
+- ✅ Новости
+- ✅ Постбеки
+- ✅ Настройки:
+  - Профиль
+  - Безопасность
+  - Уведомления
+  - Платёжные методы (крипто-биржи: Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX)
+
+### Система офферов
+- ✅ Создание оффера (название, описание, URL, GEO, категория)
+- ✅ Модели оплаты: CPA, CPL, CPI, CPS, RevShare, Hybrid
+- ✅ Advertiser price / Publisher payout / Margin
+- ✅ Система запросов на доступ (pending → approved/rejected)
+- ✅ Генерация трекинг-ссылок с макросами
+
+### Mini-Tracker (Click Handler)
+- ✅ `/api/click/:offerId/:publisherId` - обработка кликов
+- ✅ Генерация уникального click_id
+- ✅ Сбор данных: IP, User-Agent, GEO (geoip-lite), fingerprint
+- ✅ Редирект 302 на landing_url с макросами
+- ✅ Антифрод проверки при клике
+
+### Orchestrator (Конверсии)
+- ✅ `/api/conversion` - приём конверсий
+- ✅ Типы событий: click, lead, sale, install, rejected, hold_released
+- ✅ Валидация click_id
+- ✅ Расчёт payouts
+- ✅ Запись в статистику
+- ✅ Отправка постбеков (опционально)
+- ✅ Триггер webhooks
+
+### Постбеки
+- ✅ Настройка URL постбека для оффера/партнёра
+- ✅ Макросы: {click_id}, {payout}, {status}, {goal} и др.
+- ✅ Retry логика (5 попыток)
+- ✅ Логирование отправок
+
+### Webhooks (для рекламодателя)
+- ✅ CRUD webhook endpoints
+- ✅ Фильтрация по событиям (click, lead, sale, install, rejected, hold_released)
+- ✅ Фильтрация по офферам/партнёрам
+- ✅ Кастомные HTTP заголовки
+- ✅ HMAC-SHA256 подпись (X-Signature)
+- ✅ Retry логика: 1м → 5м → 15м → 1ч → 2ч
+- ✅ Логирование всех отправок
+- ✅ Тестовая отправка из UI
+
+### White-Label (в настройках рекламодателя)
+- ✅ Кастомный домен (поле для ввода)
+- ✅ Логотип (URL)
+- ✅ Название компании
+- ✅ Основной цвет бренда
+- ✅ Инструкции по настройке DNS (CNAME)
+
+### Антифрод
+- ✅ Fraud score расчёт
+- ✅ Proxy/VPN детекция (geoip-lite)
+- ✅ Fingerprint анализ
+- ✅ Click-spam детекция (velocity checks)
+- ✅ Дубликаты лидов
+- ✅ Доступ только для Admin и Advertiser (Publisher НЕ видит)
+
+### Финансы
+- ✅ Балансы партнёров (available, hold, pending)
+- ✅ Транзакции (пополнение, списание)
+- ✅ Запросы на выплату от партнёров
+- ✅ Одобрение/отклонение выплат рекламодателем
+- ✅ Крипто-биржи для выплат (Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX)
+
+### Уведомления
+- ✅ In-app уведомления (колокольчик в шапке)
+- ✅ Настройка Telegram (chat_id, bot linking)
+- ✅ Типы: новый запрос, одобрение/отклонение, новая конверсия
+
+### Новости
+- ✅ Создание новостей (Admin, Advertiser)
+- ✅ Категории: update, announcement, promo, alert
+- ✅ Целевая аудитория
+- ✅ Закрепление (pin)
+- ✅ Изображения
+
+### Команда (Advertiser)
+- ✅ Приглашение сотрудников по email
+- ✅ Роли: Manager, Support, Finance
+- ✅ Список членов команды
+
+### Multi-Advertiser для Publisher
+- ✅ Глобальный аккаунт партнёра
+- ✅ Регистрация через ссылку рекламодателя
+- ✅ Context switcher (выбор рекламодателя)
+- ✅ Данные показываются для выбранного рекламодателя
+
+---
+
 ## System Architecture
 
 ### Key Principles
 
-1.  **Centralization**: All traffic flows through the mini-tracker and orchestrator.
-2.  **Primary Data Source**: The system is the definitive source of truth; statistics are always internal, and postbacks are optional.
-3.  **One Partner, Many Advertisers**: Supports a switchable context for partners to work with multiple advertisers.
-4.  **Monetization Models**: Supports CPA, CPL, CPI, CPS, RevShare, and Hybrid models.
-5.  **White-Labeling**: Custom domains and branding for advertisers.
-6.  **Comprehensive Anti-Fraud**: IP, proxy, VPN, fingerprint, and click-spam detection.
+1. **Centralization**: All traffic flows through the mini-tracker and orchestrator.
+2. **Primary Data Source**: The system is the definitive source of truth; statistics are always internal, and postbacks are optional.
+3. **One Partner, Many Advertisers**: Supports a switchable context for partners to work with multiple advertisers.
+4. **Monetization Models**: Supports CPA, CPL, CPI, CPS, RevShare, and Hybrid models.
+5. **White-Labeling**: Custom domains and branding for advertisers (в настройках → White-label).
+6. **Comprehensive Anti-Fraud**: IP, proxy, VPN, fingerprint, and click-spam detection.
 
 ### Roles
 
-The platform defines several roles: Owner, Platform Admin, Advertiser, Publisher (Affiliate), Partner Manager, Advertiser Staff, and Support. Each role has specific access levels and functionalities.
+- **Admin** - полный доступ
+- **Advertiser** - управление офферами и партнёрами
+- **Publisher** - доступ к офферам, ссылки, выплаты
+- **Advertiser Staff** - сотрудники (Manager, Support, Finance)
 
 ### Core Flows
 
-*   **Click Flow (Mini-Tracker)**: Traffic is routed to `/api/click`, generating a unique `click_id`. It captures user data (IP, User-Agent, GEO, Fingerprint), performs anti-fraud checks, and orchestrates a 302 redirect to the landing page with relevant macros.
-*   **Conversion Flow (Orchestrator)**: Events (click/lead/sale/install) are processed by the orchestrator, which validates status, checks monetization models, calculates payouts (advertiser_price vs. publisher_payout), writes internal statistics, and then optionally sends external postbacks (with retries) and notifications.
+* **Click Flow (Mini-Tracker)**: Traffic is routed to `/api/click/:offerId/:publisherId`, generating a unique `click_id`. It captures user data (IP, User-Agent, GEO, Fingerprint), performs anti-fraud checks, and orchestrates a 302 redirect to the landing page with relevant macros.
+* **Conversion Flow (Orchestrator)**: Events (click/lead/sale/install) are processed by the orchestrator, which validates status, checks monetization models, calculates payouts, writes internal statistics, and then optionally sends external postbacks and webhooks.
 
-### Monetization & Pricing
+### Technology Stack
 
-*   **Models**: CPA, CPL, CPI, CPS, RevShare, Hybrid.
-*   **Offer Pricing**: `advertiser_price` (what the advertiser pays), `publisher_payout` (what the partner receives, only visible to the partner), `margin` (advertiser_price - publisher_payout), and `ROI`.
+* **Frontend**: React + Vite + TailwindCSS + shadcn/ui + wouter
+* **Backend**: Express.js + TypeScript
+* **Database**: PostgreSQL + Drizzle ORM
+* **Authentication**: Session-based (connect-pg-simple)
+* **2FA**: TOTP (otplib + qrcode)
+* **GEO**: geoip-lite
 
-### Statuses
+---
 
-Clicks, leads, installs, and sales are tracked, alongside `rejected` and `hold` statuses, each impacting counting and financial implications.
+## НЕ РЕАЛИЗОВАНО (ПЛАНЫ)
 
-### Partner System
+- ⏳ Data Migration API (Scaleo, Affilka, Affise, Voluum, Keitaro)
+- ⏳ Email уведомления (SMTP/Mailgun/SendGrid)
+- ⏳ Stripe биллинг для SaaS тарифов
+- ⏳ Автоматический SSL для кастомных доменов (Let's Encrypt)
+- ⏳ DNS верификация через API (сейчас только инструкции)
+- ⏳ IP2Location / ipinfo.io интеграция
+- ⏳ FingerprintJS интеграция
 
-A global partner account can connect to multiple advertisers, with a context switcher to view data relevant to the selected advertiser. Publishers register via an advertiser's link.
+---
 
-### Offer Access System (CRITICAL)
+## Структура меню
 
-```
-1. Рекламодатель создаёт оффер
-2. Партнёр видит оффер в маркетплейсе:
-   - Название, описание, категория, GEO
-   - Payout модель и ставка (partner_payout)
-   - Креативы (ссылки на диск)
-   - ❌ НЕ ВИДИТ: ссылки на лендинги (landing_url)
-3. Партнёр отправляет ЗАПРОС на доступ к офферу
-4. Рекламодатель получает уведомление о запросе
-5. Рекламодатель ОДОБРЯЕТ или ОТКЛОНЯЕТ запрос
-6. При ОДОБРЕНИИ:
-   - Партнёр получает полный доступ к офферу
-   - Видит ссылки на лендинги
-   - Может генерировать трекинг-ссылки
-   - Может лить трафик
-```
+### Admin Menu
+1. Обзор
+2. Отчёты
+3. Пользователи
+4. Антифрод
+5. Финансы
+6. Новости
+7. Постбеки
+8. Команда
+9. Настройки
 
-**Таблицы:**
-- `offer_access_requests` - id, offer_id, publisher_id, status (pending/approved/rejected), message, created_at
-- `publisher_offers` - id, offer_id, publisher_id, approved_at (создаётся при approved)
+### Advertiser Menu
+1. Обзор
+2. Офферы
+3. Запросы
+4. Партнёры
+5. Отчёты
+6. Антифрод
+7. Финансы
+8. Новости
+9. Постбеки
+10. Webhooks
+11. Команда
+12. Настройки (Профиль, Безопасность, White-label, Уведомления)
 
-### White-Label
-
-Advertisers can use their own domains, logos, colors, and branding, ensuring partners see the advertiser's brand, not the platform's. Automatic SSL is supported.
-
-**Кастомный домен для рекламодателя:**
-- Рекламодатель может привязать свой домен (например: tracking.mybrand.com)
-- Все трекинг-ссылки будут генерироваться с этого домена
-- Партнёры видят бренд рекламодателя, а не платформы
-- Автоматический SSL через Let's Encrypt
-- Настройки: домен, логотип, цвета, название компании
-
-**Таблица:** `advertiser_settings` - custom_domain, logo_url, brand_name, primary_color, etc.
-
-### Anti-Fraud Mechanisms (ТОЛЬКО ДЛЯ ADVERTISER И ADMIN)
-
-**ВАЖНО: Партнёр (Publisher) НЕ имеет доступа к антифрод-данным!**
-
-Includes IP/subnet verification, proxy/VPN detection, fingerprint analysis, click-spam detection, duplicate lead detection, and Conversion Rate (CR) anomaly detection, with reactions like reject, hold, notify, or auto-ban.
-
-Доступ к антифроду:
-- ✅ Admin - полный доступ ко всем антифрод-данным
-- ✅ Advertiser - видит антифрод по своим офферам
-- ❌ Publisher - НЕ видит антифрод-данные (fraud_score, is_proxy, is_vpn и т.д.)
-
-### Postback Logic
-
-Events, statistics, and monetization are processed internally first. Only then is an optional postback sent, ensuring internal data integrity regardless of external postback success.
-
-### Technology Choices
-
-*   **Database**: Drizzle ORM.
-*   **Authentication**: Session-based.
-*   **Backend Services**: `ClickHandler`, `Orchestrator`, `PostbackSender` (with 5x retry logic).
-
-## External Dependencies
-
-*   **Postback Integration**: Supports sending postbacks to external systems.
-*   **Notification Channels**:
-    *   **Telegram**: Integration with a Telegram Bot for user account linking and notifications.
-    *   **Email**: SMTP integration (or Mailgun/SendGrid) for email notifications.
-    *   **Webhooks**: Custom webhook configurations for notifications.
-*   **Data Migration**: Adapters for importing data from Scaleo, Affilka, Affise, and Voluum.
-*   **Anti-Fraud (Planned)**: IP2Location or ipinfo.io for proxy/VPN detection, FingerprintJS for fingerprint analysis.
-*   **Billing (Planned)**: Stripe integration for SaaS tariff plans and billing.
+### Publisher Menu
+1. Обзор
+2. Ссылки (офферы)
+3. Отчёты
+4. Выплаты
+5. Новости
+6. Постбеки
+7. Настройки (Профиль, Безопасность, Платёжные методы, Уведомления)
