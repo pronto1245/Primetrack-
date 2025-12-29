@@ -271,7 +271,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                           </span>
                         </Link>
                         {offer.createdAt && new Date(offer.createdAt) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-blue-500/20 text-blue-400 animate-pulse">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400 animate-pulse">
                             NEW
                           </span>
                         )}
