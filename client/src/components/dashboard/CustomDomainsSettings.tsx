@@ -219,23 +219,34 @@ export function CustomDomainsSettings() {
                   Рекомендуется использовать поддомен, например: track.yourdomain.com
                 </p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label>Метод верификации</Label>
                 <RadioGroup
                   value={formData.verificationMethod}
                   onValueChange={(value: "cname" | "txt") => setFormData(prev => ({ ...prev, verificationMethod: value }))}
+                  className="space-y-3"
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="cname" id="cname" />
-                    <Label htmlFor="cname" className="font-normal">
-                      CNAME запись (рекомендуется)
-                    </Label>
+                  <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <RadioGroupItem value="cname" id="cname" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="cname" className="font-medium cursor-pointer">
+                        CNAME запись (рекомендуется)
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Добавьте одну CNAME запись: <code className="bg-muted px-1 rounded">ваш-домен → tracking.primetrack.app</code>
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="txt" id="txt" />
-                    <Label htmlFor="txt" className="font-normal">
-                      TXT + CNAME записи
-                    </Label>
+                  <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <RadioGroupItem value="txt" id="txt" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="txt" className="font-medium cursor-pointer">
+                        TXT + CNAME записи
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Для CDN/прокси: добавьте TXT запись для верификации + CNAME для трафика
+                      </p>
+                    </div>
                   </div>
                 </RadioGroup>
               </div>
