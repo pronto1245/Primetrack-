@@ -130,6 +130,11 @@ export const offers = pgTable("offers", {
   
   status: text("status").notNull().default("active"), // active, paused, draft
   
+  // Special badges
+  isTop: boolean("is_top").notNull().default(false),
+  isExclusive: boolean("is_exclusive").notNull().default(false),
+  isPrivate: boolean("is_private").notNull().default(false),
+  
   // Caps/Limits
   dailyCap: integer("daily_cap"), // Daily conversions limit (null = unlimited)
   totalCap: integer("total_cap"), // Total conversions limit (null = unlimited)

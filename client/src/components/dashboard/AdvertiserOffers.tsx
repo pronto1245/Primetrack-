@@ -275,6 +275,21 @@ export function AdvertiserOffers({ role }: { role: string }) {
                             NEW
                           </span>
                         )}
+                        {offer.isTop && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-400">
+                            TOP
+                          </span>
+                        )}
+                        {offer.isExclusive && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/20 text-purple-400">
+                            EXCLUSIVE
+                          </span>
+                        )}
+                        {offer.isPrivate && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-400">
+                            PRIVATE
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{offer.category}</td>

@@ -56,6 +56,9 @@ export function CreateOfferForm({ role }: { role: string }) {
     geo: [] as string[],
     revSharePercent: "",
     holdPeriodDays: "0",
+    isTop: false,
+    isExclusive: false,
+    isPrivate: false,
   });
 
   const [landings, setLandings] = useState<Landing[]>([
@@ -350,6 +353,45 @@ export function CreateOfferForm({ role }: { role: string }) {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">Деньги партнёра будут заморожены на указанный срок после конверсии</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
+                  Специальные статусы
+                </Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isTop}
+                      onChange={e => setFormData(prev => ({ ...prev, isTop: e.target.checked }))}
+                      className="w-4 h-4 rounded border-border"
+                      data-testid="checkbox-is-top"
+                    />
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400">TOP</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isExclusive}
+                      onChange={e => setFormData(prev => ({ ...prev, isExclusive: e.target.checked }))}
+                      className="w-4 h-4 rounded border-border"
+                      data-testid="checkbox-is-exclusive"
+                    />
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-400">EXCLUSIVE</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isPrivate}
+                      onChange={e => setFormData(prev => ({ ...prev, isPrivate: e.target.checked }))}
+                      className="w-4 h-4 rounded border-border"
+                      data-testid="checkbox-is-private"
+                    />
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-400">PRIVATE</span>
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground">Выберите статусы для выделения оффера в списке</p>
               </div>
             </CardContent>
           </Card>
