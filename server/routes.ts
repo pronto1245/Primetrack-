@@ -346,9 +346,23 @@ export async function registerRoutes(
       if (existingEmail) {
         // Если партнер существует, предлагаем привязать к новому рекламодателю
         if (referralCode && existingEmail.role === "publisher") {
+          // Разрешаем referralCode чтобы вернуть advertiserId в ответе
+          const advertiser = await storage.getUserByReferralCode(referralCode);
+          if (!advertiser || advertiser.role !== "advertiser") {
+            return res.status(400).json({ message: "Invalid referral code" });
+          }
+          
+          // Проверяем не привязан ли уже к этому рекламодателю
+          const existingRelation = await storage.getPublisherAdvertiserRelation(existingEmail.id, advertiser.id);
+          if (existingRelation) {
+            return res.status(400).json({ message: "Вы уже привязаны к этому рекламодателю" });
+          }
+          
           return res.status(409).json({ 
             message: "Email already exists with different advertiser",
-            code: "EMAIL_EXISTS_DIFFERENT_ADVERTISER"
+            code: "EMAIL_EXISTS_DIFFERENT_ADVERTISER",
+            advertiserId: advertiser.id,
+            advertiserName: advertiser.companyName || advertiser.fullName || advertiser.username
           });
         }
         return res.status(400).json({ message: "Email already exists" });

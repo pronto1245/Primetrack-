@@ -36,6 +36,7 @@ export default function PublisherRegister() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showExistingUserDialog, setShowExistingUserDialog] = useState(false);
   const [loginData, setLoginData] = useState({ username: "", password: "" });
+  const [linkAdvertiserData, setLinkAdvertiserData] = useState<{ advertiserId: string; advertiserName: string } | null>(null);
 
   const { data: referralData, isLoading: isValidating } = useQuery({
     queryKey: ["validate-referral", referralCode],
@@ -69,8 +70,12 @@ export default function PublisherRegister() {
       const result = await response.json();
       
       if (response.status === 409 && result.code === "EMAIL_EXISTS_DIFFERENT_ADVERTISER") {
-        // Сразу показываем диалог привязки без дополнительного запроса
-        return { showLinkDialog: true };
+        // Возвращаем данные рекламодателя из ответа сервера
+        return { 
+          showLinkDialog: true, 
+          advertiserId: result.advertiserId,
+          advertiserName: result.advertiserName
+        };
       }
       
       if (!response.ok) {
@@ -81,7 +86,11 @@ export default function PublisherRegister() {
     },
     onSuccess: (result) => {
       if (result?.showLinkDialog) {
-        // Показываем диалог привязки к рекламодателю
+        // Сохраняем advertiserId из ответа сервера для диалога привязки
+        setLinkAdvertiserData({
+          advertiserId: result.advertiserId,
+          advertiserName: result.advertiserName
+        });
         setShowExistingUserDialog(true);
       } else {
         setShowSuccess(true);
@@ -150,14 +159,16 @@ export default function PublisherRegister() {
       setError("Введите логин и пароль");
       return;
     }
-    if (!referralData?.advertiserId) {
+    // Используем advertiserId из ответа сервера (linkAdvertiserData), а не из referralData
+    const advertiserId = linkAdvertiserData?.advertiserId;
+    if (!advertiserId) {
       setError("Ошибка: рекламодатель не найден. Попробуйте перейти по ссылке заново.");
       return;
     }
     linkToAdvertiserMutation.mutate({
       username: loginData.username,
       password: loginData.password,
-      advertiserId: referralData.advertiserId,
+      advertiserId,
     });
   };
 
