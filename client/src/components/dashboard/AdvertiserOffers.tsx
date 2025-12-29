@@ -251,7 +251,18 @@ export function AdvertiserOffers({ role }: { role: string }) {
               <tbody className="divide-y divide-white/5">
                 {filteredOffers.map((offer) => (
                   <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
-                    <td className="px-4 py-3 text-muted-foreground">#{offer.id.slice(0, 8)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        {offer.logoUrl ? (
+                          <img src={offer.logoUrl} alt="" className="w-6 h-6 rounded object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs">
+                            {offer.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span>#{offer.id.slice(0, 8)}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <Link href={`/dashboard/${role}/offer/${offer.id}`}>
                         <span className="font-medium text-foreground group-hover:text-blue-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
