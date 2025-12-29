@@ -39,6 +39,7 @@ import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
 import { WebhooksSettings } from "@/components/dashboard/WebhooksSettings";
 import { CustomDomainsSettings } from "@/components/dashboard/CustomDomainsSettings";
+import { NewsFeed } from "@/components/dashboard/NewsFeed";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState, useEffect } from "react";
@@ -150,7 +151,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
-      { icon: Newspaper, label: "Новости", path: `/news`, color: "text-orange-400" },
+      { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
@@ -163,7 +164,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
-      { icon: Newspaper, label: "Новости", path: `/news`, color: "text-orange-400" },
+      { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Globe, label: "Webhooks", path: `/dashboard/${role}/webhooks`, color: "text-teal-400" },
       { icon: Globe, label: "Домены", path: `/dashboard/${role}/domains`, color: "text-sky-400" },
@@ -175,7 +176,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
-      { icon: Newspaper, label: "Новости", path: `/news`, color: "text-orange-400" },
+      { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ]
@@ -291,6 +292,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchTeam] = useRoute("/dashboard/:role/team");
   const [matchWebhooks] = useRoute("/dashboard/:role/webhooks");
   const [matchDomains] = useRoute("/dashboard/:role/domains");
+  const [matchNews] = useRoute("/dashboard/:role/news");
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
@@ -377,6 +379,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showTeam = matchTeam && (role === 'advertiser' || role === 'admin');
   const showWebhooks = matchWebhooks && role === 'advertiser';
   const showDomains = matchDomains && role === 'advertiser';
+  const showNews = matchNews;
 
   const renderContent = () => {
     if (showSettings) {
@@ -418,6 +421,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showDomains) {
       return <CustomDomainsSettings />;
+    }
+
+    if (showNews) {
+      return <NewsFeed />;
     }
 
     if (showAntifraud) {
