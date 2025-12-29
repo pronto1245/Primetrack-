@@ -289,6 +289,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchTeam] = useRoute("/dashboard/:role/team");
   const [matchNews] = useRoute("/dashboard/:role/news");
   const [matchNewsCreate] = useRoute("/dashboard/:role/news/create");
+  const [matchNewsEdit, newsEditParams] = useRoute("/dashboard/:role/news/edit/:newsId");
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
@@ -373,8 +374,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showAntifraud = matchAntifraud && (role === 'admin' || role === 'advertiser');
   const showSettings = matchSettings;
   const showTeam = matchTeam && (role === 'advertiser' || role === 'admin');
-  const showNews = matchNews && !matchNewsCreate;
+  const showNews = matchNews && !matchNewsCreate && !matchNewsEdit;
   const showNewsCreate = matchNewsCreate && (role === 'admin' || role === 'advertiser');
+  const showNewsEdit = matchNewsEdit && (role === 'admin' || role === 'advertiser');
 
   const renderContent = () => {
     if (showSettings) {
@@ -412,6 +414,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showNewsCreate) {
       return <NewsComposer embedded />;
+    }
+
+    if (showNewsEdit && newsEditParams?.newsId) {
+      return <NewsComposer embedded editId={newsEditParams.newsId} />;
     }
 
     if (showNews) {

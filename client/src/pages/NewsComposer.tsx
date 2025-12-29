@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,10 @@ interface CurrentUser {
 
 interface NewsComposerProps {
   embedded?: boolean;
+  editId?: string;
 }
 
-export default function NewsComposer({ embedded = false }: NewsComposerProps) {
+export default function NewsComposer({ embedded = false, editId }: NewsComposerProps) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -34,6 +35,7 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
   const [isPublished, setIsPublished] = useState(true);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const { data: currentUser } = useQuery<CurrentUser>({
     queryKey: ["/api/user"],
@@ -43,6 +45,29 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
       return res.json();
     },
   });
+
+  const { data: existingPost } = useQuery<any>({
+    queryKey: ["/api/news", editId],
+    queryFn: async () => {
+      const res = await fetch(`/api/news/${editId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Not found");
+      return res.json();
+    },
+    enabled: !!editId,
+  });
+
+  useEffect(() => {
+    if (existingPost && !initialized) {
+      setTitle(existingPost.title || "");
+      setBody(existingPost.body || "");
+      setCategory(existingPost.category || "update");
+      setTargetAudience(existingPost.targetAudience || "all");
+      setIsPinned(existingPost.isPinned || false);
+      setIsPublished(existingPost.isPublished !== false);
+      setImageUrl(existingPost.imageUrl || null);
+      setInitialized(true);
+    }
+  }, [existingPost, initialized]);
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -65,6 +90,38 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
       toast({
         title: "Ошибка",
         description: error.message || "Не удалось создать новость",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch(`/api/news/${editId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      toast({
+        title: "Успешно",
+        description: "Новость обновлена",
+      });
+      if (currentUser?.role) {
+        setLocation(`/dashboard/${currentUser.role}/news`);
+      } else {
+        setLocation("/dashboard/admin/news");
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось обновить новость",
         variant: "destructive",
       });
     },
@@ -146,7 +203,7 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
       return;
     }
 
-    createMutation.mutate({
+    const data = {
       title,
       body,
       category,
@@ -154,8 +211,17 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
       isPinned,
       isPublished,
       imageUrl,
-    });
+    };
+
+    if (editId) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
+    }
   };
+
+  const isEditing = !!editId;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const isAdmin = currentUser?.role === "admin";
 
@@ -316,19 +382,21 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
             </Button>
             <Button
               type="submit"
-              disabled={createMutation.isPending || !title.trim() || !body.trim()}
+              disabled={isPending || !title.trim() || !body.trim()}
               data-testid="submit-button"
             >
-              {createMutation.isPending ? (
+              {isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              Опубликовать
+              {isEditing ? "Сохранить" : "Опубликовать"}
             </Button>
           </div>
         </form>
   );
+
+  const pageTitle = isEditing ? "Редактировать новость" : "Создать новость";
 
   if (embedded) {
     return (
@@ -337,7 +405,7 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
           <Button variant="ghost" size="icon" onClick={goBack} data-testid="back-button">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold text-foreground">Создать новость</h1>
+          <h1 className="text-2xl font-bold text-foreground">{pageTitle}</h1>
         </div>
         {content}
       </div>
@@ -351,7 +419,7 @@ export default function NewsComposer({ embedded = false }: NewsComposerProps) {
           <Button variant="ghost" size="icon" onClick={goBack} data-testid="back-button">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold text-foreground">Создать новость</h1>
+          <h1 className="text-2xl font-bold text-foreground">{pageTitle}</h1>
         </div>
         {content}
       </div>

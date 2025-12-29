@@ -1,10 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Newspaper, Plus, Pin, Calendar } from "lucide-react";
+import { Newspaper, Plus, Pin, Calendar, Edit2, Trash2, MoreVertical } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface NewsPost {
   id: string;
@@ -27,6 +30,9 @@ interface CurrentUser {
 }
 
 export function NewsFeed() {
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: currentUser } = useQuery<CurrentUser>({
     queryKey: ["/api/user"],
@@ -45,6 +51,31 @@ export function NewsFeed() {
       return res.json();
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/news/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      toast({ title: "Успешно", description: "Новость удалена" });
+    },
+    onError: () => {
+      toast({ title: "Ошибка", description: "Не удалось удалить новость", variant: "destructive" });
+    },
+  });
+
+  const canEditNews = (post: NewsPost) => {
+    if (!currentUser) return false;
+    if (currentUser.role === "admin") return true;
+    if (currentUser.role === "advertiser" && post.authorId === currentUser.id) return true;
+    return false;
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -137,9 +168,59 @@ export function NewsFeed() {
                       {post.authorRole === "admin" ? "Платформа" : "Рекламодатель"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    {post.publishedAt && format(new Date(post.publishedAt), "d MMM yyyy", { locale: ru })}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {post.publishedAt && format(new Date(post.publishedAt), "d MMM yyyy", { locale: ru })}
+                    </div>
+                    
+                    {canEditNews(post) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" data-testid={`news-actions-${post.id}`}>
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setLocation(`/dashboard/${currentUser?.role}/news/edit/${post.id}`)}
+                            data-testid={`edit-news-${post.id}`}
+                          >
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            Редактировать
+                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className="text-red-500 focus:text-red-500"
+                                data-testid={`delete-news-${post.id}`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Удалить
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Удалить новость?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Эта новость будет удалена безвозвратно. Это действие нельзя отменить.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteMutation.mutate(post.id)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                >
+                                  Удалить
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
                 
