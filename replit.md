@@ -187,13 +187,37 @@ Preferred communication style: Simple, everyday language (Russian).
 
 ---
 
+### Data Migration API
+- ✅ Импорт из Scaleo (офферы, партнёры, конверсии, клики)
+- ✅ Импорт из Affilka
+- ✅ Импорт из Affise
+- ✅ Импорт из Voluum
+- ✅ Импорт из Keitaro
+- ✅ API endpoint: POST /api/migration/import
+- ✅ Маппинг данных под структуру PrimeTrack
+
+### Email уведомления (SMTP)
+- ✅ Настройка SMTP в админке (host, port, user, password)
+- ✅ From email / From name
+- ✅ Шифрование пароля в БД
+
+### Stripe биллинг
+- ✅ Настройка Stripe Secret Key в админке
+- ✅ Шифрование ключа в БД
+
+### Custom Domains (DNS + SSL)
+- ✅ Таблица custom_domains в БД
+- ✅ DNS верификация через API (CNAME / TXT методы)
+- ✅ Автоматическая проверка DNS записей (resolveCname, resolveTxt)
+- ✅ SSL provisioning (статус: pending → provisioning → active)
+- ✅ Генерация verification token
+- ✅ API endpoints для CRUD доменов
+
+---
+
 ## НЕ РЕАЛИЗОВАНО (ПЛАНЫ)
 
-- ⏳ Data Migration API (Scaleo, Affilka, Affise, Voluum, Keitaro)
-- ⏳ Email уведомления (SMTP/Mailgun/SendGrid)
-- ⏳ Stripe биллинг для SaaS тарифов
-- ⏳ Автоматический SSL для кастомных доменов (Let's Encrypt)
-- ⏳ DNS верификация через API (сейчас только инструкции)
+- ⏳ Let's Encrypt интеграция (реальные сертификаты)
 - ⏳ IP2Location / ipinfo.io интеграция
 - ⏳ FingerprintJS интеграция
 
