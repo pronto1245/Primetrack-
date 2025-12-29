@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { storage } from "../storage";
 import type { InsertClick } from "@shared/schema";
+import { ipIntelService } from "./ip-intel-service";
 
 interface ClickParams {
   offerId: string;
@@ -14,6 +15,8 @@ interface ClickParams {
   userAgent?: string;
   referer?: string;
   geo?: string;
+  visitorId?: string;
+  fingerprintConfidence?: number;
 }
 
 interface ClickResult {
@@ -80,13 +83,21 @@ export class ClickHandler {
     // Parse User-Agent for device/os/browser/bot detection
     const parsedUA = this.parseUserAgent(params.userAgent);
     
+    // Get enhanced IP intelligence
+    const ipIntel = params.ip ? await ipIntelService.getIpIntelligence(params.ip) : null;
+    
+    // Use IP intel for GEO if available, otherwise use provided geo
+    const detectedGeo = ipIntel?.country || params.geo;
+    
     // Check if GEO matches offer allowed GEOs
-    const isGeoMatch = this.checkGeoMatch(params.geo, offer.geo);
+    const isGeoMatch = this.checkGeoMatch(detectedGeo, offer.geo);
     
     // Check if this click is unique (first from this IP+offer+publisher today)
     const isUnique = await this.checkUniqueness(params.ip, params.offerId, params.partnerId);
     
-    const fraudCheck = this.performBasicFraudCheck(params.ip, params.userAgent);
+    // Combine basic fraud check with IP intel
+    const basicFraudCheck = this.performBasicFraudCheck(params.ip, params.userAgent);
+    const fraudCheck = this.mergeFraudChecks(basicFraudCheck, ipIntel);
     
     const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params);
     
