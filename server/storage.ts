@@ -2566,6 +2566,11 @@ export class DatabaseStorage implements IStorage {
     publisherId?: string;
     limit?: number;
   }): Promise<Click[]> {
+    // SECURITY: Require either advertiserId or offerId to prevent cross-tenant leakage
+    if (!filters.advertiserId && !filters.offerId) {
+      return []; // No tenant scope = no data
+    }
+    
     const conditions: any[] = [eq(clicks.isSuspicious, true)];
     
     if (filters.advertiserId) {
@@ -2579,6 +2584,15 @@ export class DatabaseStorage implements IStorage {
       }
     }
     if (filters.offerId) {
+      // Validate offerId belongs to advertiserId if both provided
+      if (filters.advertiserId) {
+        const offerExists = await db.select({ id: offers.id }).from(offers)
+          .where(and(eq(offers.id, filters.offerId), eq(offers.advertiserId, filters.advertiserId)))
+          .limit(1);
+        if (offerExists.length === 0) {
+          return []; // Offer doesn't belong to this advertiser
+        }
+      }
       conditions.push(eq(clicks.offerId, filters.offerId));
     }
     if (filters.publisherId) {

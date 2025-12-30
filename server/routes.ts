@@ -4141,19 +4141,32 @@ export async function registerRoutes(
       if (role === "advertiser") {
         filters.advertiserId = userId;
       } else if (role === "admin") {
-        // Admins must provide advertiserId filter to avoid exposing all data
+        // Admins MUST specify advertiserId OR offerId to prevent cross-tenant exposure
+        // Check BEFORE allowing any other filters
+        if (!advertiserId && !offerId) {
+          return res.json([]);
+        }
         if (advertiserId) {
           filters.advertiserId = advertiserId as string;
         }
-        // Apply a reasonable default limit for admins without advertiserId
-        if (!advertiserId && !offerId) {
-          filters.limit = 50; // Limit results when no filters applied
+        if (offerId) {
+          filters.offerId = offerId as string;
         }
       }
 
-      if (offerId) filters.offerId = offerId as string;
-      if (publisherId) filters.publisherId = publisherId as string;
-      if (limit) filters.limit = parseInt(limit as string);
+      // Only add publisherId filter if tenant scope is already set
+      if (publisherId && filters.advertiserId) {
+        filters.publisherId = publisherId as string;
+      }
+      
+      // For advertisers, allow offerId filter within their scope
+      if (role === "advertiser" && offerId) {
+        filters.offerId = offerId as string;
+      }
+      
+      // Parse limit with caps
+      const requestedLimit = limit ? parseInt(limit as string) : 100;
+      filters.limit = Math.min(requestedLimit, 500);
 
       const suspiciousClicks = await storage.getSuspiciousClicks(filters);
       res.json(suspiciousClicks);
