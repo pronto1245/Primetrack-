@@ -44,6 +44,7 @@ import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
 import NewsComposer from "@/pages/NewsComposer";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
+import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -600,6 +601,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
             </>
           )}
           <div className="text-xs font-mono text-muted-foreground">{t('dashboard.server')}: US-EAST-1</div>
+          <SubscriptionBadge role={role} />
           <NotificationBell role={role} />
           <ThemeToggle />
           <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
