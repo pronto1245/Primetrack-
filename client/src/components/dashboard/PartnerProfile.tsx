@@ -201,24 +201,24 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-muted/50 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-blue-400 mb-1">
                   <MousePointer className="w-4 h-4" />
                   <span className="text-xs uppercase">Клики</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{partner.clicks.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-blue-400">{partner.clicks.toLocaleString()}</p>
               </div>
               
-              <div className="bg-muted/50 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-purple-400 mb-1">
                   <Target className="w-4 h-4" />
                   <span className="text-xs uppercase">Конверсии</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{partner.conversions.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-purple-400">{partner.conversions.toLocaleString()}</p>
               </div>
               
-              <div className="bg-muted/50 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-emerald-400 mb-1">
                   <DollarSign className="w-4 h-4" />
                   <span className="text-xs uppercase">Выплаты</span>
                 </div>

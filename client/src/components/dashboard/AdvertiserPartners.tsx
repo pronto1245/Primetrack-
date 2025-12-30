@@ -278,8 +278,7 @@ export function AdvertiserPartners() {
                             <Button
                               data-testid={`button-profile-${partner.id}`}
                               size="sm"
-                              variant="outline"
-                              className="border-border h-7 text-xs"
+                              className="bg-blue-600 hover:bg-blue-700 h-7 text-xs"
                             >
                               <Eye className="w-3 h-3 mr-1" />
                               Профиль
