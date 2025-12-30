@@ -96,6 +96,10 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Fingerprint анализ
 - ✅ Click-spam (velocity checks)
 - ✅ Дубликаты лидов
+- ✅ Автоматическая пометка подозрительного трафика (isSuspicious)
+- ✅ Уведомления рекламодателю о подозрительных кликах
+- ✅ UI вкладка "Подозрительные" в AntifraudDashboard
+- ✅ API endpoint `/api/antifraud/suspicious-clicks`
 - ⚠️ Доступ: Admin, Advertiser (Publisher НЕ видит)
 
 ### Финансы
