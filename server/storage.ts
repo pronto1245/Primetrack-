@@ -1658,6 +1658,50 @@ export class DatabaseStorage implements IStorage {
     return { clicks: totalClicks, conversions: totalConversions, payout: totalPayout };
   }
 
+  async getPublisherOfferAccess(publisherId: string, offerId: string): Promise<PublisherOfferAccess | undefined> {
+    const [access] = await db.select().from(publisherOffers)
+      .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)));
+    return access;
+  }
+
+  async getPublisherOfferStats(publisherId: string, offerId: string): Promise<{ clicks: number; conversions: number; revenue: number }> {
+    const offerClicks = await db.select().from(clicks)
+      .where(and(eq(clicks.offerId, offerId), eq(clicks.publisherId, publisherId)));
+    
+    const offerConvs = await db.select().from(conversions)
+      .where(and(eq(conversions.offerId, offerId), eq(conversions.publisherId, publisherId)));
+    
+    const revenue = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost || "0"), 0);
+    
+    return { 
+      clicks: offerClicks.length, 
+      conversions: offerConvs.length, 
+      revenue 
+    };
+  }
+
+  async updatePublisherOfferAccess(publisherId: string, offerId: string, status: string): Promise<PublisherOfferAccess | null> {
+    if (status === "approved") {
+      // Check if already exists
+      const existing = await this.getPublisherOfferAccess(publisherId, offerId);
+      if (existing) {
+        return existing;
+      }
+      // Create new access
+      const [created] = await db.insert(publisherOffers).values({
+        publisherId,
+        offerId
+      }).returning();
+      return created;
+    } else if (status === "revoked" || status === "rejected") {
+      // Remove access
+      await db.delete(publisherOffers)
+        .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)));
+      return null;
+    }
+    return null;
+  }
+
   // ============================================
   // ADMIN USER MANAGEMENT
   // ============================================

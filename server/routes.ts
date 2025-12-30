@@ -2226,6 +2226,109 @@ export async function registerRoutes(
     }
   });
 
+  // Get partner profile with full details and metrics
+  app.get("/api/advertiser/partners/:publisherId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { publisherId } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      // Get publisher user data
+      const publisher = await storage.getUser(publisherId);
+      if (!publisher) {
+        return res.status(404).json({ message: "Publisher not found" });
+      }
+      
+      // Get relation status
+      const relation = await storage.getPublisherAdvertiserRelation(publisherId, advertiserId);
+      if (!relation) {
+        return res.status(404).json({ message: "Partner relation not found" });
+      }
+      
+      // Get stats
+      const stats = await storage.getPublisherStatsForAdvertiser(publisherId, advertiserId);
+      
+      res.json({
+        id: publisher.id,
+        username: publisher.username,
+        email: publisher.email,
+        telegram: publisher.telegram,
+        phone: publisher.phone,
+        companyName: publisher.companyName,
+        createdAt: publisher.createdAt,
+        status: relation.status,
+        relationCreatedAt: relation.createdAt,
+        clicks: stats.clicks,
+        conversions: stats.conversions,
+        payout: stats.payout
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch partner details" });
+    }
+  });
+
+  // Get offers connected to partner with their status
+  app.get("/api/advertiser/partners/:publisherId/offers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { publisherId } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      // Verify relation exists
+      const relation = await storage.getPublisherAdvertiserRelation(publisherId, advertiserId);
+      if (!relation) {
+        return res.status(404).json({ message: "Partner relation not found" });
+      }
+      
+      // Get all offers for this advertiser
+      const offers = await storage.getOffersByAdvertiser(advertiserId);
+      
+      // Get publisher's access to each offer
+      const result = await Promise.all(offers.map(async (offer) => {
+        const access = await storage.getPublisherOfferAccess(publisherId, offer.id);
+        const stats = await storage.getPublisherOfferStats(publisherId, offer.id);
+        
+        return {
+          id: offer.id,
+          name: offer.name,
+          status: offer.status,
+          accessStatus: access?.status || "not_requested",
+          payout: offer.payoutAmount,
+          payoutType: offer.payoutType,
+          clicks: stats.clicks,
+          conversions: stats.conversions,
+          revenue: stats.revenue
+        };
+      }));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch partner offers" });
+    }
+  });
+
+  // Update partner's offer access status
+  app.put("/api/advertiser/partners/:publisherId/offers/:offerId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { publisherId, offerId } = req.params;
+      const { status } = req.body;
+      const advertiserId = req.session.userId!;
+      
+      if (!["approved", "rejected", "revoked"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      // Verify advertiser owns this offer
+      const offer = await storage.getOffer(offerId);
+      if (!offer || offer.advertiserId !== advertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updated = await storage.updatePublisherOfferAccess(publisherId, offerId, status);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update offer access" });
+    }
+  });
+
   // Get/Generate registration link for advertiser
   app.get("/api/advertiser/registration-link", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
