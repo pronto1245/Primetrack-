@@ -48,8 +48,15 @@ export async function sendPasswordResetEmail(to: string, resetToken: string, use
     const appDomain = process.env.APP_DOMAIN || 'https://primetrack.pro';
     const resetLink = `${appDomain}/reset-password?token=${resetToken}`;
     
+    // Use verified from_email or Resend's test email for development
+    const verifiedFrom = fromEmail && fromEmail.includes('@') && !fromEmail.includes('galactmail') 
+      ? fromEmail 
+      : 'PrimeTrack <onboarding@resend.dev>';
+    
+    console.log('[email] Sending from:', verifiedFrom, 'to:', to);
+    
     const result = await client.emails.send({
-      from: fromEmail || 'PrimeTrack <noreply@primetrack.pro>',
+      from: verifiedFrom,
       to: [to],
       subject: 'Восстановление пароля - PrimeTrack',
       html: `
