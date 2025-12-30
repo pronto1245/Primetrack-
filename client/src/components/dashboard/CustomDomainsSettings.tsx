@@ -244,7 +244,14 @@ export function CustomDomainsSettings() {
                         TXT + CNAME записи
                       </Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Для CDN/прокси: добавьте TXT запись для верификации + CNAME для трафика
+                        Для CDN/прокси: добавьте две записи:
+                      </p>
+                      <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                        <div><code className="bg-muted px-1 rounded">TXT: _primetrack.ваш-домен → токен</code></div>
+                        <div><code className="bg-muted px-1 rounded">CNAME: ваш-домен → tracking.primetrack.pro</code></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Токен будет показан после добавления домена
                       </p>
                     </div>
                   </div>
