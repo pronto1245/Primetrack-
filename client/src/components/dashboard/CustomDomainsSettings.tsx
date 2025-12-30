@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw, Copy, Shield, Globe, Star, Check, AlertTriangle, Clock, X } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Copy, Shield, Globe, Star, Check, AlertTriangle, Clock, X, ExternalLink } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -118,7 +118,7 @@ export function CustomDomainsSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
-      toast({ title: "Домен подтверждён", description: "SSL сертификат будет выпущен автоматически" });
+      toast({ title: "Домен подтверждён", description: "Настройте SSL через Cloudflare" });
     },
     onError: (error: Error) => {
       toast({ title: "Верификация не прошла", description: error.message, variant: "destructive" });
@@ -152,6 +152,13 @@ export function CustomDomainsSettings() {
           <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">
             <Shield className="w-3 h-3 mr-1" />
             SSL активен
+          </Badge>
+        );
+      case "pending_external":
+        return (
+          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
+            <ExternalLink className="w-3 h-3 mr-1" />
+            Настройте SSL в Cloudflare
           </Badge>
         );
       case "provisioning":

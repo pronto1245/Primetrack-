@@ -85,11 +85,11 @@ class DomainService {
 
       if (isValid) {
         const verifiedAt = new Date();
-        // SSL is handled by Replit/Cloudflare proxy, so we mark domain as active immediately
+        // SSL must be configured externally via Cloudflare
         await storage.updateCustomDomain(domain.id, {
           isVerified: true,
           verifiedAt,
-          sslStatus: "active", // Replit/Cloudflare handles SSL at proxy level
+          sslStatus: "pending_external", // User must configure SSL via Cloudflare
           lastError: null,
         });
 
@@ -139,11 +139,11 @@ class DomainService {
       }
 
       const verifiedAt = new Date();
-      // SSL is handled by Replit/Cloudflare proxy, so we mark domain as active immediately
+      // SSL must be configured externally via Cloudflare
       await storage.updateCustomDomain(domain.id, {
         isVerified: true,
         verifiedAt,
-        sslStatus: "active", // Replit/Cloudflare handles SSL at proxy level
+        sslStatus: "pending_external", // User must configure SSL via Cloudflare
         lastError: null,
       });
 
@@ -156,7 +156,7 @@ class DomainService {
     }
   }
 
-  // SSL provisioning via ACME is disabled - Replit/Cloudflare handles SSL at proxy level
+  // SSL provisioning via ACME is disabled - requires external configuration via Cloudflare
   // Keeping method for potential future use with dedicated servers
   private async provisionSsl(domainId: string): Promise<void> {
     const domain = await storage.getCustomDomain(domainId);
