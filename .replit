@@ -50,3 +50,6 @@ integrations = ["javascript_object_storage:2.0.0", "resend:1.0.0"]
 
 [userenv.production]
 APP_DOMAIN = "https://primetrack.pro"
+
+[userenv.shared]
+PLATFORM_DOMAIN = "primetrack.pro"

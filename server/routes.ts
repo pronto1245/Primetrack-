@@ -2442,12 +2442,12 @@ export async function registerRoutes(
         await storage.setAdvertiserReferralCode(req.session.userId!, referralCode);
       }
       
-      // Use APP_DOMAIN env or fallback to request host
-      const appDomain = process.env.APP_DOMAIN || process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : null;
+      // Use PLATFORM_DOMAIN or APP_DOMAIN env or fallback to request host
+      const platformDomain = process.env.PLATFORM_DOMAIN || process.env.APP_DOMAIN;
       let baseUrl: string;
       
-      if (appDomain) {
-        baseUrl = appDomain.startsWith('http') ? appDomain : `https://${appDomain}`;
+      if (platformDomain) {
+        baseUrl = platformDomain.startsWith('http') ? platformDomain : `https://${platformDomain}`;
       } else {
         const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
         const host = req.headers['x-forwarded-host'] || req.headers.host || req.hostname;
