@@ -30,7 +30,9 @@ import {
   type CustomDomain, type InsertCustomDomain, customDomains,
   type AcmeAccount, acmeAccounts,
   type AcmeChallenge, acmeChallenges,
-  type SubscriptionPlan, subscriptionPlans
+  type SubscriptionPlan, subscriptionPlans,
+  type AdvertiserSubscription, type InsertAdvertiserSubscription, advertiserSubscriptions,
+  type SubscriptionPayment, type InsertSubscriptionPayment, subscriptionPayments
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -3104,6 +3106,113 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(subscriptionPlans)
       .where(eq(subscriptionPlans.isActive, true))
       .orderBy(subscriptionPlans.sortOrder);
+  }
+
+  async getSubscriptionPlanById(id: string): Promise<SubscriptionPlan | undefined> {
+    const [plan] = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.id, id));
+    return plan;
+  }
+
+  // ============================================
+  // ADVERTISER SUBSCRIPTIONS
+  // ============================================
+
+  async getAdvertiserSubscription(advertiserId: string): Promise<AdvertiserSubscription | undefined> {
+    const [sub] = await db.select().from(advertiserSubscriptions)
+      .where(eq(advertiserSubscriptions.advertiserId, advertiserId));
+    return sub;
+  }
+
+  async createAdvertiserSubscription(data: InsertAdvertiserSubscription): Promise<AdvertiserSubscription> {
+    const [created] = await db.insert(advertiserSubscriptions).values(data).returning();
+    return created;
+  }
+
+  async updateAdvertiserSubscription(id: string, data: Partial<InsertAdvertiserSubscription>): Promise<AdvertiserSubscription | undefined> {
+    const [updated] = await db.update(advertiserSubscriptions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(advertiserSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async createTrialSubscription(advertiserId: string): Promise<AdvertiserSubscription> {
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30); // 30-day trial
+    
+    const [created] = await db.insert(advertiserSubscriptions).values({
+      advertiserId,
+      status: "trial",
+      trialEndsAt,
+      billingCycle: "monthly",
+    }).returning();
+    return created;
+  }
+
+  async getExpiredTrials(): Promise<AdvertiserSubscription[]> {
+    return db.select().from(advertiserSubscriptions)
+      .where(and(
+        eq(advertiserSubscriptions.status, "trial"),
+        lte(advertiserSubscriptions.trialEndsAt, new Date())
+      ));
+  }
+
+  async getExpiredSubscriptions(): Promise<AdvertiserSubscription[]> {
+    return db.select().from(advertiserSubscriptions)
+      .where(and(
+        eq(advertiserSubscriptions.status, "active"),
+        lte(advertiserSubscriptions.currentPeriodEnd, new Date())
+      ));
+  }
+
+  // ============================================
+  // SUBSCRIPTION PAYMENTS
+  // ============================================
+
+  async createSubscriptionPayment(data: InsertSubscriptionPayment): Promise<SubscriptionPayment> {
+    const [created] = await db.insert(subscriptionPayments).values(data).returning();
+    return created;
+  }
+
+  async getSubscriptionPaymentById(id: string): Promise<SubscriptionPayment | undefined> {
+    const [payment] = await db.select().from(subscriptionPayments).where(eq(subscriptionPayments.id, id));
+    return payment;
+  }
+
+  async getSubscriptionPaymentByHash(txHash: string): Promise<SubscriptionPayment | undefined> {
+    const [payment] = await db.select().from(subscriptionPayments).where(eq(subscriptionPayments.txHash, txHash));
+    return payment;
+  }
+
+  async updateSubscriptionPayment(id: string, data: Partial<InsertSubscriptionPayment>): Promise<SubscriptionPayment | undefined> {
+    const [updated] = await db.update(subscriptionPayments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(subscriptionPayments.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getAdvertiserPayments(advertiserId: string): Promise<SubscriptionPayment[]> {
+    return db.select().from(subscriptionPayments)
+      .where(eq(subscriptionPayments.advertiserId, advertiserId))
+      .orderBy(desc(subscriptionPayments.createdAt));
+  }
+
+  async getPendingPayments(): Promise<SubscriptionPayment[]> {
+    return db.select().from(subscriptionPayments)
+      .where(and(
+        eq(subscriptionPayments.status, "pending"),
+        gte(subscriptionPayments.expiresAt, new Date())
+      ));
+  }
+
+  async expireOldPayments(): Promise<void> {
+    await db.update(subscriptionPayments)
+      .set({ status: "expired", updatedAt: new Date() })
+      .where(and(
+        eq(subscriptionPayments.status, "pending"),
+        lte(subscriptionPayments.expiresAt, new Date())
+      ));
   }
 }
 
