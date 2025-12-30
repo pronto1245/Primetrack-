@@ -219,9 +219,17 @@ export function CustomDomainsSettings() {
                   Рекомендуется использовать поддомен, например: track.yourdomain.com
                 </p>
               </div>
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-2">
                 <p className="text-xs text-blue-400">
-                  <strong>Важно:</strong> Для SSL сертификата добавьте домен в Cloudflare с включенным проксированием (оранжевое облачко). Cloudflare предоставит бесплатный SSL автоматически.
+                  <strong>Для SSL через Cloudflare:</strong>
+                </p>
+                <ol className="text-xs text-blue-400 list-decimal list-inside space-y-1">
+                  <li>Добавьте домен в Cloudflare</li>
+                  <li>Смените NS-серверы у регистратора на Cloudflare NS</li>
+                  <li>Добавьте CNAME запись с включенным проксированием (оранжевое облачко)</li>
+                </ol>
+                <p className="text-xs text-muted-foreground">
+                  Cloudflare предоставит бесплатный SSL автоматически
                 </p>
               </div>
               <div className="space-y-3">
