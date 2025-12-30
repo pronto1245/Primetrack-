@@ -3,6 +3,7 @@ import dns from "dns";
 import { promisify } from "util";
 import { storage } from "../storage";
 import type { CustomDomain } from "@shared/schema";
+import { tlsChecker, type SslStatus } from "./tls-checker";
 
 const resolver = new dns.Resolver();
 resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
@@ -156,61 +157,26 @@ class DomainService {
     }
   }
 
-  // SSL provisioning via ACME is disabled - requires external configuration via Cloudflare
-  // Keeping method for potential future use with dedicated servers
-  private async provisionSsl(domainId: string): Promise<void> {
-    const domain = await storage.getCustomDomain(domainId);
-    if (!domain || !domain.isVerified) return;
-
-    try {
-      const { acmeService } = await import("./acme-service");
-      const result = await acmeService.provisionCertificate(domainId);
-      
-      if (result.success) {
-        console.log(`[Domain] SSL certificate issued via Let's Encrypt for ${domain.domain}`);
-        return;
-      }
-      
-      console.error(`[Domain] ACME provisioning failed for ${domain.domain}: ${result.error}`);
-      
-      await storage.updateCustomDomain(domainId, {
-        sslStatus: "failed",
-        lastError: result.error || "Certificate provisioning failed",
-      });
-    } catch (error: any) {
-      console.error(`[Domain] SSL provisioning error for ${domain.domain}:`, error.message);
-      
-      await storage.updateCustomDomain(domainId, {
-        sslStatus: "failed",
-        lastError: error.message || "SSL provisioning error",
-      });
-    }
-  }
-
-  async retryProvisionSsl(domainId: string): Promise<{ success: boolean; error?: string }> {
+  async checkSsl(domainId: string): Promise<{ 
+    success: boolean; 
+    status: SslStatus;
+    error?: string;
+    expiresAt?: Date;
+    issuer?: string;
+  }> {
     const domain = await storage.getCustomDomain(domainId);
     if (!domain) {
-      return { success: false, error: "Domain not found" };
+      return { success: false, status: "unverified", error: "Domain not found" };
     }
     if (!domain.isVerified) {
-      return { success: false, error: "Domain must be verified first" };
+      return { success: false, status: "unverified", error: "Domain must be verified first" };
     }
 
-    await storage.updateCustomDomain(domainId, {
-      sslStatus: "provisioning",
-      lastError: null,
-    });
-
-    try {
-      await this.provisionSsl(domainId);
-      const updated = await storage.getCustomDomain(domainId);
-      return { 
-        success: updated?.sslStatus === "active",
-        error: updated?.lastError || undefined
-      };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+    console.log(`[Domain] Checking SSL for ${domain.domain}...`);
+    const result = await tlsChecker.checkDomainSsl(domainId);
+    
+    console.log(`[Domain] SSL check result for ${domain.domain}: ${result.status}`);
+    return result;
   }
 
   getTrackingUrl(advertiserId: string, offerId: string, landingId: string, customDomain?: string): string {
