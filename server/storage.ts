@@ -525,18 +525,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async archiveOffer(id: string): Promise<Offer | undefined> {
-    // Archive the offer
+    // Archive the offer - publisher access is automatically blocked 
+    // because getActiveOffers and hasPublisherAccessToOffer check archived flag
     const [offer] = await db.update(offers)
       .set({ archived: true, archivedAt: new Date() })
       .where(eq(offers.id, id))
       .returning();
-    
-    if (offer) {
-      // Deactivate all publisher access to this offer
-      await db.update(publisherOffers)
-        .set({ status: "archived" })
-        .where(eq(publisherOffers.offerId, id));
-    }
     
     return offer;
   }
@@ -547,13 +541,6 @@ export class DatabaseStorage implements IStorage {
       .set({ archived: false, archivedAt: null })
       .where(eq(offers.id, id))
       .returning();
-    
-    if (offer) {
-      // Reactivate publisher access (restore to approved status)
-      await db.update(publisherOffers)
-        .set({ status: "approved" })
-        .where(and(eq(publisherOffers.offerId, id), eq(publisherOffers.status, "archived")));
-    }
     
     return offer;
   }
@@ -916,6 +903,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean> {
+    // First check if offer exists and is not archived
+    const offer = await this.getOffer(offerId);
+    if (!offer || offer.archived) {
+      return false;
+    }
+    
     const access = await this.getPublisherOffer(offerId, publisherId);
     return !!access;
   }

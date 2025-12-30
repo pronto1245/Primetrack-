@@ -1077,8 +1077,8 @@ export async function registerRoutes(
     }
   });
 
-  // Удалить оффер
-  app.delete("/api/offers/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  // Архивировать оффер
+  app.patch("/api/offers/:id/archive", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1089,11 +1089,47 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
 
-      await storage.deleteOffer(req.params.id);
-      res.json({ success: true });
+      const archived = await storage.archiveOffer(req.params.id);
+      res.json(archived);
     } catch (error) {
-      console.error("Delete offer error:", error);
-      res.status(500).json({ message: "Failed to delete offer" });
+      console.error("Archive offer error:", error);
+      res.status(500).json({ message: "Failed to archive offer" });
+    }
+  });
+
+  // Восстановить оффер из архива
+  app.patch("/api/offers/:id/restore", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      if (offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const restored = await storage.restoreOffer(req.params.id);
+      res.json(restored);
+    } catch (error) {
+      console.error("Restore offer error:", error);
+      res.status(500).json({ message: "Failed to restore offer" });
+    }
+  });
+
+  // Получить архивированные офферы
+  app.get("/api/offers/archived", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const archivedOffers = await storage.getArchivedOffersByAdvertiser(req.session.userId!);
+      const offersWithLandings = await Promise.all(
+        archivedOffers.map(async (offer) => {
+          const landings = await storage.getOfferLandings(offer.id);
+          return { ...offer, landings };
+        })
+      );
+      res.json(offersWithLandings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch archived offers" });
     }
   });
 
