@@ -2285,6 +2285,7 @@ export async function registerRoutes(
       const result = await Promise.all(offers.map(async (offer) => {
         const access = await storage.getPublisherOfferAccess(publisherId, offer.id);
         const stats = await storage.getPublisherOfferStats(publisherId, offer.id);
+        const landings = await storage.getOfferLandings(offer.id);
         
         // Determine access status:
         // 1. If has explicit access record -> approved
@@ -2297,12 +2298,18 @@ export async function registerRoutes(
           accessStatus = "approved";
         }
         
+        // Get payout from offer or first landing
+        let payout = offer.partnerPayout;
+        if (!payout && landings.length > 0) {
+          payout = landings[0].partnerPayout;
+        }
+        
         return {
           id: offer.id,
           name: offer.name,
           status: offer.status,
           accessStatus,
-          payout: offer.partnerPayout,
+          payout,
           payoutModel: offer.payoutModel,
           clicks: stats.clicks,
           conversions: stats.conversions,

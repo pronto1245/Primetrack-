@@ -261,7 +261,9 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                       </td>
                       <td className="px-4 py-3">{accessBadge(offer.accessStatus)}</td>
                       <td className="px-4 py-3 text-right">
-                        <span className="text-emerald-400 font-mono">${offer.payout || "—"}</span>
+                        <span className="text-emerald-400 font-mono">
+                          {offer.payout ? `от $${offer.payout}` : "—"}
+                        </span>
                         <span className="text-muted-foreground text-xs ml-1">/{offer.payoutModel}</span>
                       </td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{offer.clicks.toLocaleString()}</td>
