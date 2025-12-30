@@ -1435,28 +1435,6 @@ export async function registerRoutes(
   });
 
   // ============================================
-  // ACME HTTP-01 CHALLENGE ENDPOINT
-  // ============================================
-
-  // Let's Encrypt HTTP-01 challenge verification (public, no auth required)
-  app.get("/.well-known/acme-challenge/:token", async (req: Request, res: Response) => {
-    try {
-      const { token } = req.params;
-      const { acmeService } = await import("./services/acme-service");
-      const response = await acmeService.getChallengeResponse(token);
-      
-      if (response) {
-        res.type("text/plain").send(response);
-      } else {
-        res.status(404).send("Challenge not found");
-      }
-    } catch (error: any) {
-      console.error("[ACME] Challenge lookup error:", error.message);
-      res.status(500).send("Challenge lookup failed");
-    }
-  });
-
-  // ============================================
   // MINI-TRACKER ENDPOINTS
   // ============================================
 
