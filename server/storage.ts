@@ -24,6 +24,7 @@ import {
   type AdvertiserStaff, type InsertAdvertiserStaff, advertiserStaff,
   type Notification, type InsertNotification, notifications,
   type NewsPost, type InsertNewsPost, newsPosts,
+  type NewsRead, newsReads,
   type WebhookEndpoint, type InsertWebhookEndpoint, webhookEndpoints,
   type WebhookLog, type InsertWebhookLog, webhookLogs,
   type CustomDomain, type InsertCustomDomain, customDomains,
@@ -357,6 +358,10 @@ export interface IStorage {
   getNewsPost(id: string): Promise<NewsPost | undefined>;
   getNewsFeed(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]>;
   getPinnedNews(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]>;
+  
+  // News Read Tracking
+  getUnreadNewsCount(userId: string, userRole: string, advertiserId?: string): Promise<number>;
+  markNewsAsRead(userId: string, newsIds: string[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2824,6 +2829,42 @@ export class DatabaseStorage implements IStorage {
   async getPinnedNews(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]> {
     const allNews = await this.getNewsFeed(userId, userRole, advertiserId);
     return allNews.filter(n => n.isPinned);
+  }
+
+  async getUnreadNewsCount(userId: string, userRole: string, advertiserId?: string): Promise<number> {
+    const allNews = await this.getNewsFeed(userId, userRole, advertiserId);
+    if (allNews.length === 0) return 0;
+    
+    const newsIds = allNews.map(n => n.id);
+    const readNews = await db.select({ newsId: newsReads.newsId })
+      .from(newsReads)
+      .where(and(
+        eq(newsReads.userId, userId),
+        inArray(newsReads.newsId, newsIds)
+      ));
+    
+    const readIds = new Set(readNews.map(r => r.newsId));
+    return newsIds.filter(id => !readIds.has(id)).length;
+  }
+
+  async markNewsAsRead(userId: string, newsIds: string[]): Promise<void> {
+    if (newsIds.length === 0) return;
+    
+    const existing = await db.select({ newsId: newsReads.newsId })
+      .from(newsReads)
+      .where(and(
+        eq(newsReads.userId, userId),
+        inArray(newsReads.newsId, newsIds)
+      ));
+    
+    const existingIds = new Set(existing.map(e => e.newsId));
+    const newIds = newsIds.filter(id => !existingIds.has(id));
+    
+    if (newIds.length > 0) {
+      await db.insert(newsReads).values(
+        newIds.map(newsId => ({ userId, newsId }))
+      );
+    }
   }
 
   // ============================================

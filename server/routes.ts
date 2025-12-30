@@ -4758,6 +4758,37 @@ export async function registerRoutes(
     }
   });
 
+  // Get unread news count
+  app.get("/api/news/unread-count", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const userRole = req.session.role!;
+      const advertiserId = req.query.advertiserId as string | undefined;
+      
+      const count = await storage.getUnreadNewsCount(userId, userRole, advertiserId);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread news count" });
+    }
+  });
+
+  // Mark news as read
+  app.post("/api/news/mark-read", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const { newsIds } = req.body;
+      
+      if (!Array.isArray(newsIds)) {
+        return res.status(400).json({ message: "newsIds must be an array" });
+      }
+      
+      await storage.markNewsAsRead(userId, newsIds);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark news as read" });
+    }
+  });
+
   // Get single news post
   app.get("/api/news/:id", requireAuth, async (req: Request, res: Response) => {
     try {

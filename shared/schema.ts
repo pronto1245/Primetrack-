@@ -1130,6 +1130,18 @@ export type InsertNewsPost = z.infer<typeof insertNewsPostSchema>;
 export type NewsPost = typeof newsPosts.$inferSelect;
 
 // ============================================
+// NEWS READS - Track which users have read which news
+// ============================================
+export const newsReads = pgTable("news_reads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  newsId: varchar("news_id").notNull().references(() => newsPosts.id),
+  readAt: timestamp("read_at").notNull().defaultNow(),
+});
+
+export type NewsRead = typeof newsReads.$inferSelect;
+
+// ============================================
 // WEBHOOK ENDPOINTS
 // Custom webhook notifications for advertisers
 // ============================================
