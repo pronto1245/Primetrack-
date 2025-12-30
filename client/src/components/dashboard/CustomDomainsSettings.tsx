@@ -140,6 +140,50 @@ export function CustomDomainsSettings() {
     },
   });
 
+  const checkSslMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/domains/${id}/check-ssl`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "SSL check failed");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
+      const status = data.sslCheck?.status;
+      if (status === "ssl_active") {
+        toast({ 
+          title: "SSL активен!", 
+          description: data.sslCheck?.issuer ? `Сертификат от ${data.sslCheck.issuer}` : undefined 
+        });
+      } else if (status === "ssl_activating") {
+        toast({ 
+          title: "SSL в процессе", 
+          description: "Попробуйте через несколько минут" 
+        });
+      } else if (status === "verified_no_ssl") {
+        toast({ 
+          title: "SSL не настроен", 
+          description: "Настройте SSL через Cloudflare",
+          variant: "destructive"
+        });
+      } else {
+        toast({ 
+          title: "Проверка SSL", 
+          description: data.sslCheck?.error || "Статус обновлён",
+          variant: status === "ssl_failed" ? "destructive" : "default"
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({ title: "Ошибка проверки SSL", description: error.message, variant: "destructive" });
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Скопировано" });
@@ -147,6 +191,7 @@ export function CustomDomainsSettings() {
 
   const getSslBadge = (status: string, expiresAt: string | null) => {
     switch (status) {
+      case "ssl_active":
       case "active":
         return (
           <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">
@@ -154,6 +199,14 @@ export function CustomDomainsSettings() {
             SSL активен
           </Badge>
         );
+      case "ssl_activating":
+        return (
+          <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+            <Clock className="w-3 h-3 mr-1 animate-spin" />
+            SSL активируется...
+          </Badge>
+        );
+      case "verified_no_ssl":
       case "pending_external":
         return (
           <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
@@ -161,13 +214,7 @@ export function CustomDomainsSettings() {
             Настройте SSL в Cloudflare
           </Badge>
         );
-      case "provisioning":
-        return (
-          <Badge variant="secondary">
-            <Clock className="w-3 h-3 mr-1 animate-spin" />
-            Выпуск SSL...
-          </Badge>
-        );
+      case "ssl_failed":
       case "failed":
         return (
           <Badge variant="destructive">
@@ -384,7 +431,7 @@ export function CustomDomainsSettings() {
                 )}
                 
                 {domain.isVerified && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <Label className="text-xs text-muted-foreground">Пример трекинг-ссылки</Label>
@@ -410,6 +457,34 @@ export function CustomDomainsSettings() {
                         </div>
                       )}
                     </div>
+                    
+                    {(domain.sslStatus !== "ssl_active" && domain.sslStatus !== "active") && (
+                      <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
+                        <p className="text-sm font-medium text-blue-400">Настройте SSL через Cloudflare:</p>
+                        <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1">
+                          <li>Добавьте домен <code className="bg-muted px-1 rounded">{domain.domain}</code> в Cloudflare</li>
+                          <li>Смените NS-серверы у регистратора на Cloudflare NS</li>
+                          <li>Включите проксирование (оранжевое облачко) для CNAME записи</li>
+                          <li>Cloudflare автоматически выдаст SSL сертификат</li>
+                        </ol>
+                      </div>
+                    )}
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => checkSslMutation.mutate(domain.id)}
+                      disabled={checkSslMutation.isPending}
+                      data-testid={`button-check-ssl-${domain.id}`}
+                    >
+                      <Shield className={`w-4 h-4 mr-2 ${checkSslMutation.isPending ? 'animate-spin' : ''}`} />
+                      Проверить SSL
+                    </Button>
+                    
+                    {domain.lastError && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
+                        {domain.lastError}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -437,7 +512,7 @@ export function CustomDomainsSettings() {
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</div>
-            <p>SSL сертификат будет выпущен автоматически</p>
+            <p>Настройте SSL через Cloudflare и нажмите "Проверить SSL"</p>
           </div>
         </CardContent>
       </Card>

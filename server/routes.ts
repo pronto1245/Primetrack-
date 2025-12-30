@@ -5446,8 +5446,8 @@ export async function registerRoutes(
     }
   });
 
-  // Retry SSL provisioning
-  app.post("/api/domains/:id/retry-ssl", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  // Check SSL status (real TLS handshake)
+  app.post("/api/domains/:id/check-ssl", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const advertiserId = req.session.userId!;
@@ -5457,17 +5457,26 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Domain not found" });
       }
 
-      const { domainService } = await import("./services/domain-service");
-      const result = await domainService.retryProvisionSsl(id);
-      
-      if (result.success) {
-        const updated = await storage.getCustomDomain(id);
-        res.json(updated);
-      } else {
-        res.status(400).json({ message: result.error });
+      if (!existing.isVerified) {
+        return res.status(400).json({ message: "Domain must be verified first" });
       }
+
+      const { domainService } = await import("./services/domain-service");
+      const result = await domainService.checkSsl(id);
+      
+      const updated = await storage.getCustomDomain(id);
+      res.json({ 
+        domain: updated, 
+        sslCheck: {
+          success: result.success,
+          status: result.status,
+          error: result.error,
+          expiresAt: result.expiresAt,
+          issuer: result.issuer,
+        }
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to retry SSL provisioning" });
+      res.status(500).json({ message: "Failed to check SSL status" });
     }
   });
 
