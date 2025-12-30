@@ -77,7 +77,7 @@ export default function Pricing() {
   const getFeatures = (plan: SubscriptionPlan) => {
     return [
       { key: "partners", value: plan.maxPartners ? `До ${plan.maxPartners} партнёров` : "Безлимит партнёров", included: true },
-      { key: "offers", value: plan.maxOffers ? `До ${plan.maxOffers} офферов` : "Безлимит офферов", included: true },
+      { key: "offers", value: "Безлимит офферов", included: true },
       { key: "postbacks", value: featureLabels.postbacks, included: plan.hasPostbacks },
       { key: "antifraud", value: featureLabels.antifraud, included: plan.hasAntifraud },
       { key: "news", value: featureLabels.news, included: plan.hasNews },
