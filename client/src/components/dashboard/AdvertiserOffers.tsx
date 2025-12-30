@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Search, Edit, Trash, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen } from "lucide-react";
+import { Plus, Search, Edit, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen, Archive, ArchiveRestore } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -66,37 +66,37 @@ export function AdvertiserOffers({ role }: { role: string }) {
   const [selectedGeo, setSelectedGeo] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [offerToArchive, setOfferToArchive] = useState<Offer | null>(null);
 
-  const deleteOfferMutation = useMutation({
+  const archiveOfferMutation = useMutation({
     mutationFn: async (offerId: string) => {
-      const res = await fetch(`/api/offers/${offerId}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/offers/${offerId}/archive`, {
+        method: "PATCH",
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete offer");
+      if (!res.ok) throw new Error("Failed to archive offer");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/offers"] });
-      toast.success("Оффер удалён");
-      setDeleteDialogOpen(false);
-      setOfferToDelete(null);
+      toast.success("Оффер перемещён в архив");
+      setArchiveDialogOpen(false);
+      setOfferToArchive(null);
     },
     onError: () => {
-      toast.error("Не удалось удалить оффер");
+      toast.error("Не удалось архивировать оффер");
     },
   });
 
-  const handleDeleteClick = (offer: Offer) => {
-    setOfferToDelete(offer);
-    setDeleteDialogOpen(true);
+  const handleArchiveClick = (offer: Offer) => {
+    setOfferToArchive(offer);
+    setArchiveDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (offerToDelete) {
-      deleteOfferMutation.mutate(offerToDelete.id);
+  const confirmArchive = () => {
+    if (offerToArchive) {
+      archiveOfferMutation.mutate(offerToArchive.id);
     }
   };
 
@@ -168,12 +168,20 @@ export function AdvertiserOffers({ role }: { role: string }) {
           </h2>
           <p className="text-muted-foreground text-sm font-mono">{t('dashboard.offers.subtitle')}</p>
         </div>
-        <Link href={`/dashboard/${role}/offers/new`}>
-          <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono" data-testid="button-create-offer">
-            <Plus className="w-4 h-4 mr-2" />
-            {t('dashboard.offers.create')}
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/dashboard/${role}/offers/archived`}>
+            <Button variant="outline" className="text-foreground font-mono" data-testid="button-view-archive">
+              <Archive className="w-4 h-4 mr-2" />
+              Архив
+            </Button>
+          </Link>
+          <Link href={`/dashboard/${role}/offers/new`}>
+            <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono" data-testid="button-create-offer">
+              <Plus className="w-4 h-4 mr-2" />
+              {t('dashboard.offers.create')}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card className="bg-card border-border">
@@ -367,11 +375,12 @@ export function AdvertiserOffers({ role }: { role: string }) {
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="h-6 w-6 text-red-500 hover:text-red-400 hover:bg-red-500/10" 
-                          data-testid={`button-delete-${offer.id}`}
-                          onClick={() => handleDeleteClick(offer)}
+                          className="h-6 w-6 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10" 
+                          data-testid={`button-archive-${offer.id}`}
+                          onClick={() => handleArchiveClick(offer)}
+                          title="В архив"
                         >
-                          <Trash className="w-3 h-3" />
+                          <Archive className="w-3 h-3" />
                         </Button>
                       </div>
                     </td>
@@ -383,13 +392,14 @@ export function AdvertiserOffers({ role }: { role: string }) {
         )}
       </Card>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить оффер?</AlertDialogTitle>
+            <AlertDialogTitle>Архивировать оффер?</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите удалить оффер "{offerToDelete?.name}"? 
-              Это действие нельзя отменить. Все связанные лендинги, доступы партнёров и настройки постбеков будут также удалены.
+              Вы уверены, что хотите архивировать оффер "{offerToArchive?.name}"? 
+              Оффер будет скрыт из списка активных офферов, и партнёры потеряют к нему доступ. 
+              Вы сможете восстановить оффер из архива в любое время.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -397,12 +407,12 @@ export function AdvertiserOffers({ role }: { role: string }) {
             <AlertDialogAction 
               onClick={(e) => {
                 e.preventDefault();
-                confirmDelete();
+                confirmArchive();
               }}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={deleteOfferMutation.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={archiveOfferMutation.isPending}
             >
-              {deleteOfferMutation.isPending ? "Удаление..." : "Удалить"}
+              {archiveOfferMutation.isPending ? "Архивация..." : "В архив"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
