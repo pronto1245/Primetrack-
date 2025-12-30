@@ -59,10 +59,19 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="h-14 px-8 rounded bg-emerald-600 hover:bg-emerald-500 text-foreground font-medium text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] border border-emerald-500 transition-all">
+                <Button 
+                  size="lg" 
+                  className="h-14 px-8 rounded bg-emerald-600 hover:bg-emerald-500 text-foreground font-medium text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] border border-emerald-500 transition-all"
+                  onClick={() => window.location.href = '/register/advertiser'}
+                >
                   {t('hero.cta')}
                 </Button>
-                <Button size="lg" variant="outline" className="h-14 px-8 rounded border-border hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-lg">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-14 px-8 rounded border-border hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-lg"
+                  onClick={() => window.location.href = '#pricing'}
+                >
                   {t('hero.demo')}
                 </Button>
               </div>
@@ -254,7 +263,7 @@ export default function Home() {
                   <Button 
                     variant={isActive ? "default" : "outline"} 
                     className={`w-full ${isActive ? 'bg-emerald-600 hover:bg-emerald-500' : 'border-border hover:bg-muted'}`}
-                    onClick={() => window.location.href = `/register?plan=${plan.id}&billing=${isYearly ? 'yearly' : 'monthly'}`}
+                    onClick={() => window.location.href = `/register/advertiser?plan=${plan.id}&billing=${isYearly ? 'yearly' : 'monthly'}`}
                   >
                     Начать бесплатно
                   </Button>
