@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AdvertiserOffers } from "@/components/dashboard/AdvertiserOffers";
+import { ArchivedOffers } from "@/components/dashboard/ArchivedOffers";
 import { PublisherOffers } from "@/components/dashboard/PublisherOffers";
 import { CreateOfferForm } from "@/components/dashboard/CreateOfferForm";
 import { OfferDetail } from "@/components/dashboard/OfferDetail";
@@ -275,6 +276,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
 function MainContent({ role, t }: { role: string, t: any }) {
   const [, setLocation] = useLocation();
   const [matchOffers] = useRoute("/dashboard/:role/offers");
+  const [matchArchivedOffers] = useRoute("/dashboard/:role/offers/archived");
   const [matchCreateOffer] = useRoute("/dashboard/:role/offers/new");
   const [matchLinks] = useRoute("/dashboard/:role/links");
   const [matchOfferDetail, offerDetailParams] = useRoute("/dashboard/:role/offer/:offerId");
@@ -363,6 +365,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   };
 
   const showOffers = matchOffers || (role === 'publisher' && matchLinks);
+  const showArchivedOffers = matchArchivedOffers;
   const showCreateOffer = matchCreateOffer;
   const showOfferDetail = matchOfferDetail;
   const showPartners = matchPartners && role === 'advertiser';
@@ -439,6 +442,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showOfferDetail && offerDetailParams?.offerId) {
       return <OfferDetail offerId={offerDetailParams.offerId} role={role} />;
+    }
+
+    if (showArchivedOffers && role === 'advertiser') {
+      return <ArchivedOffers role={role} />;
     }
 
     if (showCreateOffer && role === 'advertiser') {
