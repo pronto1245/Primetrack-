@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Users, Search, Link as LinkIcon, Copy, Check, UserPlus, 
-  Ban, Play, Pause, Clock, Loader2, Filter
+  Ban, Play, Pause, Clock, Loader2, Filter, Send, Mail, Phone, Eye
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -17,6 +19,9 @@ interface Partner {
   publisherId: string;
   username: string;
   email: string;
+  telegram?: string | null;
+  phone?: string | null;
+  companyName?: string | null;
   status: string;
   createdAt: string;
   clicks: number;
@@ -193,11 +198,11 @@ export function AdvertiserPartners() {
                 <thead className="bg-muted border-b border-border">
                   <tr>
                     <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Партнёр</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Контакты</th>
                     <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Статус</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Клики</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Конверсии</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Выплаты</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Дата</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Действия</th>
                   </tr>
                 </thead>
@@ -206,19 +211,80 @@ export function AdvertiserPartners() {
                     <tr key={partner.id} data-testid={`row-partner-${partner.id}`} className="hover:bg-muted">
                       <td className="px-4 py-3">
                         <div>
-                          <div className="text-foreground font-medium">{partner.username}</div>
-                          <div className="text-muted-foreground text-sm">{partner.email}</div>
+                          <div className="text-foreground font-medium">{partner.companyName || partner.username}</div>
+                          <div className="text-muted-foreground text-xs">@{partner.username}</div>
                         </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <TooltipProvider>
+                          <div className="flex items-center gap-1">
+                            {partner.telegram && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={`https://t.me/${partner.telegram.replace('@', '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
+                                    data-testid={`contact-telegram-${partner.id}`}
+                                  >
+                                    <Send className="w-3 h-3" />
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>{partner.telegram}</TooltipContent>
+                              </Tooltip>
+                            )}
+                            {partner.email && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={`mailto:${partner.email}`}
+                                    className="p-1.5 rounded bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400"
+                                    data-testid={`contact-email-${partner.id}`}
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>{partner.email}</TooltipContent>
+                              </Tooltip>
+                            )}
+                            {partner.phone && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={`tel:${partner.phone}`}
+                                    className="p-1.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400"
+                                    data-testid={`contact-phone-${partner.id}`}
+                                  >
+                                    <Phone className="w-3 h-3" />
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>{partner.phone}</TooltipContent>
+                              </Tooltip>
+                            )}
+                            {!partner.telegram && !partner.email && !partner.phone && (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        </TooltipProvider>
                       </td>
                       <td className="px-4 py-3">{statusBadge(partner.status)}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{partner.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{partner.conversions.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-mono">${partner.payout.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-sm">
-                        {new Date(partner.createdAt).toLocaleDateString()}
-                      </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Link href={`/dashboard/advertiser/partner/${partner.publisherId}`}>
+                            <Button
+                              data-testid={`button-profile-${partner.id}`}
+                              size="sm"
+                              variant="outline"
+                              className="border-border h-7 text-xs"
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              Профиль
+                            </Button>
+                          </Link>
                           {partner.status === "pending" && (
                             <Button
                               data-testid={`button-approve-${partner.id}`}
