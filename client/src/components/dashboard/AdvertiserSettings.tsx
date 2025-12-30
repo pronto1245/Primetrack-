@@ -1284,6 +1284,7 @@ function SubscriptionTab() {
   const [txHash, setTxHash] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState("USDT_TRC20");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
   const { data: subscriptionData, isLoading } = useQuery<any>({
     queryKey: ["/api/subscription/current"],
@@ -1322,8 +1323,12 @@ function SubscriptionTab() {
   });
 
   const createPaymentMutation = useMutation({
-    mutationFn: async (data: { planId: string; currency: string }) => {
-      const res = await apiRequest("POST", "/api/subscription/create-payment", data);
+    mutationFn: async (data: { planId: string; currency: string; billingPeriod: "monthly" | "yearly" }) => {
+      const res = await apiRequest("POST", "/api/subscription/pay", {
+        planId: data.planId,
+        billingCycle: data.billingPeriod,
+        cryptoCurrency: data.currency,
+      });
       return res.json();
     },
     onSuccess: (data) => {
@@ -1337,7 +1342,7 @@ function SubscriptionTab() {
 
   const submitTxMutation = useMutation({
     mutationFn: async (data: { paymentId: string; txHash: string }) => {
-      return apiRequest("POST", "/api/subscription/submit-tx", data);
+      return apiRequest("POST", "/api/subscription/verify", data);
     },
     onSuccess: () => {
       setTxHash("");
@@ -1496,38 +1501,90 @@ function SubscriptionTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Тарифные планы</CardTitle>
-          <CardDescription>Выберите подходящий план для вашего бизнеса</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Тарифные планы</CardTitle>
+              <CardDescription>Выберите подходящий план для вашего бизнеса</CardDescription>
+            </div>
+            <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+              <Button
+                variant={billingPeriod === "monthly" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setBillingPeriod("monthly")}
+                data-testid="billing-monthly"
+              >
+                Месяц
+              </Button>
+              <Button
+                variant={billingPeriod === "yearly" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setBillingPeriod("yearly")}
+                className="relative"
+                data-testid="billing-yearly"
+              >
+                Год
+                <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                  -15%
+                </span>
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-4">
-            {plans.map((plan: any) => (
-              <div
-                key={plan.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                  selectedPlan === plan.id 
-                    ? "border-emerald-500 bg-emerald-500/10" 
-                    : "hover:border-muted-foreground"
-                }`}
-                onClick={() => setSelectedPlan(plan.id)}
-                data-testid={`plan-${plan.id}`}
-              >
-                <div className="font-bold text-lg mb-2">{plan.name}</div>
-                <div className="text-2xl font-bold text-emerald-500 mb-2">
-                  ${plan.price}<span className="text-sm text-muted-foreground">/мес</span>
+            {plans.map((plan: any) => {
+              const monthlyPrice = Number(plan.monthlyPrice) || Number(plan.price) || 0;
+              const yearlyPrice = Number(plan.yearlyPrice) || monthlyPrice * 12 * 0.85;
+              const displayPrice = billingPeriod === "yearly" 
+                ? (yearlyPrice / 12).toFixed(2) 
+                : monthlyPrice.toFixed(2);
+              const totalYearlyPrice = yearlyPrice.toFixed(2);
+              const savings = (monthlyPrice * 12 - yearlyPrice).toFixed(2);
+              
+              return (
+                <div
+                  key={plan.id}
+                  className={`p-4 border rounded-lg cursor-pointer transition-all relative ${
+                    selectedPlan === plan.id 
+                      ? "border-emerald-500 bg-emerald-500/10" 
+                      : "hover:border-muted-foreground"
+                  } ${plan.isPopular || plan.is_popular ? "ring-2 ring-emerald-500" : ""}`}
+                  onClick={() => setSelectedPlan(plan.id)}
+                  data-testid={`plan-${plan.id}`}
+                >
+                  {(plan.isPopular || plan.is_popular) && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      Популярный
+                    </div>
+                  )}
+                  <div className="font-bold text-lg mb-2">{plan.name}</div>
+                  <div className="text-2xl font-bold text-emerald-500 mb-1">
+                    ${displayPrice}
+                    <span className="text-sm text-muted-foreground">/мес</span>
+                  </div>
+                  {billingPeriod === "yearly" && (
+                    <div className="text-xs text-muted-foreground mb-2">
+                      ${totalYearlyPrice} в год (экономия ${savings})
+                    </div>
+                  )}
+                  {billingPeriod === "monthly" && (
+                    <div className="text-xs text-muted-foreground mb-2">
+                      Оплата ежемесячно
+                    </div>
+                  )}
+                  {plan.features && plan.features.length > 0 && (
+                    <ul className="text-sm text-muted-foreground space-y-1 mt-3">
+                      {plan.features.map((f: string, i: number) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                {plan.features && (
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    {plan.features.map((f: string, i: number) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {selectedPlan && !pendingPayment && (
@@ -1550,13 +1607,13 @@ function SubscriptionTab() {
               </div>
 
               <Button
-                onClick={() => createPaymentMutation.mutate({ planId: selectedPlan, currency: selectedCurrency })}
+                onClick={() => createPaymentMutation.mutate({ planId: selectedPlan, currency: selectedCurrency, billingPeriod })}
                 disabled={createPaymentMutation.isPending}
                 className="w-full"
                 data-testid="button-create-payment"
               >
                 {createPaymentMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                Создать платёж
+                Оплатить {billingPeriod === "yearly" ? "за год" : "за месяц"}
               </Button>
             </div>
           )}
