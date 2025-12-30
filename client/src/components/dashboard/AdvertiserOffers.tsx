@@ -354,7 +354,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                             <Eye className="w-3 h-3" />
                           </Button>
                         </Link>
-                        <Link href={`/dashboard/${role}/offer/${offer.id}`}>
+                        <Link href={`/dashboard/${role}/offers/new?edit=${offer.id}`}>
                           <Button 
                             size="icon" 
                             variant="ghost" 

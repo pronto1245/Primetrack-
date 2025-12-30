@@ -976,9 +976,27 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const updated = await storage.updateOffer(req.params.id, req.body);
-      res.json(updated);
+      const { landings, ...offerData } = req.body;
+      
+      // Обновить оффер
+      const updated = await storage.updateOffer(req.params.id, offerData);
+      
+      // Обновить landings: удалить старые и создать новые
+      if (landings && Array.isArray(landings)) {
+        await storage.deleteOfferLandings(req.params.id);
+        for (const landing of landings) {
+          await storage.createOfferLanding({
+            ...landing,
+            offerId: req.params.id,
+          });
+        }
+      }
+      
+      // Вернуть обновлённый оффер с landings
+      const updatedLandings = await storage.getOfferLandings(req.params.id);
+      res.json({ ...updated, landings: updatedLandings });
     } catch (error) {
+      console.error("Update offer error:", error);
       res.status(500).json({ message: "Failed to update offer" });
     }
   });

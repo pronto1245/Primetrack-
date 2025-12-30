@@ -27,10 +27,27 @@ interface Landing {
 
 export function CreateOfferForm({ role }: { role: string }) {
   const { t } = useTranslation();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   
+  // Получить edit параметр из URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const editOfferId = searchParams.get("edit");
+  const isEditMode = !!editOfferId;
+
+  // Загрузить данные оффера для редактирования
+  const { data: offerData, isLoading: isLoadingOffer } = useQuery({
+    queryKey: ["/api/offers", editOfferId],
+    queryFn: async () => {
+      const res = await fetch(`/api/offers/${editOfferId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch offer");
+      return res.json();
+    },
+    enabled: isEditMode,
+  });
+
   const { uploadFile, isUploading, progress } = useUpload({
     onSuccess: (response) => {
       setFormData(prev => ({ ...prev, logoUrl: response.objectPath }));
@@ -65,6 +82,46 @@ export function CreateOfferForm({ role }: { role: string }) {
   const [landings, setLandings] = useState<Landing[]>([
     { geo: "", landingName: "", landingUrl: "", partnerPayout: "", internalCost: "", currency: "USD" }
   ]);
+
+  // Сбросить isDataLoaded при смене editOfferId
+  useEffect(() => {
+    setIsDataLoaded(false);
+  }, [editOfferId]);
+
+  // Заполнить форму данными оффера при редактировании
+  useEffect(() => {
+    if (offerData && !isDataLoaded && isEditMode) {
+      setFormData({
+        name: offerData.name || "",
+        description: offerData.description || "",
+        logoUrl: offerData.logoUrl || "",
+        payoutModel: offerData.payoutModel || "CPA",
+        category: offerData.category || "Gambling",
+        currency: offerData.currency || "USD",
+        trafficSources: offerData.trafficSources || [],
+        appTypes: offerData.appTypes || [],
+        creativeLinks: offerData.creativeLinks?.length ? offerData.creativeLinks : [""],
+        geo: offerData.geo || [],
+        revSharePercent: offerData.revSharePercent?.toString() || "",
+        holdPeriodDays: offerData.holdPeriodDays?.toString() || "0",
+        isTop: offerData.isTop || false,
+        isExclusive: offerData.isExclusive || false,
+        isPrivate: offerData.isPrivate || false,
+      });
+      
+      if (offerData.landings && offerData.landings.length > 0) {
+        setLandings(offerData.landings.map((l: any) => ({
+          geo: l.geo || "",
+          landingName: l.landingName || "",
+          landingUrl: l.landingUrl || "",
+          partnerPayout: l.partnerPayout || "",
+          internalCost: l.internalCost || "",
+          currency: l.currency || "USD",
+        })));
+      }
+      setIsDataLoaded(true);
+    }
+  }, [offerData, isDataLoaded, isEditMode]);
 
   const toggleArrayItem = (field: "trafficSources" | "appTypes", item: string) => {
     setFormData(prev => ({
@@ -135,8 +192,11 @@ export function CreateOfferForm({ role }: { role: string }) {
     try {
       const geos = landings.map(l => l.geo).filter(g => g);
       
-      const response = await fetch("/api/offers", {
-        method: "POST",
+      const url = isEditMode ? `/api/offers/${editOfferId}` : "/api/offers";
+      const method = isEditMode ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
@@ -151,14 +211,24 @@ export function CreateOfferForm({ role }: { role: string }) {
         setLocation(`/dashboard/${role}/offers`);
       } else {
         const data = await response.json();
-        setError(data.message || "Failed to create offer");
+        setError(data.message || (isEditMode ? "Не удалось обновить оффер" : "Не удалось создать оффер"));
       }
     } catch {
-      setError("Failed to create offer");
+      setError(isEditMode ? "Не удалось обновить оффер" : "Не удалось создать оффер");
     } finally {
       setLoading(false);
     }
   };
+
+  // Показать loader при загрузке данных оффера
+  if (isEditMode && isLoadingOffer) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-3 text-muted-foreground">Загрузка данных оффера...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
@@ -169,8 +239,12 @@ export function CreateOfferForm({ role }: { role: string }) {
           </Button>
         </Link>
         <div>
-          <h2 className="text-2xl font-bold font-mono text-foreground">Создать оффер</h2>
-          <p className="text-muted-foreground text-sm font-mono">Заполните все необходимые данные</p>
+          <h2 className="text-2xl font-bold font-mono text-foreground">
+            {isEditMode ? "Редактировать оффер" : "Создать оффер"}
+          </h2>
+          <p className="text-muted-foreground text-sm font-mono">
+            {isEditMode ? "Измените данные оффера" : "Заполните все необходимые данные"}
+          </p>
         </div>
       </div>
 
@@ -194,7 +268,7 @@ export function CreateOfferForm({ role }: { role: string }) {
           data-testid="button-publish-offer"
         >
           <Save className="w-4 h-4 mr-2" />
-          {loading ? "..." : "Опубликовать"}
+          {loading ? "..." : (isEditMode ? "Сохранить" : "Опубликовать")}
         </Button>
       </div>
 
