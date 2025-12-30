@@ -35,6 +35,7 @@ async function getCredentials() {
 
 async function getResendClient() {
   const { apiKey, fromEmail } = await getCredentials();
+  console.log('[email] Resend client initialized, fromEmail:', fromEmail);
   return {
     client: new Resend(apiKey),
     fromEmail
