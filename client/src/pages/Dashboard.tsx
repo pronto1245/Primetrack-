@@ -333,6 +333,12 @@ function MainContent({ role, t }: { role: string, t: any }) {
     retry: false,
   });
 
+  // Load advertiser settings for White-label logo
+  const { data: advertiserSettings } = useQuery<any>({
+    queryKey: ["/api/advertiser/settings"],
+    enabled: role === "advertiser",
+  });
+
   // Handle auth error - redirect to login
   useEffect(() => {
     if (userError) {
@@ -604,9 +610,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
           <SubscriptionBadge role={role} />
           <NotificationBell role={role} />
           <ThemeToggle />
-          {currentUser?.logoUrl ? (
+          {(advertiserSettings?.logoUrl || currentUser?.logoUrl) ? (
             <img 
-              src={currentUser.logoUrl} 
+              src={advertiserSettings?.logoUrl || currentUser?.logoUrl} 
               alt="Logo" 
               className="w-8 h-8 rounded object-cover"
             />
