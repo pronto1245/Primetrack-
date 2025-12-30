@@ -1,0 +1,138 @@
+-- === OFFERS TABLE ===
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS is_top BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS is_exclusive BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS daily_cap INTEGER;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS total_cap INTEGER;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS cap_reached_action TEXT DEFAULT 'block';
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS cap_redirect_url TEXT;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS hold_period_days INTEGER DEFAULT 0;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS traffic_sources TEXT[];
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS app_types TEXT[];
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS creative_links TEXT[];
+
+-- === CLICKS TABLE ===
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS visitor_id TEXT;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS fingerprint_confidence NUMERIC;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS is_tor BOOLEAN DEFAULT false;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS is_datacenter BOOLEAN DEFAULT false;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS region TEXT;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS isp TEXT;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS asn TEXT;
+
+-- === CONVERSIONS TABLE ===
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS hold_until TIMESTAMP;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS external_id TEXT;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP;
+
+-- === USERS TABLE ===
+ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS contact_type TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS contact_value TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS company_name TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS logo_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT false;
+
+-- === PUBLISHER_ADVERTISERS TABLE ===
+ALTER TABLE publisher_advertisers ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+
+-- === MISSING TABLES (create if not exist) ===
+CREATE TABLE IF NOT EXISTS publisher_offers (
+  id VARCHAR PRIMARY KEY,
+  publisher_id VARCHAR NOT NULL,
+  offer_id VARCHAR NOT NULL,
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS offer_caps_stats (
+  id VARCHAR PRIMARY KEY,
+  offer_id VARCHAR NOT NULL,
+  date DATE NOT NULL,
+  daily_conversions INTEGER DEFAULT 0,
+  total_conversions INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS advertiser_staff (
+  id VARCHAR PRIMARY KEY,
+  advertiser_id VARCHAR NOT NULL,
+  user_id VARCHAR NOT NULL,
+  role TEXT NOT NULL,
+  permissions TEXT[],
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id VARCHAR PRIMARY KEY,
+  sender_id VARCHAR,
+  sender_role TEXT,
+  recipient_id VARCHAR NOT NULL,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  entity_type TEXT,
+  entity_id TEXT,
+  is_read BOOLEAN DEFAULT false,
+  read_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS webhook_endpoints (
+  id VARCHAR PRIMARY KEY,
+  advertiser_id VARCHAR NOT NULL,
+  url TEXT NOT NULL,
+  secret TEXT,
+  events TEXT[],
+  offer_ids TEXT[],
+  publisher_ids TEXT[],
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS webhook_logs (
+  id VARCHAR PRIMARY KEY,
+  webhook_id VARCHAR NOT NULL,
+  event_type TEXT NOT NULL,
+  payload TEXT,
+  response_status INTEGER,
+  response_body TEXT,
+  attempts INTEGER DEFAULT 0,
+  next_retry_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+-- Offers table
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS is_top BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS is_exclusive BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS daily_cap INTEGER;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS total_cap INTEGER;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS cap_reached_action TEXT DEFAULT 'block';
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS cap_redirect_url TEXT;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS hold_period_days INTEGER DEFAULT 0;
+
+-- Clicks table
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS visitor_id TEXT;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS fingerprint_confidence NUMERIC;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS is_tor BOOLEAN DEFAULT false;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS is_datacenter BOOLEAN DEFAULT false;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS region TEXT;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS isp TEXT;
+ALTER TABLE clicks ADD COLUMN IF NOT EXISTS asn TEXT;
+
+-- Conversions table  
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS hold_until TIMESTAMP;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS external_id TEXT;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
+ALTER TABLE conversions ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP;иоцат ньедепееити-- Добавить колонки archived если их нет
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT false;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP;SELECT * FROM <table> LIMIT 10;
