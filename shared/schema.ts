@@ -988,6 +988,12 @@ export const platformSettings = pgTable("platform_settings", {
   stripePublicKey: text("stripe_public_key"),
   stripeSecretKey: text("stripe_secret_key"), // encrypted
   
+  // Crypto wallet addresses for subscription payments
+  cryptoBtcAddress: text("crypto_btc_address"),
+  cryptoUsdtTrc20Address: text("crypto_usdt_trc20_address"),
+  cryptoEthAddress: text("crypto_eth_address"),
+  cryptoUsdtErc20Address: text("crypto_usdt_erc20_address"),
+  
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -1360,17 +1366,18 @@ export const advertiserSubscriptions = pgTable("advertiser_subscriptions", {
   planId: varchar("plan_id").references(() => subscriptionPlans.id), // null during trial
   
   billingCycle: text("billing_cycle").notNull().default("monthly"), // monthly, yearly
-  status: text("status").notNull().default("trial"), // trial, active, cancelled, expired, past_due
+  status: text("status").notNull().default("trial"), // trial, active, cancelled, expired, past_due, pending_payment
   
   // Trial period
   trialEndsAt: timestamp("trial_ends_at"),
   
-  // Stripe integration
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  
+  // Subscription period
   currentPeriodStart: timestamp("current_period_start"),
   currentPeriodEnd: timestamp("current_period_end"),
+  
+  // Last payment info
+  lastPaymentId: varchar("last_payment_id"),
+  lastPaymentAt: timestamp("last_payment_at"),
   
   cancelledAt: timestamp("cancelled_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -1385,3 +1392,51 @@ export const insertAdvertiserSubscriptionSchema = createInsertSchema(advertiserS
 
 export type InsertAdvertiserSubscription = z.infer<typeof insertAdvertiserSubscriptionSchema>;
 export type AdvertiserSubscription = typeof advertiserSubscriptions.$inferSelect;
+
+// ============================================
+// SUBSCRIPTION PAYMENTS (Crypto)
+// ============================================
+export const subscriptionPayments = pgTable("subscription_payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  subscriptionId: varchar("subscription_id").references(() => advertiserSubscriptions.id),
+  planId: varchar("plan_id").references(() => subscriptionPlans.id),
+  
+  // Payment details
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"), // USD equivalent
+  cryptoCurrency: text("crypto_currency").notNull(), // BTC, USDT_TRC20, ETH, USDT_ERC20
+  cryptoAmount: numeric("crypto_amount", { precision: 18, scale: 8 }), // amount in crypto
+  cryptoAddress: text("crypto_address").notNull(), // destination wallet
+  
+  // Transaction verification
+  txHash: text("tx_hash"), // blockchain transaction hash
+  txVerified: boolean("tx_verified").default(false),
+  txVerifiedAt: timestamp("tx_verified_at"),
+  
+  // Status
+  status: text("status").notNull().default("pending"), // pending, verifying, confirmed, failed, expired
+  
+  billingCycle: text("billing_cycle").notNull().default("monthly"), // monthly, yearly
+  
+  // Period this payment covers
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  
+  expiresAt: timestamp("expires_at"), // payment window expires
+  
+  errorMessage: text("error_message"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertSubscriptionPaymentSchema = createInsertSchema(subscriptionPayments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSubscriptionPayment = z.infer<typeof insertSubscriptionPaymentSchema>;
+export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
