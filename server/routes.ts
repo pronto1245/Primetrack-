@@ -17,6 +17,34 @@ import geoip from "geoip-lite";
 const clickHandler = new ClickHandler();
 const orchestrator = new Orchestrator();
 
+// ============================================
+// HELPER: Санитизация числовых полей
+// Конвертирует пустые строки, null, undefined в null
+// Валидные числа парсит через parseFloat
+// NaN и невалидные значения возвращают null
+// ============================================
+function sanitizeNumeric(value: any): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const parsed = typeof value === "number" ? value : parseFloat(value);
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
+    return null;
+  }
+  return parsed;
+}
+
+function sanitizeInteger(value: any, defaultValue: number = 0): number {
+  if (value === null || value === undefined || value === "") {
+    return defaultValue;
+  }
+  const parsed = typeof value === "number" ? value : parseInt(value, 10);
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
+    return defaultValue;
+  }
+  return parsed;
+}
+
 declare module "express-session" {
   interface SessionData {
     userId: string;
