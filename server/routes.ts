@@ -34,13 +34,13 @@ function sanitizeNumeric(value: any): number | null {
   return parsed;
 }
 
-function sanitizeInteger(value: any, defaultValue: number = 0): number {
+function sanitizeInteger(value: any): number | null {
   if (value === null || value === undefined || value === "") {
-    return defaultValue;
+    return null;
   }
   const parsed = typeof value === "number" ? value : parseInt(value, 10);
   if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
-    return defaultValue;
+    return null;
   }
   return parsed;
 }
@@ -932,11 +932,11 @@ export async function registerRoutes(
       const sanitizedData = {
         ...rawOfferData,
         revSharePercent: sanitizeNumeric(rawOfferData.revSharePercent),
-        holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays, 0),
+        holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays),
         partnerPayout: sanitizeNumeric(rawOfferData.partnerPayout),
         internalCost: sanitizeNumeric(rawOfferData.internalCost),
-        dailyCap: sanitizeInteger(rawOfferData.dailyCap, 0),
-        totalCap: sanitizeInteger(rawOfferData.totalCap, 0),
+        dailyCap: sanitizeInteger(rawOfferData.dailyCap),
+        totalCap: sanitizeInteger(rawOfferData.totalCap),
         advertiserId: req.session.userId,
       };
       
@@ -1028,11 +1028,11 @@ export async function registerRoutes(
       const offerData = {
         ...rawOfferData,
         revSharePercent: sanitizeNumeric(rawOfferData.revSharePercent),
-        holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays, 0),
+        holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays),
         partnerPayout: sanitizeNumeric(rawOfferData.partnerPayout),
         internalCost: sanitizeNumeric(rawOfferData.internalCost),
-        dailyCap: sanitizeInteger(rawOfferData.dailyCap, 0),
-        totalCap: sanitizeInteger(rawOfferData.totalCap, 0),
+        dailyCap: sanitizeInteger(rawOfferData.dailyCap),
+        totalCap: sanitizeInteger(rawOfferData.totalCap),
       };
       
       console.log("[PUT /api/offers/:id] Sanitized data:", JSON.stringify(offerData, null, 2));
