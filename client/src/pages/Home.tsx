@@ -1,12 +1,36 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { ArrowRight, Terminal, Cpu, ShieldCheck, Activity, ChevronRight, Check } from "lucide-react";
+import { ArrowRight, Terminal, Cpu, ShieldCheck, Activity, ChevronRight, Check, X } from "lucide-react";
 import heroImage from "@assets/generated_images/dark_high-tech_dashboard_ui.png";
+
+type SubscriptionPlan = {
+  id: string;
+  name: string;
+  monthlyPrice: string;
+  yearlyPrice: string;
+  maxPartners: number | null;
+  hasAntifraud: boolean;
+  hasNews: boolean;
+  hasPostbacks: boolean;
+  hasTeam: boolean;
+  hasWebhooks: boolean;
+  hasCustomDomain: boolean;
+  hasApiAccess: boolean;
+};
 
 export default function Home() {
   const { t } = useTranslation();
+  const [isYearly, setIsYearly] = useState(false);
+  
+  const { data: plans = [] } = useQuery<SubscriptionPlan[]>({
+    queryKey: ["/api/subscription/plans"],
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-emerald-500/30">
@@ -146,36 +170,97 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing - Compact Table */}
+      {/* Pricing - Dynamic from API */}
       <section id="pricing" className="py-24 border-t border-border bg-card/50">
         <div className="container px-4 mx-auto max-w-5xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
+            <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+              30 дней бесплатно
+            </Badge>
             <h2 className="text-3xl font-bold mb-4">{t('pricing.title')}</h2>
             <p className="text-muted-foreground">{t('pricing.subtitle')}</p>
           </div>
 
+          <div className="flex items-center justify-center gap-4 mb-12">
+            <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Ежемесячно
+            </span>
+            <Switch
+              checked={isYearly}
+              onCheckedChange={setIsYearly}
+              data-testid="switch-billing-cycle"
+            />
+            <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Ежегодно
+            </span>
+            {isYearly && (
+              <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white">
+                -15%
+              </Badge>
+            )}
+          </div>
+
           <div className="grid md:grid-cols-3 gap-0 border border-border rounded overflow-hidden">
-            {[
-              { name: t('pricing.starter'), price: "$49", feats: ["100k Clicks", "1 Domain", "No Support"] },
-              { name: t('pricing.pro'), price: "$99", feats: ["1M Clicks", "5 Domains", "Priority Support"], active: true },
-              { name: t('pricing.business'), price: "$249", feats: ["Unlimited", "Unlimited", "24/7 Dedicated"] }
-            ].map((plan, i) => (
-              <div key={i} className={`p-8 ${plan.active ? 'bg-secondary relative z-10' : 'bg-background'} border-r border-border last:border-r-0 flex flex-col`}>
-                {plan.active && <div className="absolute top-0 inset-x-0 h-1 bg-emerald-500" />}
-                <h3 className="text-lg font-mono font-medium text-muted-foreground mb-2">{plan.name}</h3>
-                <div className="text-4xl font-bold text-foreground mb-8">{plan.price}<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
-                <ul className="space-y-4 mb-8 flex-1">
-                  {plan.feats.map((f, idx) => (
-                    <li key={idx} className="flex items-center text-sm text-muted-foreground">
-                      <Check className="w-4 h-4 text-emerald-500 mr-3" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button variant={plan.active ? "default" : "outline"} className={`w-full ${plan.active ? 'bg-emerald-600 hover:bg-emerald-500' : 'border-border hover:bg-muted'}`}>
-                  Select
-                </Button>
-              </div>
-            ))}
+            {plans.map((plan, i) => {
+              const isActive = i === 1;
+              const price = isYearly 
+                ? (parseFloat(plan.yearlyPrice) / 12).toFixed(0)
+                : parseFloat(plan.monthlyPrice).toFixed(0);
+              
+              const features = [
+                { label: plan.maxPartners ? `До ${plan.maxPartners} партнёров` : "Безлимит партнёров", included: true },
+                { label: "Безлимит офферов", included: true },
+                { label: "Постбеки", included: plan.hasPostbacks },
+                { label: "Статистика", included: true },
+                { label: "Финансы", included: true },
+                { label: "Антифрод", included: plan.hasAntifraud },
+                { label: "Новости", included: plan.hasNews },
+                { label: "Команда", included: plan.hasTeam },
+                { label: "Webhooks", included: plan.hasWebhooks },
+                { label: "Кастомный домен", included: plan.hasCustomDomain },
+                { label: "API доступ", included: plan.hasApiAccess },
+              ];
+              
+              return (
+                <div key={plan.id} className={`p-8 ${isActive ? 'bg-secondary relative z-10' : 'bg-background'} border-r border-border last:border-r-0 flex flex-col`}>
+                  {isActive && <div className="absolute top-0 inset-x-0 h-1 bg-emerald-500" />}
+                  {isActive && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600">
+                      Популярный
+                    </Badge>
+                  )}
+                  <h3 className="text-lg font-mono font-medium text-muted-foreground mb-2">{plan.name}</h3>
+                  <div className="text-4xl font-bold text-foreground mb-2">
+                    ${price}<span className="text-sm font-normal text-muted-foreground">/мес</span>
+                  </div>
+                  {isYearly && (
+                    <p className="text-xs text-emerald-400 mb-6">
+                      ${parseFloat(plan.yearlyPrice).toFixed(0)}/год
+                    </p>
+                  )}
+                  {!isYearly && <div className="mb-6" />}
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {features.map((f, idx) => (
+                      <li key={idx} className={`flex items-center text-sm ${f.included ? 'text-muted-foreground' : 'text-muted-foreground/40'}`}>
+                        {f.included ? (
+                          <Check className="w-4 h-4 text-emerald-500 mr-3 flex-shrink-0" />
+                        ) : (
+                          <X className="w-4 h-4 text-muted-foreground/30 mr-3 flex-shrink-0" />
+                        )}
+                        {f.label}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    variant={isActive ? "default" : "outline"} 
+                    className={`w-full ${isActive ? 'bg-emerald-600 hover:bg-emerald-500' : 'border-border hover:bg-muted'}`}
+                    onClick={() => window.location.href = `/register?plan=${plan.id}&billing=${isYearly ? 'yearly' : 'monthly'}`}
+                  >
+                    Начать бесплатно
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
