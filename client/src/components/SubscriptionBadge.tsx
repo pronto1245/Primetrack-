@@ -59,15 +59,15 @@ export function SubscriptionBadge({ role }: { role: string }) {
   
   const getVariant = () => {
     if (!time || time.expired) return "destructive";
-    if (time.days <= 3) return "destructive";
-    if (time.days <= 7) return "secondary";
+    if (time.days < 7) return "destructive";
+    if (time.days <= 14) return "secondary";
     return "outline";
   };
   
   const getColor = () => {
     if (!time || time.expired) return "text-red-400";
-    if (time.days <= 3) return "text-red-400";
-    if (time.days <= 7) return "text-yellow-400";
+    if (time.days < 7) return "text-red-400";
+    if (time.days <= 14) return "text-yellow-400";
     return "text-emerald-400";
   };
 
