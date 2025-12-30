@@ -32,6 +32,7 @@ interface PartnerDetails {
 interface PartnerOffer {
   id: string;
   name: string;
+  logoUrl: string | null;
   status: string;
   accessStatus: string;
   payout: string | null;
@@ -257,7 +258,20 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                   {offers.map((offer) => (
                     <tr key={offer.id} data-testid={`row-offer-${offer.id}`} className="hover:bg-muted/50">
                       <td className="px-4 py-3">
-                        <span className="text-foreground font-medium">{offer.name}</span>
+                        <div className="flex items-center gap-3">
+                          {offer.logoUrl ? (
+                            <img 
+                              src={offer.logoUrl} 
+                              alt={offer.name} 
+                              className="w-8 h-8 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                              {offer.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-foreground font-medium">{offer.name}</span>
+                        </div>
                       </td>
                       <td className="px-4 py-3">{accessBadge(offer.accessStatus)}</td>
                       <td className="px-4 py-3 text-right">

@@ -2307,6 +2307,7 @@ export async function registerRoutes(
         return {
           id: offer.id,
           name: offer.name,
+          logoUrl: offer.logoUrl,
           status: offer.status,
           accessStatus,
           payout,
