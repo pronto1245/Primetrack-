@@ -79,6 +79,8 @@ export default function Pricing() {
       { key: "partners", value: plan.maxPartners ? `До ${plan.maxPartners} партнёров` : "Безлимит партнёров", included: true },
       { key: "offers", value: "Безлимит офферов", included: true },
       { key: "postbacks", value: featureLabels.postbacks, included: plan.hasPostbacks },
+      { key: "stats", value: "Статистика", included: true },
+      { key: "finance", value: "Финансы", included: true },
       { key: "antifraud", value: featureLabels.antifraud, included: plan.hasAntifraud },
       { key: "news", value: featureLabels.news, included: plan.hasNews },
       { key: "team", value: featureLabels.team, included: plan.hasTeam },
