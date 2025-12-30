@@ -490,7 +490,7 @@ export async function registerRoutes(
     }
   });
 
-  // Forgot password
+  // Forgot password - request reset link
   app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
@@ -501,17 +501,100 @@ export async function registerRoutes(
       const user = await storage.getUserByEmail(email);
       if (!user) {
         // Не раскрываем существование email
-        return res.json({ success: true, message: "If email exists, instructions will be sent" });
+        return res.json({ success: true, message: "Если email существует, инструкции будут отправлены" });
       }
 
-      // TODO: Implement email sending
-      // For now, just acknowledge the request
-      console.log(`Password reset requested for: ${email}`);
+      // Generate reset token
+      const crypto = await import("crypto");
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       
-      res.json({ success: true, message: "Password reset instructions sent" });
+      // Invalidate existing tokens for this user
+      await storage.deleteUserPasswordResetTokens(user.id);
+      
+      await storage.createPasswordResetToken(user.id, token, expiresAt);
+      
+      // Send email
+      try {
+        const { sendPasswordResetEmail } = await import("./services/email-service");
+        await sendPasswordResetEmail(user.email, token, user.username);
+        console.log(`[auth] Password reset email sent to: ${email}`);
+      } catch (emailError) {
+        console.error("[auth] Failed to send password reset email:", emailError);
+        return res.status(500).json({ message: "Не удалось отправить письмо. Попробуйте позже." });
+      }
+      
+      res.json({ success: true, message: "Инструкции для сброса пароля отправлены на email" });
     } catch (error) {
       console.error("Forgot password error:", error);
-      res.status(500).json({ message: "Failed to process request" });
+      res.status(500).json({ message: "Не удалось обработать запрос" });
+    }
+  });
+  
+  // Verify reset token
+  app.get("/api/auth/verify-reset-token/:token", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const resetToken = await storage.getPasswordResetToken(token);
+      
+      if (!resetToken) {
+        return res.status(400).json({ valid: false, message: "Недействительная ссылка" });
+      }
+      
+      if (resetToken.usedAt) {
+        return res.status(400).json({ valid: false, message: "Ссылка уже использована" });
+      }
+      
+      if (new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ valid: false, message: "Ссылка истекла" });
+      }
+      
+      res.json({ valid: true });
+    } catch (error) {
+      console.error("Verify reset token error:", error);
+      res.status(500).json({ valid: false, message: "Ошибка проверки" });
+    }
+  });
+  
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token и новый пароль обязательны" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Пароль должен быть не менее 6 символов" });
+      }
+      
+      const resetToken = await storage.getPasswordResetToken(token);
+      
+      if (!resetToken) {
+        return res.status(400).json({ message: "Недействительная ссылка сброса" });
+      }
+      
+      if (resetToken.usedAt) {
+        return res.status(400).json({ message: "Ссылка уже использована" });
+      }
+      
+      if (new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ message: "Ссылка истекла. Запросите новую." });
+      }
+      
+      // Update password using dedicated method
+      await storage.updateUserPassword(resetToken.userId, newPassword);
+      
+      // Mark token as used
+      await storage.markPasswordResetTokenUsed(token);
+      
+      console.log(`[auth] Password reset successful for user: ${resetToken.userId}`);
+      
+      res.json({ success: true, message: "Пароль успешно изменён" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Не удалось сбросить пароль" });
     }
   });
 

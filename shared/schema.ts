@@ -1152,6 +1152,20 @@ export const newsReads = pgTable("news_reads", {
 export type NewsRead = typeof newsReads.$inferSelect;
 
 // ============================================
+// PASSWORD RESET TOKENS
+// ============================================
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+// ============================================
 // WEBHOOK ENDPOINTS
 // Custom webhook notifications for advertisers
 // ============================================

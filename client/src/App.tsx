@@ -14,6 +14,8 @@ import PublisherRegister from "@/pages/PublisherRegister";
 import Setup2FA from "@/pages/Setup2FA";
 import NotificationsPage from "@/pages/NotificationsPage";
 import Pricing from "@/pages/Pricing";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import "./lib/i18n";
 
 function Router() {
@@ -21,6 +23,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/setup-2fa" component={Setup2FA} />
       <Route path="/register" component={Register} />
       <Route path="/register/advertiser" component={AdvertiserRegister} />
