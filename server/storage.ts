@@ -3059,6 +3059,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCustomDomain(id: string): Promise<void> {
+    // Delete related acme challenges first (foreign key constraint)
+    await db.delete(acmeChallenges).where(eq(acmeChallenges.domainId, id));
     await db.delete(customDomains).where(eq(customDomains.id, id));
   }
 
