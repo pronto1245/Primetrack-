@@ -26,6 +26,7 @@ import { AdvertiserDashboard } from "@/components/dashboard/AdvertiserDashboard"
 import { PublisherDashboard } from "@/components/dashboard/PublisherDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { AdvertiserPartners } from "@/components/dashboard/AdvertiserPartners";
+import { PartnerProfile } from "@/components/dashboard/PartnerProfile";
 import { AdminUsers } from "@/components/dashboard/AdminUsers";
 import { Reports } from "@/components/dashboard/Reports";
 import { AccessRequests } from "@/components/dashboard/AccessRequests";
@@ -305,6 +306,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchLinks] = useRoute("/dashboard/:role/links");
   const [matchOfferDetail, offerDetailParams] = useRoute("/dashboard/:role/offer/:offerId");
   const [matchPartners] = useRoute("/dashboard/:role/partners");
+  const [matchPartnerProfile, partnerProfileParams] = useRoute("/dashboard/:role/partner/:publisherId");
   const [matchUsers] = useRoute("/dashboard/:role/users");
   const [matchReports] = useRoute("/dashboard/:role/reports");
   const [matchRequests] = useRoute("/dashboard/:role/requests");
@@ -394,6 +396,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showCreateOffer = matchCreateOffer;
   const showOfferDetail = matchOfferDetail;
   const showPartners = matchPartners && role === 'advertiser';
+  const showPartnerProfile = matchPartnerProfile && role === 'advertiser';
   const showUsers = matchUsers && role === 'admin';
   const showReports = matchReports;
   const showRequests = matchRequests && role === 'advertiser';
@@ -480,6 +483,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showCreateOffer && role === 'advertiser') {
       return <CreateOfferForm role={role} />;
+    }
+
+    if (showPartnerProfile) {
+      return <PartnerProfile />;
     }
 
     if (showPartners) {
