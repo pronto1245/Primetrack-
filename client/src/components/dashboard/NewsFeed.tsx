@@ -165,92 +165,94 @@ export function NewsFeed() {
               className={`overflow-hidden ${post.isPinned ? "border-yellow-500/30" : ""}`}
               data-testid={`news-card-${post.id}`}
             >
-              {post.imageUrl && (
-                <div className="w-full h-48 overflow-hidden">
-                  <img 
-                    src={post.imageUrl} 
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div className="flex items-center gap-2">
-                    {post.isPinned && (
-                      <Pin className="h-4 w-4 text-yellow-500" />
-                    )}
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${getCategoryColor(post.category)}`}>
-                      {getCategoryLabel(post.category)}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground uppercase">
-                      {post.authorRole === "admin" ? "Платформа" : "Рекламодатель"}
-                    </span>
+              <div className={`flex ${post.imageUrl ? "flex-col sm:flex-row" : ""}`}>
+                {post.imageUrl && (
+                  <div className="sm:w-36 sm:min-w-36 h-32 sm:h-auto sm:min-h-24 overflow-hidden flex-shrink-0">
+                    <img 
+                      src={post.imageUrl} 
+                      alt={post.title}
+                      className="w-full h-full object-cover sm:rounded-l-lg"
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {post.publishedAt && format(new Date(post.publishedAt), "d MMM yyyy", { locale: ru })}
+                )}
+                <CardContent className="p-4 flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {post.isPinned && (
+                        <Pin className="h-4 w-4 text-yellow-500" />
+                      )}
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${getCategoryColor(post.category)}`}>
+                        {getCategoryLabel(post.category)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground uppercase">
+                        {post.authorRole === "admin" ? "Платформа" : "Рекламодатель"}
+                      </span>
                     </div>
-                    
-                    {canEditNews(post) && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" data-testid={`news-actions-${post.id}`}>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => setLocation(`/dashboard/${currentUser?.role}/news/edit/${post.id}`)}
-                            data-testid={`edit-news-${post.id}`}
-                          >
-                            <Edit2 className="h-4 w-4 mr-2" />
-                            Редактировать
-                          </DropdownMenuItem>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                                className="text-red-500 focus:text-red-500"
-                                data-testid={`delete-news-${post.id}`}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Удалить
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Удалить новость?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Эта новость будет удалена безвозвратно. Это действие нельзя отменить.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Отмена</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteMutation.mutate(post.id)}
-                                  className="bg-red-500 hover:bg-red-600"
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {post.publishedAt && format(new Date(post.publishedAt), "d MMM yyyy", { locale: ru })}
+                      </div>
+                      
+                      {canEditNews(post) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" data-testid={`news-actions-${post.id}`}>
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => setLocation(`/dashboard/${currentUser?.role}/news/edit/${post.id}`)}
+                              data-testid={`edit-news-${post.id}`}
+                            >
+                              <Edit2 className="h-4 w-4 mr-2" />
+                              Редактировать
+                            </DropdownMenuItem>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}
+                                  className="text-red-500 focus:text-red-500"
+                                  data-testid={`delete-news-${post.id}`}
                                 >
+                                  <Trash2 className="h-4 w-4 mr-2" />
                                   Удалить
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Удалить новость?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Эта новость будет удалена безвозвратно. Это действие нельзя отменить.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteMutation.mutate(post.id)}
+                                    className="bg-red-500 hover:bg-red-600"
+                                  >
+                                    Удалить
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {post.title}
-                </h3>
-                
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {post.body}
-                </p>
-              </CardContent>
+                  
+                  <h3 className="text-base font-semibold text-foreground mb-1">
+                    {post.title}
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {post.body}
+                  </p>
+                </CardContent>
+              </div>
             </Card>
           ))}
         </div>
