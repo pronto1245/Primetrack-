@@ -4781,6 +4781,45 @@ export async function registerRoutes(
     }
   });
 
+  // Get crypto wallets (admin)
+  app.get("/api/admin/crypto-wallets", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      let settings = await storage.getPlatformSettings();
+      if (!settings) {
+        return res.json({
+          btcWallet: "",
+          ethWallet: "",
+          usdtTrc20Wallet: "",
+          usdtErc20Wallet: ""
+        });
+      }
+      res.json({
+        btcWallet: settings.cryptoBtcAddress || "",
+        ethWallet: settings.cryptoEthAddress || "",
+        usdtTrc20Wallet: settings.cryptoUsdtTrc20Address || "",
+        usdtErc20Wallet: settings.cryptoUsdtErc20Address || ""
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch crypto wallets" });
+    }
+  });
+
+  // Update crypto wallets (admin)
+  app.patch("/api/admin/crypto-wallets", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { btcWallet, ethWallet, usdtTrc20Wallet, usdtErc20Wallet } = req.body;
+      const settings = await storage.updatePlatformSettings({
+        cryptoBtcAddress: btcWallet || null,
+        cryptoEthAddress: ethWallet || null,
+        cryptoUsdtTrc20Address: usdtTrc20Wallet || null,
+        cryptoUsdtErc20Address: usdtErc20Wallet || null
+      });
+      res.json({ success: true, settings });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update crypto wallets" });
+    }
+  });
+
   // Data Migration API (admin)
   app.post("/api/admin/migration/import", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
@@ -5472,7 +5511,32 @@ export async function registerRoutes(
     }
   });
   
-  // Get crypto wallet addresses for payment
+  // Get crypto wallet addresses for payment (legacy format)
+  app.get("/api/subscription/wallets", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getPlatformSettings();
+      if (!settings) {
+        return res.json({
+          btc: null,
+          eth: null,
+          usdtTrc20: null,
+          usdtErc20: null
+        });
+      }
+      
+      res.json({
+        btc: settings.cryptoBtcAddress || null,
+        eth: settings.cryptoEthAddress || null,
+        usdtTrc20: settings.cryptoUsdtTrc20Address || null,
+        usdtErc20: settings.cryptoUsdtErc20Address || null
+      });
+    } catch (error) {
+      console.error("Failed to get crypto wallets:", error);
+      res.status(500).json({ message: "Failed to get crypto wallets" });
+    }
+  });
+  
+  // Get crypto wallet addresses for payment (detailed format)
   app.get("/api/subscription/crypto-wallets", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const settings = await storage.getPlatformSettings();

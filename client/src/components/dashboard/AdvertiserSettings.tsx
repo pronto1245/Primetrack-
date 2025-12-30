@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Palette, Database, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Mail, Globe, Upload, Shield, Key, AlertCircle,
-  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint
+  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint, CreditCard, Clock
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -32,10 +32,14 @@ export function AdvertiserSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7 gap-1">
+        <TabsList className="grid w-full grid-cols-8 gap-1">
           <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
             <User className="h-4 w-4" />
             Профиль
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="flex items-center gap-2 data-[state=active]:bg-yellow-500 data-[state=active]:text-white" data-testid="tab-subscription">
+            <CreditCard className="h-4 w-4" />
+            Подписка
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white" data-testid="tab-security">
             <Lock className="h-4 w-4" />
@@ -65,6 +69,9 @@ export function AdvertiserSettings() {
 
         <TabsContent value="profile">
           <ProfileTab />
+        </TabsContent>
+        <TabsContent value="subscription">
+          <SubscriptionTab />
         </TabsContent>
         <TabsContent value="security">
           <SecurityTab />
@@ -1260,6 +1267,326 @@ function MigrationTab() {
                        migration.status === 'in_progress' ? 'В процессе' :
                        migration.status === 'failed' ? 'Ошибка' : 'Ожидание'}
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function SubscriptionTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [txHash, setTxHash] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState("USDT_TRC20");
+
+  const { data: subscriptionData, isLoading } = useQuery<any>({
+    queryKey: ["/api/subscription/current"],
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/current", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch subscription");
+      return res.json();
+    },
+  });
+
+  const { data: plans = [] } = useQuery<any[]>({
+    queryKey: ["/api/subscription/plans"],
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/plans", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const { data: wallets } = useQuery<any>({
+    queryKey: ["/api/subscription/wallets"],
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/wallets", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  const { data: payments = [] } = useQuery<any[]>({
+    queryKey: ["/api/subscription/payments"],
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/payments", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const createPaymentMutation = useMutation({
+    mutationFn: async (data: { planId: string; currency: string }) => {
+      const res = await apiRequest("POST", "/api/subscription/create-payment", data);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/payments"] });
+      toast({ title: "Платёж создан", description: "Переведите указанную сумму на кошелёк" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const submitTxMutation = useMutation({
+    mutationFn: async (data: { paymentId: string; txHash: string }) => {
+      return apiRequest("POST", "/api/subscription/submit-tx", data);
+    },
+    onSuccess: () => {
+      setTxHash("");
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/current"] });
+      toast({ title: "Хеш отправлен", description: "Проверка транзакции началась" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
+  const subscription = subscriptionData?.subscription;
+  const currentPlan = subscriptionData?.plan;
+
+  const getTimeRemaining = () => {
+    if (!subscription) return null;
+    let endDate: Date | null = null;
+    
+    if (subscription.status === "trial" && subscription.trialEndsAt) {
+      endDate = new Date(subscription.trialEndsAt);
+    } else if (subscription.status === "active" && subscription.currentPeriodEnd) {
+      endDate = new Date(subscription.currentPeriodEnd);
+    }
+    
+    if (!endDate) return null;
+    
+    const now = new Date();
+    const diffMs = endDate.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return { days: 0, hours: 0, expired: true };
+    
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    
+    return { days: diffDays, hours: diffHours, expired: false };
+  };
+
+  const time = getTimeRemaining();
+
+  const pendingPayment = payments.find((p: any) => p.status === "pending");
+
+  const currencies = [
+    { id: "USDT_TRC20", name: "USDT (TRC-20)", wallet: wallets?.usdtTrc20 },
+    { id: "USDT_ERC20", name: "USDT (ERC-20)", wallet: wallets?.usdtErc20 },
+    { id: "BTC", name: "Bitcoin", wallet: wallets?.btc },
+    { id: "ETH", name: "Ethereum", wallet: wallets?.eth },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Текущая подписка
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {subscription?.status === "trial" && (
+            <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <div className="flex items-center gap-2 text-yellow-500 font-medium mb-2">
+                <Clock className="h-5 w-5" />
+                Пробный период
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {time && !time.expired ? (
+                  <>Осталось: <span className="font-bold text-foreground">{time.days} дней {time.hours} часов</span></>
+                ) : (
+                  <span className="text-red-500">Пробный период истёк</span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {subscription?.status === "active" && currentPlan && (
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+              <div className="flex items-center gap-2 text-emerald-500 font-medium mb-2">
+                <CheckCircle2 className="h-5 w-5" />
+                Активная подписка: {currentPlan.name}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {time && !time.expired ? (
+                  <>Действует до: <span className="font-bold text-foreground">{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span> ({time.days} дней)</>
+                ) : (
+                  <span className="text-red-500">Подписка истекла</span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {subscription?.status === "expired" && (
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="flex items-center gap-2 text-red-500 font-medium mb-2">
+                <AlertCircle className="h-5 w-5" />
+                Подписка истекла
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Выберите план и оплатите для продления доступа
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {pendingPayment && (
+        <Card className="border-yellow-500/50">
+          <CardHeader>
+            <CardTitle className="text-yellow-500">Ожидающий платёж</CardTitle>
+            <CardDescription>
+              Переведите {pendingPayment.amount} {pendingPayment.currency} и отправьте хеш транзакции
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-3 bg-muted rounded-lg font-mono text-sm break-all">
+              {pendingPayment.walletAddress}
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(pendingPayment.walletAddress);
+                toast({ title: "Адрес скопирован" });
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Скопировать адрес
+            </Button>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label>Хеш транзакции (TxID)</Label>
+              <Input
+                value={txHash}
+                onChange={(e) => setTxHash(e.target.value)}
+                placeholder="0x... или другой формат хеша"
+                data-testid="input-tx-hash"
+              />
+            </div>
+            <Button
+              onClick={() => submitTxMutation.mutate({ paymentId: pendingPayment.id, txHash })}
+              disabled={!txHash || submitTxMutation.isPending}
+              data-testid="button-submit-tx"
+            >
+              {submitTxMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+              Отправить хеш
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Тарифные планы</CardTitle>
+          <CardDescription>Выберите подходящий план для вашего бизнеса</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4">
+            {plans.map((plan: any) => (
+              <div
+                key={plan.id}
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                  selectedPlan === plan.id 
+                    ? "border-emerald-500 bg-emerald-500/10" 
+                    : "hover:border-muted-foreground"
+                }`}
+                onClick={() => setSelectedPlan(plan.id)}
+                data-testid={`plan-${plan.id}`}
+              >
+                <div className="font-bold text-lg mb-2">{plan.name}</div>
+                <div className="text-2xl font-bold text-emerald-500 mb-2">
+                  ${plan.price}<span className="text-sm text-muted-foreground">/мес</span>
+                </div>
+                {plan.features && (
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    {plan.features.map((f: string, i: number) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {selectedPlan && !pendingPayment && (
+            <div className="mt-6 p-4 bg-muted rounded-lg space-y-4">
+              <div className="space-y-2">
+                <Label>Способ оплаты</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {currencies.filter(c => c.wallet).map((c) => (
+                    <Button
+                      key={c.id}
+                      variant={selectedCurrency === c.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCurrency(c.id)}
+                      data-testid={`currency-${c.id}`}
+                    >
+                      {c.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                onClick={() => createPaymentMutation.mutate({ planId: selectedPlan, currency: selectedCurrency })}
+                disabled={createPaymentMutation.isPending}
+                className="w-full"
+                data-testid="button-create-payment"
+              >
+                {createPaymentMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+                Создать платёж
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {payments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>История платежей</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {payments.map((payment: any) => (
+                <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium">{payment.amount} {payment.currency}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(payment.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    payment.status === 'completed' ? 'bg-green-500/20 text-green-500' :
+                    payment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                    payment.status === 'verifying' ? 'bg-blue-500/20 text-blue-500' :
+                    'bg-red-500/20 text-red-500'
+                  }`}>
+                    {payment.status === 'completed' ? 'Оплачено' :
+                     payment.status === 'pending' ? 'Ожидает' :
+                     payment.status === 'verifying' ? 'Проверка' : 'Ошибка'}
                   </div>
                 </div>
               ))}

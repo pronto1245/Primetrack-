@@ -867,6 +867,8 @@ function PlatformTab() {
         </CardContent>
       </Card>
 
+      <CryptoWalletsSettings />
+
       <Button 
         onClick={() => updateMutation.mutate(formData)} 
         disabled={updateMutation.isPending}
@@ -877,6 +879,120 @@ function PlatformTab() {
         Сохранить все настройки платформы
       </Button>
     </div>
+  );
+}
+
+function CryptoWalletsSettings() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({
+    btcWallet: "",
+    ethWallet: "",
+    usdtTrc20Wallet: "",
+    usdtErc20Wallet: "",
+  });
+
+  const { data: settings, isLoading } = useQuery<any>({
+    queryKey: ["/api/admin/crypto-wallets"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/crypto-wallets", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setFormData({
+        btcWallet: settings.btcWallet || "",
+        ethWallet: settings.ethWallet || "",
+        usdtTrc20Wallet: settings.usdtTrc20Wallet || "",
+        usdtErc20Wallet: settings.usdtErc20Wallet || "",
+      });
+    }
+  }, [settings]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("PATCH", "/api/admin/crypto-wallets", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/crypto-wallets"] });
+      toast({ title: "Крипто-кошельки сохранены" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) {
+    return <Card><CardContent className="py-8"><div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div></CardContent></Card>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CreditCard className="h-5 w-5" />
+          Крипто-кошельки для оплаты
+        </CardTitle>
+        <CardDescription>Адреса кошельков для приёма оплаты подписок от рекламодателей</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="btcWallet">Bitcoin (BTC)</Label>
+            <Input
+              id="btcWallet"
+              value={formData.btcWallet}
+              onChange={(e) => setFormData({ ...formData, btcWallet: e.target.value })}
+              placeholder="bc1q..."
+              data-testid="input-btc-wallet"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ethWallet">Ethereum (ETH)</Label>
+            <Input
+              id="ethWallet"
+              value={formData.ethWallet}
+              onChange={(e) => setFormData({ ...formData, ethWallet: e.target.value })}
+              placeholder="0x..."
+              data-testid="input-eth-wallet"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="usdtTrc20Wallet">USDT (TRC-20)</Label>
+            <Input
+              id="usdtTrc20Wallet"
+              value={formData.usdtTrc20Wallet}
+              onChange={(e) => setFormData({ ...formData, usdtTrc20Wallet: e.target.value })}
+              placeholder="T..."
+              data-testid="input-usdt-trc20-wallet"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="usdtErc20Wallet">USDT (ERC-20)</Label>
+            <Input
+              id="usdtErc20Wallet"
+              value={formData.usdtErc20Wallet}
+              onChange={(e) => setFormData({ ...formData, usdtErc20Wallet: e.target.value })}
+              placeholder="0x..."
+              data-testid="input-usdt-erc20-wallet"
+            />
+          </div>
+        </div>
+
+        <Button 
+          onClick={() => updateMutation.mutate(formData)} 
+          disabled={updateMutation.isPending}
+          data-testid="button-save-crypto-wallets"
+        >
+          {updateMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+          Сохранить кошельки
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
