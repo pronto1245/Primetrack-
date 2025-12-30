@@ -17,6 +17,7 @@ const PAYOUT_MODELS = ["CPA", "CPL", "CPI", "RevShare", "CPC", "CPM"];
 const CATEGORIES = ["Gambling", "Betting", "Crypto", "Nutra", "Dating", "Finance", "Sweepstakes", "Gaming", "Utilities", "eCommerce"];
 
 interface Landing {
+  id?: string; // ID для обновления существующих
   geo: string;
   landingName: string;
   landingUrl: string;
@@ -111,6 +112,7 @@ export function CreateOfferForm({ role }: { role: string }) {
       
       if (offerData.landings && offerData.landings.length > 0) {
         setLandings(offerData.landings.map((l: any) => ({
+          id: l.id, // Сохраняем id для обновления
           geo: l.geo || "",
           landingName: l.landingName || "",
           landingUrl: l.landingUrl || "",

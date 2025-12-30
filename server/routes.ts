@@ -1007,20 +1007,31 @@ export async function registerRoutes(
       // Обновить оффер
       const updated = await storage.updateOffer(req.params.id, offerData);
       
-      // Обновить landings: удалить старые и создать новые
+      // Обновление landings: обновляем существующие, создаём новые (БЕЗ удаления)
       if (landings && Array.isArray(landings)) {
-        await storage.deleteOfferLandings(req.params.id);
+        const existingLandings = await storage.getOfferLandings(req.params.id);
+        const existingLandingIds = new Set(existingLandings.map(l => l.id));
+        
         for (const landing of landings) {
-          // Санитизация для landings
-          await storage.createOfferLanding({
+          const sanitizedLanding = {
             geo: landing.geo,
             landingName: landing.landingName || null,
             landingUrl: landing.landingUrl,
             partnerPayout: landing.partnerPayout === "" ? null : landing.partnerPayout,
             internalCost: landing.internalCost === "" ? null : landing.internalCost,
             currency: landing.currency || "USD",
-            offerId: req.params.id,
-          });
+          };
+          
+          if (landing.id && existingLandingIds.has(landing.id)) {
+            // Обновить существующий landing
+            await storage.updateOfferLanding(landing.id, sanitizedLanding);
+          } else {
+            // Создать новый landing
+            await storage.createOfferLanding({
+              ...sanitizedLanding,
+              offerId: req.params.id,
+            });
+          }
         }
       }
       

@@ -170,7 +170,9 @@ export interface IStorage {
   // Offer Landings
   getOfferLandings(offerId: string): Promise<OfferLanding[]>;
   createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding>;
+  updateOfferLanding(id: string, data: Partial<InsertOfferLanding>): Promise<OfferLanding | undefined>;
   deleteOfferLandings(offerId: string): Promise<void>;
+  deleteOfferLandingById(id: string): Promise<void>;
   
   // Clicks
   getClick(id: string): Promise<Click | undefined>;
@@ -540,6 +542,18 @@ export class DatabaseStorage implements IStorage {
 
   async deleteOfferLandings(offerId: string): Promise<void> {
     await db.delete(offerLandings).where(eq(offerLandings.offerId, offerId));
+  }
+
+  async updateOfferLanding(id: string, data: Partial<InsertOfferLanding>): Promise<OfferLanding | undefined> {
+    const [landing] = await db.update(offerLandings)
+      .set(data)
+      .where(eq(offerLandings.id, id))
+      .returning();
+    return landing;
+  }
+
+  async deleteOfferLandingById(id: string): Promise<void> {
+    await db.delete(offerLandings).where(eq(offerLandings.id, id));
   }
 
   // Clicks
