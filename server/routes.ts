@@ -5432,5 +5432,196 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // ADVERTISER SUBSCRIPTION MANAGEMENT
+  // ============================================
+  
+  // Get current subscription status
+  app.get("/api/subscription/current", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      let subscription = await storage.getAdvertiserSubscription(advertiserId);
+      
+      // Create trial if no subscription exists
+      if (!subscription) {
+        subscription = await storage.createTrialSubscription(advertiserId);
+      }
+      
+      // Get plan details if subscribed
+      let plan = null;
+      if (subscription.planId) {
+        plan = await storage.getSubscriptionPlanById(subscription.planId);
+      }
+      
+      res.json({ subscription, plan });
+    } catch (error) {
+      console.error("Failed to get subscription:", error);
+      res.status(500).json({ message: "Failed to get subscription" });
+    }
+  });
+  
+  // Get payment history
+  app.get("/api/subscription/payments", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const payments = await storage.getAdvertiserPayments(advertiserId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Failed to get payments:", error);
+      res.status(500).json({ message: "Failed to get payments" });
+    }
+  });
+  
+  // Get crypto wallet addresses for payment
+  app.get("/api/subscription/crypto-wallets", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getPlatformSettings();
+      if (!settings) {
+        return res.status(404).json({ message: "Platform settings not found" });
+      }
+      
+      const wallets: { currency: string; address: string; network: string }[] = [];
+      
+      if (settings.cryptoBtcAddress) {
+        wallets.push({ currency: "BTC", address: settings.cryptoBtcAddress, network: "Bitcoin" });
+      }
+      if (settings.cryptoUsdtTrc20Address) {
+        wallets.push({ currency: "USDT_TRC20", address: settings.cryptoUsdtTrc20Address, network: "Tron (TRC20)" });
+      }
+      if (settings.cryptoEthAddress) {
+        wallets.push({ currency: "ETH", address: settings.cryptoEthAddress, network: "Ethereum" });
+      }
+      if (settings.cryptoUsdtErc20Address) {
+        wallets.push({ currency: "USDT_ERC20", address: settings.cryptoUsdtErc20Address, network: "Ethereum (ERC20)" });
+      }
+      
+      res.json(wallets);
+    } catch (error) {
+      console.error("Failed to get crypto wallets:", error);
+      res.status(500).json({ message: "Failed to get crypto wallets" });
+    }
+  });
+  
+  // Create payment request
+  app.post("/api/subscription/pay", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { planId, billingCycle, cryptoCurrency } = req.body;
+      
+      if (!planId || !billingCycle || !cryptoCurrency) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+      
+      const settings = await storage.getPlatformSettings();
+      if (!settings) {
+        return res.status(500).json({ message: "Platform settings not configured" });
+      }
+      
+      let cryptoAddress = "";
+      switch (cryptoCurrency) {
+        case "BTC": cryptoAddress = settings.cryptoBtcAddress || ""; break;
+        case "USDT_TRC20": cryptoAddress = settings.cryptoUsdtTrc20Address || ""; break;
+        case "ETH": cryptoAddress = settings.cryptoEthAddress || ""; break;
+        case "USDT_ERC20": cryptoAddress = settings.cryptoUsdtErc20Address || ""; break;
+      }
+      
+      if (!cryptoAddress) {
+        return res.status(400).json({ message: "This cryptocurrency is not available for payment" });
+      }
+      
+      const amount = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+      
+      const subscription = await storage.getAdvertiserSubscription(advertiserId);
+      
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour payment window
+      
+      const payment = await storage.createSubscriptionPayment({
+        advertiserId,
+        subscriptionId: subscription?.id,
+        planId,
+        amount: amount.toString(),
+        currency: "USD",
+        cryptoCurrency,
+        cryptoAddress,
+        billingCycle,
+        status: "pending",
+        expiresAt,
+      });
+      
+      res.json({ payment, cryptoAddress, amount });
+    } catch (error) {
+      console.error("Failed to create payment:", error);
+      res.status(500).json({ message: "Failed to create payment" });
+    }
+  });
+  
+  // Submit transaction hash for verification
+  app.post("/api/subscription/verify", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { paymentId, txHash } = req.body;
+      
+      if (!paymentId || !txHash) {
+        return res.status(400).json({ message: "Missing payment ID or transaction hash" });
+      }
+      
+      const payment = await storage.getSubscriptionPaymentById(paymentId);
+      if (!payment || payment.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+      
+      // Check if hash already used
+      const existingPayment = await storage.getSubscriptionPaymentByHash(txHash);
+      if (existingPayment && existingPayment.id !== paymentId) {
+        return res.status(400).json({ message: "This transaction hash is already used" });
+      }
+      
+      await storage.updateSubscriptionPayment(paymentId, { 
+        txHash, 
+        status: "verifying" 
+      });
+      
+      // Start verification
+      const { cryptoPaymentService } = await import("./services/crypto-payment-service");
+      const result = await cryptoPaymentService.verifyPayment(paymentId);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Failed to verify payment:", error);
+      res.status(500).json({ message: "Failed to verify payment" });
+    }
+  });
+  
+  // Retry payment verification (for pending confirmations)
+  app.post("/api/subscription/verify-retry/:paymentId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = req.session.userId!;
+      const { paymentId } = req.params;
+      
+      const payment = await storage.getSubscriptionPaymentById(paymentId);
+      if (!payment || payment.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+      
+      if (!payment.txHash) {
+        return res.status(400).json({ message: "No transaction hash to verify" });
+      }
+      
+      const { cryptoPaymentService } = await import("./services/crypto-payment-service");
+      const result = await cryptoPaymentService.verifyPayment(paymentId);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Failed to verify payment:", error);
+      res.status(500).json({ message: "Failed to verify payment" });
+    }
+  });
+
   return httpServer;
 }
