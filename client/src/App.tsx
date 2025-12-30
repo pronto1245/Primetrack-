@@ -13,6 +13,7 @@ import AdvertiserRegister from "@/pages/AdvertiserRegister";
 import PublisherRegister from "@/pages/PublisherRegister";
 import Setup2FA from "@/pages/Setup2FA";
 import NotificationsPage from "@/pages/NotificationsPage";
+import Pricing from "@/pages/Pricing";
 import "./lib/i18n";
 
 function Router() {
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/dashboard/:role" component={Dashboard} />
       <Route path="/dashboard/:role/*" component={Dashboard} />
       <Route path="/notifications" component={NotificationsPage} />
+      <Route path="/pricing" component={Pricing} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1308,3 +1308,76 @@ export const acmeChallenges = pgTable("acme_challenges", {
 });
 
 export type AcmeChallenge = typeof acmeChallenges.$inferSelect;
+
+// ============================================
+// SUBSCRIPTION PLANS
+// ============================================
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  name: text("name").notNull(), // Starter, Professional, Enterprise
+  monthlyPrice: numeric("monthly_price", { precision: 10, scale: 2 }).notNull(),
+  yearlyPrice: numeric("yearly_price", { precision: 10, scale: 2 }).notNull(),
+  
+  // Limits
+  maxPartners: integer("max_partners"), // null = unlimited
+  maxOffers: integer("max_offers"), // null = unlimited
+  
+  // Feature flags
+  hasAntifraud: boolean("has_antifraud").default(false),
+  hasNews: boolean("has_news").default(false),
+  hasPostbacks: boolean("has_postbacks").default(false),
+  hasTeam: boolean("has_team").default(false),
+  hasWebhooks: boolean("has_webhooks").default(false),
+  hasCustomDomain: boolean("has_custom_domain").default(false),
+  hasApiAccess: boolean("has_api_access").default(false),
+  
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+
+// ============================================
+// ADVERTISER SUBSCRIPTIONS
+// ============================================
+export const advertiserSubscriptions = pgTable("advertiser_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  planId: varchar("plan_id").references(() => subscriptionPlans.id), // null during trial
+  
+  billingCycle: text("billing_cycle").notNull().default("monthly"), // monthly, yearly
+  status: text("status").notNull().default("trial"), // trial, active, cancelled, expired, past_due
+  
+  // Trial period
+  trialEndsAt: timestamp("trial_ends_at"),
+  
+  // Stripe integration
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  
+  cancelledAt: timestamp("cancelled_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertAdvertiserSubscriptionSchema = createInsertSchema(advertiserSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAdvertiserSubscription = z.infer<typeof insertAdvertiserSubscriptionSchema>;
+export type AdvertiserSubscription = typeof advertiserSubscriptions.$inferSelect;

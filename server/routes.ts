@@ -5366,5 +5366,18 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // SUBSCRIPTION PLANS (Public)
+  // ============================================
+  app.get("/api/subscription/plans", async (req: Request, res: Response) => {
+    try {
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Failed to get subscription plans:", error);
+      res.status(500).json({ message: "Failed to get subscription plans" });
+    }
+  });
+
   return httpServer;
 }

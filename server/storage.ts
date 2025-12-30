@@ -29,7 +29,8 @@ import {
   type WebhookLog, type InsertWebhookLog, webhookLogs,
   type CustomDomain, type InsertCustomDomain, customDomains,
   type AcmeAccount, acmeAccounts,
-  type AcmeChallenge, acmeChallenges
+  type AcmeChallenge, acmeChallenges,
+  type SubscriptionPlan, subscriptionPlans
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -362,6 +363,9 @@ export interface IStorage {
   // News Read Tracking
   getUnreadNewsCount(userId: string, userRole: string, advertiserId?: string): Promise<number>;
   markNewsAsRead(userId: string, newsIds: string[]): Promise<void>;
+  
+  // Subscription Plans
+  getSubscriptionPlans(): Promise<SubscriptionPlan[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3047,6 +3051,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpiredAcmeChallenges(): Promise<void> {
     await db.delete(acmeChallenges).where(lte(acmeChallenges.expiresAt, new Date()));
+  }
+
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return db.select().from(subscriptionPlans)
+      .where(eq(subscriptionPlans.isActive, true))
+      .orderBy(subscriptionPlans.sortOrder);
   }
 }
 
