@@ -1,62 +1,29 @@
 import { Resend } from 'resend';
 
-let connectionSettings: any;
-
-async function getCredentials() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+// Use RESEND_API_KEY from environment secrets
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY not configured');
   }
-
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  if (!connectionSettings || (!connectionSettings.settings.api_key)) {
-    throw new Error('Resend not connected');
-  }
-  return {
-    apiKey: connectionSettings.settings.api_key, 
-    fromEmail: connectionSettings.settings.from_email
-  };
-}
-
-async function getResendClient() {
-  const { apiKey, fromEmail } = await getCredentials();
-  console.log('[email] Resend client initialized, fromEmail:', fromEmail);
+  console.log('[email] Resend client initialized with API key from secrets');
   return {
     client: new Resend(apiKey),
-    fromEmail
+    // Use Resend's test sender for development
+    fromEmail: 'PrimeTrack <onboarding@resend.dev>'
   };
 }
 
 export async function sendPasswordResetEmail(to: string, resetToken: string, username: string) {
   try {
-    const { client, fromEmail } = await getResendClient();
+    const { client, fromEmail } = getResendClient();
     const appDomain = process.env.APP_DOMAIN || 'https://primetrack.pro';
     const resetLink = `${appDomain}/reset-password?token=${resetToken}`;
     
-    // Use verified from_email or Resend's test email for development
-    const verifiedFrom = fromEmail && fromEmail.includes('@') && !fromEmail.includes('galactmail') 
-      ? fromEmail 
-      : 'PrimeTrack <onboarding@resend.dev>';
-    
-    console.log('[email] Sending from:', verifiedFrom, 'to:', to);
+    console.log('[email] Sending from:', fromEmail, 'to:', to);
     
     const result = await client.emails.send({
-      from: verifiedFrom,
+      from: fromEmail,
       to: [to],
       subject: 'Восстановление пароля - PrimeTrack',
       html: `
