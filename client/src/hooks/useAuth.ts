@@ -56,10 +56,10 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    queryClient.clear();
     setUser(null);
-    setLocation("/dashboard");
+    queryClient.clear();
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    setLocation("/login");
   };
 
   return { user, loading, login, logout, checkAuth };
