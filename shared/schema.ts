@@ -1359,6 +1359,11 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   isActive: boolean("is_active").default(true),
   sortOrder: integer("sort_order").default(0),
   
+  // Legacy columns (for backwards compatibility)
+  price: numeric("price", { precision: 10, scale: 2 }),
+  discountPercent: integer("discount_percent"),
+  features: text("features").array(),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
