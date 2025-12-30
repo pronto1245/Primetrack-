@@ -20,7 +20,7 @@ interface DnsRecord {
 }
 
 class DomainService {
-  private platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.app";
+  private platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
 
   generateVerificationToken(): string {
     return `primetrack-verify-${crypto.randomBytes(16).toString("hex")}`;

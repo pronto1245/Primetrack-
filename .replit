@@ -45,3 +45,8 @@ waitForPort = 5000
 [agent]
 mockupState = "FULLSTACK"
 integrations = ["javascript_object_storage:2.0.0"]
+
+[userenv]
+
+[userenv.production]
+APP_DOMAIN = "https://primetrack.pro"

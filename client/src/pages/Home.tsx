@@ -457,7 +457,7 @@ export default function Home() {
                 Партнёрская платформа для рекламодателей и издателей
               </p>
               <div className="flex gap-4">
-                <a href="mailto:support@primetrack.app" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="mailto:support@primetrack.pro" className="text-muted-foreground hover:text-foreground transition-colors">
                   <Mail className="w-5 h-5" />
                 </a>
                 <a href="https://t.me/primetrack" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -486,7 +486,7 @@ export default function Home() {
             <div>
               <div className="font-medium text-foreground mb-4">Поддержка</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="mailto:support@primetrack.app" className="hover:text-foreground transition-colors">support@primetrack.app</a></li>
+                <li><a href="mailto:support@primetrack.pro" className="hover:text-foreground transition-colors">support@primetrack.pro</a></li>
                 <li><a href="https://t.me/primetrack" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>
               </ul>
             </div>

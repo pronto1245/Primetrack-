@@ -233,7 +233,7 @@ export function CustomDomainsSettings() {
                         CNAME запись (рекомендуется)
                       </Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Добавьте одну CNAME запись: <code className="bg-muted px-1 rounded">ваш-домен → tracking.primetrack.app</code>
+                        Добавьте одну CNAME запись: <code className="bg-muted px-1 rounded">ваш-домен → tracking.primetrack.pro</code>
                       </p>
                     </div>
                   </div>
@@ -429,7 +429,7 @@ function DnsInstructions({
   method: "cname" | "txt";
   onCopy: (text: string) => void;
 }) {
-  const platformDomain = "tracking.primetrack.app";
+  const platformDomain = "tracking.primetrack.pro";
   
   if (method === "cname") {
     return (

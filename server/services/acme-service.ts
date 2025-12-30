@@ -19,7 +19,7 @@ class AcmeService {
     } else {
       accountKey = await acme.crypto.createPrivateKey();
       
-      const email = settings?.supportEmail || 'admin@primetrack.app';
+      const email = settings?.supportEmail || 'admin@primetrack.pro';
       await storage.createAcmeAccount({
         email,
         privateKey: accountKey.toString('utf-8'),
@@ -37,7 +37,7 @@ class AcmeService {
     });
     
     try {
-      const email = settings?.supportEmail || 'admin@primetrack.app';
+      const email = settings?.supportEmail || 'admin@primetrack.pro';
       await this.client.createAccount({
         termsOfServiceAgreed: true,
         contact: [`mailto:${email}`],
@@ -73,7 +73,7 @@ class AcmeService {
       
       const certificate = await client.auto({
         csr,
-        email: (await storage.getPlatformSettings())?.supportEmail || 'admin@primetrack.app',
+        email: (await storage.getPlatformSettings())?.supportEmail || 'admin@primetrack.pro',
         termsOfServiceAgreed: true,
         challengeCreateFn: async (authz, challenge, keyAuthorization) => {
           if (challenge.type !== 'http-01') {

@@ -2359,10 +2359,17 @@ export async function registerRoutes(
         await storage.setAdvertiserReferralCode(req.session.userId!, referralCode);
       }
       
-      // Use request host to get correct URL for both dev and production
-      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-      const host = req.headers['x-forwarded-host'] || req.headers.host || req.hostname;
-      const baseUrl = `${protocol}://${host}`;
+      // Use APP_DOMAIN env or fallback to request host
+      const appDomain = process.env.APP_DOMAIN || process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : null;
+      let baseUrl: string;
+      
+      if (appDomain) {
+        baseUrl = appDomain.startsWith('http') ? appDomain : `https://${appDomain}`;
+      } else {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host || req.hostname;
+        baseUrl = `${protocol}://${host}`;
+      }
       const registrationLink = `${baseUrl}/register?ref=${referralCode}`;
       
       res.json({ referralCode, registrationLink });
