@@ -126,12 +126,13 @@ Preferred communication style: Simple, everyday language (Russian).
 
 ### Custom Domains (Backend)
 - ✅ Таблица custom_domains
-- ✅ DNS верификация (CNAME/TXT)
-- ✅ Let's Encrypt ACME интеграция (acme-client, HTTP-01 challenge)
-- ✅ ACME accounts/challenges таблицы в БД (персистентное хранение)
-- ✅ HTTP-01 challenge endpoint: `/.well-known/acme-challenge/:token`
-- ✅ Retry SSL provisioning endpoint
-- ⚠️ UI: только в White-label настройках (поле customDomain)
+- ✅ DNS верификация (CNAME/TXT) через Google DNS resolvers
+- ✅ TLS Checker - реальная проверка SSL через TLS handshake
+- ✅ Честные SSL статусы: unverified, verified_no_ssl, ssl_activating, ssl_active, ssl_failed
+- ✅ Endpoint `/api/domains/:id/check-ssl` - проверка SSL
+- ✅ UI: кнопка "Проверить SSL", инструкции для Cloudflare
+- ✅ SSL через Cloudflare (внешний провайдер)
+- ❌ ACME/Let's Encrypt удалён (не работает на Replit - нет доступа к порту 80)
 
 ### IP Intelligence (ipinfo.io)
 - ✅ Токен хранится зашифрованно в platformSettings (ipinfoToken)
@@ -155,9 +156,10 @@ Preferred communication style: Simple, everyday language (Russian).
 - Auth: Session-based (connect-pg-simple)
 - 2FA: TOTP (otplib + qrcode)
 - GEO: geoip-lite
-- SSL: Let's Encrypt ACME (acme-client)
+- SSL: Cloudflare (внешний, TLS handshake проверка)
 - IP Intel: ipinfo.io (опционально)
 - Fingerprinting: FingerprintJS (опционально)
+- Platform Domain: primetrack.pro
 
 ---
 
