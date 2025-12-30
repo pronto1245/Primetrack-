@@ -146,6 +146,21 @@ function ManagerCard() {
 function Sidebar({ role, t }: { role: string, t: any }) {
   const { selectedAdvertiser } = useAdvertiserContext();
   
+  // Fetch unread news count
+  const { data: unreadNewsData } = useQuery<{ count: number }>({
+    queryKey: ["unread-news-count", selectedAdvertiser?.id],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedAdvertiser?.id) params.set("advertiserId", selectedAdvertiser.id);
+      const res = await fetch(`/api/news/unread-count?${params}`, { credentials: "include" });
+      if (!res.ok) return { count: 0 };
+      return res.json();
+    },
+    refetchInterval: 60000, // Poll every minute
+  });
+  
+  const unreadNewsCount = unreadNewsData?.count || 0;
+  
   const menus = {
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
@@ -193,14 +208,22 @@ function Sidebar({ role, t }: { role: string, t: any }) {
       </div>
 
       <nav className="p-2 space-y-1 flex-1">
-        {currentMenu.map((item, i) => (
-          <Link key={i} href={item.path}>
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
-              <item.icon className={`w-4 h-4 ${item.color}`} />
-              {item.label}
-            </button>
-          </Link>
-        ))}
+        {currentMenu.map((item, i) => {
+          const isNewsItem = item.path.includes('/news');
+          return (
+            <Link key={i} href={item.path}>
+              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+                <item.icon className={`w-4 h-4 ${item.color}`} />
+                <span className="flex-1 text-left">{item.label}</span>
+                {isNewsItem && unreadNewsCount > 0 && (
+                  <span className="min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full" data-testid="unread-news-badge">
+                    {unreadNewsCount > 99 ? '99+' : unreadNewsCount}
+                  </span>
+                )}
+              </button>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Manager Card for Advertiser */}

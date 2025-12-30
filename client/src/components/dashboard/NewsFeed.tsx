@@ -8,6 +8,7 @@ import { ru } from "date-fns/locale";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface NewsPost {
   id: string;
@@ -51,6 +52,24 @@ export function NewsFeed() {
       return res.json();
     },
   });
+
+  // Mark all loaded news as read when page is visited
+  useEffect(() => {
+    if (news.length > 0) {
+      const newsIds = news.map(n => n.id);
+      fetch("/api/news/mark-read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ newsIds }),
+      }).then(() => {
+        // Invalidate unread count to update sidebar badge
+        queryClient.invalidateQueries({ queryKey: ["unread-news-count"] });
+      }).catch(() => {
+        // Silently ignore errors
+      });
+    }
+  }, [news, queryClient]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
