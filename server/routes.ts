@@ -975,6 +975,22 @@ export async function registerRoutes(
     }
   });
 
+  // Получить архивированные офферы (ВАЖНО: этот route должен быть ДО /api/offers/:id)
+  app.get("/api/offers/archived", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const archivedOffers = await storage.getArchivedOffersByAdvertiser(req.session.userId!);
+      const offersWithLandings = await Promise.all(
+        archivedOffers.map(async (offer) => {
+          const landings = await storage.getOfferLandings(offer.id);
+          return { ...offer, landings };
+        })
+      );
+      res.json(offersWithLandings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch archived offers" });
+    }
+  });
+
   // Получить один оффер с лендингами
   app.get("/api/offers/:id", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -1114,22 +1130,6 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Restore offer error:", error);
       res.status(500).json({ message: "Failed to restore offer" });
-    }
-  });
-
-  // Получить архивированные офферы
-  app.get("/api/offers/archived", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
-    try {
-      const archivedOffers = await storage.getArchivedOffersByAdvertiser(req.session.userId!);
-      const offersWithLandings = await Promise.all(
-        archivedOffers.map(async (offer) => {
-          const landings = await storage.getOfferLandings(offer.id);
-          return { ...offer, landings };
-        })
-      );
-      res.json(offersWithLandings);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch archived offers" });
     }
   });
 
