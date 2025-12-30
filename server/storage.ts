@@ -161,10 +161,13 @@ export interface IStorage {
   
   // Offers
   getOffer(id: string): Promise<Offer | undefined>;
-  getOffersByAdvertiser(advertiserId: string): Promise<Offer[]>;
+  getOffersByAdvertiser(advertiserId: string, includeArchived?: boolean): Promise<Offer[]>;
+  getArchivedOffersByAdvertiser(advertiserId: string): Promise<Offer[]>;
   getActiveOffers(): Promise<Offer[]>;
   createOffer(offer: InsertOffer): Promise<Offer>;
   updateOffer(id: string, offer: Partial<InsertOffer>): Promise<Offer | undefined>;
+  archiveOffer(id: string): Promise<Offer | undefined>;
+  restoreOffer(id: string): Promise<Offer | undefined>;
   deleteOffer(id: string): Promise<void>;
   
   // Offer Landings
@@ -485,15 +488,26 @@ export class DatabaseStorage implements IStorage {
     return offer;
   }
 
-  async getOffersByAdvertiser(advertiserId: string): Promise<Offer[]> {
+  async getOffersByAdvertiser(advertiserId: string, includeArchived: boolean = false): Promise<Offer[]> {
+    if (includeArchived) {
+      return db.select().from(offers)
+        .where(eq(offers.advertiserId, advertiserId))
+        .orderBy(desc(offers.createdAt));
+    }
     return db.select().from(offers)
-      .where(eq(offers.advertiserId, advertiserId))
+      .where(and(eq(offers.advertiserId, advertiserId), eq(offers.archived, false)))
       .orderBy(desc(offers.createdAt));
+  }
+
+  async getArchivedOffersByAdvertiser(advertiserId: string): Promise<Offer[]> {
+    return db.select().from(offers)
+      .where(and(eq(offers.advertiserId, advertiserId), eq(offers.archived, true)))
+      .orderBy(desc(offers.archivedAt));
   }
 
   async getActiveOffers(): Promise<Offer[]> {
     return db.select().from(offers)
-      .where(eq(offers.status, "active"))
+      .where(and(eq(offers.status, "active"), eq(offers.archived, false)))
       .orderBy(desc(offers.createdAt));
   }
 
@@ -507,6 +521,40 @@ export class DatabaseStorage implements IStorage {
       .set(data)
       .where(eq(offers.id, id))
       .returning();
+    return offer;
+  }
+
+  async archiveOffer(id: string): Promise<Offer | undefined> {
+    // Archive the offer
+    const [offer] = await db.update(offers)
+      .set({ archived: true, archivedAt: new Date() })
+      .where(eq(offers.id, id))
+      .returning();
+    
+    if (offer) {
+      // Deactivate all publisher access to this offer
+      await db.update(publisherOffers)
+        .set({ status: "archived" })
+        .where(eq(publisherOffers.offerId, id));
+    }
+    
+    return offer;
+  }
+
+  async restoreOffer(id: string): Promise<Offer | undefined> {
+    // Restore the offer from archive
+    const [offer] = await db.update(offers)
+      .set({ archived: false, archivedAt: null })
+      .where(eq(offers.id, id))
+      .returning();
+    
+    if (offer) {
+      // Reactivate publisher access (restore to approved status)
+      await db.update(publisherOffers)
+        .set({ status: "approved" })
+        .where(and(eq(publisherOffers.offerId, id), eq(publisherOffers.status, "archived")));
+    }
+    
     return offer;
   }
 
