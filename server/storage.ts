@@ -2560,6 +2560,39 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getSuspiciousClicks(filters: {
+    advertiserId?: string;
+    offerId?: string;
+    publisherId?: string;
+    limit?: number;
+  }): Promise<Click[]> {
+    const conditions: any[] = [eq(clicks.isSuspicious, true)];
+    
+    if (filters.advertiserId) {
+      // Get offer IDs for this advertiser
+      const advertiserOffers = await db.select({ id: offers.id }).from(offers).where(eq(offers.advertiserId, filters.advertiserId));
+      const offerIds = advertiserOffers.map(o => o.id);
+      if (offerIds.length > 0) {
+        conditions.push(inArray(clicks.offerId, offerIds));
+      } else {
+        return []; // No offers for this advertiser
+      }
+    }
+    if (filters.offerId) {
+      conditions.push(eq(clicks.offerId, filters.offerId));
+    }
+    if (filters.publisherId) {
+      conditions.push(eq(clicks.publisherId, filters.publisherId));
+    }
+    
+    const result = await db.select().from(clicks)
+      .where(and(...conditions))
+      .orderBy(desc(clicks.createdAt))
+      .limit(filters.limit || 100);
+    
+    return result;
+  }
+
   // ============================================
   // ANTI-FRAUD METRICS
   // ============================================

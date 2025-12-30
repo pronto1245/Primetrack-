@@ -112,6 +112,28 @@ export default function AntifraudDashboard({ role }: { role: string }) {
     queryKey: ["/api/antifraud/logs"],
   });
 
+  const { data: suspiciousClicks = [] } = useQuery<{
+    id: string;
+    clickId: string;
+    offerId: string;
+    publisherId: string;
+    ip?: string;
+    geo?: string;
+    city?: string;
+    fraudScore: number;
+    isSuspicious: boolean;
+    suspiciousReasons?: string;
+    isProxy: boolean;
+    isVpn: boolean;
+    isTor: boolean;
+    isBot: boolean;
+    isDatacenter: boolean;
+    isp?: string;
+    createdAt: string;
+  }[]>({
+    queryKey: ["/api/antifraud/suspicious-clicks"],
+  });
+
   const createRule = useMutation({
     mutationFn: async (data: any) => {
       const res = await fetch("/api/antifraud/rules", {
@@ -272,6 +294,10 @@ export default function AntifraudDashboard({ role }: { role: string }) {
           <TabsTrigger value="rules" data-testid="tab-rules" className="px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
             <Shield className="h-4 w-4 mr-2 text-blue-500" />
             Правила
+          </TabsTrigger>
+          <TabsTrigger value="suspicious" data-testid="tab-suspicious" className="px-4 py-2 data-[state=active]:bg-red-500 data-[state=active]:text-white">
+            <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
+            Подозрительные
           </TabsTrigger>
           <TabsTrigger value="logs" data-testid="tab-logs" className="px-4 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             <Activity className="h-4 w-4 mr-2 text-orange-500" />
@@ -472,6 +498,100 @@ export default function AntifraudDashboard({ role }: { role: string }) {
               ))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="suspicious" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Подозрительные клики
+            </h3>
+            <Badge variant="destructive" className="text-sm">
+              {suspiciousClicks.length} кликов
+            </Badge>
+          </div>
+          
+          {suspiciousClicks.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <Shield className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                <p className="text-lg font-medium">Подозрительного трафика не обнаружено</p>
+                <p className="text-sm">Система автоматически отслеживает все клики на предмет мошенничества</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="rounded-md border overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-3 text-left text-sm font-medium">Время</th>
+                    <th className="p-3 text-left text-sm font-medium">Click ID</th>
+                    <th className="p-3 text-left text-sm font-medium">IP / ISP</th>
+                    <th className="p-3 text-left text-sm font-medium">GEO</th>
+                    <th className="p-3 text-left text-sm font-medium">Score</th>
+                    <th className="p-3 text-left text-sm font-medium">Причины</th>
+                    <th className="p-3 text-left text-sm font-medium">Сигналы</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {suspiciousClicks.slice(0, 100).map((click) => {
+                    const reasons = click.suspiciousReasons ? JSON.parse(click.suspiciousReasons) : [];
+                    const reasonLabels: Record<string, string> = {
+                      high_fraud_score: "Высокий score",
+                      proxy_detected: "Прокси",
+                      vpn_detected: "VPN",
+                      tor_detected: "Tor",
+                      datacenter_ip: "Датацентр",
+                      bot_detected: "Бот",
+                      geo_mismatch: "GEO несоответствие",
+                      duplicate_click: "Дубликат",
+                    };
+                    return (
+                      <tr key={click.id} className="border-b hover:bg-muted/30" data-testid={`suspicious-click-${click.id}`}>
+                        <td className="p-3 text-sm">
+                          {new Date(click.createdAt).toLocaleString()}
+                        </td>
+                        <td className="p-3 text-sm font-mono text-xs">
+                          {click.clickId.substring(0, 8)}...
+                        </td>
+                        <td className="p-3 text-sm">
+                          <div className="font-mono text-xs">{click.ip || "-"}</div>
+                          {click.isp && <div className="text-xs text-muted-foreground truncate max-w-[150px]">{click.isp}</div>}
+                        </td>
+                        <td className="p-3 text-sm">
+                          <div>{click.geo || "-"}</div>
+                          {click.city && <div className="text-xs text-muted-foreground">{click.city}</div>}
+                        </td>
+                        <td className="p-3">
+                          <Badge variant="destructive">
+                            {click.fraudScore}
+                          </Badge>
+                        </td>
+                        <td className="p-3 text-sm">
+                          <div className="flex gap-1 flex-wrap">
+                            {reasons.map((reason: string, idx: number) => (
+                              <Badge key={idx} variant="outline" className="text-xs bg-red-500/10 text-red-500 border-red-500/20">
+                                {reasonLabels[reason] || reason}
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm">
+                          <div className="flex gap-1 flex-wrap">
+                            {click.isProxy && <Badge variant="outline" className="text-xs bg-orange-500/20 text-orange-400 border-orange-500/30">Proxy</Badge>}
+                            {click.isVpn && <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30">VPN</Badge>}
+                            {click.isTor && <Badge variant="outline" className="text-xs bg-red-500/20 text-red-400 border-red-500/30">TOR</Badge>}
+                            {click.isBot && <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Bot</Badge>}
+                            {click.isDatacenter && <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">DC</Badge>}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-4">

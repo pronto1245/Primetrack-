@@ -4123,6 +4123,46 @@ export async function registerRoutes(
     }
   });
 
+  // Get suspicious clicks
+  app.get("/api/antifraud/suspicious-clicks", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = req.session.role!;
+      const userId = req.session.userId!;
+
+      if (role === "publisher") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { offerId, publisherId, advertiserId, limit } = req.query;
+
+      const filters: any = {};
+      
+      // Advertisers can only see their offers' suspicious clicks
+      if (role === "advertiser") {
+        filters.advertiserId = userId;
+      } else if (role === "admin") {
+        // Admins must provide advertiserId filter to avoid exposing all data
+        if (advertiserId) {
+          filters.advertiserId = advertiserId as string;
+        }
+        // Apply a reasonable default limit for admins without advertiserId
+        if (!advertiserId && !offerId) {
+          filters.limit = 50; // Limit results when no filters applied
+        }
+      }
+
+      if (offerId) filters.offerId = offerId as string;
+      if (publisherId) filters.publisherId = publisherId as string;
+      if (limit) filters.limit = parseInt(limit as string);
+
+      const suspiciousClicks = await storage.getSuspiciousClicks(filters);
+      res.json(suspiciousClicks);
+    } catch (error) {
+      console.error("Failed to fetch suspicious clicks:", error);
+      res.status(500).json({ message: "Failed to fetch suspicious clicks" });
+    }
+  });
+
   // Get antifraud summary/dashboard data
   app.get("/api/antifraud/summary", requireAuth, async (req: Request, res: Response) => {
     try {
