@@ -928,21 +928,24 @@ export async function registerRoutes(
     try {
       const { landings, ...rawOfferData } = req.body;
       
-      // Санитизация: конвертировать пустые строки в null для numeric полей
+      // Санитизация всех numeric полей через helper функции
       const sanitizedData = {
         ...rawOfferData,
-        revSharePercent: rawOfferData.revSharePercent === "" ? null : rawOfferData.revSharePercent,
-        holdPeriodDays: rawOfferData.holdPeriodDays === "" ? null : (rawOfferData.holdPeriodDays ? parseInt(rawOfferData.holdPeriodDays) : 0),
-        partnerPayout: rawOfferData.partnerPayout === "" ? null : rawOfferData.partnerPayout,
-        internalCost: rawOfferData.internalCost === "" ? null : rawOfferData.internalCost,
-        dailyCap: rawOfferData.dailyCap === "" ? null : rawOfferData.dailyCap,
-        totalCap: rawOfferData.totalCap === "" ? null : rawOfferData.totalCap,
+        revSharePercent: sanitizeNumeric(rawOfferData.revSharePercent),
+        holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays, 0),
+        partnerPayout: sanitizeNumeric(rawOfferData.partnerPayout),
+        internalCost: sanitizeNumeric(rawOfferData.internalCost),
+        dailyCap: sanitizeInteger(rawOfferData.dailyCap, 0),
+        totalCap: sanitizeInteger(rawOfferData.totalCap, 0),
         advertiserId: req.session.userId,
       };
+      
+      console.log("[POST /api/offers] Sanitized data:", JSON.stringify(sanitizedData, null, 2));
       
       const result = insertOfferSchema.safeParse(sanitizedData);
 
       if (!result.success) {
+        console.error("[POST /api/offers] Validation failed:", result.error.issues);
         return res.status(400).json({ message: "Invalid offer data", errors: result.error.issues });
       }
 
@@ -951,13 +954,13 @@ export async function registerRoutes(
       // Create landings if provided
       if (landings && Array.isArray(landings)) {
         for (const landing of landings) {
-          // Санитизация для landings
+          // Санитизация для landings через helper функции
           await storage.createOfferLanding({
             geo: landing.geo,
             landingName: landing.landingName || null,
             landingUrl: landing.landingUrl,
-            partnerPayout: landing.partnerPayout === "" ? null : landing.partnerPayout,
-            internalCost: landing.internalCost === "" ? null : landing.internalCost,
+            partnerPayout: sanitizeNumeric(landing.partnerPayout),
+            internalCost: sanitizeNumeric(landing.internalCost),
             currency: landing.currency || "USD",
             offerId: offer.id,
           });
@@ -1021,16 +1024,18 @@ export async function registerRoutes(
 
       const { landings, ...rawOfferData } = req.body;
       
-      // Санитизация: конвертировать пустые строки в null для numeric полей
+      // Санитизация всех numeric полей через helper функции
       const offerData = {
         ...rawOfferData,
-        revSharePercent: rawOfferData.revSharePercent === "" ? null : rawOfferData.revSharePercent,
-        holdPeriodDays: rawOfferData.holdPeriodDays === "" ? null : (rawOfferData.holdPeriodDays ? parseInt(rawOfferData.holdPeriodDays) : null),
-        partnerPayout: rawOfferData.partnerPayout === "" ? null : rawOfferData.partnerPayout,
-        internalCost: rawOfferData.internalCost === "" ? null : rawOfferData.internalCost,
-        dailyCap: rawOfferData.dailyCap === "" ? null : rawOfferData.dailyCap,
-        totalCap: rawOfferData.totalCap === "" ? null : rawOfferData.totalCap,
+        revSharePercent: sanitizeNumeric(rawOfferData.revSharePercent),
+        holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays, 0),
+        partnerPayout: sanitizeNumeric(rawOfferData.partnerPayout),
+        internalCost: sanitizeNumeric(rawOfferData.internalCost),
+        dailyCap: sanitizeInteger(rawOfferData.dailyCap, 0),
+        totalCap: sanitizeInteger(rawOfferData.totalCap, 0),
       };
+      
+      console.log("[PUT /api/offers/:id] Sanitized data:", JSON.stringify(offerData, null, 2));
       
       // Обновить оффер
       const updated = await storage.updateOffer(req.params.id, offerData);
@@ -1045,8 +1050,8 @@ export async function registerRoutes(
             geo: landing.geo,
             landingName: landing.landingName || null,
             landingUrl: landing.landingUrl,
-            partnerPayout: landing.partnerPayout === "" ? null : landing.partnerPayout,
-            internalCost: landing.internalCost === "" ? null : landing.internalCost,
+            partnerPayout: sanitizeNumeric(landing.partnerPayout),
+            internalCost: sanitizeNumeric(landing.internalCost),
             currency: landing.currency || "USD",
           };
           
