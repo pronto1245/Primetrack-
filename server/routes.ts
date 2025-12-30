@@ -4735,6 +4735,7 @@ export async function registerRoutes(
         fingerprintjsApiKey: settings.fingerprintjsApiKey ? SENTINEL_CONFIGURED : null
       });
     } catch (error) {
+      console.error("Failed to fetch platform settings:", error);
       res.status(500).json({ message: "Failed to fetch platform settings" });
     }
   });
@@ -4807,6 +4808,7 @@ export async function registerRoutes(
         usdtErc20Wallet: settings.cryptoUsdtErc20Address || ""
       });
     } catch (error) {
+      console.error("Failed to fetch crypto wallets:", error);
       res.status(500).json({ message: "Failed to fetch crypto wallets" });
     }
   });
@@ -4823,6 +4825,7 @@ export async function registerRoutes(
       });
       res.json({ success: true, settings });
     } catch (error) {
+      console.error("Failed to update crypto wallets:", error);
       res.status(500).json({ message: "Failed to update crypto wallets" });
     }
   });
