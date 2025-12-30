@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "wouter";
+import { Link } from "wouter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,10 @@ import {
   MousePointer, Target, DollarSign, Check, X, Loader2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+
+interface PartnerProfileProps {
+  publisherId: string;
+}
 
 interface PartnerDetails {
   id: string;
@@ -37,9 +41,7 @@ interface PartnerOffer {
   revenue: number;
 }
 
-export function PartnerProfile() {
-  const params = useParams();
-  const publisherId = params.publisherId as string;
+export function PartnerProfile({ publisherId }: PartnerProfileProps) {
   const queryClient = useQueryClient();
 
   const { data: partner, isLoading: isLoadingPartner } = useQuery<PartnerDetails>({

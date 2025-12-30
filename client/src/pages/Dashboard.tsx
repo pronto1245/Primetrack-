@@ -485,8 +485,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
       return <CreateOfferForm role={role} />;
     }
 
-    if (showPartnerProfile) {
-      return <PartnerProfile />;
+    if (showPartnerProfile && partnerProfileParams?.publisherId) {
+      return <PartnerProfile publisherId={partnerProfileParams.publisherId} />;
     }
 
     if (showPartners) {
