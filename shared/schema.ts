@@ -141,12 +141,18 @@ export const offers = pgTable("offers", {
   capReachedAction: text("cap_reached_action").notNull().default("block"), // block, redirect
   capRedirectUrl: text("cap_redirect_url"), // URL to redirect when cap reached
   
+  // Archive status
+  archived: boolean("archived").notNull().default(false),
+  archivedAt: timestamp("archived_at"),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertOfferSchema = createInsertSchema(offers).omit({
   id: true,
   createdAt: true,
+  archived: true,
+  archivedAt: true,
 });
 
 export type InsertOffer = z.infer<typeof insertOfferSchema>;
