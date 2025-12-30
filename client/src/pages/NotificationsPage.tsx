@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Bell, CheckCheck, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useEffect } from "react";
 
 interface Notification {
   id: string;
@@ -24,6 +25,22 @@ interface Notification {
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+
+  const { data: currentUser } = useQuery<any>({
+    queryKey: ["/api/user"],
+    queryFn: async () => {
+      const res = await fetch("/api/user", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (currentUser?.role) {
+      setLocation(`/dashboard/${currentUser.role}/notifications`);
+    }
+  }, [currentUser, setLocation]);
 
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ["/api/notifications"],
@@ -93,7 +110,7 @@ export default function NotificationsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard/publisher">
+            <Link href={currentUser?.role ? `/dashboard/${currentUser.role}` : "/dashboard"}>
               <Button variant="ghost" size="icon" data-testid="back-button">
                 <ArrowLeft className="h-4 w-4" />
               </Button>

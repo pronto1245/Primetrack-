@@ -66,6 +66,10 @@ export function AdvertiserOffers({ role }: { role: string }) {
   const [selectedGeo, setSelectedGeo] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [filterNew, setFilterNew] = useState(false);
+  const [filterTop, setFilterTop] = useState(false);
+  const [filterExclusive, setFilterExclusive] = useState(false);
+  const [filterPrivate, setFilterPrivate] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [offerToArchive, setOfferToArchive] = useState<Offer | null>(null);
 
@@ -130,6 +134,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
 
   const filteredOffers = useMemo(() => {
     if (!offers) return [];
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
     return offers.filter((offer) => {
       const matchesSearch = searchQuery === "" || 
         offer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -139,9 +144,14 @@ export function AdvertiserOffers({ role }: { role: string }) {
       const matchesGeo = selectedGeo === "all" || offer.geo.includes(selectedGeo);
       const matchesSource = selectedSource === "all" || offer.trafficSources?.includes(selectedSource);
       const matchesStatus = selectedStatus === "all" || offer.status === selectedStatus;
-      return matchesSearch && matchesCategory && matchesGeo && matchesSource && matchesStatus;
+      const isNew = offer.createdAt && new Date(offer.createdAt) > fourteenDaysAgo;
+      const matchesNew = !filterNew || isNew;
+      const matchesTop = !filterTop || offer.isTop;
+      const matchesExclusive = !filterExclusive || offer.isExclusive;
+      const matchesPrivate = !filterPrivate || offer.isPrivate;
+      return matchesSearch && matchesCategory && matchesGeo && matchesSource && matchesStatus && matchesNew && matchesTop && matchesExclusive && matchesPrivate;
     });
-  }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, selectedStatus]);
+  }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, selectedStatus, filterNew, filterTop, filterExclusive, filterPrivate]);
 
   if (isLoading) {
     return (
@@ -251,7 +261,50 @@ export function AdvertiserOffers({ role }: { role: string }) {
               </SelectContent>
             </Select>
 
-            {(selectedGeo !== "all" || selectedCategory !== "all" || selectedSource !== "all" || selectedStatus !== "all") && (
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border/50">
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterNew}
+                  onChange={(e) => setFilterNew(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-border bg-muted accent-emerald-500"
+                  data-testid="checkbox-filter-new"
+                />
+                <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400">NEW</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterTop}
+                  onChange={(e) => setFilterTop(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-border bg-muted accent-yellow-500"
+                  data-testid="checkbox-filter-top"
+                />
+                <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-400">TOP</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterExclusive}
+                  onChange={(e) => setFilterExclusive(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-border bg-muted accent-purple-500"
+                  data-testid="checkbox-filter-exclusive"
+                />
+                <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/20 text-purple-400">EXCLUSIVE</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterPrivate}
+                  onChange={(e) => setFilterPrivate(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-border bg-muted accent-red-500"
+                  data-testid="checkbox-filter-private"
+                />
+                <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-400">PRIVATE</span>
+              </label>
+            </div>
+
+            {(selectedGeo !== "all" || selectedCategory !== "all" || selectedSource !== "all" || selectedStatus !== "all" || filterNew || filterTop || filterExclusive || filterPrivate) && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -260,6 +313,10 @@ export function AdvertiserOffers({ role }: { role: string }) {
                   setSelectedCategory("all");
                   setSelectedSource("all");
                   setSelectedStatus("all");
+                  setFilterNew(false);
+                  setFilterTop(false);
+                  setFilterExclusive(false);
+                  setFilterPrivate(false);
                 }}
                 className="text-muted-foreground hover:text-foreground text-xs h-8"
                 data-testid="button-clear-filters"

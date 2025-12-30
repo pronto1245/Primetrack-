@@ -29,7 +29,7 @@ interface Notification {
   createdAt: string;
 }
 
-export function NotificationBell() {
+export function NotificationBell({ role }: { role?: string }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
@@ -175,7 +175,7 @@ export function NotificationBell() {
         </div>
         
         <DropdownMenuSeparator className="bg-border" />
-        <Link href="/notifications" onClick={() => setOpen(false)}>
+        <Link href={role ? `/dashboard/${role}/notifications` : "/notifications"} onClick={() => setOpen(false)}>
           <DropdownMenuItem 
             className="flex items-center justify-center gap-2 text-sm text-blue-400 hover:text-blue-300 cursor-pointer"
             data-testid="view-all-notifications"

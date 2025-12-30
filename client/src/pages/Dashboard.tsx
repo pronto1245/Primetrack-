@@ -39,6 +39,7 @@ import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
 import { NewsFeed } from "@/components/dashboard/NewsFeed";
+import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
 import NewsComposer from "@/pages/NewsComposer";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -293,6 +294,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNews] = useRoute("/dashboard/:role/news");
   const [matchNewsCreate] = useRoute("/dashboard/:role/news/create");
   const [matchNewsEdit, newsEditParams] = useRoute("/dashboard/:role/news/edit/:newsId");
+  const [matchNotifications] = useRoute("/dashboard/:role/notifications");
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
@@ -381,8 +383,13 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showNews = matchNews && !matchNewsCreate && !matchNewsEdit;
   const showNewsCreate = matchNewsCreate && (role === 'admin' || role === 'advertiser');
   const showNewsEdit = matchNewsEdit && (role === 'admin' || role === 'advertiser');
+  const showNotifications = matchNotifications;
 
   const renderContent = () => {
+    if (showNotifications) {
+      return <NotificationsPanel />;
+    }
+
     if (showSettings) {
       if (role === 'admin') {
         return <AdminSettings />;
@@ -563,7 +570,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
             </>
           )}
           <div className="text-xs font-mono text-muted-foreground">{t('dashboard.server')}: US-EAST-1</div>
-          <NotificationBell />
+          <NotificationBell role={role} />
           <ThemeToggle />
           <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
             {role.charAt(0)}
