@@ -898,12 +898,21 @@ export async function registerRoutes(
   // Создать оффер с лендингами
   app.post("/api/offers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const { landings, ...offerData } = req.body;
+      const { landings, ...rawOfferData } = req.body;
       
-      const result = insertOfferSchema.safeParse({
-        ...offerData,
+      // Санитизация: конвертировать пустые строки в null для numeric полей
+      const sanitizedData = {
+        ...rawOfferData,
+        revSharePercent: rawOfferData.revSharePercent === "" ? null : rawOfferData.revSharePercent,
+        holdPeriodDays: rawOfferData.holdPeriodDays === "" ? null : (rawOfferData.holdPeriodDays ? parseInt(rawOfferData.holdPeriodDays) : 0),
+        partnerPayout: rawOfferData.partnerPayout === "" ? null : rawOfferData.partnerPayout,
+        internalCost: rawOfferData.internalCost === "" ? null : rawOfferData.internalCost,
+        dailyCap: rawOfferData.dailyCap === "" ? null : rawOfferData.dailyCap,
+        totalCap: rawOfferData.totalCap === "" ? null : rawOfferData.totalCap,
         advertiserId: req.session.userId,
-      });
+      };
+      
+      const result = insertOfferSchema.safeParse(sanitizedData);
 
       if (!result.success) {
         return res.status(400).json({ message: "Invalid offer data", errors: result.error.issues });
@@ -914,8 +923,14 @@ export async function registerRoutes(
       // Create landings if provided
       if (landings && Array.isArray(landings)) {
         for (const landing of landings) {
+          // Санитизация для landings
           await storage.createOfferLanding({
-            ...landing,
+            geo: landing.geo,
+            landingName: landing.landingName || null,
+            landingUrl: landing.landingUrl,
+            partnerPayout: landing.partnerPayout === "" ? null : landing.partnerPayout,
+            internalCost: landing.internalCost === "" ? null : landing.internalCost,
+            currency: landing.currency || "USD",
             offerId: offer.id,
           });
         }
@@ -976,7 +991,18 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const { landings, ...offerData } = req.body;
+      const { landings, ...rawOfferData } = req.body;
+      
+      // Санитизация: конвертировать пустые строки в null для numeric полей
+      const offerData = {
+        ...rawOfferData,
+        revSharePercent: rawOfferData.revSharePercent === "" ? null : rawOfferData.revSharePercent,
+        holdPeriodDays: rawOfferData.holdPeriodDays === "" ? null : (rawOfferData.holdPeriodDays ? parseInt(rawOfferData.holdPeriodDays) : null),
+        partnerPayout: rawOfferData.partnerPayout === "" ? null : rawOfferData.partnerPayout,
+        internalCost: rawOfferData.internalCost === "" ? null : rawOfferData.internalCost,
+        dailyCap: rawOfferData.dailyCap === "" ? null : rawOfferData.dailyCap,
+        totalCap: rawOfferData.totalCap === "" ? null : rawOfferData.totalCap,
+      };
       
       // Обновить оффер
       const updated = await storage.updateOffer(req.params.id, offerData);
@@ -985,8 +1011,14 @@ export async function registerRoutes(
       if (landings && Array.isArray(landings)) {
         await storage.deleteOfferLandings(req.params.id);
         for (const landing of landings) {
+          // Санитизация для landings
           await storage.createOfferLanding({
-            ...landing,
+            geo: landing.geo,
+            landingName: landing.landingName || null,
+            landingUrl: landing.landingUrl,
+            partnerPayout: landing.partnerPayout === "" ? null : landing.partnerPayout,
+            internalCost: landing.internalCost === "" ? null : landing.internalCost,
+            currency: landing.currency || "USD",
             offerId: req.params.id,
           });
         }
