@@ -230,6 +230,10 @@ export const clicks = pgTable("clicks", {
   isDatacenter: boolean("is_datacenter").default(false),
   fraudScore: integer("fraud_score").default(0),
   
+  // Suspicious traffic detection
+  isSuspicious: boolean("is_suspicious").default(false),
+  suspiciousReasons: text("suspicious_reasons"), // JSON array of reasons
+  
   // Enhanced GEO from IP Intelligence (ipinfo.io)
   region: text("region"), // State/Province
   isp: text("isp"), // Internet Service Provider

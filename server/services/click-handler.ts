@@ -99,6 +99,18 @@ export class ClickHandler {
     const basicFraudCheck = this.performBasicFraudCheck(params.ip, params.userAgent);
     const fraudCheck = this.mergeFraudChecks(basicFraudCheck, ipIntel);
     
+    // Determine if click is suspicious and collect reasons
+    const suspiciousAnalysis = this.analyzeSuspiciousTraffic({
+      fraudScore: fraudCheck.score,
+      isProxy: fraudCheck.isProxy,
+      isVpn: fraudCheck.isVpn,
+      isTor: fraudCheck.isTor,
+      isDatacenter: fraudCheck.isDatacenter,
+      isBot: parsedUA.isBot,
+      isGeoMatch,
+      isUnique,
+    });
+    
     const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params);
     
     const clickData: InsertClick = {
@@ -128,6 +140,8 @@ export class ClickHandler {
       isVpn: fraudCheck.isVpn,
       isTor: fraudCheck.isTor,
       isDatacenter: fraudCheck.isDatacenter,
+      isSuspicious: suspiciousAnalysis.isSuspicious,
+      suspiciousReasons: suspiciousAnalysis.reasons.length > 0 ? JSON.stringify(suspiciousAnalysis.reasons) : null,
       isp: ipIntel?.isp,
       asn: ipIntel?.asn,
       visitorId: params.visitorId,
@@ -135,7 +149,12 @@ export class ClickHandler {
       redirectUrl,
     };
     
-    await storage.createClick(clickData);
+    const savedClick = await storage.createClick(clickData);
+    
+    // Send notification for suspicious traffic
+    if (suspiciousAnalysis.isSuspicious) {
+      this.notifySuspiciousTraffic(offer.advertiserId, params.offerId, clickId, suspiciousAnalysis.reasons);
+    }
     
     return {
       clickId,
@@ -354,6 +373,81 @@ export class ClickHandler {
       isTor: ipIntel.isTor,
       isDatacenter: ipIntel.isDatacenter,
     };
+  }
+
+  private analyzeSuspiciousTraffic(data: {
+    fraudScore: number;
+    isProxy: boolean;
+    isVpn: boolean;
+    isTor: boolean;
+    isDatacenter: boolean;
+    isBot: boolean;
+    isGeoMatch: boolean;
+    isUnique: boolean;
+  }): { isSuspicious: boolean; reasons: string[] } {
+    const reasons: string[] = [];
+    
+    // High fraud score
+    if (data.fraudScore >= 50) {
+      reasons.push("high_fraud_score");
+    }
+    
+    // Proxy/VPN/Tor detection
+    if (data.isProxy) reasons.push("proxy_detected");
+    if (data.isVpn) reasons.push("vpn_detected");
+    if (data.isTor) reasons.push("tor_detected");
+    if (data.isDatacenter) reasons.push("datacenter_ip");
+    
+    // Bot detection
+    if (data.isBot) reasons.push("bot_detected");
+    
+    // GEO mismatch (potential fraud)
+    if (!data.isGeoMatch) reasons.push("geo_mismatch");
+    
+    // Duplicate click (not unique)
+    if (!data.isUnique) reasons.push("duplicate_click");
+    
+    // Consider suspicious if fraud score >= 50 OR any critical signals
+    const isSuspicious = data.fraudScore >= 50 || 
+                          data.isTor || 
+                          data.isBot || 
+                          (data.isProxy && data.isVpn);
+    
+    return { isSuspicious, reasons };
+  }
+
+  private async notifySuspiciousTraffic(
+    advertiserId: string, 
+    offerId: string, 
+    clickId: string, 
+    reasons: string[]
+  ): Promise<void> {
+    try {
+      const { notificationService } = await import("./notification-service");
+      
+      const reasonLabels: Record<string, string> = {
+        high_fraud_score: "Высокий fraud score",
+        proxy_detected: "Обнаружен прокси",
+        vpn_detected: "Обнаружен VPN",
+        tor_detected: "Обнаружен Tor",
+        datacenter_ip: "IP датацентра",
+        bot_detected: "Обнаружен бот",
+        geo_mismatch: "Несоответствие GEO",
+        duplicate_click: "Дубликат клика",
+      };
+      
+      const readableReasons = reasons.map(r => reasonLabels[r] || r).join(", ");
+      
+      await notificationService.createNotification({
+        userId: advertiserId,
+        type: "antifraud",
+        title: "Подозрительный трафик",
+        message: `Обнаружен подозрительный клик: ${readableReasons}`,
+        data: JSON.stringify({ offerId, clickId, reasons }),
+      });
+    } catch (error) {
+      console.error("Failed to send suspicious traffic notification:", error);
+    }
   }
 }
 
