@@ -1462,13 +1462,13 @@ function SubscriptionTab() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-3 bg-muted rounded-lg font-mono text-sm break-all">
-              {pendingPayment.walletAddress}
+              {pendingPayment.cryptoAddress}
             </div>
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => {
-                navigator.clipboard.writeText(pendingPayment.walletAddress);
+                navigator.clipboard.writeText(pendingPayment.cryptoAddress);
                 toast({ title: "Адрес скопирован" });
               }}
             >
