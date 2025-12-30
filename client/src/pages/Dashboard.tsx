@@ -604,9 +604,17 @@ function MainContent({ role, t }: { role: string, t: any }) {
           <SubscriptionBadge role={role} />
           <NotificationBell role={role} />
           <ThemeToggle />
-          <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
-            {role.charAt(0)}
-          </div>
+          {currentUser?.logoUrl ? (
+            <img 
+              src={currentUser.logoUrl} 
+              alt="Logo" 
+              className="w-8 h-8 rounded object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
+              {role.charAt(0)}
+            </div>
+          )}
         </div>
       </header>
 
