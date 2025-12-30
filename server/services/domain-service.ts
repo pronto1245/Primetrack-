@@ -4,8 +4,11 @@ import { promisify } from "util";
 import { storage } from "../storage";
 import type { CustomDomain } from "@shared/schema";
 
-const resolveCname = promisify(dns.resolveCname);
-const resolveTxt = promisify(dns.resolveTxt);
+const resolver = new dns.Resolver();
+resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+
+const resolveCname = promisify(resolver.resolveCname.bind(resolver));
+const resolveTxt = promisify(resolver.resolveTxt.bind(resolver));
 
 interface DomainVerificationResult {
   success: boolean;
