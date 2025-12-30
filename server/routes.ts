@@ -2286,13 +2286,24 @@ export async function registerRoutes(
         const access = await storage.getPublisherOfferAccess(publisherId, offer.id);
         const stats = await storage.getPublisherOfferStats(publisherId, offer.id);
         
+        // Determine access status:
+        // 1. If has explicit access record -> approved
+        // 2. If has clicks/conversions -> has access (legacy/auto)
+        // 3. Otherwise -> not_requested
+        let accessStatus = "not_requested";
+        if (access) {
+          accessStatus = "approved";
+        } else if (stats.clicks > 0 || stats.conversions > 0) {
+          accessStatus = "approved";
+        }
+        
         return {
           id: offer.id,
           name: offer.name,
           status: offer.status,
-          accessStatus: access?.status || "not_requested",
-          payout: offer.payoutAmount,
-          payoutType: offer.payoutType,
+          accessStatus,
+          payout: offer.partnerPayout,
+          payoutModel: offer.payoutModel,
           clicks: stats.clicks,
           conversions: stats.conversions,
           revenue: stats.revenue
