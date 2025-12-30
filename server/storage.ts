@@ -3124,6 +3124,63 @@ export class DatabaseStorage implements IStorage {
     return plan;
   }
 
+  async seedSubscriptionPlans(): Promise<void> {
+    const existing = await db.select().from(subscriptionPlans);
+    if (existing.length > 0) {
+      console.log('[seed] Subscription plans already exist, skipping');
+      return;
+    }
+
+    console.log('[seed] Creating default subscription plans...');
+    await db.insert(subscriptionPlans).values([
+      {
+        name: "Starter",
+        monthlyPrice: "49.00",
+        yearlyPrice: "499.80",
+        maxPartners: 10,
+        hasPostbacks: true,
+        isActive: true,
+        sortOrder: 1,
+        price: "49.00",
+        discountPercent: 15,
+        features: ["До 10 партнёров", "Базовые постбеки", "Email поддержка"],
+      },
+      {
+        name: "Professional",
+        monthlyPrice: "99.00",
+        yearlyPrice: "1009.80",
+        maxPartners: 50,
+        hasAntifraud: true,
+        hasNews: true,
+        hasPostbacks: true,
+        hasTeam: true,
+        isActive: true,
+        sortOrder: 2,
+        price: "99.00",
+        discountPercent: 15,
+        features: ["До 50 партнёров", "Антифрод аналитика", "Новости и уведомления", "Webhooks интеграции", "Командный доступ", "Приоритетная поддержка"],
+      },
+      {
+        name: "Enterprise",
+        monthlyPrice: "149.00",
+        yearlyPrice: "1519.80",
+        hasAntifraud: true,
+        hasNews: true,
+        hasPostbacks: true,
+        hasTeam: true,
+        hasWebhooks: true,
+        hasCustomDomain: true,
+        hasApiAccess: true,
+        isActive: true,
+        sortOrder: 3,
+        price: "149.00",
+        discountPercent: 15,
+        features: ["Безлимитные партнёры", "Полный антифрод", "White-label брендинг", "Custom домены", "API доступ", "Персональный менеджер"],
+      },
+    ]);
+    console.log('[seed] Created 3 subscription plans');
+  }
+
   // ============================================
   // ADVERTISER SUBSCRIPTIONS
   // ============================================
