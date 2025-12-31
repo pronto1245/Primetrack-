@@ -440,7 +440,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   const margin = summary?.margin || (totals.cost - totals.payout);
   const roi = summary?.roi || (totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0);
 
-  const colSpan = role !== "publisher" ? 20 : 19;
+  const colSpan = 20;
 
   return (
     <Card className="bg-card border-border">
@@ -452,7 +452,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium">{t('reports.table.date') || 'Date'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.offer') || 'Offer'}</th>
-                {role !== "publisher" && <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>}
+                <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
                 <th className="px-4 py-3 font-medium">IP</th>
                 <th className="px-4 py-3 font-medium">Device</th>
@@ -461,13 +461,9 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
-                {isAdvertiser && (
-                  <>
-                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
-                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
-                    <th className="px-4 py-3 font-medium text-right">ROI%</th>
-                  </>
-                )}
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
+                <th className="px-4 py-3 font-medium text-right">ROI%</th>
                 <th className="px-4 py-3 font-medium">Sub1</th>
                 <th className="px-4 py-3 font-medium">Sub2</th>
                 <th className="px-4 py-3 font-medium">Sub3</th>
