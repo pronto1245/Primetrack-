@@ -550,13 +550,27 @@ function NotificationsTab() {
         <CardDescription>Получайте мгновенные уведомления в Telegram</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {isLinked ? (
-          <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-emerald-400">Telegram привязан</h4>
-                <p className="text-sm text-muted-foreground">Chat ID: {user.telegramChatId}</p>
-              </div>
+        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <h4 className="font-medium mb-2">Как настроить:</h4>
+          <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+            <li>Напишите любое сообщение боту платформы в Telegram</li>
+            <li>Узнайте свой Chat ID через @userinfobot</li>
+            <li>Укажите Chat ID ниже и сохраните</li>
+          </ol>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="chatId">Chat ID <span className="text-red-500">*</span></Label>
+          <div className="flex gap-2">
+            <Input
+              id="chatId"
+              data-testid="input-chat-id"
+              value={telegramData.telegramChatId}
+              onChange={(e) => setTelegramData({ ...telegramData, telegramChatId: e.target.value })}
+              placeholder="123456789"
+              className="flex-1"
+            />
+            {isLinked && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -566,46 +580,10 @@ function NotificationsTab() {
               >
                 Отвязать
               </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Как подключить:</h4>
-              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Нажмите «Получить код» ниже</li>
-                <li>Откройте бота рекламодателя в Telegram</li>
-                <li>Отправьте команду: <code className="bg-muted px-1 rounded">/link ВАШ_КОД</code></li>
-              </ol>
-            </div>
-            
-            {linkCode ? (
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-muted px-4 py-2 rounded text-lg font-mono text-center">{linkCode}</code>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`/link ${linkCode}`);
-                    toast({ title: "Скопировано!" });
-                  }}
-                  data-testid="button-copy-link-code"
-                >
-                  Копировать
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                onClick={() => getLinkCodeMutation.mutate()}
-                disabled={getLinkCodeMutation.isPending}
-                data-testid="button-get-link-code"
-              >
-                {getLinkCodeMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                Получить код
-              </Button>
             )}
           </div>
-        )}
+          <p className="text-xs text-muted-foreground">Узнайте через @userinfobot в Telegram</p>
+        </div>
 
         <Separator />
 

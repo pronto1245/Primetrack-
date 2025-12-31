@@ -5102,7 +5102,18 @@ export async function registerRoutes(
       const user = await storage.getUser(userId);
       
       if (!user?.telegramChatId) {
-        return res.status(400).json({ message: "Telegram не привязан. Сначала привяжите аккаунт." });
+        return res.status(400).json({ message: "Укажите Chat ID и сохраните настройки." });
+      }
+      
+      // Check if platform bot token is configured
+      const platformSettings = await storage.getPlatformSettings();
+      const hasAdvertiserToken = user.role === "advertiser" ? 
+        !!(await storage.getAdvertiserSettings(userId))?.telegramBotToken : false;
+      
+      if (!platformSettings?.defaultTelegramBotToken && !hasAdvertiserToken) {
+        return res.status(400).json({ 
+          message: "Токен бота не настроен. Обратитесь к администратору платформы." 
+        });
       }
       
       const { telegramService } = await import("./services/telegram-service");
@@ -5116,7 +5127,7 @@ export async function registerRoutes(
       if (sent) {
         res.json({ success: true, message: "Тестовое сообщение отправлено!" });
       } else {
-        res.status(500).json({ message: "Не удалось отправить сообщение. Проверьте настройки бота." });
+        res.status(500).json({ message: "Не удалось отправить сообщение. Проверьте Chat ID и убедитесь что вы написали боту." });
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to send test message" });
