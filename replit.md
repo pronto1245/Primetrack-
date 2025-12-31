@@ -78,10 +78,14 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Расчёт payouts
 - ✅ Триггер постбеков и webhooks
 
-### Постбеки
-- ✅ URL с макросами
-- ✅ Retry (5 попыток)
-- ✅ Логирование
+### Постбеки (Универсальная система)
+- ✅ **Один универсальный входящий постбек:** `/api/postback?click_id={click_id}&status={status}&payout={payout}`
+- ✅ Автоматическое определение offer_id и publisher_id из click_id
+- ✅ Поддержка параметров: click_id, clickid, subid, subid_1, tid, sub1, cid
+- ✅ Маппинг статусов: lead/reg → Lead, sale/dep/ftd → Sale, install → Install
+- ✅ Исходящие постбеки партнёрам с макросами
+- ✅ Retry (5 попыток с экспоненциальным backoff)
+- ✅ Логирование с direction (inbound/outbound)
 
 ### Webhooks
 - ✅ CRUD endpoints
@@ -146,16 +150,10 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Click endpoint принимает visitor_id и fp_confidence параметры
 - ✅ client/src/lib/fingerprint.ts утилита
 
-### Keitaro/Binom Интеграция
-- ✅ Таблица postback_tokens (advertiser-scoped, 64-char token, trackerType enum)
-- ✅ CRUD endpoints: `/api/postback-tokens`
-- ✅ Keitaro postback endpoint: `/api/postbacks/keitaro?token=XXX&subid_1={subid_1}&status={status}&sum={revenue}`
-- ✅ Binom postback endpoint: `/api/postbacks/binom?token=XXX&clickid={clickid}&status={status}&payout={payout}`
-- ✅ Маппинг Keitaro: subid_1 → click_id, status → lead/sale/install
-- ✅ Маппинг Binom: clickid/subid → click_id, status → lead/sale/rebill/approved
+### Keitaro/Binom/Voluum Интеграция
+- ✅ **Устаревшие endpoints удалены** - Используйте универсальный `/api/postback`
 - ✅ Поддержка sub1-sub10 параметров в clicks
-- ✅ UI для генерации токенов с выбором трекера в AdvertiserPostbacks.tsx
-- ✅ Инструкции по настройке для Keitaro и Binom
+- ✅ Универсальный постбек совместим со всеми трекерами (Keitaro, Binom, Voluum и др.)
 
 ---
 
