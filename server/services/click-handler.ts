@@ -6,6 +6,7 @@ import { ipIntelService } from "./ip-intel-service";
 interface ClickParams {
   offerId: string;
   partnerId: string;
+  landingId?: string;
   sub1?: string;
   sub2?: string;
   sub3?: string;
@@ -74,7 +75,7 @@ export class ClickHandler {
     }
     
     const landings = await storage.getOfferLandings(params.offerId);
-    const landing = this.selectLanding(landings, params.geo);
+    const landing = this.selectLanding(landings, params.geo, params.landingId);
     
     if (!landing) {
       throw new Error("No landing available for this geo");
@@ -250,9 +251,16 @@ export class ClickHandler {
     return !existingClick;
   }
   
-  private selectLanding(landings: any[], geo?: string) {
+  private selectLanding(landings: any[], geo?: string, landingId?: string) {
     if (!landings.length) return null;
     
+    // If specific landing ID provided, use it
+    if (landingId) {
+      const specificLanding = landings.find(l => l.id === landingId);
+      if (specificLanding) return specificLanding;
+    }
+    
+    // Fallback to GEO-based selection
     if (geo) {
       const geoLanding = landings.find(l => 
         l.geo.toLowerCase() === geo.toLowerCase() ||

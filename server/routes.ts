@@ -1445,6 +1445,80 @@ export async function registerRoutes(
   // MINI-TRACKER ENDPOINTS
   // ============================================
 
+  // Path-based click tracking (public, no auth required)
+  // Format: /click/:offerId/:landingId?partner_id=XXX&sub1=...
+  app.get("/click/:offerId/:landingId", async (req: Request, res: Response) => {
+    try {
+      const { offerId, landingId } = req.params;
+      const { partner_id, sub1, sub2, sub3, sub4, sub5, visitor_id, fp_confidence } = req.query;
+
+      if (!partner_id) {
+        return res.status(400).json({ 
+          error: "Missing required parameter: partner_id" 
+        });
+      }
+
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
+                 req.socket.remoteAddress || 
+                 "unknown";
+      const userAgent = req.headers["user-agent"] || "";
+      const referer = req.headers["referer"] || "";
+      
+      // GEO from headers or IP geolocation
+      let geoCode = (req.headers["cf-ipcountry"] as string) ||
+                    (req.headers["x-country-code"] as string);
+      
+      if (!geoCode && ip && ip !== "unknown") {
+        const geoData = geoip.lookup(ip);
+        if (geoData?.country) {
+          geoCode = geoData.country;
+        }
+      }
+      
+      if (!geoCode) {
+        geoCode = "XX";
+      }
+
+      const result = await clickHandler.processClick({
+        offerId,
+        landingId,
+        partnerId: partner_id as string,
+        sub1: sub1 as string,
+        sub2: sub2 as string,
+        sub3: sub3 as string,
+        sub4: sub4 as string,
+        sub5: sub5 as string,
+        ip,
+        userAgent,
+        referer,
+        geo: geoCode,
+        visitorId: visitor_id as string,
+        fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+      });
+
+      if (result.isBlocked) {
+        if (result.capReached) {
+          return res.status(410).json({ 
+            error: "Offer cap reached", 
+            reason: "cap_exceeded"
+          });
+        }
+        return res.status(403).json({ 
+          error: "Traffic blocked", 
+          reason: "fraud_detected",
+          fraudScore: result.fraudScore 
+        });
+      }
+
+      res.redirect(302, result.redirectUrl);
+    } catch (error: any) {
+      console.error("Click handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process click" 
+      });
+    }
+  });
+
   // Click tracking endpoint (public, no auth required)
   // Usage: /api/click?offer_id=XXX&partner_id=YYY&geo=US&sub1=...&sub2=...
   app.get("/api/click", async (req: Request, res: Response) => {
