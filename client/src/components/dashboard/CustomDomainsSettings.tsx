@@ -45,7 +45,6 @@ export function CustomDomainsSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedDomain, setSelectedDomain] = useState<CustomDomain | null>(null);
   
   const [formData, setFormData] = useState({
     domain: "",
@@ -69,11 +68,10 @@ export function CustomDomainsSettings() {
       }
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
       setIsCreateOpen(false);
       setFormData({ domain: "" });
-      setSelectedDomain(data);
       toast({ title: "Домен добавлен", description: "Настройте DNS записи для верификации" });
     },
     onError: (error: Error) => {
