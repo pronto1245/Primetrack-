@@ -208,12 +208,17 @@ export const clicks = pgTable("clicks", {
   os: text("os"), // Windows, iOS, Android, MacOS, Linux
   browser: text("browser"), // Chrome, Safari, Firefox, Edge
   
-  // Sub-IDs for partner tracking
+  // Sub-IDs for partner tracking (sub1-10)
   sub1: text("sub1"),
   sub2: text("sub2"),
   sub3: text("sub3"),
   sub4: text("sub4"),
   sub5: text("sub5"),
+  sub6: text("sub6"),
+  sub7: text("sub7"),
+  sub8: text("sub8"),
+  sub9: text("sub9"),
+  sub10: text("sub10"),
   
   // Click quality flags
   isUnique: boolean("is_unique").default(true), // First click from this IP+offer+publisher today
@@ -1459,3 +1464,31 @@ export const insertSubscriptionPaymentSchema = createInsertSchema(subscriptionPa
 
 export type InsertSubscriptionPayment = z.infer<typeof insertSubscriptionPaymentSchema>;
 export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
+
+// ============================================
+// POSTBACK TOKENS (for Keitaro/tracker auth)
+// ============================================
+export const postbackTokens = pgTable("postback_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  token: varchar("token", { length: 64 }).notNull().unique(), // 32-byte hex token
+  label: text("label").notNull().default("Keitaro"), // Keitaro, Binom, RedTrack, etc.
+  
+  lastUsedAt: timestamp("last_used_at"),
+  usageCount: integer("usage_count").notNull().default(0),
+  
+  isActive: boolean("is_active").notNull().default(true),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPostbackTokenSchema = createInsertSchema(postbackTokens).omit({
+  id: true,
+  createdAt: true,
+  lastUsedAt: true,
+  usageCount: true,
+});
+
+export type InsertPostbackToken = z.infer<typeof insertPostbackTokenSchema>;
+export type PostbackToken = typeof postbackTokens.$inferSelect;

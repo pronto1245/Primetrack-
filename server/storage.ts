@@ -33,7 +33,8 @@ import {
   type SubscriptionPlan, subscriptionPlans,
   type AdvertiserSubscription, type InsertAdvertiserSubscription, advertiserSubscriptions,
   type SubscriptionPayment, type InsertSubscriptionPayment, subscriptionPayments,
-  type PasswordResetToken, passwordResetTokens
+  type PasswordResetToken, passwordResetTokens,
+  type PostbackToken, type InsertPostbackToken, postbackTokens
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -1893,6 +1894,11 @@ export class DatabaseStorage implements IStorage {
           sub3: clicks.sub3,
           sub4: clicks.sub4,
           sub5: clicks.sub5,
+          sub6: clicks.sub6,
+          sub7: clicks.sub7,
+          sub8: clicks.sub8,
+          sub9: clicks.sub9,
+          sub10: clicks.sub10,
           geo: clicks.geo,
         }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).where(whereCondition).orderBy(desc(conversions.createdAt))
       : await db.select({
@@ -1914,6 +1920,11 @@ export class DatabaseStorage implements IStorage {
           sub3: clicks.sub3,
           sub4: clicks.sub4,
           sub5: clicks.sub5,
+          sub6: clicks.sub6,
+          sub7: clicks.sub7,
+          sub8: clicks.sub8,
+          sub9: clicks.sub9,
+          sub10: clicks.sub10,
           geo: clicks.geo,
         }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).orderBy(desc(conversions.createdAt));
     
@@ -3332,6 +3343,52 @@ export class DatabaseStorage implements IStorage {
   async deleteUserPasswordResetTokens(userId: string): Promise<void> {
     await db.delete(passwordResetTokens)
       .where(eq(passwordResetTokens.userId, userId));
+  }
+
+  // ============================================
+  // POSTBACK TOKENS (Keitaro integration)
+  // ============================================
+
+  async createPostbackToken(data: InsertPostbackToken): Promise<PostbackToken> {
+    const token = crypto.randomBytes(32).toString("hex");
+    const [created] = await db.insert(postbackTokens).values({
+      ...data,
+      token
+    }).returning();
+    return created;
+  }
+
+  async getPostbackTokensByAdvertiser(advertiserId: string): Promise<PostbackToken[]> {
+    return db.select().from(postbackTokens)
+      .where(eq(postbackTokens.advertiserId, advertiserId))
+      .orderBy(desc(postbackTokens.createdAt));
+  }
+
+  async getPostbackTokenByToken(token: string): Promise<PostbackToken | undefined> {
+    const [found] = await db.select().from(postbackTokens)
+      .where(eq(postbackTokens.token, token));
+    return found;
+  }
+
+  async updatePostbackToken(id: string, data: Partial<InsertPostbackToken>): Promise<PostbackToken | undefined> {
+    const [updated] = await db.update(postbackTokens)
+      .set(data)
+      .where(eq(postbackTokens.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePostbackToken(id: string): Promise<void> {
+    await db.delete(postbackTokens).where(eq(postbackTokens.id, id));
+  }
+
+  async incrementPostbackTokenUsage(token: string): Promise<void> {
+    await db.update(postbackTokens)
+      .set({
+        lastUsedAt: new Date(),
+        usageCount: sql`${postbackTokens.usageCount} + 1`
+      })
+      .where(eq(postbackTokens.token, token));
   }
 }
 

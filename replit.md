@@ -146,6 +146,15 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Click endpoint принимает visitor_id и fp_confidence параметры
 - ✅ client/src/lib/fingerprint.ts утилита
 
+### Keitaro Интеграция
+- ✅ Таблица postback_tokens (advertiser-scoped, 64-char token)
+- ✅ CRUD endpoints: `/api/postback-tokens`
+- ✅ Keitaro postback endpoint: `/api/postbacks/keitaro?token=XXX&subid_1={subid_1}&status={status}&sum={revenue}`
+- ✅ Маппинг: subid_1 → click_id, status → lead/sale/install
+- ✅ Поддержка sub1-sub10 параметров в clicks
+- ✅ UI для генерации токенов в AdvertiserPostbacks.tsx
+- ✅ Инструкции по настройке в Keitaro
+
 ---
 
 ## ТЕХНОЛОГИИ

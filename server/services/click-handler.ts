@@ -12,6 +12,11 @@ interface ClickParams {
   sub3?: string;
   sub4?: string;
   sub5?: string;
+  sub6?: string;
+  sub7?: string;
+  sub8?: string;
+  sub9?: string;
+  sub10?: string;
   ip?: string;
   userAgent?: string;
   referer?: string;
@@ -133,6 +138,11 @@ export class ClickHandler {
       sub3: params.sub3,
       sub4: params.sub4,
       sub5: params.sub5,
+      sub6: params.sub6,
+      sub7: params.sub7,
+      sub8: params.sub8,
+      sub9: params.sub9,
+      sub10: params.sub10,
       isUnique,
       isGeoMatch,
       isBot: parsedUA.isBot,
@@ -280,6 +290,11 @@ export class ClickHandler {
     urlString = urlString.replace(/\{sub3\}/gi, params.sub3 || "");
     urlString = urlString.replace(/\{sub4\}/gi, params.sub4 || "");
     urlString = urlString.replace(/\{sub5\}/gi, params.sub5 || "");
+    urlString = urlString.replace(/\{sub6\}/gi, params.sub6 || "");
+    urlString = urlString.replace(/\{sub7\}/gi, params.sub7 || "");
+    urlString = urlString.replace(/\{sub8\}/gi, params.sub8 || "");
+    urlString = urlString.replace(/\{sub9\}/gi, params.sub9 || "");
+    urlString = urlString.replace(/\{sub10\}/gi, params.sub10 || "");
     
     const url = new URL(urlString);
     
@@ -300,6 +315,21 @@ export class ClickHandler {
     }
     if (params.sub5 && !url.searchParams.has("sub5")) {
       url.searchParams.set("sub5", params.sub5);
+    }
+    if (params.sub6 && !url.searchParams.has("sub6")) {
+      url.searchParams.set("sub6", params.sub6);
+    }
+    if (params.sub7 && !url.searchParams.has("sub7")) {
+      url.searchParams.set("sub7", params.sub7);
+    }
+    if (params.sub8 && !url.searchParams.has("sub8")) {
+      url.searchParams.set("sub8", params.sub8);
+    }
+    if (params.sub9 && !url.searchParams.has("sub9")) {
+      url.searchParams.set("sub9", params.sub9);
+    }
+    if (params.sub10 && !url.searchParams.has("sub10")) {
+      url.searchParams.set("sub10", params.sub10);
     }
     
     return url.toString();

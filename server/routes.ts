@@ -1450,7 +1450,7 @@ export async function registerRoutes(
   app.get("/click/:offerId/:landingId", async (req: Request, res: Response) => {
     try {
       const { offerId, landingId } = req.params;
-      const { partner_id, sub1, sub2, sub3, sub4, sub5, visitor_id, fp_confidence } = req.query;
+      const { partner_id, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       if (!partner_id) {
         return res.status(400).json({ 
@@ -1488,6 +1488,11 @@ export async function registerRoutes(
         sub3: sub3 as string,
         sub4: sub4 as string,
         sub5: sub5 as string,
+        sub6: sub6 as string,
+        sub7: sub7 as string,
+        sub8: sub8 as string,
+        sub9: sub9 as string,
+        sub10: sub10 as string,
         ip,
         userAgent,
         referer,
@@ -1523,7 +1528,7 @@ export async function registerRoutes(
   // Usage: /api/click?offer_id=XXX&partner_id=YYY&geo=US&sub1=...&sub2=...
   app.get("/api/click", async (req: Request, res: Response) => {
     try {
-      const { offer_id, partner_id, geo, sub1, sub2, sub3, sub4, sub5, visitor_id, fp_confidence } = req.query;
+      const { offer_id, partner_id, geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       if (!offer_id || !partner_id) {
         return res.status(400).json({ 
@@ -1564,6 +1569,11 @@ export async function registerRoutes(
         sub3: sub3 as string,
         sub4: sub4 as string,
         sub5: sub5 as string,
+        sub6: sub6 as string,
+        sub7: sub7 as string,
+        sub8: sub8 as string,
+        sub9: sub9 as string,
+        sub10: sub10 as string,
         ip,
         userAgent,
         referer,
@@ -1637,6 +1647,146 @@ export async function registerRoutes(
       res.status(400).json({ 
         error: error.message || "Failed to process postback" 
       });
+    }
+  });
+
+  // Keitaro postback endpoint (public, token-authenticated)
+  // Usage: /api/postbacks/keitaro?token=XXX&subid_1=click_id&status=lead|sale|install&sum=123.45
+  // Keitaro mapping: subid_1 → click_id, status → event type, sum → payout
+  app.get("/api/postbacks/keitaro", async (req: Request, res: Response) => {
+    try {
+      const { token, subid_1, status, sum, external_id } = req.query;
+
+      if (!token) {
+        return res.status(401).json({ 
+          error: "Missing authentication token" 
+        });
+      }
+
+      // Validate token
+      const postbackToken = await storage.getPostbackTokenByToken(token as string);
+      if (!postbackToken) {
+        return res.status(401).json({ 
+          error: "Invalid token" 
+        });
+      }
+
+      if (!postbackToken.isActive) {
+        return res.status(403).json({ 
+          error: "Token is disabled" 
+        });
+      }
+
+      // subid_1 from Keitaro maps to our click_id
+      const clickId = subid_1 as string;
+      if (!clickId) {
+        return res.status(400).json({ 
+          error: "Missing required parameter: subid_1 (click_id)" 
+        });
+      }
+
+      // Map Keitaro status to our event types
+      const validStatuses = ["lead", "sale", "install", "registration", "deposit", "purchase"];
+      const rawStatus = (status as string)?.toLowerCase() || "lead";
+      
+      // Map Keitaro-specific statuses to our types
+      let conversionStatus: "lead" | "sale" | "install" = "lead";
+      if (rawStatus === "sale" || rawStatus === "purchase" || rawStatus === "deposit") {
+        conversionStatus = "sale";
+      } else if (rawStatus === "install") {
+        conversionStatus = "install";
+      }
+
+      // Increment usage counter
+      await storage.incrementPostbackTokenUsage(token as string);
+
+      const result = await orchestrator.processConversion({
+        clickId,
+        status: conversionStatus,
+        sum: sum ? parseFloat(sum as string) : undefined,
+        externalId: external_id as string,
+      });
+
+      res.json({
+        success: true,
+        conversionId: result.id,
+        clickId: result.clickId,
+        status: result.status,
+        advertiserCost: result.advertiserCost,
+        publisherPayout: result.publisherPayout,
+      });
+    } catch (error: any) {
+      console.error("Keitaro postback handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process Keitaro postback" 
+      });
+    }
+  });
+
+  // ============================================
+  // POSTBACK TOKENS MANAGEMENT (Advertiser)
+  // ============================================
+
+  // Get all postback tokens for current advertiser
+  app.get("/api/postback-tokens", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const tokens = await storage.getPostbackTokensByAdvertiser(req.session.userId!);
+      res.json(tokens);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback tokens" });
+    }
+  });
+
+  // Create new postback token
+  app.post("/api/postback-tokens", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { label } = req.body;
+      const token = await storage.createPostbackToken({
+        advertiserId: req.session.userId!,
+        label: label || "Keitaro Integration"
+      });
+      res.json(token);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create postback token" });
+    }
+  });
+
+  // Update postback token
+  app.put("/api/postback-tokens/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { label, isActive } = req.body;
+      
+      // Verify ownership
+      const tokens = await storage.getPostbackTokensByAdvertiser(req.session.userId!);
+      const token = tokens.find(t => t.id === id);
+      if (!token) {
+        return res.status(404).json({ message: "Token not found" });
+      }
+
+      const updated = await storage.updatePostbackToken(id, { label, isActive });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update postback token" });
+    }
+  });
+
+  // Delete postback token
+  app.delete("/api/postback-tokens/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify ownership
+      const tokens = await storage.getPostbackTokensByAdvertiser(req.session.userId!);
+      const token = tokens.find(t => t.id === id);
+      if (!token) {
+        return res.status(404).json({ message: "Token not found" });
+      }
+
+      await storage.deletePostbackToken(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete postback token" });
     }
   });
 
@@ -3089,6 +3239,7 @@ export async function registerRoutes(
       const {
         offerId,
         publisherId,
+        advertiserId,
         dateFrom,
         dateTo,
         geo,
@@ -3113,11 +3264,23 @@ export async function registerRoutes(
       // Role-based access control
       if (role === "publisher") {
         filters.publisherId = userId;
-        // Publisher gets their own advertiser from session or default
+        // Filter by selected advertiser's offers
+        if (advertiserId) {
+          const advertiserOffers = await storage.getOffersByAdvertiser(advertiserId as string);
+          if (advertiserOffers.length > 0) {
+            filters.offerIds = advertiserOffers.map(o => o.id);
+          } else {
+            return res.json({ clicks: [], total: 0, page: 1, limit: 50, summary: { clicks: 0, unique: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0 } });
+          }
+        }
       } else if (role === "advertiser") {
         // Advertiser sees only clicks on their offers
         const advertiserOffers = await storage.getOffersByAdvertiser(userId);
-        filters.offerIds = advertiserOffers.map(o => o.id);
+        if (advertiserOffers.length > 0) {
+          filters.offerIds = advertiserOffers.map(o => o.id);
+        } else {
+          return res.json({ clicks: [], total: 0, page: 1, limit: 50, summary: { clicks: 0, unique: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0 } });
+        }
       }
       // Admin sees everything
 
@@ -3235,6 +3398,7 @@ export async function registerRoutes(
       const {
         offerId,
         publisherId,
+        advertiserId,
         dateFrom,
         dateTo,
         status,
@@ -3248,9 +3412,24 @@ export async function registerRoutes(
       
       if (role === "publisher") {
         filters.publisherId = userId;
+        // Filter by selected advertiser's offers
+        if (advertiserId) {
+          const advertiserOffers = await storage.getOffersByAdvertiser(advertiserId as string);
+          if (advertiserOffers.length > 0) {
+            filters.offerIds = advertiserOffers.map(o => o.id);
+          } else {
+            // No offers for this advertiser - return empty
+            return res.json({ conversions: [], total: 0, page: 1, limit: 50 });
+          }
+        }
       } else if (role === "advertiser") {
         const advertiserOffers = await storage.getOffersByAdvertiser(userId);
-        filters.offerIds = advertiserOffers.map(o => o.id);
+        if (advertiserOffers.length > 0) {
+          filters.offerIds = advertiserOffers.map(o => o.id);
+        } else {
+          // Advertiser has no offers - return empty
+          return res.json({ conversions: [], total: 0, page: 1, limit: 50 });
+        }
       }
 
       if (offerId) filters.offerId = offerId as string;
@@ -3290,6 +3469,7 @@ export async function registerRoutes(
       const {
         offerId,
         publisherId,
+        advertiserId,
         dateFrom,
         dateTo,
         groupBy = "date" // date, geo, publisher, offer, device, os, browser, sub1-5
@@ -3299,9 +3479,22 @@ export async function registerRoutes(
       
       if (role === "publisher") {
         filters.publisherId = userId;
+        // Filter by selected advertiser's offers
+        if (advertiserId) {
+          const advertiserOffers = await storage.getOffersByAdvertiser(advertiserId as string);
+          if (advertiserOffers.length > 0) {
+            filters.offerIds = advertiserOffers.map(o => o.id);
+          } else {
+            return res.json({ data: [], totals: {} });
+          }
+        }
       } else if (role === "advertiser") {
         const advertiserOffers = await storage.getOffersByAdvertiser(userId);
-        filters.offerIds = advertiserOffers.map(o => o.id);
+        if (advertiserOffers.length > 0) {
+          filters.offerIds = advertiserOffers.map(o => o.id);
+        } else {
+          return res.json({ data: [], totals: {} });
+        }
       }
 
       if (offerId) filters.offerId = offerId as string;

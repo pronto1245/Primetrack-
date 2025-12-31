@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Globe, Save, Play, CheckCircle, XCircle, Clock, 
-  Loader2, ChevronDown, ChevronRight, RefreshCw, AlertCircle 
+  Loader2, ChevronDown, ChevronRight, RefreshCw, AlertCircle,
+  Key, Copy, Trash2, Plus, ExternalLink
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -290,6 +291,8 @@ export function AdvertiserPostbacks() {
         )}
       </Card>
 
+      <KeitaroIntegration />
+
       <Card className="bg-card border-border">
         <div className="p-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">Настройки по офферам</h3>
@@ -503,5 +506,240 @@ function OfferPostbackRow({
         </div>
       )}
     </div>
+  );
+}
+
+interface PostbackToken {
+  id: string;
+  token: string;
+  label: string;
+  lastUsedAt: string | null;
+  usageCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+function KeitaroIntegration() {
+  const queryClient = useQueryClient();
+  const [newLabel, setNewLabel] = useState("Keitaro Integration");
+
+  const { data: tokens, isLoading } = useQuery<PostbackToken[]>({
+    queryKey: ["/api/postback-tokens"],
+  });
+
+  const createTokenMutation = useMutation({
+    mutationFn: async (label: string) => {
+      const res = await fetch("/api/postback-tokens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ label }),
+      });
+      if (!res.ok) throw new Error("Failed to create token");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/postback-tokens"] });
+      toast.success("Токен создан");
+    },
+    onError: () => {
+      toast.error("Ошибка создания токена");
+    },
+  });
+
+  const deleteTokenMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/postback-tokens/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete token");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/postback-tokens"] });
+      toast.success("Токен удалён");
+    },
+    onError: () => {
+      toast.error("Ошибка удаления токена");
+    },
+  });
+
+  const toggleTokenMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const res = await fetch(`/api/postback-tokens/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ isActive }),
+      });
+      if (!res.ok) throw new Error("Failed to update token");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/postback-tokens"] });
+      toast.success("Токен обновлён");
+    },
+  });
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Скопировано в буфер обмена");
+  };
+
+  const getPostbackUrl = (token: string) => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/api/postbacks/keitaro?token=${token}&subid_1={subid_1}&status={status}&sum={revenue}`;
+  };
+
+  return (
+    <Card className="bg-card border-border">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center gap-3 mb-1">
+          <Key className="w-5 h-5 text-orange-400" />
+          <h3 className="text-lg font-semibold text-foreground">Keitaro Интеграция</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Генерация токенов для приёма постбеков от Keitaro трекера
+        </p>
+      </div>
+
+      <div className="p-4 space-y-4">
+        <Card className="bg-orange-500/10 border-orange-500/20 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-1">Настройка в Keitaro</h4>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Создайте токен ниже</li>
+                <li>В Keitaro: настройте оффер с URL трекинга PrimeTrack и передайте <code className="text-orange-400">sub1=&#123;subid&#125;</code></li>
+                <li>В Keitaro: Офферы → Постбеки → Добавить</li>
+                <li>Скопируйте Postback URL из карточки токена</li>
+                <li><code className="text-orange-400">&#123;subid_1&#125;</code> вернёт click_id, который Keitaro получил через sub1</li>
+              </ol>
+            </div>
+          </div>
+        </Card>
+
+        <div className="flex gap-2">
+          <Input
+            placeholder="Название токена"
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            className="bg-muted border-border text-foreground flex-1"
+            data-testid="input-new-token-label"
+          />
+          <Button
+            onClick={() => createTokenMutation.mutate(newLabel)}
+            disabled={createTokenMutation.isPending}
+            className="bg-orange-600 hover:bg-orange-700"
+            data-testid="button-create-token"
+          >
+            {createTokenMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : tokens && tokens.length > 0 ? (
+          <div className="space-y-3">
+            {tokens.map((token) => (
+              <div key={token.id} className="p-4 rounded-lg bg-muted border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Key className="w-4 h-4 text-orange-400" />
+                    <span className="font-semibold text-foreground">{token.label}</span>
+                    {token.isActive ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+                        Активен
+                      </span>
+                    ) : (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-400">
+                        Отключён
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={token.isActive}
+                      onCheckedChange={(isActive) => 
+                        toggleTokenMutation.mutate({ id: token.id, isActive })
+                      }
+                      data-testid={`switch-token-${token.id}`}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTokenMutation.mutate(token.id)}
+                      disabled={deleteTokenMutation.isPending}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      data-testid={`button-delete-token-${token.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Токен</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-xs bg-black/20 px-2 py-1 rounded text-orange-400 flex-1 truncate">
+                        {token.token}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(token.token)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Postback URL для Keitaro</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-[10px] bg-black/20 px-2 py-1 rounded text-emerald-400 flex-1 break-all">
+                        {getPostbackUrl(token.token)}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(getPostbackUrl(token.token))}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
+                    <span>Использований: {token.usageCount}</span>
+                    {token.lastUsedAt && (
+                      <span>Последнее: {new Date(token.lastUsedAt).toLocaleString()}</span>
+                    )}
+                    <span>Создан: {new Date(token.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Key className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Нет токенов</p>
+            <p className="text-xs text-muted-foreground">Создайте токен для интеграции с Keitaro</p>
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }

@@ -213,6 +213,13 @@ export function Reports({ role }: ReportsProps) {
                   <SelectItem value="sub1">Sub1</SelectItem>
                   <SelectItem value="sub2">Sub2</SelectItem>
                   <SelectItem value="sub3">Sub3</SelectItem>
+                  <SelectItem value="sub4">Sub4</SelectItem>
+                  <SelectItem value="sub5">Sub5</SelectItem>
+                  <SelectItem value="sub6">Sub6</SelectItem>
+                  <SelectItem value="sub7">Sub7</SelectItem>
+                  <SelectItem value="sub8">Sub8</SelectItem>
+                  <SelectItem value="sub9">Sub9</SelectItem>
+                  <SelectItem value="sub10">Sub10</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -473,12 +480,17 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium">Sub3</th>
                 <th className="px-4 py-3 font-medium">Sub4</th>
                 <th className="px-4 py-3 font-medium">Sub5</th>
+                <th className="px-4 py-3 font-medium">Sub6</th>
+                <th className="px-4 py-3 font-medium">Sub7</th>
+                <th className="px-4 py-3 font-medium">Sub8</th>
+                <th className="px-4 py-3 font-medium">Sub9</th>
+                <th className="px-4 py-3 font-medium">Sub10</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {clicks.length === 0 ? (
                 <tr>
-                  <td colSpan={colSpan} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={colSpan + 5} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -545,6 +557,11 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     <td className="px-4 py-3 text-muted-foreground">{click.sub3 || '-'}</td>
                     <td className="px-4 py-3 text-muted-foreground">{click.sub4 || '-'}</td>
                     <td className="px-4 py-3 text-muted-foreground">{click.sub5 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub6 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub7 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub8 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub9 || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.sub10 || '-'}</td>
                   </tr>
                 ))
               )}
@@ -572,7 +589,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     </td>
                   </>
                 )}
-                <td colSpan={5} className="px-4 py-3"></td>
+                <td colSpan={10} className="px-4 py-3"></td>
               </tr>
             </tfoot>
           </table>
@@ -651,12 +668,17 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                 <th className="px-4 py-3 font-medium">Sub3</th>
                 <th className="px-4 py-3 font-medium">Sub4</th>
                 <th className="px-4 py-3 font-medium">Sub5</th>
+                <th className="px-4 py-3 font-medium">Sub6</th>
+                <th className="px-4 py-3 font-medium">Sub7</th>
+                <th className="px-4 py-3 font-medium">Sub8</th>
+                <th className="px-4 py-3 font-medium">Sub9</th>
+                <th className="px-4 py-3 font-medium">Sub10</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {conversions.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={21} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -714,6 +736,11 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub3 || '-'}</td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub4 || '-'}</td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub5 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub6 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub7 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub8 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub9 || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.sub10 || '-'}</td>
                     </tr>
                   );
                 })
