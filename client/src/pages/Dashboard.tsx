@@ -347,17 +347,22 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
   }, [userError, setLocation]);
 
-  // Redirect to 2FA setup if not enabled (for approved users only)
+  // Redirect to 2FA setup only if: 2FA not enabled AND never completed setup before
   useEffect(() => {
-    if (!userLoading && currentUser && !currentUser.twoFactorEnabled) {
-      // For advertisers/admins: redirect to 2FA if status is active
-      // For publishers: redirect to 2FA only if they have at least one approved advertiser
-      const shouldRedirectTo2FA = 
-        currentUser.status === "active" || 
-        (currentUser.role === "publisher" && currentUser.hasApprovedAdvertiser);
+    if (!userLoading && currentUser) {
+      // Only require 2FA setup if user never completed it before
+      const needsSetup2FA = !currentUser.twoFactorEnabled && !currentUser.twoFactorSetupCompleted;
       
-      if (shouldRedirectTo2FA) {
-        setLocation("/setup-2fa");
+      if (needsSetup2FA) {
+        // For advertisers/admins: redirect to 2FA if status is active
+        // For publishers: redirect to 2FA only if they have at least one approved advertiser
+        const shouldRedirect = 
+          currentUser.status === "active" || 
+          (currentUser.role === "publisher" && currentUser.hasApprovedAdvertiser);
+        
+        if (shouldRedirect) {
+          setLocation("/setup-2fa");
+        }
       }
     }
   }, [userLoading, currentUser, setLocation]);
