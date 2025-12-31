@@ -12,6 +12,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import { ClickHandler } from "./services/click-handler";
 import { Orchestrator } from "./services/orchestrator";
 import { notificationService } from "./services/notification-service";
+import { totpService } from "./services/totp-service";
 import geoip from "geoip-lite";
 
 const clickHandler = new ClickHandler();
@@ -49,6 +50,7 @@ declare module "express-session" {
   interface SessionData {
     userId: string;
     role: string;
+    pending2FAUserId?: string;
   }
 }
 
@@ -240,6 +242,22 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      // Check if 2FA is enabled - don't create full session yet
+      if (user.twoFactorEnabled) {
+        // Store pending 2FA verification in session
+        req.session.pending2FAUserId = user.id;
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        return res.json({ 
+          requires2FA: true,
+          userId: user.id 
+        });
+      }
+
       req.session.userId = user.id;
       req.session.role = user.role;
 
@@ -265,6 +283,59 @@ export async function registerRoutes(
     } catch (error) {
       console.error("[auth] Login error:", error);
       res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  // Verify 2FA code and complete login
+  app.post("/api/auth/verify-2fa", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.body;
+      const pendingUserId = req.session.pending2FAUserId;
+
+      if (!pendingUserId) {
+        return res.status(400).json({ message: "No pending 2FA verification" });
+      }
+
+      if (!token) {
+        return res.status(400).json({ message: "2FA code required" });
+      }
+
+      const isValid = await totpService.verifyToken(pendingUserId, token);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid 2FA code" });
+      }
+
+      const user = await storage.getUser(pendingUserId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Clear pending and create full session
+      delete req.session.pending2FAUserId;
+      req.session.userId = user.id;
+      req.session.role = user.role;
+
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("[session] Failed to save session:", err);
+            reject(err);
+          } else {
+            console.log("[session] 2FA verified, session saved for user:", user.username);
+            resolve();
+          }
+        });
+      });
+
+      res.json({ 
+        id: user.id, 
+        username: user.username, 
+        role: user.role,
+        email: user.email 
+      });
+    } catch (error) {
+      console.error("[auth] 2FA verification error:", error);
+      res.status(500).json({ message: "2FA verification failed" });
     }
   });
 
