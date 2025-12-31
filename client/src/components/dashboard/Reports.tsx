@@ -362,7 +362,19 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
           <div className="text-xl font-bold text-emerald-400">${totals.payout.toFixed(2)}</div>
         </CardContent>
       </Card>
-      {isAdvertiser && (
+      <Card className="bg-card border-border">
+        <CardContent className="p-4">
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.leads') || 'Leads'}</div>
+          <div className="text-xl font-bold text-purple-400">{totals.leads}</div>
+        </CardContent>
+      </Card>
+      <Card className="bg-card border-border">
+        <CardContent className="p-4">
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.sales') || 'Sales'}</div>
+          <div className="text-xl font-bold text-orange-400">{totals.sales}</div>
+        </CardContent>
+      </Card>
+      {(isAdvertiser || role === "admin") && (
         <>
           <Card className="bg-card border-border">
             <CardContent className="p-4">
@@ -384,22 +396,6 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
               <div className={`text-xl font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {roi.toFixed(1)}%
               </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
-      {isPublisher && (
-        <>
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.leads') || 'Leads'}</div>
-              <div className="text-xl font-bold text-purple-400">{totals.leads}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.sales') || 'Sales'}</div>
-              <div className="text-xl font-bold text-orange-400">{totals.sales}</div>
             </CardContent>
           </Card>
         </>
@@ -440,7 +436,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   const margin = summary?.margin || (totals.cost - totals.payout);
   const roi = summary?.roi || (totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0);
 
-  const colSpan = 20;
+  const colSpan = isAdvertiser ? 23 : 20;
 
   return (
     <Card className="bg-card border-border">
@@ -459,11 +455,18 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium">OS</th>
                 <th className="px-4 py-3 font-medium">Browser</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.leads') || 'Leads'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.sales') || 'Sales'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.conv') || 'Conv'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
-                <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
-                <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
-                <th className="px-4 py-3 font-medium text-right">ROI%</th>
+                {isAdvertiser && (
+                  <>
+                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
+                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
+                    <th className="px-4 py-3 font-medium text-right">ROI%</th>
+                  </>
+                )}
                 <th className="px-4 py-3 font-medium">Sub1</th>
                 <th className="px-4 py-3 font-medium">Sub2</th>
                 <th className="px-4 py-3 font-medium">Sub3</th>
@@ -486,9 +489,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     </td>
                     <td className="px-4 py-3 text-emerald-400">{click.clickId?.slice(0, 12)}...</td>
                     <td className="px-4 py-3 text-foreground">{click.offerName || click.offerId}</td>
-                    {role !== "publisher" && (
-                      <td className="px-4 py-3 text-muted-foreground">{click.publisherName || click.publisherId}</td>
-                    )}
+                    <td className="px-4 py-3 text-muted-foreground">{click.publisherName || click.publisherId || '-'}</td>
                     <td className="px-4 py-3">
                       <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
                         {click.geo || 'N/A'}
@@ -515,6 +516,9 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                         <span className="text-muted-foreground">-</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-right text-purple-400">{click.leads || 0}</td>
+                    <td className="px-4 py-3 text-right text-orange-400">{click.sales || 0}</td>
+                    <td className="px-4 py-3 text-right text-emerald-400 font-bold">{click.conversions || 0}</td>
                     <td className="px-4 py-3 text-right text-cyan-400">
                       {click.cr !== undefined ? `${click.cr.toFixed(0)}%` : '-'}
                     </td>
@@ -548,6 +552,9 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <td colSpan={10} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
                   {t('reports.total') || 'Total'}
                 </td>
+                <td className="px-4 py-3 text-right text-purple-400">{totals.leads}</td>
+                <td className="px-4 py-3 text-right text-orange-400">{totals.sales}</td>
+                <td className="px-4 py-3 text-right text-emerald-400 font-bold">{totals.conversions}</td>
                 <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>
                 <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                 {isAdvertiser && (
@@ -628,15 +635,11 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                 <th className="px-4 py-3 font-medium">{t('reports.table.type') || 'Type'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.status') || 'Status'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.offer') || 'Offer'}</th>
-                {role !== "publisher" && <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>}
+                <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
-                {isAdvertiser && (
-                  <>
-                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
-                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
-                    <th className="px-4 py-3 font-medium text-right">{t('reports.table.roi') || 'ROI'}</th>
-                  </>
-                )}
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.roi') || 'ROI'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
                 <th className="px-4 py-3 font-medium">Sub1</th>
@@ -649,17 +652,16 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
             <tbody className="divide-y divide-white/5">
               {conversions.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdvertiser ? 16 : 13} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={16} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
               ) : (
                 conversions.map((conv: any) => {
                   const payout = parseFloat(conv.publisherPayout) || 0;
-                  const hasCost = conv.advertiserCost !== undefined && conv.advertiserCost !== null;
-                  const cost = hasCost ? parseFloat(conv.advertiserCost) : 0;
-                  const margin = hasCost ? (cost - payout) : 0;
-                  const roi = hasCost && cost > 0 ? ((margin / cost) * 100) : 0;
+                  const cost = parseFloat(conv.advertiserCost) || 0;
+                  const margin = cost - payout;
+                  const roi = cost > 0 ? ((margin / cost) * 100) : 0;
                   
                   return (
                     <tr key={conv.id} className="hover:bg-muted transition-colors">
@@ -684,25 +686,19 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                         </span>
                       </td>
                       <td className="px-4 py-3 text-foreground">{conv.offerName || conv.offerId}</td>
-                      {role !== "publisher" && (
-                        <td className="px-4 py-3 text-muted-foreground">{conv.publisherName || conv.publisherId}</td>
-                      )}
+                      <td className="px-4 py-3 text-muted-foreground">{conv.publisherName || conv.publisherId || '-'}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
                         ${payout.toFixed(2)}
                       </td>
-                      {isAdvertiser && hasCost && (
-                        <>
-                          <td className="px-4 py-3 text-right text-blue-400 font-bold">
-                            ${cost.toFixed(2)}
-                          </td>
-                          <td className={`px-4 py-3 text-right font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            ${margin.toFixed(2)}
-                          </td>
-                          <td className={`px-4 py-3 text-right font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {roi.toFixed(1)}%
-                          </td>
-                        </>
-                      )}
+                      <td className="px-4 py-3 text-right text-blue-400 font-bold">
+                        ${cost.toFixed(2)}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        ${margin.toFixed(2)}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {roi.toFixed(1)}%
+                      </td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.clickId?.slice(0, 8)}...</td>
                       <td className="px-4 py-3">
                         <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
@@ -815,24 +811,25 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                 </tr>
               ) : (
                 rows.map((row: any, i: number) => {
-                  const hasCost = row.cost !== undefined && row.cost !== null;
-                  const margin = hasCost ? (row.cost - (row.payout || 0)) : 0;
-                  const roi = hasCost && row.cost > 0 ? ((margin / row.cost) * 100) : 0;
+                  const cost = row.cost || 0;
+                  const payout = row.payout || 0;
+                  const margin = cost - payout;
+                  const roi = cost > 0 ? ((margin / cost) * 100) : 0;
                   const cr = row.clicks > 0 ? ((row.conversions / row.clicks) * 100) : 0;
                   
                   return (
                     <tr key={i} className="hover:bg-muted transition-colors">
                       <td className="px-4 py-3 text-foreground font-medium">{row.groupKey}</td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks?.toLocaleString() || 0}</td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">{row.uniqueClicks?.toLocaleString() || 0}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{(row.clicks || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{(row.uniqueClicks || 0).toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-emerald-400">{row.leads || 0}</td>
                       <td className="px-4 py-3 text-right text-purple-400">{row.sales || 0}</td>
                       <td className="px-4 py-3 text-right text-foreground font-bold">{row.conversions || 0}</td>
                       <td className="px-4 py-3 text-right text-yellow-400">{cr.toFixed(2)}%</td>
-                      <td className="px-4 py-3 text-right text-emerald-400 font-bold">${(row.payout || 0).toFixed(2)}</td>
-                      {isAdvertiser && hasCost && (
+                      <td className="px-4 py-3 text-right text-emerald-400 font-bold">${payout.toFixed(2)}</td>
+                      {isAdvertiser && (
                         <>
-                          <td className="px-4 py-3 text-right text-blue-400 font-bold">${row.cost.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right text-blue-400 font-bold">${cost.toFixed(2)}</td>
                           <td className={`px-4 py-3 text-right font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             ${margin.toFixed(2)}
                           </td>
