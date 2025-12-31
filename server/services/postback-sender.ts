@@ -1,15 +1,20 @@
 import { storage } from "../storage";
-import type { Conversion, Click, Offer, PostbackLog } from "@shared/schema";
+import type { Conversion, Click, Offer, PostbackLog, PublisherPostbackEndpoint } from "@shared/schema";
 
 interface PostbackTarget {
   url: string;
   method: string;
   recipientType: "advertiser" | "publisher";
   recipientId: string;
+  offerId?: string;
+}
+
+interface PublisherPostbackTarget extends PostbackTarget {
+  endpoint: PublisherPostbackEndpoint;
 }
 
 const MAX_RETRIES = 5;
-const RETRY_DELAYS = [1000, 5000, 30000, 60000, 300000];
+const RETRY_DELAYS = [60000, 300000, 900000, 3600000, 7200000]; // 1m, 5m, 15m, 1h, 2h
 
 export class PostbackSender {
   async sendPostback(conversionId: string): Promise<void> {
@@ -31,72 +36,112 @@ export class PostbackSender {
       return;
     }
 
-    const targets: PostbackTarget[] = [];
+    const advertiserTargets: PostbackTarget[] = [];
+    const publisherTargets: PublisherPostbackTarget[] = [];
 
-    // 1. Get ADVERTISER postback settings
-    // Priority: offer_postback_settings > advertiser_settings
+    // 1. Get ADVERTISER postback settings (outgoing to advertiser's system - legacy)
     const offerPostbackSettings = await storage.getOfferPostbackSetting(offer.id);
     
     if (offerPostbackSettings?.isActive && offerPostbackSettings.postbackUrl) {
-      // Check if this event type should trigger postback
       const shouldSend = 
         (conversion.conversionType === "lead" && offerPostbackSettings.sendOnLead) ||
         (conversion.conversionType === "sale" && offerPostbackSettings.sendOnSale) ||
         (conversion.status === "rejected" && offerPostbackSettings.sendOnRejected);
       
       if (shouldSend) {
-        targets.push({
+        advertiserTargets.push({
           url: offerPostbackSettings.postbackUrl,
           method: offerPostbackSettings.httpMethod || "GET",
           recipientType: "advertiser",
           recipientId: offer.advertiserId,
+          offerId: offer.id,
         });
       }
     } else {
-      // Fallback to advertiser global settings
       const advertiserSettings = await storage.getAdvertiserSettings(offer.advertiserId);
       if (advertiserSettings?.postbackUrl) {
-        targets.push({
+        advertiserTargets.push({
           url: advertiserSettings.postbackUrl,
           method: advertiserSettings.postbackMethod || "GET",
           recipientType: "advertiser",
           recipientId: offer.advertiserId,
+          offerId: offer.id,
         });
       }
     }
 
-    // 2. Get PUBLISHER postback settings
-    const publisherPostbackSettings = await storage.getUserPostbackSettings(conversion.publisherId);
+    // 2. Get PUBLISHER postback endpoints (new flexible system)
+    const publisherEndpoints = await storage.getPublisherPostbackEndpoints(conversion.publisherId);
     
-    if (publisherPostbackSettings) {
-      // Send to appropriate URL based on conversion type
-      if (conversion.conversionType === "lead" && publisherPostbackSettings.leadPostbackUrl) {
-        targets.push({
-          url: publisherPostbackSettings.leadPostbackUrl,
-          method: publisherPostbackSettings.leadPostbackMethod || "GET",
-          recipientType: "publisher",
-          recipientId: conversion.publisherId,
-        });
-      } else if (conversion.conversionType === "sale" && publisherPostbackSettings.salePostbackUrl) {
-        targets.push({
-          url: publisherPostbackSettings.salePostbackUrl,
-          method: publisherPostbackSettings.salePostbackMethod || "GET",
-          recipientType: "publisher",
-          recipientId: conversion.publisherId,
-        });
+    for (const endpoint of publisherEndpoints) {
+      if (!endpoint.isActive) continue;
+      
+      // Check if endpoint applies to this offer (null = all offers)
+      if (endpoint.offerId && endpoint.offerId !== offer.id) continue;
+      
+      // Check status filter
+      if (endpoint.statusFilter) {
+        try {
+          const filter = JSON.parse(endpoint.statusFilter);
+          if (Array.isArray(filter) && !filter.includes(conversion.conversionType)) {
+            continue;
+          }
+        } catch (e) {
+          // No filter or invalid filter - send all
+        }
+      }
+      
+      publisherTargets.push({
+        url: endpoint.baseUrl,
+        method: endpoint.httpMethod || "GET",
+        recipientType: "publisher",
+        recipientId: conversion.publisherId,
+        offerId: offer.id,
+        endpoint,
+      });
+    }
+
+    // 3. Legacy publisher postback settings (fallback)
+    if (publisherTargets.length === 0) {
+      const publisherPostbackSettings = await storage.getUserPostbackSettings(conversion.publisherId);
+      
+      if (publisherPostbackSettings) {
+        if (conversion.conversionType === "lead" && publisherPostbackSettings.leadPostbackUrl) {
+          advertiserTargets.push({
+            url: publisherPostbackSettings.leadPostbackUrl,
+            method: publisherPostbackSettings.leadPostbackMethod || "GET",
+            recipientType: "publisher",
+            recipientId: conversion.publisherId,
+            offerId: offer.id,
+          });
+        } else if (conversion.conversionType === "sale" && publisherPostbackSettings.salePostbackUrl) {
+          advertiserTargets.push({
+            url: publisherPostbackSettings.salePostbackUrl,
+            method: publisherPostbackSettings.salePostbackMethod || "GET",
+            recipientType: "publisher",
+            recipientId: conversion.publisherId,
+            offerId: offer.id,
+          });
+        }
       }
     }
 
-    if (targets.length === 0) {
+    const totalTargets = advertiserTargets.length + publisherTargets.length;
+    if (totalTargets === 0) {
       console.log(`[PostbackSender] No postback URLs configured for conversion: ${conversionId}`);
       return;
     }
 
-    // Send postbacks to all targets
-    console.log(`[PostbackSender] Sending ${targets.length} postback(s) for conversion: ${conversionId}`);
+    console.log(`[PostbackSender] Sending ${totalTargets} postback(s) for conversion: ${conversionId}`);
     
-    for (const target of targets) {
+    // Send to advertiser targets (legacy format)
+    for (const target of advertiserTargets) {
       await this.executePostback(conversion, click, offer, target);
+    }
+    
+    // Send to publisher targets (new flexible format)
+    for (const target of publisherTargets) {
+      await this.executePublisherPostback(conversion, click, offer, target);
     }
   }
 
@@ -137,7 +182,10 @@ export class PostbackSender {
     }
 
     await storage.createPostbackLog({
+      direction: "outbound",
       conversionId: conversion.id,
+      offerId: target.offerId,
+      publisherId: target.recipientType === "publisher" ? target.recipientId : undefined,
       url: postbackUrl,
       method: target.method,
       responseCode,
@@ -156,6 +204,118 @@ export class PostbackSender {
         this.executePostback(conversion, click, offer, target, retryCount + 1);
       }, delay);
     }
+  }
+
+  private async executePublisherPostback(
+    conversion: Conversion,
+    click: Click,
+    offer: Offer,
+    target: PublisherPostbackTarget,
+    retryCount = 0
+  ): Promise<void> {
+    const { endpoint } = target;
+    
+    // Build URL with configurable parameter names
+    const postbackUrl = this.buildPublisherPostbackUrl(endpoint, conversion, click, offer);
+
+    let responseCode: number | undefined;
+    let responseBody: string | undefined;
+    let success = false;
+
+    try {
+      console.log(`[PostbackSender] Sending publisher postback (${endpoint.trackerType}): ${postbackUrl}`);
+      
+      const fetchOptions: RequestInit = {
+        method: target.method,
+        headers: {
+          "User-Agent": "PrimeTrack/1.0",
+        },
+        signal: AbortSignal.timeout(10000),
+      };
+
+      const response = await fetch(postbackUrl, fetchOptions);
+
+      responseCode = response.status;
+      responseBody = await response.text().catch(() => "");
+      success = response.ok;
+
+      console.log(`[PostbackSender] Publisher response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
+    } catch (error: any) {
+      console.error(`[PostbackSender] Publisher request failed: ${error.message}`);
+      responseBody = error.message;
+    }
+
+    await storage.createPostbackLog({
+      direction: "outbound",
+      conversionId: conversion.id,
+      offerId: offer.id,
+      publisherId: conversion.publisherId,
+      url: postbackUrl,
+      method: target.method,
+      responseCode,
+      responseBody,
+      success,
+      retryCount,
+      recipientType: "publisher",
+      recipientId: target.recipientId,
+    });
+
+    if (!success && retryCount < MAX_RETRIES) {
+      const delay = RETRY_DELAYS[retryCount] || RETRY_DELAYS[RETRY_DELAYS.length - 1];
+      console.log(`[PostbackSender] Scheduling publisher retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms`);
+      
+      setTimeout(() => {
+        this.executePublisherPostback(conversion, click, offer, target, retryCount + 1);
+      }, delay);
+    }
+  }
+
+  private buildPublisherPostbackUrl(
+    endpoint: PublisherPostbackEndpoint,
+    conversion: Conversion,
+    click: Click,
+    offer: Offer
+  ): string {
+    const baseUrl = endpoint.baseUrl;
+    const url = new URL(baseUrl.includes("://") ? baseUrl : `https://${baseUrl}`);
+    
+    // Add configurable parameters
+    const clickIdParam = endpoint.clickIdParam || "subid";
+    const statusParam = endpoint.statusParam || "status";
+    const payoutParam = endpoint.payoutParam || "payout";
+    
+    // Map internal status to tracker-specific status
+    let mappedStatus = conversion.conversionType;
+    if (endpoint.statusMappings) {
+      try {
+        const mappings = JSON.parse(endpoint.statusMappings);
+        if (mappings[conversion.conversionType]) {
+          mappedStatus = mappings[conversion.conversionType];
+        }
+      } catch (e) {
+        // Use default status
+      }
+    }
+    
+    // Add parameters
+    url.searchParams.set(clickIdParam, click.clickId);
+    url.searchParams.set(statusParam, mappedStatus);
+    url.searchParams.set(payoutParam, conversion.publisherPayout);
+    
+    // Add common parameters
+    url.searchParams.set("sum", conversion.transactionSum || "0");
+    url.searchParams.set("offer_id", offer.id);
+    url.searchParams.set("conversion_id", conversion.id);
+    
+    // Add sub parameters if present
+    if (click.sub1) url.searchParams.set("sub1", click.sub1);
+    if (click.sub2) url.searchParams.set("sub2", click.sub2);
+    if (click.sub3) url.searchParams.set("sub3", click.sub3);
+    if (click.sub4) url.searchParams.set("sub4", click.sub4);
+    if (click.sub5) url.searchParams.set("sub5", click.sub5);
+    if (click.geo) url.searchParams.set("geo", click.geo);
+    
+    return url.toString();
   }
 
   private buildPostbackUrl(
