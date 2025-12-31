@@ -620,7 +620,7 @@ function NotificationsTab() {
           <Button 
             variant="outline"
             onClick={() => testTelegramMutation.mutate()}
-            disabled={testTelegramMutation.isPending || !isLinked}
+            disabled={testTelegramMutation.isPending || !isLinked || !telegramData.telegramChatId}
             data-testid="button-test-telegram"
           >
             {testTelegramMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}

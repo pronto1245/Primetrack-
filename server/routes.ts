@@ -379,6 +379,11 @@ export async function registerRoutes(
       companyName: user.companyName,
       telegram: user.telegram,
       logoUrl: user.logoUrl,
+      telegramChatId: user.telegramChatId,
+      telegramNotifyLeads: user.telegramNotifyLeads,
+      telegramNotifySales: user.telegramNotifySales,
+      telegramNotifyPayouts: user.telegramNotifyPayouts,
+      telegramNotifySystem: user.telegramNotifySystem,
     });
   });
 
@@ -417,6 +422,11 @@ export async function registerRoutes(
       companyName: user.companyName,
       telegram: user.telegram,
       logoUrl: user.logoUrl,
+      telegramChatId: user.telegramChatId,
+      telegramNotifyLeads: user.telegramNotifyLeads,
+      telegramNotifySales: user.telegramNotifySales,
+      telegramNotifyPayouts: user.telegramNotifyPayouts,
+      telegramNotifySystem: user.telegramNotifySystem,
     });
   });
 
@@ -5105,14 +5115,20 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Укажите Chat ID и сохраните настройки." });
       }
       
-      // Check if platform bot token is configured
+      // Check if any bot token is configured
       const platformSettings = await storage.getPlatformSettings();
-      const hasAdvertiserToken = user.role === "advertiser" ? 
-        !!(await storage.getAdvertiserSettings(userId))?.telegramBotToken : false;
+      const hasPlatformToken = !!platformSettings?.defaultTelegramBotToken;
       
-      if (!platformSettings?.defaultTelegramBotToken && !hasAdvertiserToken) {
+      // For advertisers, check if they have their own token
+      let hasAdvertiserToken = false;
+      if (user.role === "advertiser") {
+        const advSettings = await storage.getAdvertiserSettings(userId);
+        hasAdvertiserToken = !!advSettings?.telegramBotToken;
+      }
+      
+      if (!hasPlatformToken && !hasAdvertiserToken) {
         return res.status(400).json({ 
-          message: "Токен бота не настроен. Обратитесь к администратору платформы." 
+          message: "Токен бота платформы не настроен. Обратитесь к администратору." 
         });
       }
       
