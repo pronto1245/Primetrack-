@@ -1838,8 +1838,36 @@ export class DatabaseStorage implements IStorage {
     if (filters.publisherId) conditions.push(eq(clicks.publisherId, filters.publisherId));
     if (filters.offerId) conditions.push(eq(clicks.offerId, filters.offerId));
     if (filters.offerIds?.length) conditions.push(inArray(clicks.offerId, filters.offerIds));
-    if (filters.dateFrom) conditions.push(gte(clicks.createdAt, filters.dateFrom));
-    if (filters.dateTo) conditions.push(lte(clicks.createdAt, filters.dateTo));
+    
+    // Handle dateMode: "click" = filter by click date, "conversion" = filter by conversion date
+    const dateMode = filters.dateMode || "click";
+    
+    if (dateMode === "conversion" && (filters.dateFrom || filters.dateTo)) {
+      // Find clicks that have conversions in the specified date range
+      const convConditions: any[] = [];
+      if (filters.dateFrom) convConditions.push(gte(conversions.createdAt, filters.dateFrom));
+      if (filters.dateTo) convConditions.push(lte(conversions.createdAt, filters.dateTo));
+      if (filters.publisherId) convConditions.push(eq(conversions.publisherId, filters.publisherId));
+      if (filters.offerIds?.length) convConditions.push(inArray(conversions.offerId, filters.offerIds));
+      
+      const convWhereCondition = convConditions.length > 0 ? and(...convConditions) : undefined;
+      const matchingConversions = convWhereCondition
+        ? await db.select({ clickId: conversions.clickId }).from(conversions).where(convWhereCondition)
+        : await db.select({ clickId: conversions.clickId }).from(conversions);
+      
+      const clickIdsFromConversions = [...new Set(matchingConversions.map(c => c.clickId))];
+      
+      if (clickIdsFromConversions.length === 0) {
+        return { clicks: [], total: 0, page, limit };
+      }
+      
+      conditions.push(inArray(clicks.id, clickIdsFromConversions));
+    } else {
+      // Default: filter by click date
+      if (filters.dateFrom) conditions.push(gte(clicks.createdAt, filters.dateFrom));
+      if (filters.dateTo) conditions.push(lte(clicks.createdAt, filters.dateTo));
+    }
+    
     if (filters.geo) conditions.push(eq(clicks.geo, filters.geo));
     if (filters.device) conditions.push(eq(clicks.device, filters.device));
     if (filters.os) conditions.push(eq(clicks.os, filters.os));
