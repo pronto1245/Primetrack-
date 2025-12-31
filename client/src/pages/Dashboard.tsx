@@ -34,6 +34,7 @@ import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { AdminFinance } from "@/components/dashboard/AdminFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
 import { PostbackSettings } from "@/components/dashboard/PostbackSettings";
+import { AdvertiserPostbacks } from "@/components/dashboard/AdvertiserPostbacks";
 import AntifraudDashboard from "@/components/dashboard/AntifraudDashboard";
 import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
 import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
@@ -453,6 +454,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
 
     if (showPostbacks) {
+      if (role === 'advertiser') {
+        return <AdvertiserPostbacks />;
+      }
       return <PostbackSettings />;
     }
 
