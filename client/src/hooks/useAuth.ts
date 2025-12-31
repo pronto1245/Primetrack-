@@ -7,6 +7,7 @@ export interface User {
   username: string;
   role: string;
   email: string;
+  twoFactorSetupCompleted?: boolean;
 }
 
 export function useAuth() {
@@ -25,6 +26,10 @@ export function useAuth() {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+        // Redirect to 2FA setup if user never configured it
+        if (data.twoFactorSetupCompleted === false && !window.location.pathname.includes("/setup-2fa")) {
+          setLocation("/setup-2fa");
+        }
       }
     } catch (error) {
       console.error("Auth check failed");
