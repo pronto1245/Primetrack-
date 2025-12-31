@@ -513,6 +513,7 @@ interface PostbackToken {
   id: string;
   token: string;
   label: string;
+  trackerType: "keitaro" | "binom";
   lastUsedAt: string | null;
   usageCount: number;
   isActive: boolean;
@@ -521,25 +522,27 @@ interface PostbackToken {
 
 function KeitaroIntegration() {
   const queryClient = useQueryClient();
-  const [newLabel, setNewLabel] = useState("Keitaro Integration");
+  const [newLabel, setNewLabel] = useState("");
+  const [selectedTracker, setSelectedTracker] = useState<"keitaro" | "binom">("keitaro");
 
   const { data: tokens, isLoading } = useQuery<PostbackToken[]>({
     queryKey: ["/api/postback-tokens"],
   });
 
   const createTokenMutation = useMutation({
-    mutationFn: async (label: string) => {
+    mutationFn: async ({ label, trackerType }: { label: string; trackerType: "keitaro" | "binom" }) => {
       const res = await fetch("/api/postback-tokens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ label }),
+        body: JSON.stringify({ label, trackerType }),
       });
       if (!res.ok) throw new Error("Failed to create token");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/postback-tokens"] });
+      setNewLabel("");
       toast.success("Токен создан");
     },
     onError: () => {
@@ -587,8 +590,11 @@ function KeitaroIntegration() {
     toast.success("Скопировано в буфер обмена");
   };
 
-  const getPostbackUrl = (token: string) => {
+  const getPostbackUrl = (token: string, trackerType: "keitaro" | "binom") => {
     const baseUrl = window.location.origin;
+    if (trackerType === "binom") {
+      return `${baseUrl}/api/postbacks/binom?token=${token}&clickid={clickid}&status={status}&payout={payout}`;
+    }
     return `${baseUrl}/api/postbacks/keitaro?token=${token}&subid_1={subid_1}&status={status}&sum={revenue}`;
   };
 
@@ -597,31 +603,58 @@ function KeitaroIntegration() {
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 mb-1">
           <Key className="w-5 h-5 text-orange-400" />
-          <h3 className="text-lg font-semibold text-foreground">Keitaro Интеграция</h3>
+          <h3 className="text-lg font-semibold text-foreground">Интеграция с трекерами</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Генерация токенов для приёма постбеков от Keitaro трекера
+          Генерация токенов для приёма постбеков от Keitaro и Binom
         </p>
       </div>
 
       <div className="p-4 space-y-4">
-        <Card className="bg-orange-500/10 border-orange-500/20 p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-semibold text-foreground mb-1">Настройка в Keitaro</h4>
-              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Создайте токен ниже</li>
-                <li>В Keitaro: настройте оффер с URL трекинга PrimeTrack и передайте <code className="text-orange-400">sub1=&#123;subid&#125;</code></li>
-                <li>В Keitaro: Офферы → Постбеки → Добавить</li>
-                <li>Скопируйте Postback URL из карточки токена</li>
-                <li><code className="text-orange-400">&#123;subid_1&#125;</code> вернёт click_id, который Keitaro получил через sub1</li>
-              </ol>
+        {selectedTracker === "keitaro" ? (
+          <Card className="bg-orange-500/10 border-orange-500/20 p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-1">Настройка в Keitaro</h4>
+                <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                  <li>Создайте токен ниже</li>
+                  <li>В Keitaro: настройте оффер с URL трекинга PrimeTrack и передайте <code className="text-orange-400">sub1=&#123;subid&#125;</code></li>
+                  <li>В Keitaro: Офферы → Постбеки → Добавить</li>
+                  <li>Скопируйте Postback URL из карточки токена</li>
+                  <li><code className="text-orange-400">&#123;subid_1&#125;</code> вернёт click_id, который Keitaro получил через sub1</li>
+                </ol>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        ) : (
+          <Card className="bg-blue-500/10 border-blue-500/20 p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-1">Настройка в Binom</h4>
+                <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                  <li>Создайте токен ниже</li>
+                  <li>В Binom: настройте оффер с URL трекинга PrimeTrack и передайте <code className="text-blue-400">sub1=&#123;clickid&#125;</code></li>
+                  <li>В Binom: Офферы → Постбеки → Добавить</li>
+                  <li>Скопируйте Postback URL из карточки токена</li>
+                  <li><code className="text-blue-400">&#123;clickid&#125;</code> — уникальный ID клика Binom</li>
+                </ol>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="flex gap-2">
+          <select
+            value={selectedTracker}
+            onChange={(e) => setSelectedTracker(e.target.value as "keitaro" | "binom")}
+            className="bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+            data-testid="select-tracker-type"
+          >
+            <option value="keitaro">Keitaro</option>
+            <option value="binom">Binom</option>
+          </select>
           <Input
             placeholder="Название токена"
             value={newLabel}
@@ -630,9 +663,9 @@ function KeitaroIntegration() {
             data-testid="input-new-token-label"
           />
           <Button
-            onClick={() => createTokenMutation.mutate(newLabel)}
+            onClick={() => createTokenMutation.mutate({ label: newLabel, trackerType: selectedTracker })}
             disabled={createTokenMutation.isPending}
-            className="bg-orange-600 hover:bg-orange-700"
+            className={selectedTracker === "binom" ? "bg-blue-600 hover:bg-blue-700" : "bg-orange-600 hover:bg-orange-700"}
             data-testid="button-create-token"
           >
             {createTokenMutation.isPending ? (
@@ -653,8 +686,11 @@ function KeitaroIntegration() {
               <div key={token.id} className="p-4 rounded-lg bg-muted border border-border">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Key className="w-4 h-4 text-orange-400" />
-                    <span className="font-semibold text-foreground">{token.label}</span>
+                    <Key className={`w-4 h-4 ${token.trackerType === "binom" ? "text-blue-400" : "text-orange-400"}`} />
+                    <span className="font-semibold text-foreground">{token.label || (token.trackerType === "binom" ? "Binom" : "Keitaro")}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded ${token.trackerType === "binom" ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400"}`}>
+                      {token.trackerType === "binom" ? "Binom" : "Keitaro"}
+                    </span>
                     {token.isActive ? (
                       <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
                         Активен
@@ -705,15 +741,15 @@ function KeitaroIntegration() {
                   </div>
 
                   <div>
-                    <Label className="text-xs text-muted-foreground">Postback URL для Keitaro</Label>
+                    <Label className="text-xs text-muted-foreground">Postback URL для {token.trackerType === "binom" ? "Binom" : "Keitaro"}</Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <code className="text-[10px] bg-black/20 px-2 py-1 rounded text-emerald-400 flex-1 break-all">
-                        {getPostbackUrl(token.token)}
+                      <code className={`text-[10px] bg-black/20 px-2 py-1 rounded flex-1 break-all ${token.trackerType === "binom" ? "text-blue-400" : "text-emerald-400"}`}>
+                        {getPostbackUrl(token.token, token.trackerType || "keitaro")}
                       </code>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(getPostbackUrl(token.token))}
+                        onClick={() => copyToClipboard(getPostbackUrl(token.token, token.trackerType || "keitaro"))}
                         className="text-muted-foreground hover:text-foreground"
                       >
                         <Copy className="w-4 h-4" />
@@ -736,7 +772,7 @@ function KeitaroIntegration() {
           <div className="text-center py-8">
             <Key className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">Нет токенов</p>
-            <p className="text-xs text-muted-foreground">Создайте токен для интеграции с Keitaro</p>
+            <p className="text-xs text-muted-foreground">Создайте токен для интеграции с Keitaro или Binom</p>
           </div>
         )}
       </div>

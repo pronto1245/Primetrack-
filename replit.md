@@ -146,14 +146,16 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Click endpoint принимает visitor_id и fp_confidence параметры
 - ✅ client/src/lib/fingerprint.ts утилита
 
-### Keitaro Интеграция
-- ✅ Таблица postback_tokens (advertiser-scoped, 64-char token)
+### Keitaro/Binom Интеграция
+- ✅ Таблица postback_tokens (advertiser-scoped, 64-char token, trackerType enum)
 - ✅ CRUD endpoints: `/api/postback-tokens`
 - ✅ Keitaro postback endpoint: `/api/postbacks/keitaro?token=XXX&subid_1={subid_1}&status={status}&sum={revenue}`
-- ✅ Маппинг: subid_1 → click_id, status → lead/sale/install
+- ✅ Binom postback endpoint: `/api/postbacks/binom?token=XXX&clickid={clickid}&status={status}&payout={payout}`
+- ✅ Маппинг Keitaro: subid_1 → click_id, status → lead/sale/install
+- ✅ Маппинг Binom: clickid/subid → click_id, status → lead/sale/rebill/approved
 - ✅ Поддержка sub1-sub10 параметров в clicks
-- ✅ UI для генерации токенов в AdvertiserPostbacks.tsx
-- ✅ Инструкции по настройке в Keitaro
+- ✅ UI для генерации токенов с выбором трекера в AdvertiserPostbacks.tsx
+- ✅ Инструкции по настройке для Keitaro и Binom
 
 ---
 

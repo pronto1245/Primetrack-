@@ -1723,6 +1723,83 @@ export async function registerRoutes(
     }
   });
 
+  // Binom postback endpoint (public, token-authenticated)
+  // Usage: /api/postbacks/binom?token=XXX&clickid=click_id&status=lead|sale|rebill&payout=123.45
+  // Binom mapping: clickid → click_id, status → event type, payout → payout
+  app.get("/api/postbacks/binom", async (req: Request, res: Response) => {
+    try {
+      const { token, clickid, subid, status, payout, sum, external_id } = req.query;
+
+      if (!token) {
+        return res.status(401).json({ 
+          error: "Missing authentication token" 
+        });
+      }
+
+      // Validate token
+      const postbackToken = await storage.getPostbackTokenByToken(token as string);
+      if (!postbackToken) {
+        return res.status(401).json({ 
+          error: "Invalid token" 
+        });
+      }
+
+      if (!postbackToken.isActive) {
+        return res.status(403).json({ 
+          error: "Token is disabled" 
+        });
+      }
+
+      // Binom sends click_id via clickid or subid parameter
+      const clickId = (clickid || subid) as string;
+      if (!clickId) {
+        return res.status(400).json({ 
+          error: "Missing required parameter: clickid or subid (click_id)" 
+        });
+      }
+
+      // Map Binom status to our event types
+      // Binom statuses: lead, sale, rebill, approved, hold, rejected, or numeric (1=lead, 2=sale, 3=rejected)
+      const rawStatus = (status as string)?.toLowerCase() || "lead";
+      
+      let conversionStatus: "lead" | "sale" | "install" = "lead";
+      if (rawStatus === "sale" || rawStatus === "rebill" || rawStatus === "approved" || rawStatus === "2") {
+        conversionStatus = "sale";
+      } else if (rawStatus === "install") {
+        conversionStatus = "install";
+      } else if (rawStatus === "lead" || rawStatus === "1") {
+        conversionStatus = "lead";
+      }
+
+      // Increment usage counter
+      await storage.incrementPostbackTokenUsage(token as string);
+
+      // Binom uses payout or sum for payout amount
+      const payoutAmount = payout || sum;
+
+      const result = await orchestrator.processConversion({
+        clickId,
+        status: conversionStatus,
+        sum: payoutAmount ? parseFloat(payoutAmount as string) : undefined,
+        externalId: external_id as string,
+      });
+
+      res.json({
+        success: true,
+        conversionId: result.id,
+        clickId: result.clickId,
+        status: result.status,
+        advertiserCost: result.advertiserCost,
+        publisherPayout: result.publisherPayout,
+      });
+    } catch (error: any) {
+      console.error("Binom postback handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process Binom postback" 
+      });
+    }
+  });
+
   // ============================================
   // POSTBACK TOKENS MANAGEMENT (Advertiser)
   // ============================================
@@ -1740,10 +1817,14 @@ export async function registerRoutes(
   // Create new postback token
   app.post("/api/postback-tokens", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const { label } = req.body;
+      const { label, trackerType } = req.body;
+      const validTrackerTypes = ["keitaro", "binom"];
+      const tracker = validTrackerTypes.includes(trackerType) ? trackerType : "keitaro";
+      
       const token = await storage.createPostbackToken({
         advertiserId: req.session.userId!,
-        label: label || "Keitaro Integration"
+        label: label || `${tracker === "binom" ? "Binom" : "Keitaro"} Integration`,
+        trackerType: tracker
       });
       res.json(token);
     } catch (error) {

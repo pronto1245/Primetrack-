@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, numeric, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -1466,14 +1466,17 @@ export type InsertSubscriptionPayment = z.infer<typeof insertSubscriptionPayment
 export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
 
 // ============================================
-// POSTBACK TOKENS (for Keitaro/tracker auth)
+// POSTBACK TOKENS (for Keitaro/Binom/tracker auth)
 // ============================================
+export const trackerTypeEnum = pgEnum("tracker_type", ["keitaro", "binom"]);
+
 export const postbackTokens = pgTable("postback_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
   
   token: varchar("token", { length: 64 }).notNull().unique(), // 32-byte hex token
-  label: text("label").notNull().default("Keitaro"), // Keitaro, Binom, RedTrack, etc.
+  label: text("label").notNull().default("Default"), // Human-friendly name
+  trackerType: trackerTypeEnum("tracker_type").notNull().default("keitaro"),
   
   lastUsedAt: timestamp("last_used_at"),
   usageCount: integer("usage_count").notNull().default(0),
@@ -1485,6 +1488,7 @@ export const postbackTokens = pgTable("postback_tokens", {
 
 export const insertPostbackTokenSchema = createInsertSchema(postbackTokens).omit({
   id: true,
+  token: true,
   createdAt: true,
   lastUsedAt: true,
   usageCount: true,
