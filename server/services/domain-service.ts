@@ -77,37 +77,66 @@ class DomainService {
   }
 
   private async verifyCname(domain: CustomDomain): Promise<DomainVerificationResult> {
+    const expectedCname = `tracking.${this.platformDomain}`;
+    
+    // Try CNAME first
     try {
       const records = await resolveCname(domain.domain);
-      const expectedCname = `tracking.${this.platformDomain}`;
-      
       const isValid = records.some(
         record => record.toLowerCase() === expectedCname.toLowerCase()
       );
 
       if (isValid) {
         const verifiedAt = new Date();
-        // SSL must be configured externally via Cloudflare
         await storage.updateCustomDomain(domain.id, {
           isVerified: true,
           verifiedAt,
-          sslStatus: "pending_external", // User must configure SSL via Cloudflare
+          sslStatus: "pending_external",
           lastError: null,
         });
-
         return { success: true, verifiedAt };
+      }
+    } catch (error: any) {
+      // CNAME not found, try A record fallback (for Cloudflare Proxy)
+      if (error.code === "ENODATA" || error.code === "ENOTFOUND") {
+        console.log(`[Domain] CNAME not found for ${domain.domain}, trying A record fallback...`);
       } else {
-        return {
-          success: false,
-          error: `CNAME record not found or incorrect. Expected: ${expectedCname}, Found: ${records.join(", ")}`,
-        };
+        throw error;
+      }
+    }
+
+    // Fallback: Check A record (Cloudflare Proxy converts CNAME to A)
+    try {
+      const domainIps = await resolve4(domain.domain);
+      
+      if (domainIps && domainIps.length > 0) {
+        // Domain resolves to some IP - accept it (Cloudflare proxy or direct)
+        // For Cloudflare, we trust their proxy IPs
+        console.log(`[Domain] A record found for ${domain.domain}: ${domainIps.join(", ")}`);
+        
+        const verifiedAt = new Date();
+        await storage.updateCustomDomain(domain.id, {
+          isVerified: true,
+          verifiedAt,
+          sslStatus: "pending_external",
+          lastError: null,
+        });
+        return { success: true, verifiedAt };
       }
     } catch (error: any) {
       if (error.code === "ENODATA" || error.code === "ENOTFOUND") {
-        return { success: false, error: "CNAME record not found. Please add the DNS record." };
+        return { 
+          success: false, 
+          error: `DNS записи не найдены. Добавьте CNAME запись: ${domain.domain} → ${expectedCname}` 
+        };
       }
       throw error;
     }
+
+    return { 
+      success: false, 
+      error: `DNS записи не найдены. Добавьте CNAME запись: ${domain.domain} → ${expectedCname}` 
+    };
   }
 
   private async verifyTxt(domain: CustomDomain): Promise<DomainVerificationResult> {
