@@ -167,6 +167,7 @@ function Sidebar({ role, t }: { role: string, t: any }) {
   const menus = {
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers`, color: "text-orange-400" },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
@@ -493,11 +494,11 @@ function MainContent({ role, t }: { role: string, t: any }) {
       return <OfferDetail offerId={offerDetailParams.offerId} role={role} />;
     }
 
-    if (showArchivedOffers && role === 'advertiser') {
+    if (showArchivedOffers && (role === 'advertiser' || role === 'admin')) {
       return <ArchivedOffers role={role} />;
     }
 
-    if (showCreateOffer && role === 'advertiser') {
+    if (showCreateOffer && (role === 'advertiser' || role === 'admin')) {
       return <CreateOfferForm role={role} />;
     }
 
@@ -510,7 +511,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
     }
 
     if (showOffers) {
-      if (role === 'advertiser') {
+      if (role === 'admin' || role === 'advertiser') {
         return <AdvertiserOffers role={role} />;
       } else if (role === 'publisher') {
         return <PublisherOffers role={role} />;

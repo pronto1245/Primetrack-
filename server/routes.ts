@@ -1085,7 +1085,7 @@ export async function registerRoutes(
   });
 
   // Создать оффер с лендингами
-  app.post("/api/offers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const { landings, ...rawOfferData } = req.body;
       
@@ -1195,7 +1195,7 @@ export async function registerRoutes(
   });
 
   // Обновить оффер
-  app.put("/api/offers/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.put("/api/offers/:id", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1262,7 +1262,7 @@ export async function registerRoutes(
   });
 
   // Архивировать оффер
-  app.patch("/api/offers/:id/archive", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.patch("/api/offers/:id/archive", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1282,7 +1282,7 @@ export async function registerRoutes(
   });
 
   // Восстановить оффер из архива
-  app.patch("/api/offers/:id/restore", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.patch("/api/offers/:id/restore", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1302,7 +1302,7 @@ export async function registerRoutes(
   });
 
   // Add landing to offer
-  app.post("/api/offers/:offerId/landings", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/offers/:offerId/landings", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.offerId);
       if (!offer) {
@@ -2645,7 +2645,7 @@ export async function registerRoutes(
   });
 
   // Get publishers with access to a specific offer (for advertiser)
-  app.get("/api/offers/:id/publishers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.get("/api/offers/:id/publishers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
