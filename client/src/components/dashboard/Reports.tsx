@@ -454,6 +454,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium">Device</th>
                 <th className="px-4 py-3 font-medium">OS</th>
                 <th className="px-4 py-3 font-medium">Browser</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.clicks') || 'Clicks'}</th>
                 <th className="px-4 py-3 font-medium text-center">{t('reports.table.unique') || 'Unique'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.leads') || 'Leads'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.sales') || 'Sales'}</th>
@@ -509,6 +510,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     <td className="px-4 py-3 text-muted-foreground text-[10px]">
                       {click.browser || '-'}
                     </td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">{click.clicks ?? 1}</td>
                     <td className="px-4 py-3 text-center">
                       {click.isUnique ? (
                         <span className="text-emerald-500">✓</span>
@@ -549,9 +551,11 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
             </tbody>
             <tfoot>
               <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
-                <td colSpan={10} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
+                <td colSpan={9} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
                   {t('reports.total') || 'Total'}
                 </td>
+                <td className="px-4 py-3 text-right text-foreground">{totals.clicks.toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-muted-foreground">{totals.uniqueClicks.toLocaleString()}</td>
                 <td className="px-4 py-3 text-right text-purple-400">{totals.leads}</td>
                 <td className="px-4 py-3 text-right text-orange-400">{totals.sales}</td>
                 <td className="px-4 py-3 text-right text-emerald-400 font-bold">{totals.conversions}</td>
