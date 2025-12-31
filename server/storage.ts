@@ -34,7 +34,8 @@ import {
   type AdvertiserSubscription, type InsertAdvertiserSubscription, advertiserSubscriptions,
   type SubscriptionPayment, type InsertSubscriptionPayment, subscriptionPayments,
   type PasswordResetToken, passwordResetTokens,
-  type PostbackToken, type InsertPostbackToken, postbackTokens
+  type IncomingPostbackConfig, type InsertIncomingPostbackConfig, incomingPostbackConfigs,
+  type PublisherPostbackEndpoint, type InsertPublisherPostbackEndpoint, publisherPostbackEndpoints
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -380,6 +381,21 @@ export interface IStorage {
   
   // User password update
   updateUserPassword(userId: string, newPassword: string): Promise<User | undefined>;
+  
+  // Incoming Postback Configs (Advertiser parameter mapping)
+  getIncomingPostbackConfig(advertiserId: string, offerId?: string): Promise<IncomingPostbackConfig | undefined>;
+  getIncomingPostbackConfigsByAdvertiser(advertiserId: string): Promise<IncomingPostbackConfig[]>;
+  createIncomingPostbackConfig(config: InsertIncomingPostbackConfig): Promise<IncomingPostbackConfig>;
+  updateIncomingPostbackConfig(id: string, data: Partial<InsertIncomingPostbackConfig>): Promise<IncomingPostbackConfig | undefined>;
+  deleteIncomingPostbackConfig(id: string): Promise<void>;
+  
+  // Publisher Postback Endpoints (Outgoing to publisher's tracker)
+  getPublisherPostbackEndpoint(id: string): Promise<PublisherPostbackEndpoint | undefined>;
+  getPublisherPostbackEndpoints(publisherId: string, offerId?: string): Promise<PublisherPostbackEndpoint[]>;
+  getActivePublisherPostbackEndpoints(publisherId: string, offerId?: string): Promise<PublisherPostbackEndpoint[]>;
+  createPublisherPostbackEndpoint(endpoint: InsertPublisherPostbackEndpoint): Promise<PublisherPostbackEndpoint>;
+  updatePublisherPostbackEndpoint(id: string, data: Partial<InsertPublisherPostbackEndpoint>): Promise<PublisherPostbackEndpoint | undefined>;
+  deletePublisherPostbackEndpoint(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3346,49 +3362,116 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ============================================
-  // POSTBACK TOKENS (Keitaro integration)
+  // INCOMING POSTBACK CONFIGS (Advertiser parameter mapping)
   // ============================================
 
-  async createPostbackToken(data: InsertPostbackToken): Promise<PostbackToken> {
-    const token = crypto.randomBytes(32).toString("hex");
-    const [created] = await db.insert(postbackTokens).values({
-      ...data,
-      token
-    }).returning();
+  async getIncomingPostbackConfig(advertiserId: string, offerId?: string): Promise<IncomingPostbackConfig | undefined> {
+    if (offerId) {
+      const [config] = await db.select().from(incomingPostbackConfigs)
+        .where(and(
+          eq(incomingPostbackConfigs.advertiserId, advertiserId),
+          eq(incomingPostbackConfigs.offerId, offerId),
+          eq(incomingPostbackConfigs.isActive, true)
+        ));
+      if (config) return config;
+    }
+    const [defaultConfig] = await db.select().from(incomingPostbackConfigs)
+      .where(and(
+        eq(incomingPostbackConfigs.advertiserId, advertiserId),
+        sql`${incomingPostbackConfigs.offerId} IS NULL`,
+        eq(incomingPostbackConfigs.isActive, true)
+      ));
+    return defaultConfig;
+  }
+
+  async getIncomingPostbackConfigsByAdvertiser(advertiserId: string): Promise<IncomingPostbackConfig[]> {
+    return db.select().from(incomingPostbackConfigs)
+      .where(eq(incomingPostbackConfigs.advertiserId, advertiserId))
+      .orderBy(desc(incomingPostbackConfigs.createdAt));
+  }
+
+  async createIncomingPostbackConfig(config: InsertIncomingPostbackConfig): Promise<IncomingPostbackConfig> {
+    const [created] = await db.insert(incomingPostbackConfigs).values(config).returning();
     return created;
   }
 
-  async getPostbackTokensByAdvertiser(advertiserId: string): Promise<PostbackToken[]> {
-    return db.select().from(postbackTokens)
-      .where(eq(postbackTokens.advertiserId, advertiserId))
-      .orderBy(desc(postbackTokens.createdAt));
-  }
-
-  async getPostbackTokenByToken(token: string): Promise<PostbackToken | undefined> {
-    const [found] = await db.select().from(postbackTokens)
-      .where(eq(postbackTokens.token, token));
-    return found;
-  }
-
-  async updatePostbackToken(id: string, data: Partial<InsertPostbackToken>): Promise<PostbackToken | undefined> {
-    const [updated] = await db.update(postbackTokens)
+  async updateIncomingPostbackConfig(id: string, data: Partial<InsertIncomingPostbackConfig>): Promise<IncomingPostbackConfig | undefined> {
+    const [updated] = await db.update(incomingPostbackConfigs)
       .set(data)
-      .where(eq(postbackTokens.id, id))
+      .where(eq(incomingPostbackConfigs.id, id))
       .returning();
     return updated;
   }
 
-  async deletePostbackToken(id: string): Promise<void> {
-    await db.delete(postbackTokens).where(eq(postbackTokens.id, id));
+  async deleteIncomingPostbackConfig(id: string): Promise<void> {
+    await db.delete(incomingPostbackConfigs).where(eq(incomingPostbackConfigs.id, id));
   }
 
-  async incrementPostbackTokenUsage(token: string): Promise<void> {
-    await db.update(postbackTokens)
-      .set({
-        lastUsedAt: new Date(),
-        usageCount: sql`${postbackTokens.usageCount} + 1`
-      })
-      .where(eq(postbackTokens.token, token));
+  // ============================================
+  // PUBLISHER POSTBACK ENDPOINTS (Outgoing to publisher's tracker)
+  // ============================================
+
+  async getPublisherPostbackEndpoint(id: string): Promise<PublisherPostbackEndpoint | undefined> {
+    const [endpoint] = await db.select().from(publisherPostbackEndpoints)
+      .where(eq(publisherPostbackEndpoints.id, id));
+    return endpoint;
+  }
+
+  async getPublisherPostbackEndpoints(publisherId: string, offerId?: string): Promise<PublisherPostbackEndpoint[]> {
+    if (offerId) {
+      return db.select().from(publisherPostbackEndpoints)
+        .where(and(
+          eq(publisherPostbackEndpoints.publisherId, publisherId),
+          eq(publisherPostbackEndpoints.offerId, offerId)
+        ))
+        .orderBy(desc(publisherPostbackEndpoints.createdAt));
+    }
+    return db.select().from(publisherPostbackEndpoints)
+      .where(eq(publisherPostbackEndpoints.publisherId, publisherId))
+      .orderBy(desc(publisherPostbackEndpoints.createdAt));
+  }
+
+  async getActivePublisherPostbackEndpoints(publisherId: string, offerId?: string): Promise<PublisherPostbackEndpoint[]> {
+    const conditions = [
+      eq(publisherPostbackEndpoints.publisherId, publisherId),
+      eq(publisherPostbackEndpoints.isActive, true)
+    ];
+    
+    const globalEndpoints = await db.select().from(publisherPostbackEndpoints)
+      .where(and(
+        eq(publisherPostbackEndpoints.publisherId, publisherId),
+        eq(publisherPostbackEndpoints.isActive, true),
+        sql`${publisherPostbackEndpoints.offerId} IS NULL`
+      ));
+    
+    if (offerId) {
+      const offerEndpoints = await db.select().from(publisherPostbackEndpoints)
+        .where(and(
+          eq(publisherPostbackEndpoints.publisherId, publisherId),
+          eq(publisherPostbackEndpoints.offerId, offerId),
+          eq(publisherPostbackEndpoints.isActive, true)
+        ));
+      return [...offerEndpoints, ...globalEndpoints];
+    }
+    
+    return globalEndpoints;
+  }
+
+  async createPublisherPostbackEndpoint(endpoint: InsertPublisherPostbackEndpoint): Promise<PublisherPostbackEndpoint> {
+    const [created] = await db.insert(publisherPostbackEndpoints).values(endpoint).returning();
+    return created;
+  }
+
+  async updatePublisherPostbackEndpoint(id: string, data: Partial<InsertPublisherPostbackEndpoint>): Promise<PublisherPostbackEndpoint | undefined> {
+    const [updated] = await db.update(publisherPostbackEndpoints)
+      .set(data)
+      .where(eq(publisherPostbackEndpoints.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePublisherPostbackEndpoint(id: string): Promise<void> {
+    await db.delete(publisherPostbackEndpoints).where(eq(publisherPostbackEndpoints.id, id));
   }
 }
 

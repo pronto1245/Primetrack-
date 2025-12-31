@@ -1605,33 +1605,169 @@ export async function registerRoutes(
     }
   });
 
-  // Postback endpoint (public, called by advertiser systems)
-  // Usage: /api/postback?click_id=XXX&status=lead|sale|install&sum=123.45&external_id=YYY
+  // Universal Postback endpoint (public, called by advertiser systems)
+  // Usage: /api/postback?o={offer_id}&a={publisher_id}&click_id=XXX&status=lead|sale&payout=123.45
+  // Parameter names are configurable per advertiser via incoming_postback_configs
   app.get("/api/postback", async (req: Request, res: Response) => {
     try {
-      const { click_id, status, sum, external_id } = req.query;
-
-      if (!click_id) {
+      const query = req.query;
+      const offerId = (query.o || query.offer_id || query.oid) as string;
+      const publisherId = (query.a || query.publisher_id || query.aid || query.affiliate_id) as string;
+      
+      // Log inbound request
+      const requestPayload = JSON.stringify(query);
+      
+      if (!offerId) {
+        await storage.createPostbackLog({
+          direction: "inbound",
+          recipientType: "system",
+          url: req.originalUrl,
+          method: "GET",
+          requestPayload,
+          success: false,
+          errorMessage: "Missing offer_id (o parameter)"
+        });
         return res.status(400).json({ 
-          error: "Missing required parameter: click_id" 
+          error: "Missing required parameter: o (offer_id)" 
         });
       }
 
-      const validStatuses = ["lead", "sale", "install"];
-      const conversionStatus = (status as string)?.toLowerCase() || "lead";
+      // Get offer to find advertiser
+      const offer = await storage.getOffer(offerId);
+      if (!offer) {
+        await storage.createPostbackLog({
+          direction: "inbound",
+          recipientType: "system",
+          offerId,
+          url: req.originalUrl,
+          method: "GET",
+          requestPayload,
+          success: false,
+          errorMessage: "Offer not found"
+        });
+        return res.status(404).json({ 
+          error: "Offer not found" 
+        });
+      }
+
+      // Get advertiser's parameter mapping config
+      const config = await storage.getIncomingPostbackConfig(offer.advertiserId, offerId);
       
-      if (!validStatuses.includes(conversionStatus)) {
+      // Extract parameters using config or defaults
+      const clickIdParam = config?.clickIdParam || "click_id";
+      const statusParam = config?.statusParam || "status";
+      const payoutParam = config?.payoutParam || "payout";
+      
+      // Try multiple common parameter names for click_id
+      const clickId = (query[clickIdParam] || query.click_id || query.clickid || query.subid || query.subid_1 || query.tid || query.sub1) as string;
+      const rawStatus = ((query[statusParam] || query.status || query.event) as string)?.toLowerCase() || "lead";
+      const payoutValue = query[payoutParam] || query.payout || query.sum || query.revenue;
+      
+      if (!clickId) {
+        await storage.createPostbackLog({
+          direction: "inbound",
+          recipientType: "advertiser",
+          recipientId: offer.advertiserId,
+          offerId,
+          publisherId,
+          url: req.originalUrl,
+          method: "GET",
+          requestPayload,
+          success: false,
+          errorMessage: `Missing click_id (tried: ${clickIdParam}, click_id, clickid, subid, subid_1, tid, sub1)`
+        });
+        return res.status(400).json({ 
+          error: `Missing required parameter: ${clickIdParam} (click_id)`,
+          hint: `Expected parameter name: ${clickIdParam}`
+        });
+      }
+
+      // Parse status mappings from config
+      let statusMappings: Record<string, string> = {
+        lead: "lead", reg: "lead", registration: "lead",
+        sale: "sale", dep: "sale", deposit: "sale", purchase: "sale", ftd: "sale",
+        rebill: "sale", approved: "sale",
+        install: "install",
+        rejected: "rejected"
+      };
+      
+      if (config?.statusMappings) {
+        try {
+          const customMappings = JSON.parse(config.statusMappings);
+          statusMappings = { ...statusMappings, ...customMappings };
+        } catch (e) {
+          // Use default mappings
+        }
+      }
+      
+      // Map incoming status to internal status
+      const mappedStatus = statusMappings[rawStatus] || rawStatus;
+      const validStatuses = ["lead", "sale", "install", "rejected"];
+      
+      if (!validStatuses.includes(mappedStatus)) {
+        await storage.createPostbackLog({
+          direction: "inbound",
+          recipientType: "advertiser",
+          recipientId: offer.advertiserId,
+          offerId,
+          publisherId,
+          url: req.originalUrl,
+          method: "GET",
+          requestPayload,
+          success: false,
+          errorMessage: `Invalid status: ${rawStatus} -> ${mappedStatus}`
+        });
         return res.status(400).json({ 
           error: "Invalid status", 
+          received: rawStatus,
+          mapped: mappedStatus,
           validStatuses 
         });
       }
 
+      // Handle rejected status
+      if (mappedStatus === "rejected") {
+        // TODO: Implement rejection logic
+        await storage.createPostbackLog({
+          direction: "inbound",
+          recipientType: "advertiser",
+          recipientId: offer.advertiserId,
+          offerId,
+          publisherId,
+          url: req.originalUrl,
+          method: "GET",
+          requestPayload,
+          success: true,
+          responseCode: 200
+        });
+        return res.json({
+          success: true,
+          message: "Rejection recorded",
+          clickId,
+          status: "rejected"
+        });
+      }
+
       const result = await orchestrator.processConversion({
-        clickId: click_id as string,
-        status: conversionStatus as "lead" | "sale" | "install",
-        sum: sum ? parseFloat(sum as string) : undefined,
-        externalId: external_id as string,
+        clickId,
+        status: mappedStatus as "lead" | "sale" | "install",
+        sum: payoutValue ? parseFloat(payoutValue as string) : undefined,
+        externalId: query.external_id as string,
+      });
+
+      // Log successful inbound postback
+      await storage.createPostbackLog({
+        direction: "inbound",
+        recipientType: "advertiser",
+        recipientId: offer.advertiserId,
+        offerId,
+        publisherId,
+        conversionId: result.id,
+        url: req.originalUrl,
+        method: "GET",
+        requestPayload,
+        success: true,
+        responseCode: 200
       });
 
       res.json({
@@ -1650,224 +1786,185 @@ export async function registerRoutes(
     }
   });
 
-  // Keitaro postback endpoint (public, token-authenticated)
-  // Usage: /api/postbacks/keitaro?token=XXX&subid_1=click_id&status=lead|sale|install&sum=123.45
-  // Keitaro mapping: subid_1 → click_id, status → event type, sum → payout
+  // DEPRECATED: Old Keitaro/Binom endpoints removed
+  // Use universal /api/postback?o={offer_id}&a={publisher_id}&click_id=XXX&status=lead|sale&payout=123.45
+  // These endpoints redirect to the new universal postback for backwards compatibility
   app.get("/api/postbacks/keitaro", async (req: Request, res: Response) => {
-    try {
-      const { token, subid_1, status, sum, external_id } = req.query;
-
-      if (!token) {
-        return res.status(401).json({ 
-          error: "Missing authentication token" 
-        });
-      }
-
-      // Validate token
-      const postbackToken = await storage.getPostbackTokenByToken(token as string);
-      if (!postbackToken) {
-        return res.status(401).json({ 
-          error: "Invalid token" 
-        });
-      }
-
-      if (!postbackToken.isActive) {
-        return res.status(403).json({ 
-          error: "Token is disabled" 
-        });
-      }
-
-      // subid_1 from Keitaro maps to our click_id
-      const clickId = subid_1 as string;
-      if (!clickId) {
-        return res.status(400).json({ 
-          error: "Missing required parameter: subid_1 (click_id)" 
-        });
-      }
-
-      // Map Keitaro status to our event types
-      const validStatuses = ["lead", "sale", "install", "registration", "deposit", "purchase"];
-      const rawStatus = (status as string)?.toLowerCase() || "lead";
-      
-      // Map Keitaro-specific statuses to our types
-      let conversionStatus: "lead" | "sale" | "install" = "lead";
-      if (rawStatus === "sale" || rawStatus === "purchase" || rawStatus === "deposit") {
-        conversionStatus = "sale";
-      } else if (rawStatus === "install") {
-        conversionStatus = "install";
-      }
-
-      // Increment usage counter
-      await storage.incrementPostbackTokenUsage(token as string);
-
-      const result = await orchestrator.processConversion({
-        clickId,
-        status: conversionStatus,
-        sum: sum ? parseFloat(sum as string) : undefined,
-        externalId: external_id as string,
-      });
-
-      res.json({
-        success: true,
-        conversionId: result.id,
-        clickId: result.clickId,
-        status: result.status,
-        advertiserCost: result.advertiserCost,
-        publisherPayout: result.publisherPayout,
-      });
-    } catch (error: any) {
-      console.error("Keitaro postback handler error:", error);
-      res.status(400).json({ 
-        error: error.message || "Failed to process Keitaro postback" 
-      });
-    }
+    res.status(410).json({
+      error: "This endpoint is deprecated",
+      message: "Please use /api/postback?o={offer_id}&a={publisher_id}&click_id={click_id}&status={status}&payout={payout}",
+      documentation: "https://docs.primetrack.pro/postbacks"
+    });
   });
 
-  // Binom postback endpoint (public, token-authenticated)
-  // Usage: /api/postbacks/binom?token=XXX&clickid=click_id&status=lead|sale|rebill&payout=123.45
-  // Binom mapping: clickid → click_id, status → event type, payout → payout
   app.get("/api/postbacks/binom", async (req: Request, res: Response) => {
-    try {
-      const { token, clickid, subid, status, payout, sum, external_id } = req.query;
-
-      if (!token) {
-        return res.status(401).json({ 
-          error: "Missing authentication token" 
-        });
-      }
-
-      // Validate token
-      const postbackToken = await storage.getPostbackTokenByToken(token as string);
-      if (!postbackToken) {
-        return res.status(401).json({ 
-          error: "Invalid token" 
-        });
-      }
-
-      if (!postbackToken.isActive) {
-        return res.status(403).json({ 
-          error: "Token is disabled" 
-        });
-      }
-
-      // Binom sends click_id via clickid or subid parameter
-      const clickId = (clickid || subid) as string;
-      if (!clickId) {
-        return res.status(400).json({ 
-          error: "Missing required parameter: clickid or subid (click_id)" 
-        });
-      }
-
-      // Map Binom status to our event types
-      // Binom statuses: lead, sale, rebill, approved, hold, rejected, or numeric (1=lead, 2=sale, 3=rejected)
-      const rawStatus = (status as string)?.toLowerCase() || "lead";
-      
-      let conversionStatus: "lead" | "sale" | "install" = "lead";
-      if (rawStatus === "sale" || rawStatus === "rebill" || rawStatus === "approved" || rawStatus === "2") {
-        conversionStatus = "sale";
-      } else if (rawStatus === "install") {
-        conversionStatus = "install";
-      } else if (rawStatus === "lead" || rawStatus === "1") {
-        conversionStatus = "lead";
-      }
-
-      // Increment usage counter
-      await storage.incrementPostbackTokenUsage(token as string);
-
-      // Binom uses payout or sum for payout amount
-      const payoutAmount = payout || sum;
-
-      const result = await orchestrator.processConversion({
-        clickId,
-        status: conversionStatus,
-        sum: payoutAmount ? parseFloat(payoutAmount as string) : undefined,
-        externalId: external_id as string,
-      });
-
-      res.json({
-        success: true,
-        conversionId: result.id,
-        clickId: result.clickId,
-        status: result.status,
-        advertiserCost: result.advertiserCost,
-        publisherPayout: result.publisherPayout,
-      });
-    } catch (error: any) {
-      console.error("Binom postback handler error:", error);
-      res.status(400).json({ 
-        error: error.message || "Failed to process Binom postback" 
-      });
-    }
+    res.status(410).json({
+      error: "This endpoint is deprecated",
+      message: "Please use /api/postback?o={offer_id}&a={publisher_id}&click_id={click_id}&status={status}&payout={payout}",
+      documentation: "https://docs.primetrack.pro/postbacks"
+    });
   });
 
   // ============================================
-  // POSTBACK TOKENS MANAGEMENT (Advertiser)
+  // INCOMING POSTBACK CONFIGS (Advertiser parameter mapping)
   // ============================================
 
-  // Get all postback tokens for current advertiser
-  app.get("/api/postback-tokens", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.get("/api/incoming-postback-configs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const tokens = await storage.getPostbackTokensByAdvertiser(req.session.userId!);
-      res.json(tokens);
+      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(req.session.userId!);
+      res.json(configs);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch postback tokens" });
+      res.status(500).json({ message: "Failed to fetch postback configs" });
     }
   });
 
-  // Create new postback token
-  app.post("/api/postback-tokens", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/incoming-postback-configs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const { label, trackerType } = req.body;
-      const validTrackerTypes = ["keitaro", "binom"];
-      const tracker = validTrackerTypes.includes(trackerType) ? trackerType : "keitaro";
+      const { label, offerId, clickIdParam, statusParam, payoutParam, storeClickIdIn, statusMappings } = req.body;
       
-      const token = await storage.createPostbackToken({
+      const config = await storage.createIncomingPostbackConfig({
         advertiserId: req.session.userId!,
-        label: label || `${tracker === "binom" ? "Binom" : "Keitaro"} Integration`,
-        trackerType: tracker
+        label: label || "Default",
+        offerId: offerId || null,
+        clickIdParam: clickIdParam || "click_id",
+        statusParam: statusParam || "status",
+        payoutParam: payoutParam || "payout",
+        storeClickIdIn: storeClickIdIn || "click_id",
+        statusMappings: statusMappings ? JSON.stringify(statusMappings) : undefined
       });
-      res.json(token);
+      res.json(config);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create postback token" });
+      res.status(500).json({ message: "Failed to create postback config" });
     }
   });
 
-  // Update postback token
-  app.put("/api/postback-tokens/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.put("/api/incoming-postback-configs/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { label, isActive } = req.body;
+      const { label, clickIdParam, statusParam, payoutParam, storeClickIdIn, statusMappings, isActive } = req.body;
       
-      // Verify ownership
-      const tokens = await storage.getPostbackTokensByAdvertiser(req.session.userId!);
-      const token = tokens.find(t => t.id === id);
-      if (!token) {
-        return res.status(404).json({ message: "Token not found" });
+      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(req.session.userId!);
+      const config = configs.find(c => c.id === id);
+      if (!config) {
+        return res.status(404).json({ message: "Config not found" });
       }
 
-      const updated = await storage.updatePostbackToken(id, { label, isActive });
+      const updateData: any = {};
+      if (label !== undefined) updateData.label = label;
+      if (clickIdParam !== undefined) updateData.clickIdParam = clickIdParam;
+      if (statusParam !== undefined) updateData.statusParam = statusParam;
+      if (payoutParam !== undefined) updateData.payoutParam = payoutParam;
+      if (storeClickIdIn !== undefined) updateData.storeClickIdIn = storeClickIdIn;
+      if (statusMappings !== undefined) updateData.statusMappings = JSON.stringify(statusMappings);
+      if (isActive !== undefined) updateData.isActive = isActive;
+
+      const updated = await storage.updateIncomingPostbackConfig(id, updateData);
       res.json(updated);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update postback token" });
+      res.status(500).json({ message: "Failed to update postback config" });
     }
   });
 
-  // Delete postback token
-  app.delete("/api/postback-tokens/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.delete("/api/incoming-postback-configs/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       
-      // Verify ownership
-      const tokens = await storage.getPostbackTokensByAdvertiser(req.session.userId!);
-      const token = tokens.find(t => t.id === id);
-      if (!token) {
-        return res.status(404).json({ message: "Token not found" });
+      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(req.session.userId!);
+      const config = configs.find(c => c.id === id);
+      if (!config) {
+        return res.status(404).json({ message: "Config not found" });
       }
 
-      await storage.deletePostbackToken(id);
+      await storage.deleteIncomingPostbackConfig(id);
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete postback token" });
+      res.status(500).json({ message: "Failed to delete postback config" });
+    }
+  });
+
+  // ============================================
+  // PUBLISHER POSTBACK ENDPOINTS (Outgoing to publisher's tracker)
+  // ============================================
+
+  app.get("/api/publisher-postback-endpoints", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const endpoints = await storage.getPublisherPostbackEndpoints(req.session.userId!);
+      res.json(endpoints);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch postback endpoints" });
+    }
+  });
+
+  app.post("/api/publisher-postback-endpoints", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { label, offerId, trackerType, baseUrl, httpMethod, clickIdParam, statusParam, payoutParam, statusMappings, statusFilter } = req.body;
+      
+      if (!baseUrl) {
+        return res.status(400).json({ message: "baseUrl is required" });
+      }
+
+      const endpoint = await storage.createPublisherPostbackEndpoint({
+        publisherId: req.session.userId!,
+        label: label || "Default",
+        offerId: offerId || null,
+        trackerType: trackerType || "custom",
+        baseUrl,
+        httpMethod: httpMethod || "GET",
+        clickIdParam: clickIdParam || "subid",
+        statusParam: statusParam || "status",
+        payoutParam: payoutParam || "payout",
+        statusMappings: statusMappings ? JSON.stringify(statusMappings) : undefined,
+        statusFilter: statusFilter ? JSON.stringify(statusFilter) : undefined
+      });
+      res.json(endpoint);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create postback endpoint" });
+    }
+  });
+
+  app.put("/api/publisher-postback-endpoints/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { label, baseUrl, httpMethod, clickIdParam, statusParam, payoutParam, statusMappings, statusFilter, isActive } = req.body;
+      
+      const endpoints = await storage.getPublisherPostbackEndpoints(req.session.userId!);
+      const endpoint = endpoints.find(e => e.id === id);
+      if (!endpoint) {
+        return res.status(404).json({ message: "Endpoint not found" });
+      }
+
+      const updateData: any = {};
+      if (label !== undefined) updateData.label = label;
+      if (baseUrl !== undefined) updateData.baseUrl = baseUrl;
+      if (httpMethod !== undefined) updateData.httpMethod = httpMethod;
+      if (clickIdParam !== undefined) updateData.clickIdParam = clickIdParam;
+      if (statusParam !== undefined) updateData.statusParam = statusParam;
+      if (payoutParam !== undefined) updateData.payoutParam = payoutParam;
+      if (statusMappings !== undefined) updateData.statusMappings = JSON.stringify(statusMappings);
+      if (statusFilter !== undefined) updateData.statusFilter = JSON.stringify(statusFilter);
+      if (isActive !== undefined) updateData.isActive = isActive;
+
+      const updated = await storage.updatePublisherPostbackEndpoint(id, updateData);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update postback endpoint" });
+    }
+  });
+
+  app.delete("/api/publisher-postback-endpoints/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      const endpoints = await storage.getPublisherPostbackEndpoints(req.session.userId!);
+      const endpoint = endpoints.find(e => e.id === id);
+      if (!endpoint) {
+        return res.status(404).json({ message: "Endpoint not found" });
+      }
+
+      await storage.deletePublisherPostbackEndpoint(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete postback endpoint" });
     }
   });
 
