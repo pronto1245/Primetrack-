@@ -241,7 +241,7 @@ export function Reports({ role }: ReportsProps) {
               <Button 
                 variant="outline"
                 onClick={() => { setFilters({ dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date", dateMode: "click" }); setPage(1); }}
-                className="w-full border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="w-full border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300"
                 data-testid="button-clear-filters"
               >
                 {t('reports.clearFilters') || 'Clear'}
