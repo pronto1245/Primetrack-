@@ -1097,12 +1097,13 @@ export async function registerRoutes(
         
         // С доступом - показываем лендинги с tracking URLs (без internalCost)
         const landings = await storage.getOfferLandings(offer.id);
-        const platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
+        const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
+        const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
         const publisherId = req.session.userId!;
         
         const safeLandings = landings.map(({ internalCost, ...rest }) => ({
           ...rest,
-          trackingUrl: `https://${platformDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
+          trackingUrl: `https://${trackingDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
         }));
         return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
       }
@@ -1597,10 +1598,11 @@ export async function registerRoutes(
           
           if (hasAccess) {
             const landings = await storage.getOfferLandings(offer.id);
-            const platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
+            const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
+            const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
             const safeLandings = landings.map(({ internalCost, ...rest }) => ({
               ...rest,
-              trackingUrl: `https://${platformDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
+              trackingUrl: `https://${trackingDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
             }));
             return { 
               ...safeOffer, 

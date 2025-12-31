@@ -3079,6 +3079,20 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(customDomains.isVerified, true), eq(customDomains.isActive, true)));
   }
 
+  async getActiveTrackingDomain(advertiserId: string): Promise<string | null> {
+    const domains = await db.select().from(customDomains)
+      .where(and(
+        eq(customDomains.advertiserId, advertiserId),
+        eq(customDomains.isVerified, true),
+        eq(customDomains.isActive, true),
+        eq(customDomains.sslStatus, "ssl_active")
+      ))
+      .orderBy(desc(customDomains.isPrimary), desc(customDomains.createdAt))
+      .limit(1);
+    
+    return domains[0]?.domain || null;
+  }
+
   async getAcmeAccount(): Promise<AcmeAccount | undefined> {
     const [account] = await db.select().from(acmeAccounts)
       .where(eq(acmeAccounts.isActive, true))
