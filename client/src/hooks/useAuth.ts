@@ -51,7 +51,12 @@ export function useAuth() {
         const data = await res.json();
         queryClient.clear();
         setUser(data);
-        setLocation(`/dashboard/${data.role}`);
+        // Redirect to 2FA setup if user never configured it
+        if (data.needsSetup2FA) {
+          setLocation("/setup-2fa");
+        } else {
+          setLocation(`/dashboard/${data.role}`);
+        }
         return true;
       }
       return false;
