@@ -137,7 +137,7 @@ export function Reports({ role }: ReportsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.dateFrom') || 'Date From'}</Label>
               <Input
@@ -351,10 +351,10 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {[...Array(6)].map((_, i) => (
+      <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+        {[...Array(8)].map((_, i) => (
           <Card key={i} className="bg-card border-border animate-pulse">
-            <CardContent className="p-4 h-20" />
+            <CardContent className="p-3 h-16" />
           </Card>
         ))}
       </div>
@@ -362,7 +362,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
       <Card className="bg-card border-border">
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.clicks') || 'Clicks'}</div>
