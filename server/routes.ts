@@ -5372,6 +5372,7 @@ export async function registerRoutes(
       const settings = await storage.updatePlatformSettings(updateData);
       res.json({ success: true, settings });
     } catch (error) {
+      console.error("Failed to update platform settings:", error);
       res.status(500).json({ message: "Failed to update platform settings" });
     }
   });
