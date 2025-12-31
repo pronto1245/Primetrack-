@@ -1605,102 +1605,78 @@ export async function registerRoutes(
     }
   });
 
-  // Universal Postback endpoint (public, called by advertiser systems)
-  // Usage: /api/postback?o={offer_id}&a={publisher_id}&click_id=XXX&status=lead|sale&payout=123.45
-  // Parameter names are configurable per advertiser via incoming_postback_configs
+  // Universal Postback endpoint (public, called by external trackers)
+  // Usage: /api/postback?click_id=XXX&status=lead|sale&payout=123.45
+  // The click_id contains all information about offer and publisher - no need to specify them
+  // Supports multiple parameter names: click_id/clickid/subid/subid_1/tid/sub1
   app.get("/api/postback", async (req: Request, res: Response) => {
     try {
       const query = req.query;
-      const offerId = (query.o || query.offer_id || query.oid) as string;
-      const publisherId = (query.a || query.publisher_id || query.aid || query.affiliate_id) as string;
-      
-      // Log inbound request
       const requestPayload = JSON.stringify(query);
       
-      if (!offerId) {
-        await storage.createPostbackLog({
-          direction: "inbound",
-          recipientType: "system",
-          url: req.originalUrl,
-          method: "GET",
-          requestPayload,
-          success: false,
-          errorMessage: "Missing offer_id (o parameter)"
-        });
-        return res.status(400).json({ 
-          error: "Missing required parameter: o (offer_id)" 
-        });
-      }
-
-      // Get offer to find advertiser
-      const offer = await storage.getOffer(offerId);
-      if (!offer) {
-        await storage.createPostbackLog({
-          direction: "inbound",
-          recipientType: "system",
-          offerId,
-          url: req.originalUrl,
-          method: "GET",
-          requestPayload,
-          success: false,
-          errorMessage: "Offer not found"
-        });
-        return res.status(404).json({ 
-          error: "Offer not found" 
-        });
-      }
-
-      // Get advertiser's parameter mapping config
-      const config = await storage.getIncomingPostbackConfig(offer.advertiserId, offerId);
-      
-      // Extract parameters using config or defaults
-      const clickIdParam = config?.clickIdParam || "click_id";
-      const statusParam = config?.statusParam || "status";
-      const payoutParam = config?.payoutParam || "payout";
-      
       // Try multiple common parameter names for click_id
-      const clickId = (query[clickIdParam] || query.click_id || query.clickid || query.subid || query.subid_1 || query.tid || query.sub1) as string;
-      const rawStatus = ((query[statusParam] || query.status || query.event) as string)?.toLowerCase() || "lead";
-      const payoutValue = query[payoutParam] || query.payout || query.sum || query.revenue;
+      const clickId = (
+        query.click_id || query.clickid || query.subid || 
+        query.subid_1 || query.tid || query.sub1 || query.cid
+      ) as string;
       
       if (!clickId) {
         await storage.createPostbackLog({
           direction: "inbound",
-          recipientType: "advertiser",
-          recipientId: offer.advertiserId,
-          offerId,
-          publisherId,
+          recipientType: "system",
           url: req.originalUrl,
           method: "GET",
           requestPayload,
           success: false,
-          errorMessage: `Missing click_id (tried: ${clickIdParam}, click_id, clickid, subid, subid_1, tid, sub1)`
+          errorMessage: "Missing click_id parameter"
         });
         return res.status(400).json({ 
-          error: `Missing required parameter: ${clickIdParam} (click_id)`,
-          hint: `Expected parameter name: ${clickIdParam}`
+          error: "Missing required parameter: click_id",
+          hint: "Supported params: click_id, clickid, subid, subid_1, tid, sub1, cid"
         });
       }
 
-      // Parse status mappings from config
-      let statusMappings: Record<string, string> = {
-        lead: "lead", reg: "lead", registration: "lead",
-        sale: "sale", dep: "sale", deposit: "sale", purchase: "sale", ftd: "sale",
-        rebill: "sale", approved: "sale",
-        install: "install",
-        rejected: "rejected"
+      // Find click by click_id - this contains all offer/publisher info
+      const click = await storage.getClickByClickId(clickId);
+      if (!click) {
+        await storage.createPostbackLog({
+          direction: "inbound",
+          recipientType: "system",
+          url: req.originalUrl,
+          method: "GET",
+          requestPayload,
+          success: false,
+          errorMessage: `Click not found: ${clickId}`
+        });
+        return res.status(404).json({ 
+          error: "Click not found",
+          clickId
+        });
+      }
+
+      // Get offer for advertiser context
+      const offer = await storage.getOffer(click.offerId);
+      if (!offer) {
+        return res.status(404).json({ error: "Offer not found" });
+      }
+
+      // Extract status and payout from various param names
+      const rawStatus = (
+        (query.status || query.event || query.action || query.goal) as string
+      )?.toLowerCase() || "lead";
+      
+      const payoutValue = query.payout || query.sum || query.revenue || query.amount;
+
+      // Status mapping - supports common tracker formats
+      const statusMappings: Record<string, string> = {
+        lead: "lead", reg: "lead", registration: "lead", signup: "lead",
+        sale: "sale", dep: "sale", deposit: "sale", purchase: "sale", ftd: "sale", payment: "sale",
+        rebill: "sale", approved: "sale", confirm: "sale", confirmed: "sale",
+        install: "install", app_install: "install",
+        rejected: "rejected", decline: "rejected", declined: "rejected", cancel: "rejected",
+        "1": "lead", "2": "sale", "3": "rejected"
       };
       
-      if (config?.statusMappings) {
-        try {
-          const customMappings = JSON.parse(config.statusMappings);
-          statusMappings = { ...statusMappings, ...customMappings };
-        } catch (e) {
-          // Use default mappings
-        }
-      }
-      
-      // Map incoming status to internal status
       const mappedStatus = statusMappings[rawStatus] || rawStatus;
       const validStatuses = ["lead", "sale", "install", "rejected"];
       
@@ -1709,31 +1685,29 @@ export async function registerRoutes(
           direction: "inbound",
           recipientType: "advertiser",
           recipientId: offer.advertiserId,
-          offerId,
-          publisherId,
+          offerId: click.offerId,
+          publisherId: click.publisherId,
           url: req.originalUrl,
           method: "GET",
           requestPayload,
           success: false,
-          errorMessage: `Invalid status: ${rawStatus} -> ${mappedStatus}`
+          errorMessage: `Invalid status: ${rawStatus}`
         });
         return res.status(400).json({ 
           error: "Invalid status", 
           received: rawStatus,
-          mapped: mappedStatus,
-          validStatuses 
+          validStatuses: ["lead", "sale", "install", "rejected"]
         });
       }
 
       // Handle rejected status
       if (mappedStatus === "rejected") {
-        // TODO: Implement rejection logic
         await storage.createPostbackLog({
           direction: "inbound",
           recipientType: "advertiser",
           recipientId: offer.advertiserId,
-          offerId,
-          publisherId,
+          offerId: click.offerId,
+          publisherId: click.publisherId,
           url: req.originalUrl,
           method: "GET",
           requestPayload,
@@ -1744,6 +1718,8 @@ export async function registerRoutes(
           success: true,
           message: "Rejection recorded",
           clickId,
+          offerId: click.offerId,
+          publisherId: click.publisherId,
           status: "rejected"
         });
       }
@@ -1760,8 +1736,8 @@ export async function registerRoutes(
         direction: "inbound",
         recipientType: "advertiser",
         recipientId: offer.advertiserId,
-        offerId,
-        publisherId,
+        offerId: click.offerId,
+        publisherId: click.publisherId,
         conversionId: result.id,
         url: req.originalUrl,
         method: "GET",
@@ -1774,6 +1750,8 @@ export async function registerRoutes(
         success: true,
         conversionId: result.id,
         clickId: result.clickId,
+        offerId: click.offerId,
+        publisherId: click.publisherId,
         status: result.status,
         advertiserCost: result.advertiserCost,
         publisherPayout: result.publisherPayout,
