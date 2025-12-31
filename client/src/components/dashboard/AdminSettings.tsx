@@ -214,7 +214,10 @@ function SecurityTab() {
   });
 
   const setup2FAMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/user/2fa/setup", {}),
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/user/2fa/setup", {});
+      return res.json();
+    },
     onSuccess: (data: any) => {
       setTotpSecret(data.secret);
       setQrCode(data.qrCode);
