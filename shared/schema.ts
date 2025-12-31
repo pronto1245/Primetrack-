@@ -303,25 +303,33 @@ export type Conversion = typeof conversions.$inferSelect;
 
 // ============================================
 // POSTBACK LOGS
-// Track all outgoing postbacks (after internal recording)
+// Track all inbound and outbound postbacks
 // ============================================
+export const postbackDirectionEnum = pgEnum("postback_direction", ["inbound", "outbound"]);
+
 export const postbackLogs = pgTable("postback_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversionId: varchar("conversion_id").notNull().references(() => conversions.id),
+  conversionId: varchar("conversion_id").references(() => conversions.id),
   
-  // Recipient info (who receives this postback)
-  recipientType: text("recipient_type").notNull().default("advertiser"), // advertiser, publisher
+  direction: postbackDirectionEnum("direction").notNull().default("outbound"),
+  
+  recipientType: text("recipient_type").notNull().default("advertiser"),
   recipientId: varchar("recipient_id").references(() => users.id),
   
-  // Postback info
+  offerId: varchar("offer_id").references(() => offers.id),
+  publisherId: varchar("publisher_id").references(() => users.id),
+  
+  endpointId: varchar("endpoint_id"),
+  
   url: text("url").notNull(),
   method: text("method").notNull().default("GET"),
+  requestPayload: text("request_payload"),
   responseCode: integer("response_code"),
   responseBody: text("response_body"),
   
-  // Status
   success: boolean("success").notNull().default(false),
   retryCount: integer("retry_count").notNull().default(0),
+  errorMessage: text("error_message"),
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -1466,33 +1474,78 @@ export type InsertSubscriptionPayment = z.infer<typeof insertSubscriptionPayment
 export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
 
 // ============================================
-// POSTBACK TOKENS (for Keitaro/Binom/tracker auth)
+// INCOMING POSTBACK CONFIGS (Advertiser's parameter mapping)
+// Configures how incoming postbacks are parsed
 // ============================================
-export const trackerTypeEnum = pgEnum("tracker_type", ["keitaro", "binom"]);
+export const clickIdStorageEnum = pgEnum("click_id_storage", ["click_id", "sub1", "sub2", "sub3", "sub4", "sub5", "sub6", "sub7", "sub8", "sub9", "sub10"]);
 
-export const postbackTokens = pgTable("postback_tokens", {
+export const incomingPostbackConfigs = pgTable("incoming_postback_configs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  offerId: varchar("offer_id").references(() => offers.id),
   
-  token: varchar("token", { length: 64 }).notNull().unique(), // 32-byte hex token
-  label: text("label").notNull().default("Default"), // Human-friendly name
-  trackerType: trackerTypeEnum("tracker_type").notNull().default("keitaro"),
+  label: text("label").notNull().default("Default"),
   
-  lastUsedAt: timestamp("last_used_at"),
-  usageCount: integer("usage_count").notNull().default(0),
+  clickIdParam: text("click_id_param").notNull().default("click_id"),
+  statusParam: text("status_param").notNull().default("status"),
+  payoutParam: text("payout_param").notNull().default("payout"),
+  currencyParam: text("currency_param"),
+  
+  storeClickIdIn: clickIdStorageEnum("store_click_id_in").notNull().default("click_id"),
+  
+  statusMappings: text("status_mappings").default('{"lead":"lead","sale":"sale","reg":"lead","dep":"sale","install":"install","rebill":"sale","approved":"sale","rejected":"rejected"}'),
   
   isActive: boolean("is_active").notNull().default(true),
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertPostbackTokenSchema = createInsertSchema(postbackTokens).omit({
+export const insertIncomingPostbackConfigSchema = createInsertSchema(incomingPostbackConfigs).omit({
   id: true,
-  token: true,
   createdAt: true,
-  lastUsedAt: true,
-  usageCount: true,
 });
 
-export type InsertPostbackToken = z.infer<typeof insertPostbackTokenSchema>;
-export type PostbackToken = typeof postbackTokens.$inferSelect;
+export type InsertIncomingPostbackConfig = z.infer<typeof insertIncomingPostbackConfigSchema>;
+export type IncomingPostbackConfig = typeof incomingPostbackConfigs.$inferSelect;
+
+// ============================================
+// PUBLISHER POSTBACK ENDPOINTS (Outgoing to publisher's tracker)
+// Where to send conversions when they happen
+// ============================================
+export const publisherTrackerTypeEnum = pgEnum("publisher_tracker_type", ["keitaro", "binom", "custom"]);
+
+export const publisherPostbackEndpoints = pgTable("publisher_postback_endpoints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  offerId: varchar("offer_id").references(() => offers.id),
+  
+  label: text("label").notNull().default("Default"),
+  trackerType: publisherTrackerTypeEnum("tracker_type").notNull().default("custom"),
+  
+  baseUrl: text("base_url").notNull(),
+  httpMethod: text("http_method").notNull().default("GET"),
+  
+  clickIdParam: text("click_id_param").notNull().default("subid"),
+  statusParam: text("status_param").notNull().default("status"),
+  payoutParam: text("payout_param").notNull().default("payout"),
+  
+  statusMappings: text("status_mappings").default('{"lead":"lead","sale":"sale","install":"install","rejected":"rejected"}'),
+  
+  customHeaders: text("custom_headers"),
+  
+  statusFilter: text("status_filter").default('["lead","sale","install"]'),
+  
+  retryLimit: integer("retry_limit").notNull().default(5),
+  
+  isActive: boolean("is_active").notNull().default(true),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPublisherPostbackEndpointSchema = createInsertSchema(publisherPostbackEndpoints).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPublisherPostbackEndpoint = z.infer<typeof insertPublisherPostbackEndpointSchema>;
+export type PublisherPostbackEndpoint = typeof publisherPostbackEndpoints.$inferSelect;
