@@ -274,11 +274,15 @@ export async function registerRoutes(
         });
       });
 
+      // Check if user needs to setup 2FA (first time after registration)
+      const needsSetup2FA = !user.twoFactorSetupCompleted;
+
       res.json({ 
         id: user.id, 
         username: user.username, 
         role: user.role,
-        email: user.email 
+        email: user.email,
+        needsSetup2FA
       });
     } catch (error) {
       console.error("[auth] Login error:", error);

@@ -29,6 +29,7 @@ export const totpService = {
     await storage.updateUser(userId, {
       twoFactorEnabled: true,
       twoFactorSecret: encryptedSecret,
+      twoFactorSetupCompleted: true,
     });
 
     return true;

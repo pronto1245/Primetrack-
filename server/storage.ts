@@ -503,6 +503,7 @@ export class DatabaseStorage implements IStorage {
     telegramLinkExpires: Date | null;
     twoFactorEnabled: boolean;
     twoFactorSecret: string | null;
+    twoFactorSetupCompleted: boolean;
   }>): Promise<User | undefined> {
     const [user] = await db.update(users)
       .set(data)

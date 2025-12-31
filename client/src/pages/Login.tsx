@@ -32,6 +32,11 @@ export default function Login() {
         setError("");
         return;
       }
+      // Redirect to 2FA setup if user never configured it
+      if (data.needsSetup2FA) {
+        setLocation("/setup-2fa");
+        return;
+      }
       if (data.role === "admin") {
         setLocation("/dashboard/admin");
       } else if (data.role === "advertiser") {
