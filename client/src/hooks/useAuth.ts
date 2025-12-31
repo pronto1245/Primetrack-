@@ -7,6 +7,7 @@ export interface User {
   username: string;
   role: string;
   email: string;
+  twoFactorEnabled?: boolean;
   twoFactorSetupCompleted?: boolean;
 }
 
@@ -26,8 +27,9 @@ export function useAuth() {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-        // Redirect to 2FA setup if user never configured it
-        if (data.twoFactorSetupCompleted === false && !window.location.pathname.includes("/setup-2fa")) {
+        // Redirect to 2FA setup only if: 2FA not enabled AND never completed setup
+        const needsSetup = !data.twoFactorEnabled && data.twoFactorSetupCompleted === false;
+        if (needsSetup && !window.location.pathname.includes("/setup-2fa")) {
           setLocation("/setup-2fa");
         }
       }

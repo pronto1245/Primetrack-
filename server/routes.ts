@@ -275,7 +275,8 @@ export async function registerRoutes(
       });
 
       // Check if user needs to setup 2FA (first time after registration)
-      const needsSetup2FA = !user.twoFactorSetupCompleted;
+      // Only require setup if: 2FA not enabled AND never completed setup before
+      const needsSetup2FA = !user.twoFactorEnabled && !user.twoFactorSetupCompleted;
 
       res.json({ 
         id: user.id, 
