@@ -4881,9 +4881,9 @@ export async function registerRoutes(
 
   const platformSettingsSchema = z.object({
     platformName: z.string().optional().or(z.literal("")),
-    platformLogoUrl: z.string().url().optional().or(z.literal("")),
-    platformFaviconUrl: z.string().url().optional().or(z.literal("")),
-    supportEmail: z.string().email().optional().or(z.literal("")),
+    platformLogoUrl: z.string().url().optional().or(z.literal("")).or(z.null()),
+    platformFaviconUrl: z.string().url().optional().or(z.literal("")).or(z.null()),
+    supportEmail: z.string().email().optional().or(z.literal("")).or(z.null()),
     defaultTelegramBotToken: secretFieldSchema,
     stripeSecretKey: secretFieldSchema,
     ipinfoToken: secretFieldSchema,
@@ -4894,7 +4894,7 @@ export async function registerRoutes(
     enableProxyDetection: z.boolean().optional(),
     enableVpnDetection: z.boolean().optional(),
     enableFingerprintTracking: z.boolean().optional(),
-    maxFraudScore: z.number().min(0).max(100).optional(),
+    maxFraudScore: z.number().min(0).max(100).optional().or(z.null()),
   });
 
   // Update user profile (all roles)
