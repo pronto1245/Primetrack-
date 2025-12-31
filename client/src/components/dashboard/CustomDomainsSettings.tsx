@@ -107,7 +107,7 @@ export function CustomDomainsSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
-      toast({ title: "Домен подтверждён", description: "Настройте SSL через Cloudflare" });
+      toast({ title: "Домен подтверждён", description: "SSL сертификат выдаётся автоматически" });
     },
     onError: (error: Error) => {
       toast({ title: "Верификация не прошла", description: error.message, variant: "destructive" });
@@ -157,7 +157,7 @@ export function CustomDomainsSettings() {
       } else if (status === "verified_no_ssl") {
         toast({ 
           title: "SSL не настроен", 
-          description: "Настройте SSL через Cloudflare",
+          description: "Подождите несколько минут и проверьте снова",
           variant: "destructive"
         });
       } else {
@@ -199,8 +199,8 @@ export function CustomDomainsSettings() {
       case "pending_external":
         return (
           <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
-            <ExternalLink className="w-3 h-3 mr-1" />
-            Настройте SSL в Cloudflare
+            <Clock className="w-3 h-3 mr-1" />
+            SSL ожидает выдачи
           </Badge>
         );
       case "ssl_failed":
@@ -264,16 +264,19 @@ export function CustomDomainsSettings() {
               </div>
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg space-y-2">
                 <p className="text-sm font-medium text-emerald-400">
-                  Настройка DNS через Cloudflare (рекомендуется)
+                  Настройка DNS у регистратора
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Добавьте CNAME запись:
+                  Добавьте CNAME запись в DNS-панели регистратора (Рег.ру, Namecheap, GoDaddy и др.):
                 </p>
                 <code className="block bg-muted px-2 py-1 rounded text-xs">
                   {formData.domain || "ваш-домен"} → tracking.primetrack.pro
                 </code>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Включите оранжевое облачко (Proxy) для автоматического SSL
+                  SSL сертификат выдаётся автоматически после подтверждения DNS
+                </p>
+                <p className="text-xs text-yellow-500 mt-1">
+                  ⚠️ Если используете Cloudflare — отключите Proxy (серое облачко)
                 </p>
               </div>
             </div>
@@ -382,7 +385,7 @@ export function CustomDomainsSettings() {
                         </TableBody>
                       </Table>
                       <p className="text-xs text-muted-foreground">
-                        В Cloudflare включите оранжевое облачко (Proxy) для автоматического SSL
+                        Добавьте запись в DNS-панели регистратора. Если Cloudflare — отключите Proxy (серое облачко)
                       </p>
                     </div>
                     <Button
@@ -431,13 +434,13 @@ export function CustomDomainsSettings() {
                     
                     {(domain.sslStatus !== "ssl_active" && domain.sslStatus !== "active") && (
                       <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
-                        <p className="text-sm font-medium text-blue-400">Настройте SSL через Cloudflare:</p>
-                        <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1">
-                          <li>Добавьте домен <code className="bg-muted px-1 rounded">{domain.domain}</code> в Cloudflare</li>
-                          <li>Смените NS-серверы у регистратора на Cloudflare NS</li>
-                          <li>Включите проксирование (оранжевое облачко) для CNAME записи</li>
-                          <li>Cloudflare автоматически выдаст SSL сертификат</li>
-                        </ol>
+                        <p className="text-sm font-medium text-blue-400">SSL сертификат:</p>
+                        <p className="text-xs text-muted-foreground">
+                          SSL выдаётся автоматически после подтверждения DNS. Подождите несколько минут и нажмите "Проверить SSL".
+                        </p>
+                        <p className="text-xs text-yellow-500">
+                          ⚠️ Если используете Cloudflare — убедитесь что Proxy отключен (серое облачко вместо оранжевого)
+                        </p>
                       </div>
                     )}
                     
@@ -474,15 +477,15 @@ export function CustomDomainsSettings() {
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</div>
-            <p>Добавьте домен</p>
+            <p>Добавьте домен в системе</p>
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
-            <p>Добавьте CNAME запись в Cloudflare с включенным проксированием</p>
+            <p>Добавьте CNAME запись у регистратора домена</p>
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</div>
-            <p>Проверьте DNS и SSL</p>
+            <p>Проверьте DNS — SSL выдастся автоматически</p>
           </div>
         </CardContent>
       </Card>
