@@ -254,6 +254,9 @@ function SecurityTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       setDisableCode("");
+      setSetupMode(false);
+      setTotpSecret("");
+      setQrCode("");
       toast({ title: "2FA отключена" });
     },
     onError: (error: any) => {
