@@ -3489,6 +3489,7 @@ export async function registerRoutes(
         sub4,
         sub5,
         groupBy, // date, geo, publisher, offer, device, os, browser, sub1-5
+        dateMode = "click", // "click" = filter by click date, "conversion" = filter by conversion date
         page = "1",
         limit = "50"
       } = req.query;
@@ -3522,6 +3523,7 @@ export async function registerRoutes(
       if (publisherId && role !== "publisher") filters.publisherId = publisherId as string;
       if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
       if (dateTo) filters.dateTo = new Date(dateTo as string);
+      filters.dateMode = dateMode as string; // "click" or "conversion"
       if (geo) filters.geo = geo as string;
       if (device) filters.device = device as string;
       if (os) filters.os = os as string;
