@@ -1855,7 +1855,7 @@ export class DatabaseStorage implements IStorage {
         ? await db.select({ clickId: conversions.clickId }).from(conversions).where(convWhereCondition)
         : await db.select({ clickId: conversions.clickId }).from(conversions);
       
-      const clickIdsFromConversions = [...new Set(matchingConversions.map(c => c.clickId))];
+      const clickIdsFromConversions = Array.from(new Set(matchingConversions.map(c => c.clickId)));
       
       if (clickIdsFromConversions.length === 0) {
         return { clicks: [], total: 0, page, limit };

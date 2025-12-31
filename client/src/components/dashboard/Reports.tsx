@@ -29,7 +29,8 @@ export function Reports({ role }: ReportsProps) {
     publisherId: "",
     geo: "",
     device: "",
-    groupBy: "date"
+    groupBy: "date",
+    dateMode: "click" as "click" | "conversion" // "click" = по дате клика, "conversion" = по дате конверсии
   });
   const [page, setPage] = useState(1);
   
@@ -43,6 +44,7 @@ export function Reports({ role }: ReportsProps) {
   if (filters.publisherId && role !== "publisher") queryParams.set("publisherId", filters.publisherId);
   if (filters.geo) queryParams.set("geo", filters.geo);
   if (filters.device) queryParams.set("device", filters.device);
+  queryParams.set("dateMode", filters.dateMode); // "click" or "conversion"
   // Add advertiser filter for publisher role
   if (role === "publisher" && selectedAdvertiserId) {
     queryParams.set("advertiserId", selectedAdvertiserId);
@@ -157,6 +159,18 @@ export function Reports({ role }: ReportsProps) {
               />
             </div>
             <div>
+              <Label className="text-xs text-muted-foreground">Режим даты</Label>
+              <Select value={filters.dateMode} onValueChange={(v) => setFilters(f => ({ ...f, dateMode: v as "click" | "conversion" }))}>
+                <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-date-mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-input border-border">
+                  <SelectItem value="click">По дате клика</SelectItem>
+                  <SelectItem value="conversion">По дате конверсии</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label className="text-xs text-muted-foreground">{t('reports.geo') || 'GEO'}</Label>
               <Input
                 data-testid="input-geo"
@@ -226,7 +240,7 @@ export function Reports({ role }: ReportsProps) {
             <div className="flex items-end">
               <Button 
                 variant="outline"
-                onClick={() => { setFilters({ dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date" }); setPage(1); }}
+                onClick={() => { setFilters({ dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date", dateMode: "click" }); setPage(1); }}
                 className="w-full border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                 data-testid="button-clear-filters"
               >
