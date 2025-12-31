@@ -31,6 +31,7 @@ interface OfferLanding {
   geo: string;
   landingName: string | null;
   landingUrl: string;
+  trackingUrl?: string;
   partnerPayout: string;
   currency: string;
 }
@@ -133,7 +134,9 @@ function LandingsGroupedByGeo({
                         <div className="text-sm font-medium text-foreground truncate">
                           {landing.landingName || `Landing ${index + 1}`}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">{landing.landingUrl}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {landing.trackingUrl || landing.landingUrl}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 ml-4">
                         <div className="text-right">
@@ -147,7 +150,7 @@ function LandingsGroupedByGeo({
                           className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
-                            copyToClipboard(landing.landingUrl, landing.id);
+                            copyToClipboard(landing.trackingUrl || landing.landingUrl, landing.id);
                           }}
                           data-testid={`button-copy-landing-${geo}-${index}`}
                         >

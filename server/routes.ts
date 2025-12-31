@@ -1095,9 +1095,15 @@ export async function registerRoutes(
           return res.json({ ...safeOffer, landings: [], hasAccess: false, accessStatus });
         }
         
-        // С доступом - показываем лендинги (без internalCost)
+        // С доступом - показываем лендинги с tracking URLs (без internalCost)
         const landings = await storage.getOfferLandings(offer.id);
-        const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
+        const platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
+        const publisherId = req.session.userId!;
+        
+        const safeLandings = landings.map(({ internalCost, ...rest }) => ({
+          ...rest,
+          trackingUrl: `https://${platformDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
+        }));
         return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
       }
       
@@ -1591,7 +1597,11 @@ export async function registerRoutes(
           
           if (hasAccess) {
             const landings = await storage.getOfferLandings(offer.id);
-            const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
+            const platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
+            const safeLandings = landings.map(({ internalCost, ...rest }) => ({
+              ...rest,
+              trackingUrl: `https://${platformDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
+            }));
             return { 
               ...safeOffer, 
               landings: safeLandings,
