@@ -4879,11 +4879,23 @@ export async function registerRoutes(
     telegramBotToken: secretFieldSchema,
   });
 
+  // Helper for optional URL fields - accepts valid URL, empty string, or undefined
+  const optionalUrlField = z.union([
+    z.string().url(),
+    z.literal("")
+  ]).optional();
+  
+  // Helper for optional email fields - accepts valid email, empty string, or undefined  
+  const optionalEmailField = z.union([
+    z.string().email(),
+    z.literal("")
+  ]).optional();
+
   const platformSettingsSchema = z.object({
-    platformName: z.string().optional().or(z.literal("")),
-    platformLogoUrl: z.string().url().optional().or(z.literal("")).or(z.null()),
-    platformFaviconUrl: z.string().url().optional().or(z.literal("")).or(z.null()),
-    supportEmail: z.string().email().optional().or(z.literal("")).or(z.null()),
+    platformName: z.string().optional(),
+    platformLogoUrl: optionalUrlField,
+    platformFaviconUrl: optionalUrlField,
+    supportEmail: optionalEmailField,
     defaultTelegramBotToken: secretFieldSchema,
     stripeSecretKey: secretFieldSchema,
     ipinfoToken: secretFieldSchema,
@@ -4894,7 +4906,7 @@ export async function registerRoutes(
     enableProxyDetection: z.boolean().optional(),
     enableVpnDetection: z.boolean().optional(),
     enableFingerprintTracking: z.boolean().optional(),
-    maxFraudScore: z.number().min(0).max(100).optional().or(z.null()),
+    maxFraudScore: z.number().optional().nullable(),
   });
 
   // Update user profile (all roles)
@@ -5332,6 +5344,8 @@ export async function registerRoutes(
     try {
       const parseResult = platformSettingsSchema.safeParse(req.body);
       if (!parseResult.success) {
+        console.error("Platform settings validation error:", JSON.stringify(parseResult.error.errors, null, 2));
+        console.error("Request body:", JSON.stringify(req.body, null, 2));
         return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
       }
       const {
