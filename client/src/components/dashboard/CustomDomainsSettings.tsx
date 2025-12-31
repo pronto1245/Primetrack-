@@ -442,7 +442,10 @@ export function CustomDomainsSettings() {
                     )}
                     
                     <Button
-                      variant="outline"
+                      variant={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" ? "default" : "outline"}
+                      className={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" 
+                        ? "bg-green-600 hover:bg-green-700 text-white" 
+                        : "border-blue-500 text-blue-500 hover:bg-blue-500/10"}
                       onClick={() => checkSslMutation.mutate(domain.id)}
                       disabled={checkSslMutation.isPending}
                       data-testid={`button-check-ssl-${domain.id}`}
