@@ -868,16 +868,30 @@ function NotificationsTab() {
           <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <h4 className="font-medium mb-2">Как настроить:</h4>
             <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-              <li>Создайте бота через @BotFather в Telegram</li>
-              <li>Скопируйте токен бота</li>
-              <li>Напишите боту любое сообщение</li>
-              <li>Укажите Chat ID (можно узнать через @userinfobot)</li>
+              <li>Напишите любое сообщение боту платформы (или своему боту)</li>
+              <li>Узнайте свой Chat ID через @userinfobot</li>
+              <li>Укажите Chat ID ниже</li>
             </ol>
+            <p className="text-xs text-muted-foreground mt-2">
+              По умолчанию используется бот платформы. Если хотите использовать своего бота — укажите его токен.
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="botToken">Bot Token</Label>
+              <Label htmlFor="chatId">Chat ID <span className="text-red-500">*</span></Label>
+              <Input
+                id="chatId"
+                data-testid="input-chat-id"
+                value={telegramData.telegramChatId}
+                onChange={(e) => setTelegramData({ ...telegramData, telegramChatId: e.target.value })}
+                placeholder="123456789"
+              />
+              <p className="text-xs text-muted-foreground">Узнайте через @userinfobot в Telegram</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="botToken">Bot Token (опционально)</Label>
               <div className="relative">
                 <Input
                   id="botToken"
@@ -885,7 +899,7 @@ function NotificationsTab() {
                   data-testid="input-bot-token"
                   value={telegramData.telegramBotToken}
                   onChange={(e) => setTelegramData({ ...telegramData, telegramBotToken: e.target.value })}
-                  placeholder="123456789:ABCdef..."
+                  placeholder="Оставьте пустым для использования бота платформы"
                 />
                 <Button
                   type="button"
@@ -897,16 +911,7 @@ function NotificationsTab() {
                   {showBotToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chatId">Chat ID</Label>
-              <Input
-                id="chatId"
-                data-testid="input-chat-id"
-                value={telegramData.telegramChatId}
-                onChange={(e) => setTelegramData({ ...telegramData, telegramChatId: e.target.value })}
-                placeholder="123456789"
-              />
+              <p className="text-xs text-muted-foreground">Укажите только если хотите использовать своего бота</p>
             </div>
           </div>
 
