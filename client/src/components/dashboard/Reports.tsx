@@ -426,8 +426,8 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
     clicks: summary.clicks || 0,
     uniqueClicks: summary.uniqueClicks || 0,
     conversions: summary.conversions || 0,
-    leads: 0,
-    sales: 0,
+    leads: summary.leads || 0,
+    sales: summary.sales || 0,
     payout: summary.payout || 0,
     cost: summary.advertiserCost || 0,
   } : { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 };
@@ -510,7 +510,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     <td className="px-4 py-3 text-muted-foreground text-[10px]">
                       {click.browser || '-'}
                     </td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{click.clicks ?? 1}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">{click.clicks || 0}</td>
                     <td className="px-4 py-3 text-center">
                       {click.isUnique ? (
                         <span className="text-emerald-500">✓</span>

@@ -3159,6 +3159,9 @@ export async function registerRoutes(
         const clickConversions = allConversions.conversions.filter((conv: any) => conv.clickId === click.id);
         const conversionCount = clickConversions.length;
         const hasConversion = conversionCount > 0;
+        // Count leads and sales by conversion type
+        const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
+        const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
         // Use publisherPayout field from conversions table
         const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
@@ -3175,7 +3178,10 @@ export async function registerRoutes(
             offerName: offerMap.get(click.offerId) || click.offerId,
             isUnique: click.isUnique ?? true,
             hasConversion,
+            clicks: 1,
             conversions: conversionCount,
+            leads,
+            sales,
             payout,
             cr,
           };
@@ -3186,7 +3192,10 @@ export async function registerRoutes(
           offerName: offerMap.get(click.offerId) || click.offerId,
           isUnique: click.isUnique ?? true,
           hasConversion,
+          clicks: 1,
           conversions: conversionCount,
+          leads,
+          sales,
           payout,
           advertiserCost: cost,
           margin,
@@ -3200,9 +3209,11 @@ export async function registerRoutes(
         clicks: acc.clicks + 1,
         uniqueClicks: acc.uniqueClicks + (click.isUnique ? 1 : 0),
         conversions: acc.conversions + (click.conversions || 0),
+        leads: acc.leads + (click.leads || 0),
+        sales: acc.sales + (click.sales || 0),
         payout: acc.payout + (click.payout || 0),
         advertiserCost: acc.advertiserCost + (click.advertiserCost || 0),
-      }), { clicks: 0, uniqueClicks: 0, conversions: 0, payout: 0, advertiserCost: 0 });
+      }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
 
       summary.margin = summary.advertiserCost - summary.payout;
       summary.roi = summary.advertiserCost > 0 ? ((summary.margin / summary.advertiserCost) * 100) : 0;
