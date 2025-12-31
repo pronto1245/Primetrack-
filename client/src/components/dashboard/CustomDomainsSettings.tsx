@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -32,7 +31,6 @@ interface CustomDomain {
   id: string;
   domain: string;
   verificationToken: string;
-  verificationMethod: string;
   isVerified: boolean;
   verifiedAt: string | null;
   sslStatus: string;
@@ -43,12 +41,6 @@ interface CustomDomain {
   createdAt: string;
 }
 
-interface DnsInstruction {
-  type: string;
-  name: string;
-  value: string;
-}
-
 export function CustomDomainsSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -57,7 +49,6 @@ export function CustomDomainsSettings() {
   
   const [formData, setFormData] = useState({
     domain: "",
-    verificationMethod: "cname" as "cname" | "txt",
   });
 
   const { data: domains = [], isLoading } = useQuery<CustomDomain[]>({
@@ -81,7 +72,7 @@ export function CustomDomainsSettings() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
       setIsCreateOpen(false);
-      setFormData({ domain: "", verificationMethod: "cname" });
+      setFormData({ domain: "" });
       setSelectedDomain(data);
       toast({ title: "Домен добавлен", description: "Настройте DNS записи для верификации" });
     },
@@ -256,7 +247,7 @@ export function CustomDomainsSettings() {
             <DialogHeader>
               <DialogTitle>Добавить домен</DialogTitle>
               <DialogDescription>
-                Введите домен и выберите метод верификации
+                Введите домен для трекинг-ссылок
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -273,56 +264,19 @@ export function CustomDomainsSettings() {
                   Рекомендуется использовать поддомен, например: track.yourdomain.com
                 </p>
               </div>
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-2">
-                <p className="text-xs text-blue-400">
-                  <strong>Для SSL через Cloudflare:</strong>
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg space-y-2">
+                <p className="text-sm font-medium text-emerald-400">
+                  Настройка DNS через Cloudflare (рекомендуется)
                 </p>
-                <ol className="text-xs text-blue-400 list-decimal list-inside space-y-1">
-                  <li>Добавьте домен в Cloudflare</li>
-                  <li>Смените NS-серверы у регистратора на Cloudflare NS</li>
-                  <li>Добавьте CNAME запись с включенным проксированием (оранжевое облачко)</li>
-                </ol>
                 <p className="text-xs text-muted-foreground">
-                  Cloudflare предоставит бесплатный SSL автоматически
+                  Добавьте CNAME запись:
                 </p>
-              </div>
-              <div className="space-y-3">
-                <Label>Метод верификации</Label>
-                <RadioGroup
-                  value={formData.verificationMethod}
-                  onValueChange={(value: "cname" | "txt") => setFormData(prev => ({ ...prev, verificationMethod: value }))}
-                  className="space-y-3"
-                >
-                  <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <RadioGroupItem value="cname" id="cname" className="mt-1" />
-                    <div className="flex-1">
-                      <Label htmlFor="cname" className="font-medium cursor-pointer">
-                        CNAME запись (рекомендуется)
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Добавьте одну CNAME запись: <code className="bg-muted px-1 rounded">ваш-домен → tracking.primetrack.pro</code>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <RadioGroupItem value="txt" id="txt" className="mt-1" />
-                    <div className="flex-1">
-                      <Label htmlFor="txt" className="font-medium cursor-pointer">
-                        TXT + CNAME записи
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Для CDN/прокси: добавьте две записи:
-                      </p>
-                      <div className="text-xs text-muted-foreground mt-2 space-y-1">
-                        <div><code className="bg-muted px-1 rounded">TXT: _primetrack.ваш-домен → токен</code></div>
-                        <div><code className="bg-muted px-1 rounded">CNAME: ваш-домен → tracking.primetrack.pro</code></div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Токен будет показан после добавления домена
-                      </p>
-                    </div>
-                  </div>
-                </RadioGroup>
+                <code className="block bg-muted px-2 py-1 rounded text-xs">
+                  {formData.domain || "ваш-домен"} → tracking.primetrack.pro
+                </code>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Включите оранжевое облачко (Proxy) для автоматического SSL
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -405,14 +359,33 @@ export function CustomDomainsSettings() {
               <CardContent>
                 {!domain.isVerified && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-muted/50 rounded-lg">
-                      <h4 className="font-medium mb-3">Настройте DNS записи:</h4>
-                      <DnsInstructions 
-                        domain={domain.domain}
-                        token={domain.verificationToken}
-                        method={domain.verificationMethod as "cname" | "txt"}
-                        onCopy={copyToClipboard}
-                      />
+                    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                      <h4 className="font-medium">Добавьте CNAME запись:</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Тип</TableHead>
+                            <TableHead>Имя</TableHead>
+                            <TableHead>Значение</TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell><Badge>CNAME</Badge></TableCell>
+                            <TableCell className="font-mono text-xs">{domain.domain}</TableCell>
+                            <TableCell className="font-mono text-xs">tracking.primetrack.pro</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard("tracking.primetrack.pro")}>
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                      <p className="text-xs text-muted-foreground">
+                        В Cloudflare включите оранжевое облачко (Proxy) для автоматического SSL
+                      </p>
                     </div>
                     <Button
                       onClick={() => verifyMutation.mutate(domain.id)}
@@ -500,98 +473,18 @@ export function CustomDomainsSettings() {
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</div>
-            <p>Добавьте домен и выберите метод верификации</p>
+            <p>Добавьте домен</p>
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
-            <p>Настройте DNS записи у вашего регистратора доменов</p>
+            <p>Добавьте CNAME запись в Cloudflare с включенным проксированием</p>
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</div>
-            <p>Нажмите "Проверить DNS" для верификации</p>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</div>
-            <p>Настройте SSL через Cloudflare и нажмите "Проверить SSL"</p>
+            <p>Проверьте DNS и SSL</p>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function DnsInstructions({ 
-  domain, 
-  token, 
-  method,
-  onCopy 
-}: { 
-  domain: string; 
-  token: string; 
-  method: "cname" | "txt";
-  onCopy: (text: string) => void;
-}) {
-  const platformDomain = "tracking.primetrack.pro";
-  
-  if (method === "cname") {
-    return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Тип</TableHead>
-            <TableHead>Имя</TableHead>
-            <TableHead>Значение</TableHead>
-            <TableHead></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell><Badge>CNAME</Badge></TableCell>
-            <TableCell className="font-mono text-xs">{domain}</TableCell>
-            <TableCell className="font-mono text-xs">{platformDomain}</TableCell>
-            <TableCell>
-              <Button variant="ghost" size="icon" onClick={() => onCopy(platformDomain)}>
-                <Copy className="w-4 h-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    );
-  }
-
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Тип</TableHead>
-          <TableHead>Имя</TableHead>
-          <TableHead>Значение</TableHead>
-          <TableHead></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow>
-          <TableCell><Badge>TXT</Badge></TableCell>
-          <TableCell className="font-mono text-xs">_primetrack.{domain}</TableCell>
-          <TableCell className="font-mono text-xs max-w-xs truncate">{token}</TableCell>
-          <TableCell>
-            <Button variant="ghost" size="icon" onClick={() => onCopy(token)}>
-              <Copy className="w-4 h-4" />
-            </Button>
-          </TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell><Badge>CNAME</Badge></TableCell>
-          <TableCell className="font-mono text-xs">{domain}</TableCell>
-          <TableCell className="font-mono text-xs">{platformDomain}</TableCell>
-          <TableCell>
-            <Button variant="ghost" size="icon" onClick={() => onCopy(platformDomain)}>
-              <Copy className="w-4 h-4" />
-            </Button>
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
   );
 }

@@ -5882,7 +5882,7 @@ export async function registerRoutes(
   app.post("/api/domains", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const advertiserId = req.session.userId!;
-      const { domain, verificationMethod } = req.body;
+      const { domain } = req.body;
       
       if (!domain) {
         return res.status(400).json({ message: "Domain is required" });
@@ -5901,23 +5901,19 @@ export async function registerRoutes(
       }
 
       const verificationToken = domainService.generateVerificationToken();
-      const dnsInstructions = domainService.getDnsInstructions(domain, verificationToken, verificationMethod || "cname");
 
       const newDomain = await storage.createCustomDomain({
         advertiserId,
         domain,
         verificationToken,
-        verificationMethod: verificationMethod || "cname",
+        verificationMethod: "cname",
         isVerified: false,
         sslStatus: "pending",
         isPrimary: false,
         isActive: true,
       });
 
-      res.status(201).json({
-        ...newDomain,
-        dnsInstructions,
-      });
+      res.status(201).json(newDomain);
     } catch (error) {
       res.status(500).json({ message: "Failed to add domain" });
     }
@@ -6002,30 +5998,6 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to set primary domain" });
-    }
-  });
-
-  // Get DNS instructions for domain
-  app.get("/api/domains/:id/dns-instructions", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
-      const advertiserId = req.session.userId!;
-      
-      const existing = await storage.getCustomDomain(id);
-      if (!existing || existing.advertiserId !== advertiserId) {
-        return res.status(404).json({ message: "Domain not found" });
-      }
-
-      const { domainService } = await import("./services/domain-service");
-      const dnsInstructions = domainService.getDnsInstructions(
-        existing.domain, 
-        existing.verificationToken,
-        (existing.verificationMethod as "cname" | "txt") || "cname"
-      );
-
-      res.json({ dnsInstructions });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get DNS instructions" });
     }
   });
 

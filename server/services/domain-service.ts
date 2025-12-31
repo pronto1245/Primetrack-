@@ -18,42 +18,12 @@ interface DomainVerificationResult {
   verifiedAt?: Date;
 }
 
-interface DnsRecord {
-  type: "CNAME" | "TXT";
-  name: string;
-  value: string;
-}
 
 class DomainService {
   private platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
 
   generateVerificationToken(): string {
     return `primetrack-verify-${crypto.randomBytes(16).toString("hex")}`;
-  }
-
-  getDnsInstructions(domain: string, verificationToken: string, method: "cname" | "txt" = "cname"): DnsRecord[] {
-    if (method === "cname") {
-      return [
-        {
-          type: "CNAME",
-          name: domain,
-          value: `tracking.${this.platformDomain}`,
-        },
-      ];
-    } else {
-      return [
-        {
-          type: "TXT",
-          name: `_primetrack.${domain}`,
-          value: verificationToken,
-        },
-        {
-          type: "CNAME",
-          name: domain,
-          value: `tracking.${this.platformDomain}`,
-        },
-      ];
-    }
   }
 
   async verifyDomain(domainId: string): Promise<DomainVerificationResult> {
@@ -63,11 +33,7 @@ class DomainService {
     }
 
     try {
-      if (domainRecord.verificationMethod === "cname") {
-        return await this.verifyCname(domainRecord);
-      } else {
-        return await this.verifyTxt(domainRecord);
-      }
+      return await this.verifyCname(domainRecord);
     } catch (error: any) {
       await storage.updateCustomDomain(domainId, {
         lastError: error.message,
@@ -139,53 +105,6 @@ class DomainService {
     };
   }
 
-  private async verifyTxt(domain: CustomDomain): Promise<DomainVerificationResult> {
-    try {
-      const txtHost = `_primetrack.${domain.domain}`;
-      const records = await resolveTxt(txtHost);
-      const flatRecords = records.flat();
-      
-      const isValid = flatRecords.some(
-        record => record === domain.verificationToken
-      );
-
-      if (!isValid) {
-        return {
-          success: false,
-          error: `TXT record not found or incorrect. Expected: ${domain.verificationToken}`,
-        };
-      }
-
-      const cnameRecords = await resolveCname(domain.domain).catch(() => []);
-      const expectedCname = `tracking.${this.platformDomain}`;
-      const hasCname = cnameRecords.some(
-        record => record.toLowerCase() === expectedCname.toLowerCase()
-      );
-
-      if (!hasCname) {
-        return {
-          success: false,
-          error: "TXT record verified, but CNAME record is still missing.",
-        };
-      }
-
-      const verifiedAt = new Date();
-      // SSL must be configured externally via Cloudflare
-      await storage.updateCustomDomain(domain.id, {
-        isVerified: true,
-        verifiedAt,
-        sslStatus: "pending_external", // User must configure SSL via Cloudflare
-        lastError: null,
-      });
-
-      return { success: true, verifiedAt };
-    } catch (error: any) {
-      if (error.code === "ENODATA" || error.code === "ENOTFOUND") {
-        return { success: false, error: "TXT record not found. Please add the DNS record." };
-      }
-      throw error;
-    }
-  }
 
   async checkSsl(domainId: string): Promise<{ 
     success: boolean; 
