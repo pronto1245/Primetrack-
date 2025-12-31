@@ -10,6 +10,7 @@ resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
 const resolveCname = promisify(resolver.resolveCname.bind(resolver));
 const resolveTxt = promisify(resolver.resolveTxt.bind(resolver));
+const resolve4 = promisify(resolver.resolve4.bind(resolver));
 
 interface DomainVerificationResult {
   success: boolean;
