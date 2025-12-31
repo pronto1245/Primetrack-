@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, User, Lock, Mail, ArrowLeft } from "lucide-react";
+import { Loader2, User, Lock, Mail, ArrowLeft, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -17,10 +18,36 @@ export default function Login() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest("POST", "/api/auth/login", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.requires2FA) {
+        setRequires2FA(true);
+        setError("");
+        return;
+      }
+      if (data.role === "admin") {
+        setLocation("/dashboard/admin");
+      } else if (data.role === "advertiser") {
+        setLocation("/dashboard/advertiser");
+      } else {
+        setLocation("/dashboard/publisher");
+      }
+    },
+    onError: (error: Error) => {
+      setError(error.message || "Ошибка входа");
+    },
+  });
+
+  const verify2FAMutation = useMutation({
+    mutationFn: async (token: string) => {
+      const response = await apiRequest("POST", "/api/auth/verify-2fa", { token });
       return response.json();
     },
     onSuccess: (data) => {
@@ -33,7 +60,8 @@ export default function Login() {
       }
     },
     onError: (error: Error) => {
-      setError(error.message || "Ошибка входа");
+      setError(error.message || "Неверный код");
+      setTotpCode("");
     },
   });
 
@@ -90,6 +118,66 @@ export default function Login() {
             </Alert>
           )}
 
+          {requires2FA ? (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-emerald-500" />
+                </div>
+                <p className="text-foreground font-medium mb-2">Двухфакторная аутентификация</p>
+                <p className="text-sm text-muted-foreground">
+                  Введите код из приложения аутентификатора
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={totpCode}
+                  onChange={(value) => setTotpCode(value)}
+                  data-testid="input-2fa-code"
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <Button
+                onClick={() => verify2FAMutation.mutate(totpCode)}
+                disabled={totpCode.length !== 6 || verify2FAMutation.isPending}
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-foreground font-medium"
+                data-testid="button-verify-2fa"
+              >
+                {verify2FAMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Проверка...
+                  </>
+                ) : (
+                  "Подтвердить"
+                )}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setRequires2FA(false);
+                  setTotpCode("");
+                  setError("");
+                }}
+                className="w-full text-sm text-muted-foreground hover:text-foreground"
+              >
+                Назад к входу
+              </button>
+            </div>
+          ) : (
+          <>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-muted-foreground">Логин</Label>
@@ -184,6 +272,8 @@ export default function Login() {
               На главную
             </button>
           </div>
+          </>
+          )}
         </CardContent>
       </Card>
 
