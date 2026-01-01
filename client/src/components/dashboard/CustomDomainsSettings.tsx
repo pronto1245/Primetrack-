@@ -198,6 +198,27 @@ export function CustomDomainsSettings() {
     },
   });
 
+  const reprovisionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/domains/${id}/reprovision`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Reprovision failed");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
+      toast({ title: "Домен перенастроен", description: "Ожидайте активации SSL" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Ошибка перенастройки", description: error.message, variant: "destructive" });
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Скопировано" });
@@ -492,6 +513,19 @@ export function CustomDomainsSettings() {
                         >
                           <RefreshCw className={`w-4 h-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
                           Синхронизировать
+                        </Button>
+                      )}
+                      
+                      {(domain.sslStatus === "ssl_failed" || domain.sslStatus === "failed") && (
+                        <Button
+                          variant="outline"
+                          className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+                          onClick={() => reprovisionMutation.mutate(domain.id)}
+                          disabled={reprovisionMutation.isPending}
+                          data-testid={`button-reprovision-${domain.id}`}
+                        >
+                          <RefreshCw className={`w-4 h-4 mr-2 ${reprovisionMutation.isPending ? 'animate-spin' : ''}`} />
+                          Перенастроить
                         </Button>
                       )}
                     </div>
