@@ -1344,7 +1344,12 @@ export async function registerRoutes(
         // С доступом - показываем лендинги с tracking URLs (без internalCost)
         const landings = await storage.getOfferLandings(offer.id);
         const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
-        const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "tracking.example.com";
+        // In development, use REPLIT_DEV_DOMAIN; in production use PLATFORM_DOMAIN
+        const isProduction = process.env.NODE_ENV === "production";
+        const defaultDomain = isProduction 
+          ? (process.env.PLATFORM_DOMAIN || "tracking.example.com")
+          : (process.env.REPLIT_DEV_DOMAIN || process.env.PLATFORM_DOMAIN || "tracking.example.com");
+        const trackingDomain = customDomain || defaultDomain;
         const publisherId = req.session.userId!;
         
         // Get shortIds for compact tracking URLs
@@ -1713,11 +1718,14 @@ export async function registerRoutes(
       }
 
       // Resolve shortId or UUID to actual UUIDs
+      console.log(`[CLICK DEBUG] rawOfferId=${rawOfferId}, rawLandingId=${rawLandingId}, rawPartnerId=${rawPartnerId}`);
       const offerId = await resolveOfferId(rawOfferId);
       const landingId = await resolveLandingId(rawLandingId);
       const partnerId = await resolvePublisherId(rawPartnerId as string);
+      console.log(`[CLICK DEBUG] resolved offerId=${offerId}, landingId=${landingId}, partnerId=${partnerId}`);
 
       if (!offerId) {
+        console.log(`[CLICK DEBUG] Offer not found for rawOfferId=${rawOfferId}`);
         return res.status(404).json({ error: "Offer not found" });
       }
       if (!landingId) {
