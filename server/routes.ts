@@ -298,7 +298,9 @@ export async function registerRoutes(
   // This allows tracking links to work on custom domains without authentication
   app.use(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const hostname = req.hostname?.toLowerCase();
+      // Support Cloudflare Worker proxy - check X-Original-Host first
+      const originalHost = req.headers['x-original-host'] as string | undefined;
+      const hostname = (originalHost || req.hostname)?.toLowerCase();
       
       // Skip for localhost, Replit domains, and platform domain
       if (!hostname || 
