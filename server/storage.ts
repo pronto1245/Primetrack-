@@ -2849,21 +2849,21 @@ export class DatabaseStorage implements IStorage {
   async updatePlatformSettings(data: Partial<InsertPlatformSettings>): Promise<PlatformSettings> {
     const existing = await this.getPlatformSettings();
     
-    // Encrypt sensitive fields if provided
+    // Encrypt sensitive fields if provided and not already encrypted
     const encryptedData = { ...data };
-    if (data.defaultTelegramBotToken) {
+    if (data.defaultTelegramBotToken && !hasSecret(data.defaultTelegramBotToken)) {
       encryptedData.defaultTelegramBotToken = encrypt(data.defaultTelegramBotToken);
     }
-    if (data.stripeSecretKey) {
+    if (data.stripeSecretKey && !hasSecret(data.stripeSecretKey)) {
       encryptedData.stripeSecretKey = encrypt(data.stripeSecretKey);
     }
-    if (data.cloudflareApiToken) {
+    if (data.cloudflareApiToken && !hasSecret(data.cloudflareApiToken)) {
       encryptedData.cloudflareApiToken = encrypt(data.cloudflareApiToken);
     }
-    if (data.ipinfoToken) {
+    if (data.ipinfoToken && !hasSecret(data.ipinfoToken)) {
       encryptedData.ipinfoToken = encrypt(data.ipinfoToken);
     }
-    if (data.fingerprintjsApiKey) {
+    if (data.fingerprintjsApiKey && !hasSecret(data.fingerprintjsApiKey)) {
       encryptedData.fingerprintjsApiKey = encrypt(data.fingerprintjsApiKey);
     }
     
