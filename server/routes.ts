@@ -4941,9 +4941,13 @@ export async function registerRoutes(
 
   const platformSettingsSchema = z.object({
     platformName: z.string().optional(),
+    platformDescription: z.string().optional().nullable(),
     platformLogoUrl: optionalUrlField,
     platformFaviconUrl: optionalUrlField,
     supportEmail: optionalEmailField,
+    supportPhone: z.string().optional().nullable(),
+    supportTelegram: z.string().optional().nullable(),
+    copyrightText: z.string().optional().nullable(),
     defaultTelegramBotToken: secretFieldSchema,
     stripeSecretKey: secretFieldSchema,
     ipinfoToken: secretFieldSchema,
@@ -5419,7 +5423,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
       }
       const {
-        platformName, platformLogoUrl, platformFaviconUrl, supportEmail,
+        platformName, platformDescription, platformLogoUrl, platformFaviconUrl, 
+        supportEmail, supportPhone, supportTelegram, copyrightText,
         defaultTelegramBotToken, stripeSecretKey, ipinfoToken, fingerprintjsApiKey,
         allowPublisherRegistration, allowAdvertiserRegistration, requireAdvertiserApproval,
         enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore,
@@ -5428,9 +5433,13 @@ export async function registerRoutes(
       
       const updateData: any = {
         platformName,
+        platformDescription,
         platformLogoUrl,
         platformFaviconUrl,
         supportEmail,
+        supportPhone,
+        supportTelegram,
+        copyrightText,
         allowPublisherRegistration,
         allowAdvertiserRegistration,
         requireAdvertiserApproval,
