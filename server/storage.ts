@@ -441,7 +441,8 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     // Get next short_id from sequence
-    const [{ nextval }] = await db.execute(sql`SELECT nextval('users_short_id_seq')`) as any;
+    const result = await db.execute(sql`SELECT nextval('users_short_id_seq')`) as any;
+    const nextval = result.rows?.[0]?.nextval ?? result[0]?.nextval;
     const [user] = await db.insert(users).values({
       ...insertUser,
       password: hashedPassword,
@@ -570,7 +571,8 @@ export class DatabaseStorage implements IStorage {
 
   async createOffer(insertOffer: InsertOffer): Promise<Offer> {
     // Get next short_id from sequence
-    const [{ nextval }] = await db.execute(sql`SELECT nextval('offers_short_id_seq')`) as any;
+    const result = await db.execute(sql`SELECT nextval('offers_short_id_seq')`) as any;
+    const nextval = result.rows?.[0]?.nextval ?? result[0]?.nextval;
     const [offer] = await db.insert(offers).values({
       ...insertOffer,
       shortId: Number(nextval),
@@ -644,12 +646,13 @@ export class DatabaseStorage implements IStorage {
 
   async createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding> {
     // Get next short_id from sequence
-    const [{ nextval }] = await db.execute(sql`SELECT nextval('landings_short_id_seq')`) as any;
-    const [result] = await db.insert(offerLandings).values({
+    const result = await db.execute(sql`SELECT nextval('landings_short_id_seq')`) as any;
+    const nextval = result.rows?.[0]?.nextval ?? result[0]?.nextval;
+    const [created] = await db.insert(offerLandings).values({
       ...landing,
       shortId: Number(nextval),
     }).returning();
-    return result;
+    return created;
   }
 
   async deleteOfferLandings(offerId: string): Promise<void> {
@@ -3571,7 +3574,8 @@ export class DatabaseStorage implements IStorage {
       // Backfill users with null shortId
       const usersWithoutShortId = await db.select({ id: users.id }).from(users).where(sql`short_id IS NULL`);
       for (const user of usersWithoutShortId) {
-        const [{ nextval }] = await db.execute(sql`SELECT nextval('users_short_id_seq')`) as any;
+        const res = await db.execute(sql`SELECT nextval('users_short_id_seq')`) as any;
+        const nextval = res.rows?.[0]?.nextval ?? res[0]?.nextval;
         await db.update(users).set({ shortId: Number(nextval) }).where(eq(users.id, user.id));
       }
       if (usersWithoutShortId.length > 0) {
@@ -3581,7 +3585,8 @@ export class DatabaseStorage implements IStorage {
       // Backfill offers with null shortId
       const offersWithoutShortId = await db.select({ id: offers.id }).from(offers).where(sql`short_id IS NULL`);
       for (const offer of offersWithoutShortId) {
-        const [{ nextval }] = await db.execute(sql`SELECT nextval('offers_short_id_seq')`) as any;
+        const res = await db.execute(sql`SELECT nextval('offers_short_id_seq')`) as any;
+        const nextval = res.rows?.[0]?.nextval ?? res[0]?.nextval;
         await db.update(offers).set({ shortId: Number(nextval) }).where(eq(offers.id, offer.id));
       }
       if (offersWithoutShortId.length > 0) {
@@ -3591,7 +3596,8 @@ export class DatabaseStorage implements IStorage {
       // Backfill landings with null shortId
       const landingsWithoutShortId = await db.select({ id: offerLandings.id }).from(offerLandings).where(sql`short_id IS NULL`);
       for (const landing of landingsWithoutShortId) {
-        const [{ nextval }] = await db.execute(sql`SELECT nextval('landings_short_id_seq')`) as any;
+        const res = await db.execute(sql`SELECT nextval('landings_short_id_seq')`) as any;
+        const nextval = res.rows?.[0]?.nextval ?? res[0]?.nextval;
         await db.update(offerLandings).set({ shortId: Number(nextval) }).where(eq(offerLandings.id, landing.id));
       }
       if (landingsWithoutShortId.length > 0) {
