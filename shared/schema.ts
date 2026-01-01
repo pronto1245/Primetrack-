@@ -8,6 +8,7 @@ import { z } from "zod";
 // ============================================
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shortId: integer("short_id").unique(), // 001, 002...
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   role: text("role").notNull().default("publisher"), // admin, advertiser, publisher, partner-manager
@@ -101,6 +102,7 @@ export type PublisherAdvertiser = typeof publisherAdvertisers.$inferSelect;
 // ============================================
 export const offers = pgTable("offers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shortId: integer("short_id").unique(), // 0001, 0002...
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   description: text("description").notNull(),
@@ -168,6 +170,7 @@ export type PublisherOffer = Omit<Offer, 'internalCost'>;
 // ============================================
 export const offerLandings = pgTable("offer_landings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shortId: integer("short_id").unique(), // 0001, 0002...
   offerId: varchar("offer_id").notNull().references(() => offers.id),
   geo: text("geo").notNull(),
   landingName: text("landing_name"),
