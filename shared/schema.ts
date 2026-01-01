@@ -1024,6 +1024,11 @@ export const platformSettings = pgTable("platform_settings", {
   cloudflareCnameTarget: text("cloudflare_cname_target"), // e.g., customers.example.com
   cloudflareFallbackOrigin: text("cloudflare_fallback_origin"), // e.g., tracking.example.com
   
+  // Cloudflare Workers Domain Binding (for custom domain routing)
+  cloudflareAccountId: text("cloudflare_account_id"), // Account ID from Cloudflare dashboard
+  cloudflareWorkerName: text("cloudflare_worker_name"), // Worker name (e.g., primetrack-proxy)
+  cloudflareWorkerEnvironment: text("cloudflare_worker_environment"), // Worker environment (default: production)
+  
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -1309,6 +1314,9 @@ export const customDomains = pgTable("custom_domains", {
   cloudflareSslStatus: text("cloudflare_ssl_status"), // pending_validation, pending_deployment, active
   dnsTarget: text("dns_target"), // CNAME target for customers (configured in platform settings)
   lastSyncedAt: timestamp("last_synced_at"), // Last time we synced with Cloudflare API
+  
+  // Cloudflare Worker Domain Binding
+  cloudflareWorkerBindingId: text("cloudflare_worker_binding_id"), // Worker domain binding ID
   
   // Usage
   isPrimary: boolean("is_primary").default(false),

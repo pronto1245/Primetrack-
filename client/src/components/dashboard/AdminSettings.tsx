@@ -632,6 +632,9 @@ function PlatformTab() {
     cloudflareApiToken: "",
     cloudflareCnameTarget: "",
     cloudflareFallbackOrigin: "",
+    cloudflareAccountId: "",
+    cloudflareWorkerName: "",
+    cloudflareWorkerEnvironment: "",
   });
 
   const { data: settings, isLoading } = useQuery<any>({
@@ -656,6 +659,9 @@ function PlatformTab() {
         cloudflareApiToken: "",
         cloudflareCnameTarget: settings.cloudflareCnameTarget || "",
         cloudflareFallbackOrigin: settings.cloudflareFallbackOrigin || "",
+        cloudflareAccountId: settings.cloudflareAccountId || "",
+        cloudflareWorkerName: settings.cloudflareWorkerName || "",
+        cloudflareWorkerEnvironment: settings.cloudflareWorkerEnvironment || "",
         allowPublisherRegistration: settings.allowPublisherRegistration ?? true,
         allowAdvertiserRegistration: settings.allowAdvertiserRegistration ?? true,
         requireAdvertiserApproval: settings.requireAdvertiserApproval ?? true,
@@ -1059,6 +1065,45 @@ function PlatformTab() {
                 data-testid="input-cloudflare-cname-target"
               />
               <p className="text-xs text-muted-foreground">Куда рекламодатели будут направлять CNAME</p>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t">
+            <h4 className="font-medium mb-3">Worker Routing (для кастомных доменов)</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Настройка автоматической привязки кастомных доменов к Cloudflare Worker
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cloudflareAccountId">Account ID</Label>
+                <Input
+                  id="cloudflareAccountId"
+                  placeholder="Найдите в Dashboard → Overview"
+                  value={formData.cloudflareAccountId}
+                  onChange={(e) => setFormData({ ...formData, cloudflareAccountId: e.target.value })}
+                  data-testid="input-cloudflare-account-id"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cloudflareWorkerName">Worker Name</Label>
+                <Input
+                  id="cloudflareWorkerName"
+                  placeholder="primetrack-proxy"
+                  value={formData.cloudflareWorkerName}
+                  onChange={(e) => setFormData({ ...formData, cloudflareWorkerName: e.target.value })}
+                  data-testid="input-cloudflare-worker-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cloudflareWorkerEnvironment">Environment</Label>
+                <Input
+                  id="cloudflareWorkerEnvironment"
+                  placeholder="production"
+                  value={formData.cloudflareWorkerEnvironment}
+                  onChange={(e) => setFormData({ ...formData, cloudflareWorkerEnvironment: e.target.value })}
+                  data-testid="input-cloudflare-worker-environment"
+                />
+              </div>
             </div>
           </div>
 

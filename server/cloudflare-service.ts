@@ -8,6 +8,9 @@ interface CloudflareSettings {
   apiToken: string;
   cnameTarget: string;
   fallbackOrigin: string;
+  accountId?: string;
+  workerName?: string;
+  workerEnvironment?: string;
 }
 
 interface CloudflareCustomHostname {
@@ -45,7 +48,15 @@ async function getCloudflareSettings(): Promise<CloudflareSettings | null> {
   const settings = await storage.getPlatformSettings();
   if (!settings) return null;
   
-  const { cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin } = settings;
+  const { 
+    cloudflareZoneId, 
+    cloudflareApiToken, 
+    cloudflareCnameTarget, 
+    cloudflareFallbackOrigin,
+    cloudflareAccountId,
+    cloudflareWorkerName,
+    cloudflareWorkerEnvironment,
+  } = settings;
   
   if (!cloudflareZoneId || !cloudflareApiToken || !cloudflareFallbackOrigin) {
     return null;
@@ -70,6 +81,9 @@ async function getCloudflareSettings(): Promise<CloudflareSettings | null> {
     apiToken: decryptedToken,
     cnameTarget: cloudflareCnameTarget || `customers.${cloudflareFallbackOrigin.replace('tracking.', '')}`,
     fallbackOrigin: cloudflareFallbackOrigin,
+    accountId: cloudflareAccountId || undefined,
+    workerName: cloudflareWorkerName || undefined,
+    workerEnvironment: cloudflareWorkerEnvironment || undefined,
   };
 }
 
@@ -102,6 +116,99 @@ async function cloudflareRequest<T>(
   }
   
   return data;
+}
+
+// Account-scoped API request for Workers Domains
+async function cloudflareAccountRequest<T>(
+  method: string,
+  endpoint: string,
+  body?: object
+): Promise<CloudflareApiResponse<T>> {
+  const settings = await getCloudflareSettings();
+  if (!settings) {
+    throw new Error("Cloudflare not configured");
+  }
+  if (!settings.accountId) {
+    throw new Error("Cloudflare Account ID not configured. Please set it in Admin Settings.");
+  }
+  
+  const url = `${CLOUDFLARE_API_BASE}/accounts/${settings.accountId}${endpoint}`;
+  
+  const response = await fetch(url, {
+    method,
+    headers: {
+      "Authorization": `Bearer ${settings.apiToken}`,
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  
+  const data = await response.json() as CloudflareApiResponse<T>;
+  
+  if (!data.success) {
+    const errorMsg = data.errors.map(e => e.message).join(", ");
+    throw new Error(`Cloudflare API error: ${errorMsg}`);
+  }
+  
+  return data;
+}
+
+// Create or update Worker Domain binding for custom hostname
+async function ensureWorkerDomainBinding(
+  hostname: string,
+  existingBindingId?: string | null
+): Promise<string> {
+  const settings = await getCloudflareSettings();
+  if (!settings?.accountId || !settings?.workerName) {
+    throw new Error("Cloudflare Worker settings not configured. Please set Account ID and Worker Name in Admin Settings.");
+  }
+  
+  const environment = settings.workerEnvironment || "production";
+  
+  // Delete existing binding if exists
+  if (existingBindingId) {
+    try {
+      await cloudflareAccountRequest("DELETE", `/workers/domains/${existingBindingId}`);
+      console.log(`[Cloudflare] Deleted existing worker binding: ${existingBindingId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Ignore "not found" errors
+      if (!message.includes("not_found") && !message.includes("10007")) {
+        console.warn(`[Cloudflare] Failed to delete existing binding: ${message}`);
+      }
+    }
+  }
+  
+  // Create new binding
+  const response = await cloudflareAccountRequest<{ id: string }>("PUT", "/workers/domains", {
+    hostname,
+    service: settings.workerName,
+    environment,
+    zone_id: settings.zoneId,
+  });
+  
+  console.log(`[Cloudflare] Created worker domain binding for ${hostname}: ${response.result.id}`);
+  return response.result.id;
+}
+
+// Delete Worker Domain binding
+async function deleteWorkerDomainBinding(bindingId: string): Promise<void> {
+  try {
+    await cloudflareAccountRequest("DELETE", `/workers/domains/${bindingId}`);
+    console.log(`[Cloudflare] Deleted worker domain binding: ${bindingId}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    // Ignore "not found" errors
+    if (!message.includes("not_found") && !message.includes("10007")) {
+      console.warn(`[Cloudflare] Failed to delete worker binding: ${message}`);
+    }
+  }
+}
+
+// Check if Worker settings are configured
+async function isWorkerConfigured(): Promise<boolean> {
+  const settings = await getCloudflareSettings();
+  return !!(settings?.accountId && settings?.workerName);
 }
 
 export async function isCloudflareConfigured(): Promise<boolean> {
@@ -298,14 +405,39 @@ export async function provisionDomain(
       cfHostname = await createCustomHostname(hostname);
     }
     
-    await storage.updateCustomDomain(domainId, {
+    // Get existing domain to check for worker binding
+    const existingDomain = await storage.getCustomDomain(domainId);
+    
+    const updateData: Record<string, unknown> = {
       cloudflareHostnameId: cfHostname.id,
       cloudflareStatus: cfHostname.status,
       cloudflareSslStatus: cfHostname.ssl.status,
       dnsTarget: settings.cnameTarget,
       lastSyncedAt: new Date(),
       cloudflareError: null,
-    });
+    };
+    
+    // Create Worker Domain binding if Worker settings are configured
+    if (settings.accountId && settings.workerName) {
+      try {
+        const bindingId = await ensureWorkerDomainBinding(
+          hostname,
+          existingDomain?.cloudflareWorkerBindingId
+        );
+        updateData.cloudflareWorkerBindingId = bindingId;
+        console.log(`[Cloudflare] Worker binding created for ${hostname}: ${bindingId}`);
+      } catch (workerError) {
+        // Log error but don't fail provisioning - SSL is primary, Worker is secondary
+        const workerErrorMsg = workerError instanceof Error ? workerError.message : String(workerError);
+        console.warn(`[Cloudflare] Failed to create Worker binding: ${workerErrorMsg}`);
+        // Store error for visibility but don't block SSL provisioning
+        updateData.cloudflareError = `SSL OK, Worker binding failed: ${workerErrorMsg}`;
+      }
+    } else {
+      console.log(`[Cloudflare] Worker settings not configured, skipping Worker binding`);
+    }
+    
+    await storage.updateCustomDomain(domainId, updateData);
     
     return { success: true };
   } catch (error) {
@@ -322,14 +454,50 @@ export async function provisionDomain(
 
 export async function deprovisionDomain(domainId: string): Promise<void> {
   const domain = await storage.getCustomDomain(domainId);
-  if (!domain?.cloudflareHostnameId) {
+  if (!domain) {
     return;
   }
   
-  try {
-    await deleteCustomHostname(domain.cloudflareHostnameId);
-  } catch (error) {
-    console.error(`Failed to delete Cloudflare hostname: ${error}`);
+  let workerDeleted = false;
+  let hostnameDeleted = false;
+  
+  // Delete Worker Domain binding first
+  if (domain.cloudflareWorkerBindingId) {
+    try {
+      await deleteWorkerDomainBinding(domain.cloudflareWorkerBindingId);
+      workerDeleted = true;
+    } catch (error) {
+      console.error(`Failed to delete Worker binding: ${error}`);
+    }
+  } else {
+    workerDeleted = true; // No binding to delete
+  }
+  
+  // Delete Custom Hostname
+  if (domain.cloudflareHostnameId) {
+    try {
+      await deleteCustomHostname(domain.cloudflareHostnameId);
+      hostnameDeleted = true;
+    } catch (error) {
+      console.error(`Failed to delete Cloudflare hostname: ${error}`);
+    }
+  } else {
+    hostnameDeleted = true; // No hostname to delete
+  }
+  
+  // Only clear IDs that were successfully deleted
+  const updateData: Record<string, unknown> = {};
+  if (hostnameDeleted) {
+    updateData.cloudflareHostnameId = null;
+    updateData.cloudflareStatus = null;
+    updateData.cloudflareSslStatus = null;
+  }
+  if (workerDeleted) {
+    updateData.cloudflareWorkerBindingId = null;
+  }
+  
+  if (Object.keys(updateData).length > 0) {
+    await storage.updateCustomDomain(domainId, updateData);
   }
 }
 
@@ -349,13 +517,30 @@ export async function reprovisionDomain(domainId: string): Promise<{ success: bo
       console.log(`[Cloudflare] Updating origin for hostname ${domain.cloudflareHostnameId} to ${settings.fallbackOrigin}`);
       const updated = await updateCustomHostnameOrigin(domain.cloudflareHostnameId);
       
-      await storage.updateCustomDomain(domainId, {
+      const updateData: Record<string, unknown> = {
         cloudflareStatus: updated.status,
         cloudflareSslStatus: updated.ssl.status,
         dnsTarget: settings.cnameTarget,
         lastSyncedAt: new Date(),
         cloudflareError: null,
-      });
+      };
+      
+      // Update Worker binding if configured
+      if (settings.accountId && settings.workerName) {
+        try {
+          const bindingId = await ensureWorkerDomainBinding(
+            domain.domain,
+            domain.cloudflareWorkerBindingId
+          );
+          updateData.cloudflareWorkerBindingId = bindingId;
+        } catch (workerError) {
+          const workerErrorMsg = workerError instanceof Error ? workerError.message : String(workerError);
+          console.warn(`[Cloudflare] Failed to update Worker binding: ${workerErrorMsg}`);
+          updateData.cloudflareError = `SSL OK, Worker binding failed: ${workerErrorMsg}`;
+        }
+      }
+      
+      await storage.updateCustomDomain(domainId, updateData);
       
       return { success: true };
     } else {
@@ -382,6 +567,7 @@ export async function getCnameTarget(): Promise<string | null> {
 
 export const cloudflareService = {
   isCloudflareConfigured,
+  isWorkerConfigured,
   setFallbackOrigin,
   getFallbackOrigin,
   createCustomHostname,
@@ -395,4 +581,6 @@ export const cloudflareService = {
   deprovisionDomain,
   reprovisionDomain,
   getCnameTarget,
+  ensureWorkerDomainBinding,
+  deleteWorkerDomainBinding,
 };
