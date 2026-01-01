@@ -86,11 +86,10 @@ export async function sendPasswordResetEmail(to: string, resetToken: string, use
       `,
     });
     
-    console.log('[email] Password reset email sent to:', to, 'Response:', JSON.stringify(result));
+    console.log('[email] Password reset email sent successfully, messageId:', result.data?.id);
     return { success: true, messageId: result.data?.id };
   } catch (error: any) {
-    console.error('[email] Failed to send password reset email:', error?.message || error);
-    console.error('[email] Full error:', JSON.stringify(error, null, 2));
+    console.error('[email] Failed to send password reset email:', error?.message || 'Unknown error');
     throw error;
   }
 }

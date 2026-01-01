@@ -1242,7 +1242,7 @@ export async function registerRoutes(
         creativeLinks: Array.isArray(rawOfferData.creativeLinks) ? rawOfferData.creativeLinks : [],
       };
       
-      console.log("[POST /api/offers] Sanitized data:", JSON.stringify(sanitizedData, null, 2));
+      console.log("[POST /api/offers] Creating offer:", sanitizedData.name, "for advertiser:", sanitizedData.advertiserId);
       
       // Validate required fields before schema validation
       if (!sanitizedData.geo || sanitizedData.geo.length === 0) {
@@ -1255,6 +1255,11 @@ export async function registerRoutes(
       
       if (!sanitizedData.category || !sanitizedData.category.trim()) {
         return res.status(400).json({ message: "Category is required." });
+      }
+      
+      // Ensure description has a default value if empty
+      if (!sanitizedData.description || !sanitizedData.description.trim()) {
+        sanitizedData.description = sanitizedData.name; // Use name as default description
       }
       
       const result = insertOfferSchema.safeParse(sanitizedData);
@@ -1287,9 +1292,7 @@ export async function registerRoutes(
             currency: landing.currency || "USD",
             offerId: offer.id,
           };
-          console.log("[POST /api/offers] Creating landing:", landingData);
           const createdLanding = await storage.createOfferLanding(landingData);
-          console.log("[POST /api/offers] Created landing:", createdLanding.id, "shortId:", createdLanding.shortId);
         }
       }
 
@@ -5713,11 +5716,9 @@ export async function registerRoutes(
   // Update platform settings (admin)
   app.patch("/api/admin/platform-settings", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
-      console.log("[PATCH platform-settings] Request body:", JSON.stringify(req.body, null, 2));
       const parseResult = platformSettingsSchema.safeParse(req.body);
       if (!parseResult.success) {
-        console.error("Platform settings validation error:", JSON.stringify(parseResult.error.errors, null, 2));
-        console.error("Request body:", JSON.stringify(req.body, null, 2));
+        console.error("[PATCH platform-settings] Validation error:", parseResult.error.errors.map(e => e.path.join('.') + ': ' + e.message).join(', '));
         return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
       }
       const {
