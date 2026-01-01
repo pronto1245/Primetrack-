@@ -27,7 +27,7 @@ function getResendClient() {
 export async function sendPasswordResetEmail(to: string, resetToken: string, username: string) {
   try {
     const { client, fromEmail } = getResendClient();
-    const appDomain = process.env.APP_DOMAIN || 'https://primetrack.pro';
+    const appDomain = process.env.APP_DOMAIN || 'https://app.example.com';
     const resetLink = `${appDomain}/reset-password?token=${resetToken}`;
     
     console.log('[email] Sending from:', fromEmail, 'to:', to);

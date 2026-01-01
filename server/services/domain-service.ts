@@ -19,10 +19,10 @@ interface DomainVerificationResult {
 
 
 class DomainService {
-  private platformDomain = process.env.PLATFORM_DOMAIN || "primetrack.pro";
+  private platformDomain = process.env.PLATFORM_DOMAIN || "tracking.example.com";
 
   generateVerificationToken(): string {
-    return `primetrack-verify-${crypto.randomBytes(16).toString("hex")}`;
+    return `verify-${crypto.randomBytes(16).toString("hex")}`;
   }
 
   async verifyDomain(domainId: string): Promise<DomainVerificationResult> {

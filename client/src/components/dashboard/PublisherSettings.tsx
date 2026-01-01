@@ -754,14 +754,14 @@ function ApiTab() {
             <p className="text-sm font-medium mb-2">Получение статистики:</p>
             <code className="text-xs block bg-background p-2 rounded border">
               curl -H "Authorization: Bearer YOUR_TOKEN" \<br/>
-              &nbsp;&nbsp;https://api.primetrack.io/v1/stats
+              &nbsp;&nbsp;{window.location.origin}/api/v1/stats
             </code>
           </div>
           <div className="p-4 bg-muted rounded-lg">
             <p className="text-sm font-medium mb-2">Получение конверсий:</p>
             <code className="text-xs block bg-background p-2 rounded border">
               curl -H "Authorization: Bearer YOUR_TOKEN" \<br/>
-              &nbsp;&nbsp;https://api.primetrack.io/v1/conversions
+              &nbsp;&nbsp;{window.location.origin}/api/v1/conversions
             </code>
           </div>
         </div>

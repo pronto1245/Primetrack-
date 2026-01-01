@@ -1015,8 +1015,8 @@ export const platformSettings = pgTable("platform_settings", {
   // Cloudflare SSL for SaaS integration
   cloudflareZoneId: text("cloudflare_zone_id"), // Zone ID from Cloudflare dashboard
   cloudflareApiToken: text("cloudflare_api_token"), // encrypted API token
-  cloudflareCnameTarget: text("cloudflare_cname_target"), // e.g., customers.primetrack.pro
-  cloudflareFallbackOrigin: text("cloudflare_fallback_origin"), // e.g., tracking.primetrack.pro
+  cloudflareCnameTarget: text("cloudflare_cname_target"), // e.g., customers.example.com
+  cloudflareFallbackOrigin: text("cloudflare_fallback_origin"), // e.g., tracking.example.com
   
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -1301,7 +1301,7 @@ export const customDomains = pgTable("custom_domains", {
   cloudflareHostnameId: text("cloudflare_hostname_id"), // Cloudflare custom hostname ID
   cloudflareStatus: text("cloudflare_status"), // pending, pending_validation, active, deleted, etc.
   cloudflareSslStatus: text("cloudflare_ssl_status"), // pending_validation, pending_deployment, active
-  dnsTarget: text("dns_target"), // CNAME target for customers (e.g., customers.primetrack.pro)
+  dnsTarget: text("dns_target"), // CNAME target for customers (configured in platform settings)
   lastSyncedAt: timestamp("last_synced_at"), // Last time we synced with Cloudflare API
   
   // Usage

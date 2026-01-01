@@ -295,7 +295,7 @@ export function CustomDomainsSettings() {
                   Добавьте CNAME запись в DNS-панели регистратора (Рег.ру, Namecheap, GoDaddy и др.):
                 </p>
                 <code className="block bg-muted px-2 py-1 rounded text-xs">
-                  {formData.domain || "ваш-домен"} → customers.primetrack.pro
+                  {formData.domain || "ваш-домен"} → [CNAME target из настроек]
                 </code>
                 <p className="text-xs text-muted-foreground mt-2">
                   SSL сертификат выдаётся автоматически после подтверждения DNS
@@ -400,9 +400,9 @@ export function CustomDomainsSettings() {
                           <TableRow>
                             <TableCell><Badge>CNAME</Badge></TableCell>
                             <TableCell className="font-mono text-xs">{domain.domain}</TableCell>
-                            <TableCell className="font-mono text-xs">{domain.dnsTarget || "tracking.primetrack.pro"}</TableCell>
+                            <TableCell className="font-mono text-xs">{domain.dnsTarget || "[настройте CNAME target]"}</TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard(domain.dnsTarget || "tracking.primetrack.pro")}>
+                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard(domain.dnsTarget || "")}>
                                 <Copy className="w-4 h-4" />
                               </Button>
                             </TableCell>

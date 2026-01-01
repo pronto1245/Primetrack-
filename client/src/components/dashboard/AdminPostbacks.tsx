@@ -56,7 +56,7 @@ export function AdminPostbacks() {
   const inboundCount = logs?.filter(l => l.direction === "inbound").length || 0;
   const outboundCount = logs?.filter(l => l.direction === "outbound").length || 0;
 
-  const platformDomain = "primetrack.pro";
+  const platformDomain = window.location.host;
   const universalPostbackUrl = `https://${platformDomain}/api/postback?click_id={click_id}&status={status}&payout={payout}`;
 
   return (

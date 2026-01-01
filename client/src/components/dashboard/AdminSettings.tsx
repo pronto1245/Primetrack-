@@ -1043,7 +1043,7 @@ function PlatformTab() {
               <Label htmlFor="cloudflareFallbackOrigin">Fallback Origin</Label>
               <Input
                 id="cloudflareFallbackOrigin"
-                placeholder="tracking.primetrack.pro"
+                placeholder="tracking.example.com"
                 value={formData.cloudflareFallbackOrigin}
                 onChange={(e) => setFormData({ ...formData, cloudflareFallbackOrigin: e.target.value })}
                 data-testid="input-cloudflare-fallback-origin"
@@ -1054,7 +1054,7 @@ function PlatformTab() {
               <Label htmlFor="cloudflareCnameTarget">CNAME Target</Label>
               <Input
                 id="cloudflareCnameTarget"
-                placeholder="customers.primetrack.pro"
+                placeholder="customers.example.com"
                 value={formData.cloudflareCnameTarget}
                 onChange={(e) => setFormData({ ...formData, cloudflareCnameTarget: e.target.value })}
                 data-testid="input-cloudflare-cname-target"

@@ -156,7 +156,7 @@ export function AdvertiserPostbacks() {
     toast.success("Скопировано");
   };
 
-  const platformDomain = "primetrack.pro";
+  const platformDomain = window.location.host;
   const universalPostbackUrl = `https://${platformDomain}/api/postback?click_id={click_id}&status={status}&payout={payout}`;
 
   if (isLoading) {

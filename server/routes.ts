@@ -119,9 +119,9 @@ async function seedUsers() {
   }
 
   const testUsers = [
-    { username: "admin", password: "admin123", role: "admin", email: "admin@primetrack.io" },
-    { username: "advertiser", password: "adv123", role: "advertiser", email: "advertiser@primetrack.io" },
-    { username: "publisher", password: "pub123", role: "publisher", email: "publisher@primetrack.io" },
+    { username: "admin", password: "admin123", role: "admin", email: "admin@example.com" },
+    { username: "advertiser", password: "adv123", role: "advertiser", email: "advertiser@example.com" },
+    { username: "publisher", password: "pub123", role: "publisher", email: "publisher@example.com" },
   ];
 
   for (const userData of testUsers) {
@@ -134,10 +134,10 @@ async function seedUsers() {
 
   // Seed additional test advertisers with offers
   const testAdvertisers = [
-    { username: "adv_casino", password: "adv123", role: "advertiser", email: "casino@primetrack.io", status: "active" },
-    { username: "adv_crypto", password: "adv123", role: "advertiser", email: "crypto@primetrack.io", status: "active" },
-    { username: "adv_dating", password: "adv123", role: "advertiser", email: "dating@primetrack.io", status: "active" },
-    { username: "adv_nutra", password: "adv123", role: "advertiser", email: "nutra@primetrack.io", status: "pending" },
+    { username: "adv_casino", password: "adv123", role: "advertiser", email: "casino@example.com", status: "active" },
+    { username: "adv_crypto", password: "adv123", role: "advertiser", email: "crypto@example.com", status: "active" },
+    { username: "adv_dating", password: "adv123", role: "advertiser", email: "dating@example.com", status: "active" },
+    { username: "adv_nutra", password: "adv123", role: "advertiser", email: "nutra@example.com", status: "pending" },
   ];
 
   const publisher = await storage.getUserByUsername("publisher");
@@ -1205,7 +1205,7 @@ export async function registerRoutes(
         // С доступом - показываем лендинги с tracking URLs (без internalCost)
         const landings = await storage.getOfferLandings(offer.id);
         const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
-        const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
+        const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "tracking.example.com";
         const publisherId = req.session.userId!;
         
         const safeLandings = landings.map(({ internalCost, ...rest }) => ({
@@ -1878,7 +1878,7 @@ export async function registerRoutes(
     res.status(410).json({
       error: "This endpoint is deprecated",
       message: "Please use /api/postback?o={offer_id}&a={publisher_id}&click_id={click_id}&status={status}&payout={payout}",
-      documentation: "https://docs.primetrack.pro/postbacks"
+      documentation: "/docs/postbacks"
     });
   });
 
@@ -1886,7 +1886,7 @@ export async function registerRoutes(
     res.status(410).json({
       error: "This endpoint is deprecated",
       message: "Please use /api/postback?o={offer_id}&a={publisher_id}&click_id={click_id}&status={status}&payout={payout}",
-      documentation: "https://docs.primetrack.pro/postbacks"
+      documentation: "/docs/postbacks"
     });
   });
 
@@ -2086,7 +2086,7 @@ export async function registerRoutes(
           if (hasAccess) {
             const landings = await storage.getOfferLandings(offer.id);
             const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
-            const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
+            const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "tracking.example.com";
             const safeLandings = landings.map(({ internalCost, ...rest }) => ({
               ...rest,
               trackingUrl: `https://${trackingDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
