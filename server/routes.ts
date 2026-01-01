@@ -5527,6 +5527,7 @@ export async function registerRoutes(
   // Update platform settings (admin)
   app.patch("/api/admin/platform-settings", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
+      console.log("[PATCH platform-settings] Request body:", JSON.stringify(req.body, null, 2));
       const parseResult = platformSettingsSchema.safeParse(req.body);
       if (!parseResult.success) {
         console.error("Platform settings validation error:", JSON.stringify(parseResult.error.errors, null, 2));
@@ -5541,6 +5542,7 @@ export async function registerRoutes(
         enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore,
         cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin
       } = parseResult.data;
+      console.log("[PATCH platform-settings] platformLogoUrl:", platformLogoUrl);
       
       const updateData: any = {
         platformName,
