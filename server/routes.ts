@@ -1262,10 +1262,18 @@ export async function registerRoutes(
         const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "tracking.example.com";
         const publisherId = req.session.userId!;
         
-        const safeLandings = landings.map(({ internalCost, ...rest }) => ({
-          ...rest,
-          trackingUrl: `https://${trackingDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
-        }));
+        // Get shortIds for compact tracking URLs
+        const publisher = await storage.getUser(publisherId);
+        const offerShortId = offer.shortId?.toString().padStart(4, '0') || offer.id;
+        const publisherShortId = publisher?.shortId?.toString().padStart(3, '0') || publisherId;
+        
+        const safeLandings = landings.map(({ internalCost, ...rest }) => {
+          const landingShortId = rest.shortId?.toString().padStart(4, '0') || rest.id;
+          return {
+            ...rest,
+            trackingUrl: `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`,
+          };
+        });
         return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
       }
       
@@ -2178,10 +2186,19 @@ export async function registerRoutes(
             const landings = await storage.getOfferLandings(offer.id);
             const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
             const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "tracking.example.com";
-            const safeLandings = landings.map(({ internalCost, ...rest }) => ({
-              ...rest,
-              trackingUrl: `https://${trackingDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
-            }));
+            
+            // Get shortIds for compact tracking URLs
+            const publisher = await storage.getUser(publisherId);
+            const offerShortId = offer.shortId?.toString().padStart(4, '0') || offer.id;
+            const publisherShortId = publisher?.shortId?.toString().padStart(3, '0') || publisherId;
+            
+            const safeLandings = landings.map(({ internalCost, ...rest }) => {
+              const landingShortId = rest.shortId?.toString().padStart(4, '0') || rest.id;
+              return {
+                ...rest,
+                trackingUrl: `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`,
+              };
+            });
             return { 
               ...safeOffer, 
               landings: safeLandings,
