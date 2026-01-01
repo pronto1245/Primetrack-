@@ -4,6 +4,7 @@ import { promisify } from "util";
 import { storage } from "../storage";
 import type { CustomDomain } from "@shared/schema";
 import { tlsChecker, type SslStatus } from "./tls-checker";
+import { cloudflareService } from "../cloudflare-service";
 
 const resolver = new dns.Resolver();
 resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
@@ -17,7 +18,6 @@ interface DomainVerificationResult {
   verifiedAt?: Date;
 }
 
-
 class DomainService {
   generateVerificationToken(): string {
     return `verify-${crypto.randomBytes(16).toString("hex")}`;
@@ -25,6 +25,9 @@ class DomainService {
 
   private async getCnameTarget(): Promise<string> {
     try {
+      const cnameTarget = await cloudflareService.getCnameTarget();
+      if (cnameTarget) return cnameTarget;
+      
       const settings = await storage.getPlatformSettings();
       return settings?.cloudflareCnameTarget || process.env.PLATFORM_CNAME_TARGET || "customers.example.com";
     } catch {
@@ -39,7 +42,14 @@ class DomainService {
     }
 
     try {
-      return await this.verifyCname(domainRecord);
+      const result = await this.verifyCname(domainRecord);
+      
+      if (result.success) {
+        // After DNS verified, provision in Cloudflare if not already done
+        await this.provisionInCloudflare(domainRecord);
+      }
+      
+      return result;
     } catch (error: any) {
       await storage.updateCustomDomain(domainId, {
         lastError: error.message,
@@ -54,22 +64,28 @@ class DomainService {
     // Try CNAME first
     try {
       const records = await resolveCname(domain.domain);
-      const isValid = records.some(
-        record => record.toLowerCase() === expectedCname.toLowerCase()
+      const foundRecord = records.find(
+        record => record.toLowerCase() === expectedCname.toLowerCase() ||
+                  record.toLowerCase().endsWith(expectedCname.toLowerCase())
       );
 
-      if (isValid) {
+      if (foundRecord) {
         const verifiedAt = new Date();
         await storage.updateCustomDomain(domain.id, {
           isVerified: true,
           verifiedAt,
-          sslStatus: "pending_external",
+          sslStatus: "ssl_activating",
           lastError: null,
         });
+        console.log(`[Domain] CNAME verified for ${domain.domain}: ${foundRecord}`);
         return { success: true, verifiedAt };
+      } else {
+        return {
+          success: false,
+          error: `CNAME найден (${records[0]}) но не соответствует ожидаемому (${expectedCname})`
+        };
       }
     } catch (error: any) {
-      // CNAME not found, try A record fallback (for Cloudflare Proxy)
       if (error.code === "ENODATA" || error.code === "ENOTFOUND") {
         console.log(`[Domain] CNAME not found for ${domain.domain}, trying A record fallback...`);
       } else {
@@ -82,15 +98,13 @@ class DomainService {
       const domainIps = await resolve4(domain.domain);
       
       if (domainIps && domainIps.length > 0) {
-        // Domain resolves to some IP - accept it (Cloudflare proxy or direct)
-        // For Cloudflare, we trust their proxy IPs
         console.log(`[Domain] A record found for ${domain.domain}: ${domainIps.join(", ")}`);
         
         const verifiedAt = new Date();
         await storage.updateCustomDomain(domain.id, {
           isVerified: true,
           verifiedAt,
-          sslStatus: "pending_external",
+          sslStatus: "ssl_activating",
           lastError: null,
         });
         return { success: true, verifiedAt };
@@ -111,6 +125,37 @@ class DomainService {
     };
   }
 
+  private async provisionInCloudflare(domain: CustomDomain): Promise<void> {
+    // Skip if already provisioned
+    if (domain.cloudflareHostnameId) {
+      console.log(`[Domain] ${domain.domain} already has Cloudflare hostname: ${domain.cloudflareHostnameId}`);
+      return;
+    }
+
+    // Check if Cloudflare is configured
+    const isConfigured = await cloudflareService.isCloudflareConfigured();
+    if (!isConfigured) {
+      console.log(`[Domain] Cloudflare not configured, skipping provisioning for ${domain.domain}`);
+      await storage.updateCustomDomain(domain.id, {
+        lastError: "Cloudflare SSL for SaaS не настроен. Обратитесь к администратору.",
+        sslStatus: "ssl_failed",
+      });
+      return;
+    }
+
+    console.log(`[Domain] Provisioning ${domain.domain} in Cloudflare...`);
+    const result = await cloudflareService.provisionDomain(domain.id, domain.domain);
+    
+    if (!result.success) {
+      console.error(`[Domain] Cloudflare provisioning failed for ${domain.domain}: ${result.error}`);
+      await storage.updateCustomDomain(domain.id, {
+        lastError: result.error,
+        sslStatus: "ssl_failed",
+      });
+    } else {
+      console.log(`[Domain] Cloudflare provisioning started for ${domain.domain}`);
+    }
+  }
 
   async checkSsl(domainId: string): Promise<{ 
     success: boolean; 
@@ -128,9 +173,60 @@ class DomainService {
     }
 
     console.log(`[Domain] Checking SSL for ${domain.domain}...`);
+
+    // First sync with Cloudflare to get latest status
+    if (domain.cloudflareHostnameId) {
+      try {
+        const syncResult = await cloudflareService.syncDomainStatus(domainId);
+        console.log(`[Domain] Cloudflare sync for ${domain.domain}: status=${syncResult.status}, ssl=${syncResult.sslStatus}`);
+        
+        if (syncResult.error) {
+          return {
+            success: false,
+            status: "ssl_failed",
+            error: syncResult.error,
+          };
+        }
+        
+        // If Cloudflare says pending, return early
+        if (syncResult.status !== "active" || syncResult.sslStatus !== "active") {
+          await storage.updateCustomDomain(domainId, {
+            sslStatus: "ssl_activating",
+          });
+          return {
+            success: false,
+            status: "ssl_activating",
+            error: `Cloudflare: hostname=${syncResult.status}, ssl=${syncResult.sslStatus}. Ожидайте активации.`,
+          };
+        }
+      } catch (error: any) {
+        console.error(`[Domain] Cloudflare sync error for ${domain.domain}:`, error);
+      }
+    } else {
+      // No Cloudflare hostname - try to provision
+      await this.provisionInCloudflare(domain);
+      
+      const updatedDomain = await storage.getCustomDomain(domainId);
+      if (!updatedDomain?.cloudflareHostnameId) {
+        return {
+          success: false,
+          status: "ssl_failed",
+          error: "Не удалось создать hostname в Cloudflare. Проверьте настройки.",
+        };
+      }
+      
+      return {
+        success: false,
+        status: "ssl_activating",
+        error: "Hostname создан в Cloudflare. Ожидайте активации SSL.",
+      };
+    }
+
+    // Now do real TLS + HTTP check
+    console.log(`[Domain] Running TLS handshake + HTTP check for ${domain.domain}...`);
     const result = await tlsChecker.checkDomainSsl(domainId);
     
-    console.log(`[Domain] SSL check result for ${domain.domain}: ${result.status}`);
+    console.log(`[Domain] SSL check result for ${domain.domain}: success=${result.success}, status=${result.status}, error=${result.error}`);
     return result;
   }
 
@@ -154,14 +250,16 @@ class DomainService {
 
   async getPrimaryDomainForAdvertiser(advertiserId: string): Promise<string | null> {
     const domains = await storage.getCustomDomainsByAdvertiser(advertiserId);
-    const primaryDomain = domains.find(d => d.isPrimary && d.isVerified && d.isActive);
+    
+    // Only return domains with active SSL
+    const primaryDomain = domains.find(d => d.isPrimary && d.isVerified && d.isActive && d.sslStatus === "ssl_active");
     
     if (primaryDomain) {
       return primaryDomain.domain;
     }
 
-    const anyVerifiedDomain = domains.find(d => d.isVerified && d.isActive);
-    return anyVerifiedDomain?.domain || null;
+    const anyActiveDomain = domains.find(d => d.isVerified && d.isActive && d.sslStatus === "ssl_active");
+    return anyActiveDomain?.domain || null;
   }
 
   async generateTrackingLinks(
@@ -184,42 +282,79 @@ class DomainService {
   }
 
   validateDomainFormat(domain: string): { valid: boolean; error?: string } {
+    const cleanDomain = domain.toLowerCase().trim();
     const domainRegex = /^(?!:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
     
-    if (!domainRegex.test(domain)) {
-      return { valid: false, error: "Invalid domain format" };
+    if (!domainRegex.test(cleanDomain)) {
+      return { valid: false, error: "Неверный формат домена" };
     }
 
-    if (domain.length > 253) {
-      return { valid: false, error: "Domain name too long" };
+    if (cleanDomain.length > 253) {
+      return { valid: false, error: "Имя домена слишком длинное" };
     }
 
-    const parts = domain.split(".");
+    const parts = cleanDomain.split(".");
     for (const part of parts) {
       if (part.length > 63) {
-        return { valid: false, error: "Domain label too long" };
+        return { valid: false, error: "Часть домена слишком длинная" };
       }
       if (part.startsWith("-") || part.endsWith("-")) {
-        return { valid: false, error: "Domain labels cannot start or end with hyphens" };
+        return { valid: false, error: "Части домена не могут начинаться или заканчиваться дефисом" };
       }
     }
 
     const reserved = ["localhost", "example.com", "test.com"];
-    if (reserved.some(r => domain.includes(r))) {
-      return { valid: false, error: "Reserved domain name" };
+    if (reserved.some(r => cleanDomain.includes(r))) {
+      return { valid: false, error: "Зарезервированное имя домена" };
     }
 
     return { valid: true };
   }
 
   async checkDomainAvailability(domain: string, excludeDomainId?: string): Promise<{ available: boolean; error?: string }> {
-    const existing = await storage.getCustomDomainByDomain(domain);
+    const existing = await storage.getCustomDomainByDomain(domain.toLowerCase().trim());
     
     if (existing && existing.id !== excludeDomainId) {
-      return { available: false, error: "Domain already registered" };
+      return { available: false, error: "Домен уже зарегистрирован" };
     }
 
     return { available: true };
+  }
+
+  async reprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string }> {
+    const domain = await storage.getCustomDomain(domainId);
+    if (!domain) {
+      return { success: false, error: "Domain not found" };
+    }
+
+    // Delete existing Cloudflare hostname if exists
+    if (domain.cloudflareHostnameId) {
+      try {
+        await cloudflareService.deprovisionDomain(domainId);
+      } catch (error) {
+        console.error(`[Domain] Failed to delete old hostname:`, error);
+      }
+    }
+
+    // Reset domain state
+    await storage.updateCustomDomain(domainId, {
+      cloudflareHostnameId: null,
+      cloudflareStatus: null,
+      cloudflareSslStatus: null,
+      sslStatus: "ssl_activating",
+      lastError: null,
+      cloudflareError: null,
+    });
+
+    // Re-provision
+    await this.provisionInCloudflare(domain);
+    
+    const updated = await storage.getCustomDomain(domainId);
+    if (updated?.cloudflareHostnameId) {
+      return { success: true };
+    }
+    
+    return { success: false, error: updated?.lastError || "Не удалось создать hostname" };
   }
 }
 
