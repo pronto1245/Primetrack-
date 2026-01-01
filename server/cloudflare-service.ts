@@ -149,6 +149,7 @@ export async function createCustomHostname(
         },
       },
       custom_origin_server: settings.fallbackOrigin,
+      custom_origin_sni_value: settings.fallbackOrigin,
     }
   );
   
@@ -183,6 +184,7 @@ export async function updateCustomHostnameOrigin(
     `/custom_hostnames/${hostnameId}`,
     {
       custom_origin_server: settings.fallbackOrigin,
+      custom_origin_sni_value: settings.fallbackOrigin,
     }
   );
   
