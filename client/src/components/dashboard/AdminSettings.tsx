@@ -585,6 +585,7 @@ function PlatformTab() {
   const [showBotToken, setShowBotToken] = useState(false);
   const [showIpinfoToken, setShowIpinfoToken] = useState(false);
   const [showFingerprintKey, setShowFingerprintKey] = useState(false);
+  const [showCloudflareToken, setShowCloudflareToken] = useState(false);
   const [formData, setFormData] = useState({
     platformName: "PrimeTrack",
     platformLogoUrl: "",
@@ -600,6 +601,10 @@ function PlatformTab() {
     enableVpnDetection: true,
     enableFingerprintTracking: true,
     maxFraudScore: 70,
+    cloudflareZoneId: "",
+    cloudflareApiToken: "",
+    cloudflareCnameTarget: "",
+    cloudflareFallbackOrigin: "",
   });
 
   const { data: settings, isLoading } = useQuery<any>({
@@ -616,6 +621,10 @@ function PlatformTab() {
         defaultTelegramBotToken: "",
         ipinfoToken: "",
         fingerprintjsApiKey: "",
+        cloudflareZoneId: settings.cloudflareZoneId || "",
+        cloudflareApiToken: "",
+        cloudflareCnameTarget: settings.cloudflareCnameTarget || "",
+        cloudflareFallbackOrigin: settings.cloudflareFallbackOrigin || "",
         allowPublisherRegistration: settings.allowPublisherRegistration ?? true,
         allowAdvertiserRegistration: settings.allowAdvertiserRegistration ?? true,
         requireAdvertiserApproval: settings.requireAdvertiserApproval ?? true,
@@ -870,6 +879,95 @@ function PlatformTab() {
               )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Cloudflare SSL for SaaS
+          </CardTitle>
+          <CardDescription>Автоматические SSL сертификаты для кастомных доменов рекламодателей</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cloudflareZoneId">Zone ID</Label>
+              <Input
+                id="cloudflareZoneId"
+                placeholder="Найдите в Cloudflare Dashboard → Overview"
+                value={formData.cloudflareZoneId}
+                onChange={(e) => setFormData({ ...formData, cloudflareZoneId: e.target.value })}
+                data-testid="input-cloudflare-zone-id"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cloudflareApiToken">API Token</Label>
+              <div className="relative">
+                <Input
+                  id="cloudflareApiToken"
+                  type={showCloudflareToken ? "text" : "password"}
+                  placeholder={settings?.cloudflareApiToken ? "***configured***" : "Создайте в Profile → API Tokens"}
+                  value={formData.cloudflareApiToken}
+                  onChange={(e) => setFormData({ ...formData, cloudflareApiToken: e.target.value })}
+                  data-testid="input-cloudflare-api-token"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full"
+                  onClick={() => setShowCloudflareToken(!showCloudflareToken)}
+                >
+                  {showCloudflareToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cloudflareFallbackOrigin">Fallback Origin</Label>
+              <Input
+                id="cloudflareFallbackOrigin"
+                placeholder="tracking.primetrack.pro"
+                value={formData.cloudflareFallbackOrigin}
+                onChange={(e) => setFormData({ ...formData, cloudflareFallbackOrigin: e.target.value })}
+                data-testid="input-cloudflare-fallback-origin"
+              />
+              <p className="text-xs text-muted-foreground">Домен вашего трекинга на Replit</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cloudflareCnameTarget">CNAME Target</Label>
+              <Input
+                id="cloudflareCnameTarget"
+                placeholder="customers.primetrack.pro"
+                value={formData.cloudflareCnameTarget}
+                onChange={(e) => setFormData({ ...formData, cloudflareCnameTarget: e.target.value })}
+                data-testid="input-cloudflare-cname-target"
+              />
+              <p className="text-xs text-muted-foreground">Куда рекламодатели будут направлять CNAME</p>
+            </div>
+          </div>
+
+          {settings?.cloudflareZoneId && settings?.cloudflareApiToken && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-700 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                Cloudflare настроен. Рекламодатели могут добавлять кастомные домены.
+              </p>
+            </div>
+          )}
+
+          {(!settings?.cloudflareZoneId || !settings?.cloudflareApiToken) && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-700 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Заполните Zone ID и API Token для включения автоматических SSL сертификатов
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

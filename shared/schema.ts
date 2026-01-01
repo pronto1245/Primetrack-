@@ -1008,6 +1008,12 @@ export const platformSettings = pgTable("platform_settings", {
   cryptoEthAddress: text("crypto_eth_address"),
   cryptoUsdtErc20Address: text("crypto_usdt_erc20_address"),
   
+  // Cloudflare SSL for SaaS integration
+  cloudflareZoneId: text("cloudflare_zone_id"), // Zone ID from Cloudflare dashboard
+  cloudflareApiToken: text("cloudflare_api_token"), // encrypted API token
+  cloudflareCnameTarget: text("cloudflare_cname_target"), // e.g., customers.primetrack.pro
+  cloudflareFallbackOrigin: text("cloudflare_fallback_origin"), // e.g., tracking.primetrack.pro
+  
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -1282,10 +1288,17 @@ export const customDomains = pgTable("custom_domains", {
   sslStatus: text("ssl_status").default("pending"), // pending, provisioning, active, failed
   sslExpiresAt: timestamp("ssl_expires_at"),
   
-  // SSL Certificate (Let's Encrypt)
+  // SSL Certificate (Let's Encrypt) - deprecated, now using Cloudflare
   sslCertificate: text("ssl_certificate"), // PEM encoded certificate
   sslPrivateKey: text("ssl_private_key"), // PEM encoded private key (encrypted)
   sslChain: text("ssl_chain"), // PEM encoded certificate chain
+  
+  // Cloudflare SSL for SaaS
+  cloudflareHostnameId: text("cloudflare_hostname_id"), // Cloudflare custom hostname ID
+  cloudflareStatus: text("cloudflare_status"), // pending, pending_validation, active, deleted, etc.
+  cloudflareSslStatus: text("cloudflare_ssl_status"), // pending_validation, pending_deployment, active
+  dnsTarget: text("dns_target"), // CNAME target for customers (e.g., customers.primetrack.pro)
+  lastSyncedAt: timestamp("last_synced_at"), // Last time we synced with Cloudflare API
   
   // Usage
   isPrimary: boolean("is_primary").default(false),
@@ -1293,6 +1306,7 @@ export const customDomains = pgTable("custom_domains", {
   
   // Error tracking
   lastError: text("last_error"),
+  cloudflareError: text("cloudflare_error"), // Cloudflare-specific error message
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

@@ -4917,6 +4917,10 @@ export async function registerRoutes(
     enableVpnDetection: z.boolean().optional(),
     enableFingerprintTracking: z.boolean().optional(),
     maxFraudScore: z.number().optional().nullable(),
+    cloudflareZoneId: z.string().optional().or(z.literal("")),
+    cloudflareApiToken: secretFieldSchema,
+    cloudflareCnameTarget: z.string().optional().or(z.literal("")),
+    cloudflareFallbackOrigin: z.string().optional().or(z.literal("")),
   });
 
   // Update user profile (all roles)
@@ -5945,6 +5949,9 @@ export async function registerRoutes(
       }
 
       const verificationToken = domainService.generateVerificationToken();
+      
+      const { cloudflareService } = await import("./cloudflare-service");
+      const cnameTarget = await cloudflareService.getCnameTarget();
 
       const newDomain = await storage.createCustomDomain({
         advertiserId,
@@ -5955,10 +5962,24 @@ export async function registerRoutes(
         sslStatus: "pending",
         isPrimary: false,
         isActive: true,
+        dnsTarget: cnameTarget || undefined,
       });
 
-      res.status(201).json(newDomain);
+      try {
+        if (await cloudflareService.isCloudflareConfigured()) {
+          const result = await cloudflareService.provisionDomain(newDomain.id, domain);
+          if (!result.success) {
+            console.error(`Cloudflare provisioning failed for ${domain}: ${result.error}`);
+          }
+        }
+      } catch (cfError) {
+        console.error(`Cloudflare provisioning error for ${domain}:`, cfError);
+      }
+
+      const updatedDomain = await storage.getCustomDomain(newDomain.id);
+      res.status(201).json(updatedDomain);
     } catch (error) {
+      console.error("Failed to add domain:", error);
       res.status(500).json({ message: "Failed to add domain" });
     }
   });
@@ -6045,6 +6066,40 @@ export async function registerRoutes(
     }
   });
 
+  // Sync domain status with Cloudflare
+  app.post("/api/domains/:id/sync", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      const { cloudflareService } = await import("./cloudflare-service");
+      
+      if (!await cloudflareService.isCloudflareConfigured()) {
+        return res.status(400).json({ message: "Cloudflare not configured" });
+      }
+
+      if (!existing.cloudflareHostnameId) {
+        const result = await cloudflareService.provisionDomain(id, existing.domain);
+        if (!result.success) {
+          return res.status(400).json({ message: result.error });
+        }
+      } else {
+        await cloudflareService.syncDomainStatus(id);
+      }
+
+      const updated = await storage.getCustomDomain(id);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to sync domain:", error);
+      res.status(500).json({ message: "Failed to sync domain" });
+    }
+  });
+
   // Delete domain
   app.delete("/api/domains/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
@@ -6056,9 +6111,19 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Domain not found" });
       }
 
+      try {
+        const { cloudflareService } = await import("./cloudflare-service");
+        if (existing.cloudflareHostnameId) {
+          await cloudflareService.deprovisionDomain(id);
+        }
+      } catch (cfError) {
+        console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
+      }
+
       await storage.deleteCustomDomain(id);
       res.json({ success: true });
     } catch (error) {
+      console.error("Failed to delete domain:", error);
       res.status(500).json({ message: "Failed to delete domain" });
     }
   });

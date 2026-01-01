@@ -163,13 +163,19 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Шифрование в БД
 
 ### Custom Domains (Backend)
-- ✅ Таблица custom_domains
+- ✅ Таблица custom_domains с Cloudflare полями (cloudflareHostnameId, cloudflareStatus, cloudflareSslStatus, dnsTarget)
 - ✅ DNS верификация (CNAME/TXT) через Google DNS resolvers
 - ✅ TLS Checker - реальная проверка SSL через TLS handshake
 - ✅ Честные SSL статусы: unverified, verified_no_ssl, ssl_activating, ssl_active, ssl_failed
 - ✅ Endpoint `/api/domains/:id/check-ssl` - проверка SSL
-- ✅ UI: кнопка "Проверить SSL", инструкции для Cloudflare
-- ✅ SSL через Cloudflare (внешний провайдер)
+- ✅ Endpoint `/api/domains/:id/sync` - синхронизация статуса Cloudflare
+- ✅ **Cloudflare SSL for SaaS интеграция:**
+  - ✅ server/cloudflare-service.ts - полное API (createCustomHostname, getCustomHostname, deleteCustomHostname, syncDomainStatus)
+  - ✅ Автоматический provisioning при создании домена
+  - ✅ Автоматический deprovisioning при удалении
+  - ✅ Настройки в Admin → Платформа (Zone ID, API Token, Fallback Origin, CNAME Target)
+- ✅ UI: кнопка "Проверить SSL", кнопка "Синхронизировать", инструкции для Cloudflare
+- ✅ CNAME Target динамически берётся из platform_settings
 - ❌ ACME/Let's Encrypt удалён (не работает на Replit - нет доступа к порту 80)
 
 ### IP Intelligence (ipinfo.io)

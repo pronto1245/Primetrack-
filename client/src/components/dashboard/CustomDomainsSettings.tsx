@@ -39,6 +39,10 @@ interface CustomDomain {
   isActive: boolean;
   lastError: string | null;
   createdAt: string;
+  dnsTarget: string | null;
+  cloudflareHostnameId: string | null;
+  cloudflareStatus: string | null;
+  cloudflareSslStatus: string | null;
 }
 
 export function CustomDomainsSettings() {
@@ -173,6 +177,27 @@ export function CustomDomainsSettings() {
     },
   });
 
+  const syncMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/domains/${id}/sync`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Sync failed");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
+      toast({ title: "Статус обновлён" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Ошибка синхронизации", description: error.message, variant: "destructive" });
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Скопировано" });
@@ -270,13 +295,13 @@ export function CustomDomainsSettings() {
                   Добавьте CNAME запись в DNS-панели регистратора (Рег.ру, Namecheap, GoDaddy и др.):
                 </p>
                 <code className="block bg-muted px-2 py-1 rounded text-xs">
-                  {formData.domain || "ваш-домен"} → tracking.primetrack.pro
+                  {formData.domain || "ваш-домен"} → customers.primetrack.pro
                 </code>
                 <p className="text-xs text-muted-foreground mt-2">
                   SSL сертификат выдаётся автоматически после подтверждения DNS
                 </p>
-                <p className="text-xs text-yellow-500 mt-1">
-                  ⚠️ Если используете Cloudflare — отключите Proxy (серое облачко)
+                <p className="text-xs text-green-500 mt-1">
+                  ✓ Если используете Cloudflare — включите Proxy (оранжевое облачко)
                 </p>
               </div>
             </div>
@@ -375,9 +400,9 @@ export function CustomDomainsSettings() {
                           <TableRow>
                             <TableCell><Badge>CNAME</Badge></TableCell>
                             <TableCell className="font-mono text-xs">{domain.domain}</TableCell>
-                            <TableCell className="font-mono text-xs">tracking.primetrack.pro</TableCell>
+                            <TableCell className="font-mono text-xs">{domain.dnsTarget || "tracking.primetrack.pro"}</TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard("tracking.primetrack.pro")}>
+                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard(domain.dnsTarget || "tracking.primetrack.pro")}>
                                 <Copy className="w-4 h-4" />
                               </Button>
                             </TableCell>
@@ -385,7 +410,7 @@ export function CustomDomainsSettings() {
                         </TableBody>
                       </Table>
                       <p className="text-xs text-muted-foreground">
-                        Добавьте запись в DNS-панели регистратора. Если Cloudflare — отключите Proxy (серое облачко)
+                        Добавьте CNAME запись в DNS-панели регистратора. Если Cloudflare — включите Proxy (оранжевое облачко).
                       </p>
                     </div>
                     <Button
@@ -438,24 +463,44 @@ export function CustomDomainsSettings() {
                         <p className="text-xs text-muted-foreground">
                           SSL выдаётся автоматически после подтверждения DNS. Подождите несколько минут и нажмите "Проверить SSL".
                         </p>
-                        <p className="text-xs text-yellow-500">
-                          ⚠️ Если используете Cloudflare — убедитесь что Proxy отключен (серое облачко вместо оранжевого)
+                        <p className="text-xs text-green-500">
+                          ✓ Если используете Cloudflare — включите Proxy (оранжевое облачко)
                         </p>
                       </div>
                     )}
                     
-                    <Button
-                      variant={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" ? "default" : "outline"}
-                      className={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" 
-                        ? "bg-green-600 hover:bg-green-700 text-white" 
-                        : "border-blue-500 text-blue-500 hover:bg-blue-500/10"}
-                      onClick={() => checkSslMutation.mutate(domain.id)}
-                      disabled={checkSslMutation.isPending}
-                      data-testid={`button-check-ssl-${domain.id}`}
-                    >
-                      <Shield className={`w-4 h-4 mr-2 ${checkSslMutation.isPending ? 'animate-spin' : ''}`} />
-                      Проверить SSL
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" ? "default" : "outline"}
+                        className={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" 
+                          ? "bg-green-600 hover:bg-green-700 text-white" 
+                          : "border-blue-500 text-blue-500 hover:bg-blue-500/10"}
+                        onClick={() => checkSslMutation.mutate(domain.id)}
+                        disabled={checkSslMutation.isPending}
+                        data-testid={`button-check-ssl-${domain.id}`}
+                      >
+                        <Shield className={`w-4 h-4 mr-2 ${checkSslMutation.isPending ? 'animate-spin' : ''}`} />
+                        Проверить SSL
+                      </Button>
+                      
+                      {domain.cloudflareHostnameId && (
+                        <Button
+                          variant="outline"
+                          onClick={() => syncMutation.mutate(domain.id)}
+                          disabled={syncMutation.isPending}
+                          data-testid={`button-sync-${domain.id}`}
+                        >
+                          <RefreshCw className={`w-4 h-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                          Синхронизировать
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {domain.cloudflareHostnameId && (
+                      <div className="text-xs text-muted-foreground">
+                        Cloudflare: {domain.cloudflareStatus || "pending"} | SSL: {domain.cloudflareSslStatus || "pending"}
+                      </div>
+                    )}
                     
                     {domain.lastError && (
                       <div className="p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
