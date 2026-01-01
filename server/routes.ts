@@ -172,33 +172,34 @@ async function setupAuth(app: Express) {
 }
 
 async function seedUsers() {
-  // Only seed test users in development mode
-  const isProduction = process.env.NODE_ENV === "production";
-  if (isProduction) {
-    console.log("Skipping test user seeding in production mode");
-    return;
-  }
+  // Seed users only for initial setup - generates secure random passwords
+  const crypto = await import("crypto");
+  const generateSecurePassword = () => crypto.randomBytes(16).toString("hex");
 
   const testUsers = [
-    { username: "admin", password: "admin123", role: "admin", email: "admin@example.com" },
-    { username: "advertiser", password: "adv123", role: "advertiser", email: "advertiser@example.com" },
-    { username: "publisher", password: "pub123", role: "publisher", email: "publisher@example.com" },
+    { username: "admin", password: generateSecurePassword(), role: "admin", email: "admin@primetrack.pro" },
   ];
 
   for (const userData of testUsers) {
     const existing = await storage.getUserByUsername(userData.username);
     if (!existing) {
       await storage.createUser(userData);
-      console.log(`[DEV] Created test user: ${userData.username}`);
+      console.log(`[SETUP] Created admin user. Use /api/reset-admin-password with SETUP_KEY to set password.`);
     }
   }
 
-  // Seed additional test advertisers with offers
+  // Skip test advertisers in production - they should be created via UI
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction) {
+    return;
+  }
+
+  // Development only: create test advertisers with random passwords
   const testAdvertisers = [
-    { username: "adv_casino", password: "adv123", role: "advertiser", email: "casino@example.com", status: "active" },
-    { username: "adv_crypto", password: "adv123", role: "advertiser", email: "crypto@example.com", status: "active" },
-    { username: "adv_dating", password: "adv123", role: "advertiser", email: "dating@example.com", status: "active" },
-    { username: "adv_nutra", password: "adv123", role: "advertiser", email: "nutra@example.com", status: "pending" },
+    { username: "adv_casino", password: generateSecurePassword(), role: "advertiser", email: "casino@example.com", status: "active" },
+    { username: "adv_crypto", password: generateSecurePassword(), role: "advertiser", email: "crypto@example.com", status: "active" },
+    { username: "adv_dating", password: generateSecurePassword(), role: "advertiser", email: "dating@example.com", status: "active" },
+    { username: "adv_nutra", password: generateSecurePassword(), role: "advertiser", email: "nutra@example.com", status: "pending" },
   ];
 
   const publisher = await storage.getUserByUsername("publisher");
