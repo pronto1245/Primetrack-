@@ -341,10 +341,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
     enabled: role === "advertiser",
   });
 
-  // Load platform settings for platform logo
+  // Load platform settings for platform logo (public endpoint - available to all roles)
   const { data: platformSettings } = useQuery<any>({
-    queryKey: ["/api/admin/platform-settings"],
-    enabled: role === "admin" || role === "advertiser",
+    queryKey: ["/api/public/platform-settings"],
   });
 
   // Handle auth error - redirect to login
