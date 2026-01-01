@@ -171,20 +171,15 @@ export function CreateOfferForm({ role }: { role: string }) {
 
   const isFormValid = () => {
     const hasName = formData.name && formData.name.trim().length > 0;
-    const hasDescription = formData.description && formData.description.trim().length > 0;
     
-    // RevShare требует rev_share_percent, остальные требуют partner_payout в лендингах
+    // Валидные лендинги - требуют только geo и url, payout опционален (будет "0")
     const validLandings = landings.filter(l => {
       const hasGeo = l.geo && l.geo.trim();
       const hasUrl = l.landingUrl && l.landingUrl.trim();
-      
-      if (formData.payoutModel === "RevShare") {
-        return hasGeo && hasUrl && formData.revSharePercent;
-      }
-      return hasGeo && hasUrl && l.partnerPayout && l.partnerPayout.toString().trim();
+      return hasGeo && hasUrl;
     });
     
-    return hasName && hasDescription && validLandings.length > 0;
+    return hasName && validLandings.length > 0;
   };
 
   const handleSubmit = async () => {
@@ -205,7 +200,10 @@ export function CreateOfferForm({ role }: { role: string }) {
           ...formData,
           geo: geos,
           creativeLinks: formData.creativeLinks.filter(l => l),
-          landings: landings.filter(l => l.geo && l.landingUrl && l.partnerPayout),
+          landings: landings.filter(l => l.geo && l.landingUrl).map(l => ({
+            ...l,
+            partnerPayout: l.partnerPayout || "0",
+          })),
         }),
       });
 

@@ -1225,17 +1225,16 @@ export async function registerRoutes(
     try {
       const { landings, ...rawOfferData } = req.body;
       
-      // Санитизация всех numeric полей через helper функции
+      // Санитизация всех полей - numeric() в Drizzle ожидает string
       const sanitizedData = {
         ...rawOfferData,
-        revSharePercent: sanitizeNumeric(rawOfferData.revSharePercent),
+        revSharePercent: sanitizeNumericToString(rawOfferData.revSharePercent),
         holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays),
-        partnerPayout: sanitizeNumeric(rawOfferData.partnerPayout),
-        internalCost: sanitizeNumeric(rawOfferData.internalCost),
+        partnerPayout: sanitizeNumericToString(rawOfferData.partnerPayout),
+        internalCost: sanitizeNumericToString(rawOfferData.internalCost),
         dailyCap: sanitizeInteger(rawOfferData.dailyCap),
         totalCap: sanitizeInteger(rawOfferData.totalCap),
         advertiserId: req.session.userId,
-        // Ensure arrays are not undefined
         geo: Array.isArray(rawOfferData.geo) ? rawOfferData.geo.filter((g: string) => g && g.trim()) : [],
         trafficSources: Array.isArray(rawOfferData.trafficSources) ? rawOfferData.trafficSources : [],
         appTypes: Array.isArray(rawOfferData.appTypes) ? rawOfferData.appTypes : [],
@@ -1277,7 +1276,6 @@ export async function registerRoutes(
         for (const landing of landings) {
           // Validate landing data
           if (!landing.geo || !landing.landingUrl) {
-            console.warn("[POST /api/offers] Skipping invalid landing:", landing);
             continue;
           }
           
@@ -1385,18 +1383,16 @@ export async function registerRoutes(
 
       const { landings, ...rawOfferData } = req.body;
       
-      // Санитизация всех numeric полей через helper функции
+      // Санитизация всех полей - numeric() в Drizzle ожидает string
       const offerData = {
         ...rawOfferData,
-        revSharePercent: sanitizeNumeric(rawOfferData.revSharePercent),
+        revSharePercent: sanitizeNumericToString(rawOfferData.revSharePercent),
         holdPeriodDays: sanitizeInteger(rawOfferData.holdPeriodDays),
-        partnerPayout: sanitizeNumeric(rawOfferData.partnerPayout),
-        internalCost: sanitizeNumeric(rawOfferData.internalCost),
+        partnerPayout: sanitizeNumericToString(rawOfferData.partnerPayout),
+        internalCost: sanitizeNumericToString(rawOfferData.internalCost),
         dailyCap: sanitizeInteger(rawOfferData.dailyCap),
         totalCap: sanitizeInteger(rawOfferData.totalCap),
       };
-      
-      console.log("[PUT /api/offers/:id] Sanitized data:", JSON.stringify(offerData, null, 2));
       
       // Обновить оффер
       const updated = await storage.updateOffer(req.params.id, offerData);
