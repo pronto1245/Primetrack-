@@ -341,7 +341,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3 font-medium">ID</th>
                   <th className="px-4 py-3 font-medium">{t('dashboard.offers.name')}</th>
@@ -353,8 +353,11 @@ export function AdvertiserOffers({ role }: { role: string }) {
                   <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredOffers.map((offer) => (
+            </table>
+            <div className="max-h-[630px] overflow-y-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <tbody className="divide-y divide-white/5">
+                  {filteredOffers.map((offer) => (
                   <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
                     <td className="px-4 py-3 text-muted-foreground">
                       <div className="flex items-center gap-2">
@@ -442,9 +445,10 @@ export function AdvertiserOffers({ role }: { role: string }) {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </Card>
