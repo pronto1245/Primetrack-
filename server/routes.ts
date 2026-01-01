@@ -58,6 +58,47 @@ function sanitizeNumericToString(value: any): string | null {
   return parsed.toString();
 }
 
+// ============================================
+// HELPER: Resolve ID (UUID vs shortId)
+// Detects if the ID is a UUID (contains "-" or length > 10) or shortId (numeric)
+// Returns the actual UUID from database
+// ============================================
+function isUUID(id: string): boolean {
+  return id.includes("-") || id.length > 10;
+}
+
+async function resolveOfferId(idOrShortId: string): Promise<string | null> {
+  if (isUUID(idOrShortId)) {
+    const offer = await storage.getOffer(idOrShortId);
+    return offer?.id || null;
+  }
+  const shortId = parseInt(idOrShortId, 10);
+  if (isNaN(shortId)) return null;
+  const offer = await storage.getOfferByShortId(shortId);
+  return offer?.id || null;
+}
+
+async function resolvePublisherId(idOrShortId: string): Promise<string | null> {
+  if (isUUID(idOrShortId)) {
+    const user = await storage.getUser(idOrShortId);
+    return user?.id || null;
+  }
+  const shortId = parseInt(idOrShortId, 10);
+  if (isNaN(shortId)) return null;
+  const user = await storage.getUserByShortId(shortId);
+  return user?.id || null;
+}
+
+async function resolveLandingId(idOrShortId: string): Promise<string | null> {
+  if (isUUID(idOrShortId)) {
+    return idOrShortId; // Assume it's valid UUID
+  }
+  const shortId = parseInt(idOrShortId, 10);
+  if (isNaN(shortId)) return null;
+  const landing = await storage.getOfferLandingByShortId(shortId);
+  return landing?.id || null;
+}
+
 declare module "express-session" {
   interface SessionData {
     userId: string;
@@ -1568,15 +1609,31 @@ export async function registerRoutes(
 
   // Path-based click tracking (public, no auth required)
   // Format: /click/:offerId/:landingId?partner_id=XXX&sub1=...
+  // Supports both UUID and shortId (e.g. /click/1/1?partner_id=1 or /click/uuid/uuid?partner_id=uuid)
   app.get("/click/:offerId/:landingId", async (req: Request, res: Response) => {
     try {
-      const { offerId, landingId } = req.params;
-      const { partner_id, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
+      const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
-      if (!partner_id) {
+      if (!rawPartnerId) {
         return res.status(400).json({ 
           error: "Missing required parameter: partner_id" 
         });
+      }
+
+      // Resolve shortId or UUID to actual UUIDs
+      const offerId = await resolveOfferId(rawOfferId);
+      const landingId = await resolveLandingId(rawLandingId);
+      const partnerId = await resolvePublisherId(rawPartnerId as string);
+
+      if (!offerId) {
+        return res.status(404).json({ error: "Offer not found" });
+      }
+      if (!landingId) {
+        return res.status(404).json({ error: "Landing not found" });
+      }
+      if (!partnerId) {
+        return res.status(404).json({ error: "Partner not found" });
       }
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
@@ -1603,7 +1660,7 @@ export async function registerRoutes(
       const result = await clickHandler.processClick({
         offerId,
         landingId,
-        partnerId: partner_id as string,
+        partnerId,
         sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
@@ -1647,15 +1704,34 @@ export async function registerRoutes(
 
   // Click tracking endpoint (public, no auth required)
   // Usage: /api/click?offer_id=XXX&partner_id=YYY&geo=US&sub1=...&sub2=...
+  // Query-based click tracking (public, no auth required)
+  // Usage: /api/click?offer_id=XXX&partner_id=YYY or /api/click?o=1&a=1&link_id=1
+  // Supports both UUID and shortId
   app.get("/api/click", async (req: Request, res: Response) => {
     try {
-      const { offer_id, partner_id, geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      // Support both naming conventions: offer_id/partner_id OR o/a/link_id (Scaleo style)
+      const rawOfferId = (req.query.offer_id || req.query.o) as string;
+      const rawPartnerId = (req.query.partner_id || req.query.a) as string;
+      const rawLandingId = req.query.link_id as string;
+      const { geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
-      if (!offer_id || !partner_id) {
+      if (!rawOfferId || !rawPartnerId) {
         return res.status(400).json({ 
           error: "Missing required parameters", 
-          required: ["offer_id", "partner_id"] 
+          required: ["offer_id (or o)", "partner_id (or a)"] 
         });
+      }
+
+      // Resolve shortId or UUID to actual UUIDs
+      const offerId = await resolveOfferId(rawOfferId);
+      const partnerId = await resolvePublisherId(rawPartnerId);
+      const landingId = rawLandingId ? await resolveLandingId(rawLandingId) : undefined;
+
+      if (!offerId) {
+        return res.status(404).json({ error: "Offer not found" });
+      }
+      if (!partnerId) {
+        return res.status(404).json({ error: "Partner not found" });
       }
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
@@ -1683,8 +1759,9 @@ export async function registerRoutes(
       }
 
       const result = await clickHandler.processClick({
-        offerId: offer_id as string,
-        partnerId: partner_id as string,
+        offerId,
+        partnerId,
+        landingId: landingId || undefined,
         sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
