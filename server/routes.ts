@@ -5033,9 +5033,12 @@ export async function registerRoutes(
     telegramBotToken: secretFieldSchema,
   });
 
-  // Helper for optional URL fields - accepts valid URL, empty string, null, undefined, or transforms invalid to null
+  // Helper for optional URL fields - accepts valid URL, relative path, empty string, null, undefined
   const optionalUrlField = z.string().optional().nullable().transform((val) => {
     if (!val || val.trim() === "") return null;
+    // Accept relative paths (e.g. /objects/uploads/...)
+    if (val.startsWith("/")) return val;
+    // Accept full URLs
     try {
       new URL(val);
       return val;
