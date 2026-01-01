@@ -1733,13 +1733,22 @@ export async function registerRoutes(
       // Resolve shortId or UUID to actual UUIDs
       const offerId = await resolveOfferId(rawOfferId);
       const partnerId = await resolvePublisherId(rawPartnerId);
-      const landingId = rawLandingId ? await resolveLandingId(rawLandingId) : undefined;
 
       if (!offerId) {
         return res.status(404).json({ error: "Offer not found" });
       }
       if (!partnerId) {
         return res.status(404).json({ error: "Partner not found" });
+      }
+      
+      // Resolve landing ID if provided - return 404 if specified but not found
+      let landingId: string | undefined;
+      if (rawLandingId) {
+        const resolvedLandingId = await resolveLandingId(rawLandingId);
+        if (!resolvedLandingId) {
+          return res.status(404).json({ error: "Landing not found" });
+        }
+        landingId = resolvedLandingId;
       }
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
@@ -1769,7 +1778,7 @@ export async function registerRoutes(
       const result = await clickHandler.processClick({
         offerId,
         partnerId,
-        landingId: landingId || undefined,
+        landingId,
         sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
