@@ -396,6 +396,7 @@ export async function provisionDomain(
     const existing = await findCustomHostnameByName(hostname);
     
     let cfHostname: { id: string; status: string; ssl: { status: string } };
+    let isNewHostname = false;
     
     if (existing) {
       console.log(`[Cloudflare] Hostname ${hostname} already exists (id: ${existing.id}), updating origin to ${settings.fallbackOrigin}`);
@@ -403,6 +404,7 @@ export async function provisionDomain(
     } else {
       console.log(`[Cloudflare] Creating new hostname ${hostname} with origin ${settings.fallbackOrigin}`);
       cfHostname = await createCustomHostname(hostname);
+      isNewHostname = true;
     }
     
     // Get existing domain to check for worker binding
@@ -427,11 +429,29 @@ export async function provisionDomain(
         updateData.cloudflareWorkerBindingId = bindingId;
         console.log(`[Cloudflare] Worker binding created for ${hostname}: ${bindingId}`);
       } catch (workerError) {
-        // Log error but don't fail provisioning - SSL is primary, Worker is secondary
         const workerErrorMsg = workerError instanceof Error ? workerError.message : String(workerError);
-        console.warn(`[Cloudflare] Failed to create Worker binding: ${workerErrorMsg}`);
-        // Store error for visibility but don't block SSL provisioning
-        updateData.cloudflareError = `SSL OK, Worker binding failed: ${workerErrorMsg}`;
+        console.error(`[Cloudflare] Failed to create Worker binding: ${workerErrorMsg}`);
+        
+        // Rollback: delete the Custom Hostname if we just created it
+        if (isNewHostname) {
+          console.log(`[Cloudflare] Rolling back: deleting newly created hostname ${cfHostname.id}`);
+          try {
+            await deleteCustomHostname(cfHostname.id);
+          } catch (rollbackError) {
+            console.error(`[Cloudflare] Rollback failed: ${rollbackError}`);
+          }
+        }
+        
+        // Clear all Cloudflare data since provisioning failed
+        await storage.updateCustomDomain(domainId, {
+          cloudflareHostnameId: null,
+          cloudflareWorkerBindingId: null,
+          cloudflareStatus: null,
+          cloudflareSslStatus: null,
+          cloudflareError: `Worker binding failed: ${workerErrorMsg}`,
+          lastSyncedAt: new Date(),
+        });
+        return { success: false, error: `Worker binding failed: ${workerErrorMsg}` };
       }
     } else {
       console.log(`[Cloudflare] Worker settings not configured, skipping Worker binding`);
@@ -452,12 +472,13 @@ export async function provisionDomain(
   }
 }
 
-export async function deprovisionDomain(domainId: string): Promise<void> {
+export async function deprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string }> {
   const domain = await storage.getCustomDomain(domainId);
   if (!domain) {
-    return;
+    return { success: false, error: "Domain not found" };
   }
   
+  const errors: string[] = [];
   let workerDeleted = false;
   let hostnameDeleted = false;
   
@@ -467,10 +488,12 @@ export async function deprovisionDomain(domainId: string): Promise<void> {
       await deleteWorkerDomainBinding(domain.cloudflareWorkerBindingId);
       workerDeleted = true;
     } catch (error) {
-      console.error(`Failed to delete Worker binding: ${error}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to delete Worker binding: ${msg}`);
+      errors.push(`Worker: ${msg}`);
     }
   } else {
-    workerDeleted = true; // No binding to delete
+    workerDeleted = true;
   }
   
   // Delete Custom Hostname
@@ -479,10 +502,12 @@ export async function deprovisionDomain(domainId: string): Promise<void> {
       await deleteCustomHostname(domain.cloudflareHostnameId);
       hostnameDeleted = true;
     } catch (error) {
-      console.error(`Failed to delete Cloudflare hostname: ${error}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to delete Cloudflare hostname: ${msg}`);
+      errors.push(`Hostname: ${msg}`);
     }
   } else {
-    hostnameDeleted = true; // No hostname to delete
+    hostnameDeleted = true;
   }
   
   // Only clear IDs that were successfully deleted
@@ -495,10 +520,18 @@ export async function deprovisionDomain(domainId: string): Promise<void> {
   if (workerDeleted) {
     updateData.cloudflareWorkerBindingId = null;
   }
+  if (errors.length > 0) {
+    updateData.cloudflareError = errors.join("; ");
+  }
   
   if (Object.keys(updateData).length > 0) {
     await storage.updateCustomDomain(domainId, updateData);
   }
+  
+  if (errors.length > 0) {
+    return { success: false, error: errors.join("; ") };
+  }
+  return { success: true };
 }
 
 export async function reprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string }> {
@@ -535,8 +568,11 @@ export async function reprovisionDomain(domainId: string): Promise<{ success: bo
           updateData.cloudflareWorkerBindingId = bindingId;
         } catch (workerError) {
           const workerErrorMsg = workerError instanceof Error ? workerError.message : String(workerError);
-          console.warn(`[Cloudflare] Failed to update Worker binding: ${workerErrorMsg}`);
-          updateData.cloudflareError = `SSL OK, Worker binding failed: ${workerErrorMsg}`;
+          console.error(`[Cloudflare] Failed to update Worker binding: ${workerErrorMsg}`);
+          updateData.cloudflareWorkerBindingId = null;
+          updateData.cloudflareError = `Worker binding failed: ${workerErrorMsg}`;
+          await storage.updateCustomDomain(domainId, updateData);
+          return { success: false, error: `Worker binding failed: ${workerErrorMsg}` };
         }
       }
       

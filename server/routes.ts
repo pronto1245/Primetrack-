@@ -6509,13 +6509,17 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Domain not found" });
       }
 
-      try {
-        const { cloudflareService } = await import("./cloudflare-service");
-        if (existing.cloudflareHostnameId) {
-          await cloudflareService.deprovisionDomain(id);
+      // Deprovision from Cloudflare if configured
+      if (existing.cloudflareHostnameId || existing.cloudflareWorkerBindingId) {
+        try {
+          const { cloudflareService } = await import("./cloudflare-service");
+          const deprovResult = await cloudflareService.deprovisionDomain(id);
+          if (!deprovResult.success) {
+            console.warn(`Cloudflare deprovisioning warning for ${existing.domain}: ${deprovResult.error}`);
+          }
+        } catch (cfError) {
+          console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
         }
-      } catch (cfError) {
-        console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
       }
 
       await storage.deleteCustomDomain(id);
