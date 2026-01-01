@@ -6515,10 +6515,20 @@ export async function registerRoutes(
           const { cloudflareService } = await import("./cloudflare-service");
           const deprovResult = await cloudflareService.deprovisionDomain(id);
           if (!deprovResult.success) {
-            console.warn(`Cloudflare deprovisioning warning for ${existing.domain}: ${deprovResult.error}`);
+            // Cloudflare cleanup failed - don't delete from DB, return error
+            console.error(`Cloudflare deprovisioning failed for ${existing.domain}: ${deprovResult.error}`);
+            return res.status(502).json({ 
+              message: `Failed to remove domain from Cloudflare: ${deprovResult.error}. Please retry or contact support.`,
+              cloudflareError: deprovResult.error,
+            });
           }
         } catch (cfError) {
+          const errorMsg = cfError instanceof Error ? cfError.message : String(cfError);
           console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
+          return res.status(502).json({ 
+            message: `Failed to remove domain from Cloudflare: ${errorMsg}. Please retry or contact support.`,
+            cloudflareError: errorMsg,
+          });
         }
       }
 
