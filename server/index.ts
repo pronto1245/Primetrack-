@@ -65,6 +65,9 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
   
+  // Initialize short IDs (create sequences and backfill if needed)
+  await storage.initializeShortIds();
+  
   // Seed default subscription plans if not exists
   await storage.seedSubscriptionPlans();
 

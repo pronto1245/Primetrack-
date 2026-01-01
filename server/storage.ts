@@ -3548,6 +3548,68 @@ export class DatabaseStorage implements IStorage {
   async deletePublisherPostbackEndpoint(id: string): Promise<void> {
     await db.delete(publisherPostbackEndpoints).where(eq(publisherPostbackEndpoints.id, id));
   }
+
+  async initializeShortIds(): Promise<void> {
+    console.log("[shortId] Initializing short ID sequences and backfilling data...");
+    
+    try {
+      // Create sequences if they don't exist
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'users_short_id_seq') THEN
+            CREATE SEQUENCE users_short_id_seq START WITH 1;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'offers_short_id_seq') THEN
+            CREATE SEQUENCE offers_short_id_seq START WITH 1;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'landings_short_id_seq') THEN
+            CREATE SEQUENCE landings_short_id_seq START WITH 1;
+          END IF;
+        END $$;
+      `);
+
+      // Backfill users with null shortId
+      const usersWithoutShortId = await db.select({ id: users.id }).from(users).where(sql`short_id IS NULL`);
+      for (const user of usersWithoutShortId) {
+        const [{ nextval }] = await db.execute(sql`SELECT nextval('users_short_id_seq')`) as any;
+        await db.update(users).set({ shortId: Number(nextval) }).where(eq(users.id, user.id));
+      }
+      if (usersWithoutShortId.length > 0) {
+        console.log(`[shortId] Backfilled ${usersWithoutShortId.length} users`);
+      }
+
+      // Backfill offers with null shortId
+      const offersWithoutShortId = await db.select({ id: offers.id }).from(offers).where(sql`short_id IS NULL`);
+      for (const offer of offersWithoutShortId) {
+        const [{ nextval }] = await db.execute(sql`SELECT nextval('offers_short_id_seq')`) as any;
+        await db.update(offers).set({ shortId: Number(nextval) }).where(eq(offers.id, offer.id));
+      }
+      if (offersWithoutShortId.length > 0) {
+        console.log(`[shortId] Backfilled ${offersWithoutShortId.length} offers`);
+      }
+
+      // Backfill landings with null shortId
+      const landingsWithoutShortId = await db.select({ id: offerLandings.id }).from(offerLandings).where(sql`short_id IS NULL`);
+      for (const landing of landingsWithoutShortId) {
+        const [{ nextval }] = await db.execute(sql`SELECT nextval('landings_short_id_seq')`) as any;
+        await db.update(offerLandings).set({ shortId: Number(nextval) }).where(eq(offerLandings.id, landing.id));
+      }
+      if (landingsWithoutShortId.length > 0) {
+        console.log(`[shortId] Backfilled ${landingsWithoutShortId.length} landings`);
+      }
+
+      // Sync sequences to max existing values
+      await db.execute(sql`
+        SELECT setval('users_short_id_seq', COALESCE((SELECT MAX(short_id) FROM users), 0) + 1, false);
+        SELECT setval('offers_short_id_seq', COALESCE((SELECT MAX(short_id) FROM offers), 0) + 1, false);
+        SELECT setval('landings_short_id_seq', COALESCE((SELECT MAX(short_id) FROM offer_landings), 0) + 1, false);
+      `);
+
+      console.log("[shortId] Short ID initialization complete");
+    } catch (error) {
+      console.error("[shortId] Error initializing short IDs:", error);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
