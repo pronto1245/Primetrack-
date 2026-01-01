@@ -4889,10 +4889,11 @@ export async function registerRoutes(
     telegramBotToken: secretFieldSchema,
   });
 
-  // Helper for optional URL fields - accepts valid URL, empty string, or undefined
+  // Helper for optional URL fields - accepts valid URL, empty string, null, or undefined
   const optionalUrlField = z.union([
     z.string().url(),
-    z.literal("")
+    z.literal(""),
+    z.null()
   ]).optional();
   
   // Helper for optional email fields - accepts valid email, empty string, or undefined  
@@ -5362,7 +5363,8 @@ export async function registerRoutes(
         defaultTelegramBotToken: settings.defaultTelegramBotToken ? SENTINEL_CONFIGURED : null,
         stripeSecretKey: settings.stripeSecretKey ? SENTINEL_CONFIGURED : null,
         ipinfoToken: settings.ipinfoToken ? SENTINEL_CONFIGURED : null,
-        fingerprintjsApiKey: settings.fingerprintjsApiKey ? SENTINEL_CONFIGURED : null
+        fingerprintjsApiKey: settings.fingerprintjsApiKey ? SENTINEL_CONFIGURED : null,
+        cloudflareApiToken: settings.cloudflareApiToken ? SENTINEL_CONFIGURED : null
       });
     } catch (error) {
       console.error("Failed to fetch platform settings:", error);
@@ -5383,7 +5385,8 @@ export async function registerRoutes(
         platformName, platformLogoUrl, platformFaviconUrl, supportEmail,
         defaultTelegramBotToken, stripeSecretKey, ipinfoToken, fingerprintjsApiKey,
         allowPublisherRegistration, allowAdvertiserRegistration, requireAdvertiserApproval,
-        enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore
+        enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore,
+        cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin
       } = parseResult.data;
       
       const updateData: any = {
@@ -5397,7 +5400,10 @@ export async function registerRoutes(
         enableProxyDetection,
         enableVpnDetection,
         enableFingerprintTracking,
-        maxFraudScore
+        maxFraudScore,
+        cloudflareZoneId: cloudflareZoneId || null,
+        cloudflareCnameTarget: cloudflareCnameTarget || null,
+        cloudflareFallbackOrigin: cloudflareFallbackOrigin || null
       };
       
       // Handle secret fields: new value = update, empty string = clear, sentinel = no-op
@@ -5412,6 +5418,9 @@ export async function registerRoutes(
       }
       if (fingerprintjsApiKey !== undefined && fingerprintjsApiKey !== SENTINEL_CONFIGURED) {
         updateData.fingerprintjsApiKey = fingerprintjsApiKey === "" ? null : fingerprintjsApiKey;
+      }
+      if (cloudflareApiToken !== undefined && cloudflareApiToken !== SENTINEL_CONFIGURED) {
+        updateData.cloudflareApiToken = cloudflareApiToken === "" ? null : cloudflareApiToken;
       }
       
       const settings = await storage.updatePlatformSettings(updateData);
