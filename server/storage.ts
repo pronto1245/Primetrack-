@@ -2817,6 +2817,15 @@ export class DatabaseStorage implements IStorage {
     if (data.stripeSecretKey) {
       encryptedData.stripeSecretKey = encrypt(data.stripeSecretKey);
     }
+    if (data.cloudflareApiToken) {
+      encryptedData.cloudflareApiToken = encrypt(data.cloudflareApiToken);
+    }
+    if (data.ipinfoToken) {
+      encryptedData.ipinfoToken = encrypt(data.ipinfoToken);
+    }
+    if (data.fingerprintjsApiKey) {
+      encryptedData.fingerprintjsApiKey = encrypt(data.fingerprintjsApiKey);
+    }
     
     if (existing) {
       const [updated] = await db.update(platformSettings)
