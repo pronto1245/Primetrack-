@@ -19,10 +19,17 @@ interface DomainVerificationResult {
 
 
 class DomainService {
-  private platformDomain = process.env.PLATFORM_DOMAIN || "tracking.example.com";
-
   generateVerificationToken(): string {
     return `verify-${crypto.randomBytes(16).toString("hex")}`;
+  }
+
+  private async getCnameTarget(): Promise<string> {
+    try {
+      const settings = await storage.getPlatformSettings();
+      return settings?.cloudflareCnameTarget || process.env.PLATFORM_CNAME_TARGET || "customers.example.com";
+    } catch {
+      return process.env.PLATFORM_CNAME_TARGET || "customers.example.com";
+    }
   }
 
   async verifyDomain(domainId: string): Promise<DomainVerificationResult> {
@@ -42,7 +49,7 @@ class DomainService {
   }
 
   private async verifyCname(domain: CustomDomain): Promise<DomainVerificationResult> {
-    const expectedCname = `tracking.${this.platformDomain}`;
+    const expectedCname = await this.getCnameTarget();
     
     // Try CNAME first
     try {
@@ -127,10 +134,20 @@ class DomainService {
     return result;
   }
 
-  getTrackingUrl(advertiserId: string, offerId: string, landingId: string, customDomain?: string): string {
+  private async getPlatformDomain(): Promise<string> {
+    try {
+      const settings = await storage.getPlatformSettings();
+      return settings?.cloudflareFallbackOrigin || process.env.PLATFORM_DOMAIN || "tracking.example.com";
+    } catch {
+      return process.env.PLATFORM_DOMAIN || "tracking.example.com";
+    }
+  }
+
+  async getTrackingUrl(advertiserId: string, offerId: string, landingId: string, customDomain?: string): Promise<string> {
+    const platformDomain = await this.getPlatformDomain();
     const baseUrl = customDomain 
       ? `https://${customDomain}`
-      : `https://${this.platformDomain}`;
+      : `https://${platformDomain}`;
     
     return `${baseUrl}/click/${offerId}/${landingId}`;
   }
@@ -152,7 +169,8 @@ class DomainService {
     offerId: string,
     landingId: string
   ): Promise<{ platform: string; custom?: string }> {
-    const platformUrl = `https://${this.platformDomain}/click/${offerId}/${landingId}`;
+    const platformDomain = await this.getPlatformDomain();
+    const platformUrl = `https://${platformDomain}/click/${offerId}/${landingId}`;
     const customDomain = await this.getPrimaryDomainForAdvertiser(advertiserId);
 
     if (customDomain) {
