@@ -327,34 +327,25 @@ class DomainService {
       return { success: false, error: "Domain not found" };
     }
 
-    // Delete existing Cloudflare hostname if exists
-    if (domain.cloudflareHostnameId) {
-      try {
-        await cloudflareService.deprovisionDomain(domainId);
-      } catch (error) {
-        console.error(`[Domain] Failed to delete old hostname:`, error);
-      }
-    }
-
-    // Reset domain state
+    // Reset domain state before reprovisioning
     await storage.updateCustomDomain(domainId, {
-      cloudflareHostnameId: null,
-      cloudflareStatus: null,
-      cloudflareSslStatus: null,
       sslStatus: "ssl_activating",
       lastError: null,
       cloudflareError: null,
     });
 
-    // Re-provision
-    await this.provisionInCloudflare(domain);
+    // Use cloudflareService.provisionDomain which handles both existing and new hostnames
+    // It checks if hostname exists in Cloudflare and updates origin via PATCH, or creates new one
+    console.log(`[Domain] Reprovisioning domain ${domain.domain}`);
     
-    const updated = await storage.getCustomDomain(domainId);
-    if (updated?.cloudflareHostnameId) {
+    const result = await cloudflareService.provisionDomain(domainId, domain.domain);
+    
+    if (result.success) {
+      console.log(`[Domain] Successfully reprovisioned ${domain.domain}`);
       return { success: true };
     }
     
-    return { success: false, error: updated?.lastError || "Не удалось создать hostname" };
+    return { success: false, error: result.error || "Не удалось обновить hostname" };
   }
 }
 

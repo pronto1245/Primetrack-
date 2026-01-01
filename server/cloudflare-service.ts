@@ -198,6 +198,25 @@ export async function listCustomHostnames(): Promise<CloudflareCustomHostname[]>
   return response.result;
 }
 
+export async function findCustomHostnameByName(
+  hostname: string
+): Promise<CloudflareCustomHostname | null> {
+  try {
+    const response = await cloudflareRequest<CloudflareCustomHostname[]>(
+      "GET",
+      `/custom_hostnames?hostname=${encodeURIComponent(hostname)}`
+    );
+    
+    if (response.result && response.result.length > 0) {
+      return response.result[0];
+    }
+    return null;
+  } catch (error) {
+    console.error(`[Cloudflare] Failed to find hostname ${hostname}:`, error);
+    return null;
+  }
+}
+
 export async function syncDomainStatus(domainId: string): Promise<{
   status: string;
   sslStatus: string;
@@ -264,7 +283,18 @@ export async function provisionDomain(
   }
   
   try {
-    const cfHostname = await createCustomHostname(hostname);
+    // First check if hostname already exists in Cloudflare
+    const existing = await findCustomHostnameByName(hostname);
+    
+    let cfHostname: { id: string; status: string; ssl: { status: string } };
+    
+    if (existing) {
+      console.log(`[Cloudflare] Hostname ${hostname} already exists (id: ${existing.id}), updating origin to ${settings.fallbackOrigin}`);
+      cfHostname = await updateCustomHostnameOrigin(existing.id);
+    } else {
+      console.log(`[Cloudflare] Creating new hostname ${hostname} with origin ${settings.fallbackOrigin}`);
+      cfHostname = await createCustomHostname(hostname);
+    }
     
     await storage.updateCustomDomain(domainId, {
       cloudflareHostnameId: cfHostname.id,
@@ -356,6 +386,7 @@ export const cloudflareService = {
   getCustomHostname,
   deleteCustomHostname,
   updateCustomHostnameOrigin,
+  findCustomHostnameByName,
   listCustomHostnames,
   syncDomainStatus,
   provisionDomain,
