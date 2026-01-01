@@ -181,6 +181,7 @@ export interface IStorage {
   
   // Offer Landings
   getOfferLandings(offerId: string): Promise<OfferLanding[]>;
+  getOfferLanding(id: string): Promise<OfferLanding | undefined>;
   getOfferLandingByShortId(shortId: number): Promise<OfferLanding | undefined>;
   createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding>;
   updateOfferLanding(id: string, data: Partial<InsertOfferLanding>): Promise<OfferLanding | undefined>;
@@ -629,6 +630,11 @@ export class DatabaseStorage implements IStorage {
   // Offer Landings
   async getOfferLandings(offerId: string): Promise<OfferLanding[]> {
     return db.select().from(offerLandings).where(eq(offerLandings.offerId, offerId));
+  }
+
+  async getOfferLanding(id: string): Promise<OfferLanding | undefined> {
+    const [landing] = await db.select().from(offerLandings).where(eq(offerLandings.id, id));
+    return landing;
   }
 
   async getOfferLandingByShortId(shortId: number): Promise<OfferLanding | undefined> {

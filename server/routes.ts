@@ -67,6 +67,12 @@ function isUUID(id: string): boolean {
   return id.includes("-") || id.length > 10;
 }
 
+// Format shortId with zero-padding (centralized helper)
+function formatShortId(shortId: number | null | undefined, digits: number, fallback: string): string {
+  if (shortId == null) return fallback;
+  return shortId.toString().padStart(digits, '0');
+}
+
 async function resolveOfferId(idOrShortId: string): Promise<string | null> {
   if (isUUID(idOrShortId)) {
     const offer = await storage.getOffer(idOrShortId);
@@ -91,7 +97,9 @@ async function resolvePublisherId(idOrShortId: string): Promise<string | null> {
 
 async function resolveLandingId(idOrShortId: string): Promise<string | null> {
   if (isUUID(idOrShortId)) {
-    return idOrShortId; // Assume it's valid UUID
+    // Verify UUID exists in database
+    const landing = await storage.getOfferLanding(idOrShortId);
+    return landing?.id || null;
   }
   const shortId = parseInt(idOrShortId, 10);
   if (isNaN(shortId)) return null;
@@ -1264,11 +1272,11 @@ export async function registerRoutes(
         
         // Get shortIds for compact tracking URLs
         const publisher = await storage.getUser(publisherId);
-        const offerShortId = offer.shortId?.toString().padStart(4, '0') || offer.id;
-        const publisherShortId = publisher?.shortId?.toString().padStart(3, '0') || publisherId;
+        const offerShortId = formatShortId(offer.shortId, 4, offer.id);
+        const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
         
         const safeLandings = landings.map(({ internalCost, ...rest }) => {
-          const landingShortId = rest.shortId?.toString().padStart(4, '0') || rest.id;
+          const landingShortId = formatShortId(rest.shortId, 4, rest.id);
           return {
             ...rest,
             trackingUrl: `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`,
@@ -2198,11 +2206,11 @@ export async function registerRoutes(
             
             // Get shortIds for compact tracking URLs
             const publisher = await storage.getUser(publisherId);
-            const offerShortId = offer.shortId?.toString().padStart(4, '0') || offer.id;
-            const publisherShortId = publisher?.shortId?.toString().padStart(3, '0') || publisherId;
+            const offerShortId = formatShortId(offer.shortId, 4, offer.id);
+            const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
             
             const safeLandings = landings.map(({ internalCost, ...rest }) => {
-              const landingShortId = rest.shortId?.toString().padStart(4, '0') || rest.id;
+              const landingShortId = formatShortId(rest.shortId, 4, rest.id);
               return {
                 ...rest,
                 trackingUrl: `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`,
