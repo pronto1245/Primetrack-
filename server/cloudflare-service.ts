@@ -170,6 +170,25 @@ export async function deleteCustomHostname(hostnameId: string): Promise<void> {
   await cloudflareRequest("DELETE", `/custom_hostnames/${hostnameId}`);
 }
 
+export async function updateCustomHostnameOrigin(
+  hostnameId: string
+): Promise<CloudflareCustomHostname> {
+  const settings = await getCloudflareSettings();
+  if (!settings) {
+    throw new Error("Cloudflare not configured");
+  }
+  
+  const response = await cloudflareRequest<CloudflareCustomHostname>(
+    "PATCH",
+    `/custom_hostnames/${hostnameId}`,
+    {
+      custom_origin_server: settings.fallbackOrigin,
+    }
+  );
+  
+  return response.result;
+}
+
 export async function listCustomHostnames(): Promise<CloudflareCustomHostname[]> {
   const response = await cloudflareRequest<CloudflareCustomHostname[]>(
     "GET",
@@ -282,6 +301,48 @@ export async function deprovisionDomain(domainId: string): Promise<void> {
   }
 }
 
+export async function reprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string }> {
+  const domain = await storage.getCustomDomain(domainId);
+  if (!domain) {
+    return { success: false, error: "Domain not found" };
+  }
+  
+  const settings = await getCloudflareSettings();
+  if (!settings) {
+    return { success: false, error: "Cloudflare not configured" };
+  }
+  
+  try {
+    if (domain.cloudflareHostnameId) {
+      console.log(`[Cloudflare] Updating origin for hostname ${domain.cloudflareHostnameId} to ${settings.fallbackOrigin}`);
+      const updated = await updateCustomHostnameOrigin(domain.cloudflareHostnameId);
+      
+      await storage.updateCustomDomain(domainId, {
+        cloudflareStatus: updated.status,
+        cloudflareSslStatus: updated.ssl.status,
+        dnsTarget: settings.cnameTarget,
+        lastSyncedAt: new Date(),
+        cloudflareError: null,
+      });
+      
+      return { success: true };
+    } else {
+      console.log(`[Cloudflare] No existing hostname, creating new for ${domain.domain}`);
+      return await provisionDomain(domainId, domain.domain);
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[Cloudflare] Reprovision failed: ${errorMsg}`);
+    
+    await storage.updateCustomDomain(domainId, {
+      cloudflareError: errorMsg,
+      lastSyncedAt: new Date(),
+    });
+    
+    return { success: false, error: errorMsg };
+  }
+}
+
 export async function getCnameTarget(): Promise<string | null> {
   const settings = await getCloudflareSettings();
   return settings?.cnameTarget || null;
@@ -294,9 +355,11 @@ export const cloudflareService = {
   createCustomHostname,
   getCustomHostname,
   deleteCustomHostname,
+  updateCustomHostnameOrigin,
   listCustomHostnames,
   syncDomainStatus,
   provisionDomain,
   deprovisionDomain,
+  reprovisionDomain,
   getCnameTarget,
 };
