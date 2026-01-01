@@ -4908,12 +4908,16 @@ export async function registerRoutes(
     telegramBotToken: secretFieldSchema,
   });
 
-  // Helper for optional URL fields - accepts valid URL, empty string, null, or undefined
-  const optionalUrlField = z.union([
-    z.string().url(),
-    z.literal(""),
-    z.null()
-  ]).optional();
+  // Helper for optional URL fields - accepts valid URL, empty string, null, undefined, or transforms invalid to null
+  const optionalUrlField = z.string().optional().nullable().transform((val) => {
+    if (!val || val.trim() === "") return null;
+    try {
+      new URL(val);
+      return val;
+    } catch {
+      return null;
+    }
+  });
   
   // Helper for optional email fields - accepts valid email, empty string, or undefined  
   const optionalEmailField = z.union([
