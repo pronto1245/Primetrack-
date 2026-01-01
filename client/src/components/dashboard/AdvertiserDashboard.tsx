@@ -424,7 +424,7 @@ export function AdvertiserDashboard() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3 font-medium">{t('dashboard.table.offer')}</th>
                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.clicks')}</th>
@@ -436,30 +436,34 @@ export function AdvertiserDashboard() {
                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.cr')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {stats.byOffer.map((row) => (
-                  <tr key={row.offerId} className="hover:bg-muted transition-colors" data-testid={`row-offer-${row.offerId}`}>
-                    <td className="px-4 py-3 font-medium text-foreground">{row.offerName}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.leads.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.sales.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-red-400">${row.advertiserCost.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right text-yellow-400">${row.publisherPayout.toFixed(2)}</td>
-                    <td className={`px-4 py-3 text-right ${row.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      ${row.margin.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
-                  </tr>
-                ))}
-                {stats.byOffer.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
-                      No offers data
-                    </td>
-                  </tr>
-                )}
-              </tbody>
             </table>
+            <div className="max-h-[294px] overflow-y-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <tbody className="divide-y divide-white/5">
+                  {stats.byOffer.map((row) => (
+                    <tr key={row.offerId} className="hover:bg-muted transition-colors" data-testid={`row-offer-${row.offerId}`}>
+                      <td className="px-4 py-3 font-medium text-foreground">{row.offerName}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.leads.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.sales.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-red-400">${row.advertiserCost.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-yellow-400">${row.publisherPayout.toFixed(2)}</td>
+                      <td className={`px-4 py-3 text-right ${row.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        ${row.margin.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
+                    </tr>
+                  ))}
+                  {stats.byOffer.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                        No offers data
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -473,7 +477,7 @@ export function AdvertiserDashboard() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3 font-medium">{t('dashboard.table.publisher')}</th>
                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.clicks')}</th>
@@ -483,26 +487,30 @@ export function AdvertiserDashboard() {
                   <th className="px-4 py-3 font-medium text-right">{t('dashboard.table.cr')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {stats.byPublisher.map((row) => (
-                  <tr key={row.publisherId} className="hover:bg-muted transition-colors" data-testid={`row-publisher-${row.publisherId}`}>
-                    <td className="px-4 py-3 font-medium text-foreground">{row.publisherName}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.conversions.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-red-400">${row.advertiserCost.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right text-yellow-400">${row.publisherPayout.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
-                  </tr>
-                ))}
-                {stats.byPublisher.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      No publisher data
-                    </td>
-                  </tr>
-                )}
-              </tbody>
             </table>
+            <div className="max-h-[294px] overflow-y-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <tbody className="divide-y divide-white/5">
+                  {stats.byPublisher.map((row) => (
+                    <tr key={row.publisherId} className="hover:bg-muted transition-colors" data-testid={`row-publisher-${row.publisherId}`}>
+                      <td className="px-4 py-3 font-medium text-foreground">{row.publisherName}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{row.conversions.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-red-400">${row.advertiserCost.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-yellow-400">${row.publisherPayout.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
+                    </tr>
+                  ))}
+                  {stats.byPublisher.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                        No publisher data
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       </Card>
