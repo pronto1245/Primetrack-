@@ -46,6 +46,18 @@ function sanitizeInteger(value: any): number | null {
   return parsed;
 }
 
+// For Drizzle numeric() fields which expect string type
+function sanitizeNumericToString(value: any): string | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const parsed = typeof value === "number" ? value : parseFloat(value);
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
+    return null;
+  }
+  return parsed.toString();
+}
+
 declare module "express-session" {
   interface SessionData {
     userId: string;
@@ -1144,13 +1156,14 @@ export async function registerRoutes(
       // Create landings if provided
       if (landings && Array.isArray(landings)) {
         for (const landing of landings) {
-          // Санитизация для landings через helper функции
+          // Санитизация для landings - numeric() в Drizzle ожидает string
+          const payout = sanitizeNumericToString(landing.partnerPayout);
           await storage.createOfferLanding({
             geo: landing.geo,
             landingName: landing.landingName || null,
             landingUrl: landing.landingUrl,
-            partnerPayout: sanitizeNumeric(landing.partnerPayout),
-            internalCost: sanitizeNumeric(landing.internalCost),
+            partnerPayout: payout || "0",
+            internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
             offerId: offer.id,
           });
@@ -1259,12 +1272,13 @@ export async function registerRoutes(
         const existingLandingIds = new Set(existingLandings.map(l => l.id));
         
         for (const landing of landings) {
+          const payout = sanitizeNumericToString(landing.partnerPayout);
           const sanitizedLanding = {
             geo: landing.geo,
             landingName: landing.landingName || null,
             landingUrl: landing.landingUrl,
-            partnerPayout: sanitizeNumeric(landing.partnerPayout),
-            internalCost: sanitizeNumeric(landing.internalCost),
+            partnerPayout: payout || "0",
+            internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
           };
           
