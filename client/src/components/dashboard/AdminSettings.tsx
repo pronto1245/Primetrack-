@@ -590,8 +590,7 @@ function PlatformTab() {
   
   const { uploadFile, isUploading: isUploadingLogo } = useUpload({
     onSuccess: (response) => {
-      const publicUrl = `/api/uploads/public/${response.objectPath}`;
-      setFormData(prev => ({ ...prev, platformLogoUrl: publicUrl }));
+      setFormData(prev => ({ ...prev, platformLogoUrl: response.objectPath }));
       toast({ title: "Логотип загружен" });
     },
     onError: (error) => {
