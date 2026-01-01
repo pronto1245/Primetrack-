@@ -8,6 +8,11 @@
 
 Preferred communication style: Simple, everyday language (Russian).
 
+## Домены
+
+- **Production Domain:** primetrack.pro
+- **Replit Domain:** 24b37059-5b12-44cb-b70b-19a2dcb6cd9e-00-2qvmj5tosito.riker.replit.dev
+
 ---
 
 ## РЕАЛИЗОВАННЫЙ ФУНКЦИОНАЛ
