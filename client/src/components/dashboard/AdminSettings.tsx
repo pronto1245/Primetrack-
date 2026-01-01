@@ -611,7 +611,7 @@ function PlatformTab() {
   };
 
   const [formData, setFormData] = useState({
-    platformName: "PrimeTrack",
+    platformName: "",
     platformDescription: "",
     platformLogoUrl: "",
     platformFaviconUrl: "",
@@ -642,7 +642,7 @@ function PlatformTab() {
   useEffect(() => {
     if (settings) {
       setFormData({
-        platformName: settings.platformName || "PrimeTrack",
+        platformName: settings.platformName || "",
         platformDescription: settings.platformDescription || "",
         platformLogoUrl: settings.platformLogoUrl || "",
         platformFaviconUrl: settings.platformFaviconUrl || "",
@@ -702,7 +702,7 @@ function PlatformTab() {
                 data-testid="input-platform-name"
                 value={formData.platformName}
                 onChange={(e) => setFormData({ ...formData, platformName: e.target.value })}
-                placeholder="PrimeTrack"
+                placeholder="Название платформы"
               />
             </div>
             <div className="space-y-2">

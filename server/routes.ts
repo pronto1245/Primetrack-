@@ -358,7 +358,7 @@ export async function registerRoutes(
     try {
       const settings = await storage.getPlatformSettings();
       res.json({
-        platformName: settings?.platformName || "PrimeTrack",
+        platformName: settings?.platformName || "Affiliate Platform",
         platformDescription: settings?.platformDescription || null,
         platformLogoUrl: settings?.platformLogoUrl || null,
         platformFaviconUrl: settings?.platformFaviconUrl || null,
@@ -368,7 +368,7 @@ export async function registerRoutes(
         copyrightText: settings?.copyrightText || null,
       });
     } catch (error) {
-      res.json({ platformName: "PrimeTrack" });
+      res.json({ platformName: "Affiliate Platform" });
     }
   });
 
@@ -5236,7 +5236,7 @@ export async function registerRoutes(
         const { telegramService } = await import("./services/telegram-service");
         await telegramService.sendMessage({
           chatId,
-          text: "👋 <b>Добро пожаловать в PrimeTrack Bot!</b>\n\nДля привязки аккаунта:\n1. Зайдите в Настройки → Telegram\n2. Нажмите «Получить код»\n3. Отправьте сюда команду /link КОД"
+          text: "👋 <b>Добро пожаловать!</b>\n\nДля привязки аккаунта:\n1. Зайдите в Настройки → Telegram\n2. Нажмите «Получить код»\n3. Отправьте сюда команду /link КОД"
         });
       }
 
@@ -5372,7 +5372,7 @@ export async function registerRoutes(
       
       if (!settings) {
         settings = await storage.updatePlatformSettings({
-          platformName: "PrimeTrack"
+          platformName: "Affiliate Platform"
         });
       }
       

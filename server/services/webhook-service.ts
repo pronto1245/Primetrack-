@@ -261,7 +261,7 @@ class WebhookService {
       timestamp: new Date().toISOString(),
       data: {
         test: true,
-        message: "This is a test webhook from PrimeTrack",
+        message: "This is a test webhook",
         conversionId: "test-123",
         offerId: "test-offer",
         publisherId: "test-publisher",

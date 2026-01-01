@@ -6,9 +6,9 @@ import { encrypt, decrypt } from "./encryption";
 async function getAppName(): Promise<string> {
   try {
     const settings = await storage.getPlatformSettings();
-    return settings?.platformName || "PrimeTrack";
+    return settings?.platformName || "Affiliate Platform";
   } catch {
-    return "PrimeTrack";
+    return "Affiliate Platform";
   }
 }
 

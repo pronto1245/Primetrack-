@@ -4,9 +4,9 @@ import { storage } from '../storage';
 async function getPlatformName(): Promise<string> {
   try {
     const settings = await storage.getPlatformSettings();
-    return settings?.platformName || 'PrimeTrack';
+    return settings?.platformName || 'Affiliate Platform';
   } catch {
-    return 'PrimeTrack';
+    return 'Affiliate Platform';
   }
 }
 

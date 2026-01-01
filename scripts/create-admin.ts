@@ -13,7 +13,7 @@ function question(prompt: string): Promise<string> {
 }
 
 async function main() {
-  console.log("\n=== Создание администратора для PrimeTrack ===\n");
+  console.log("\n=== Создание администратора для платформы ===\n");
 
   const username = await question("Username: ");
   const email = await question("Email: ");
