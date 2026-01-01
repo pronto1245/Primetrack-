@@ -1235,9 +1235,27 @@ export async function registerRoutes(
         dailyCap: sanitizeInteger(rawOfferData.dailyCap),
         totalCap: sanitizeInteger(rawOfferData.totalCap),
         advertiserId: req.session.userId,
+        // Ensure arrays are not undefined
+        geo: Array.isArray(rawOfferData.geo) ? rawOfferData.geo.filter((g: string) => g && g.trim()) : [],
+        trafficSources: Array.isArray(rawOfferData.trafficSources) ? rawOfferData.trafficSources : [],
+        appTypes: Array.isArray(rawOfferData.appTypes) ? rawOfferData.appTypes : [],
+        creativeLinks: Array.isArray(rawOfferData.creativeLinks) ? rawOfferData.creativeLinks : [],
       };
       
       console.log("[POST /api/offers] Sanitized data:", JSON.stringify(sanitizedData, null, 2));
+      
+      // Validate required fields before schema validation
+      if (!sanitizedData.geo || sanitizedData.geo.length === 0) {
+        return res.status(400).json({ message: "GEO is required. Please select at least one country." });
+      }
+      
+      if (!sanitizedData.name || !sanitizedData.name.trim()) {
+        return res.status(400).json({ message: "Offer name is required." });
+      }
+      
+      if (!sanitizedData.category || !sanitizedData.category.trim()) {
+        return res.status(400).json({ message: "Category is required." });
+      }
       
       const result = insertOfferSchema.safeParse(sanitizedData);
 
@@ -1247,29 +1265,40 @@ export async function registerRoutes(
       }
 
       const offer = await storage.createOffer(result.data);
+      console.log("[POST /api/offers] Created offer:", offer.id, "shortId:", offer.shortId);
       
       // Create landings if provided
       if (landings && Array.isArray(landings)) {
         for (const landing of landings) {
+          // Validate landing data
+          if (!landing.geo || !landing.landingUrl) {
+            console.warn("[POST /api/offers] Skipping invalid landing:", landing);
+            continue;
+          }
+          
           // Санитизация для landings - numeric() в Drizzle ожидает string
           const payout = sanitizeNumericToString(landing.partnerPayout);
-          await storage.createOfferLanding({
+          const landingData = {
             geo: landing.geo,
             landingName: landing.landingName || null,
             landingUrl: landing.landingUrl,
-            partnerPayout: payout || "0",
+            partnerPayout: payout || "0", // Default to "0" if empty
             internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
             offerId: offer.id,
-          });
+          };
+          console.log("[POST /api/offers] Creating landing:", landingData);
+          const createdLanding = await storage.createOfferLanding(landingData);
+          console.log("[POST /api/offers] Created landing:", createdLanding.id, "shortId:", createdLanding.shortId);
         }
       }
 
       const createdLandings = await storage.getOfferLandings(offer.id);
       res.status(201).json({ ...offer, landings: createdLandings });
-    } catch (error) {
-      console.error("Create offer error:", error);
-      res.status(500).json({ message: "Failed to create offer" });
+    } catch (error: any) {
+      console.error("[POST /api/offers] Create offer error:", error);
+      const errorMessage = error?.message || "Unknown error";
+      res.status(500).json({ message: "Failed to create offer", error: errorMessage });
     }
   });
 

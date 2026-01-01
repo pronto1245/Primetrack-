@@ -49,6 +49,7 @@ export const users = pgTable("users", {
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  shortId: true,
   createdAt: true,
 });
 
@@ -153,6 +154,7 @@ export const offers = pgTable("offers", {
 
 export const insertOfferSchema = createInsertSchema(offers).omit({
   id: true,
+  shortId: true,
   createdAt: true,
   archived: true,
   archivedAt: true,
@@ -182,6 +184,7 @@ export const offerLandings = pgTable("offer_landings", {
 
 export const insertOfferLandingSchema = createInsertSchema(offerLandings).omit({
   id: true,
+  shortId: true,
 });
 
 export type InsertOfferLanding = z.infer<typeof insertOfferLandingSchema>;
