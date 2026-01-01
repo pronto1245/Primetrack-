@@ -6165,6 +6165,32 @@ export async function registerRoutes(
     }
   });
 
+  // Reprovision domain (delete and recreate Cloudflare hostname)
+  app.post("/api/domains/:id/reprovision", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const advertiserId = req.session.userId!;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      const { domainService } = await import("./services/domain-service");
+      const result = await domainService.reprovisionDomain(id);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      const updated = await storage.getCustomDomain(id);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to reprovision domain:", error);
+      res.status(500).json({ message: "Failed to reprovision domain" });
+    }
+  });
+
   // Delete domain
   app.delete("/api/domains/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
