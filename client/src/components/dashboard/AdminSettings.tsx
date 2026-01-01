@@ -11,8 +11,9 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Settings, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Shield, Key, CheckCircle2, Globe,
-  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle
+  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image
 } from "lucide-react";
+import { useUpload } from "@/hooks/use-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
@@ -586,6 +587,29 @@ function PlatformTab() {
   const [showIpinfoToken, setShowIpinfoToken] = useState(false);
   const [showFingerprintKey, setShowFingerprintKey] = useState(false);
   const [showCloudflareToken, setShowCloudflareToken] = useState(false);
+  
+  const { uploadFile, isUploading: isUploadingLogo } = useUpload({
+    onSuccess: (response) => {
+      const publicUrl = `/api/uploads/public/${response.objectPath}`;
+      setFormData(prev => ({ ...prev, platformLogoUrl: publicUrl }));
+      toast({ title: "Логотип загружен" });
+    },
+    onError: (error) => {
+      toast({ title: "Ошибка загрузки", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Ошибка", description: "Выберите изображение", variant: "destructive" });
+        return;
+      }
+      await uploadFile(file);
+    }
+  };
+
   const [formData, setFormData] = useState({
     platformName: "PrimeTrack",
     platformLogoUrl: "",
@@ -686,27 +710,62 @@ function PlatformTab() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="platformLogoUrl">URL логотипа</Label>
-              <Input
-                id="platformLogoUrl"
-                data-testid="input-platform-logo"
-                value={formData.platformLogoUrl}
-                onChange={(e) => setFormData({ ...formData, platformLogoUrl: e.target.value })}
-                placeholder="https://example.com/logo.png"
-              />
+          <div className="space-y-4">
+            <Label>Логотип платформы</Label>
+            <div className="flex items-start gap-6">
+              <div className="flex-shrink-0">
+                {formData.platformLogoUrl ? (
+                  <img 
+                    src={formData.platformLogoUrl} 
+                    alt="Логотип" 
+                    className="w-24 h-24 object-contain border rounded-lg bg-muted p-2"
+                    data-testid="img-platform-logo"
+                  />
+                ) : (
+                  <div className="w-24 h-24 border rounded-lg bg-muted flex items-center justify-center">
+                    <Image className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    id="platformLogoUrl"
+                    data-testid="input-platform-logo"
+                    value={formData.platformLogoUrl}
+                    onChange={(e) => setFormData({ ...formData, platformLogoUrl: e.target.value })}
+                    placeholder="https://example.com/logo.png"
+                    className="flex-1"
+                  />
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoFileChange}
+                      className="hidden"
+                      data-testid="input-logo-file"
+                    />
+                    <Button type="button" variant="outline" disabled={isUploadingLogo} asChild>
+                      <span>
+                        {isUploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      </span>
+                    </Button>
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground">Вставьте URL или загрузите файл с компьютера (PNG, JPG, SVG)</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="platformFaviconUrl">URL фавикона</Label>
-              <Input
-                id="platformFaviconUrl"
-                data-testid="input-platform-favicon"
-                value={formData.platformFaviconUrl}
-                onChange={(e) => setFormData({ ...formData, platformFaviconUrl: e.target.value })}
-                placeholder="https://example.com/favicon.ico"
-              />
-            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="platformFaviconUrl">URL фавикона</Label>
+            <Input
+              id="platformFaviconUrl"
+              data-testid="input-platform-favicon"
+              value={formData.platformFaviconUrl}
+              onChange={(e) => setFormData({ ...formData, platformFaviconUrl: e.target.value })}
+              placeholder="https://example.com/favicon.ico"
+            />
           </div>
 
           <div className="space-y-2">

@@ -341,6 +341,12 @@ function MainContent({ role, t }: { role: string, t: any }) {
     enabled: role === "advertiser",
   });
 
+  // Load platform settings for platform logo
+  const { data: platformSettings } = useQuery<any>({
+    queryKey: ["/api/admin/platform-settings"],
+    enabled: role === "admin" || role === "advertiser",
+  });
+
   // Handle auth error - redirect to login
   useEffect(() => {
     if (userError) {
@@ -620,11 +626,12 @@ function MainContent({ role, t }: { role: string, t: any }) {
           <SubscriptionBadge role={role} />
           <NotificationBell role={role} />
           <ThemeToggle />
-          {(advertiserSettings?.logoUrl || currentUser?.logoUrl) ? (
+          {(platformSettings?.platformLogoUrl || advertiserSettings?.logoUrl || currentUser?.logoUrl) ? (
             <img 
-              src={advertiserSettings?.logoUrl || currentUser?.logoUrl} 
+              src={platformSettings?.platformLogoUrl || advertiserSettings?.logoUrl || currentUser?.logoUrl} 
               alt="Logo" 
               className="w-8 h-8 rounded object-cover"
+              data-testid="header-platform-logo"
             />
           ) : (
             <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-xs font-bold uppercase">
