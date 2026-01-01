@@ -5975,7 +5975,17 @@ export async function registerRoutes(
     try {
       const advertiserId = req.session.userId!;
       const domains = await storage.getCustomDomainsByAdvertiser(advertiserId);
-      res.json(domains);
+      
+      // Add current CNAME target to domains that don't have dnsTarget set
+      const { cloudflareService } = await import("./cloudflare-service");
+      const cnameTarget = await cloudflareService.getCnameTarget();
+      
+      const domainsWithTarget = domains.map(domain => ({
+        ...domain,
+        dnsTarget: domain.dnsTarget || cnameTarget || null,
+      }));
+      
+      res.json(domainsWithTarget);
     } catch (error) {
       res.status(500).json({ message: "Failed to get domains" });
     }
