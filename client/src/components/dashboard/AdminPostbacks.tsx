@@ -3,7 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, CheckCircle, XCircle, Loader2, RefreshCw, Search, Copy, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { 
+  Globe, CheckCircle, XCircle, Loader2, RefreshCw, Search, Copy, 
+  ArrowDownToLine, ArrowUpFromLine, Play 
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +27,10 @@ export function AdminPostbacks() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [directionFilter, setDirectionFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [testUrl, setTestUrl] = useState("");
+  const [testMethod, setTestMethod] = useState("GET");
+  const [testResult, setTestResult] = useState<any>(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   const { data: logs, isLoading, refetch } = useQuery<PostbackLog[]>({
     queryKey: ["/api/admin/postback-logs"],
@@ -41,6 +48,27 @@ export function AdminPostbacks() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Скопировано");
+  };
+
+  const handleTest = async () => {
+    if (!testUrl) return;
+    setTestLoading(true);
+    setTestResult(null);
+    
+    try {
+      const res = await fetch("/api/postback-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ url: testUrl, method: testMethod }),
+      });
+      const result = await res.json();
+      setTestResult(result);
+    } catch (err) {
+      setTestResult({ success: false, error: "Network error" });
+    } finally {
+      setTestLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -112,6 +140,65 @@ export function AdminPostbacks() {
             <code className="text-muted-foreground">lead, reg → Lead | sale, dep, ftd → Sale | rejected → Rejected</code>
           </div>
         </div>
+      </Card>
+
+      <Card className="bg-card border-border p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Тест постбека</h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Проверьте доступность любого URL
+        </p>
+        
+        <div className="flex gap-2 mb-4">
+          <Input
+            placeholder="https://example.com/postback?click_id=test123"
+            value={testUrl}
+            onChange={(e) => setTestUrl(e.target.value)}
+            className="bg-muted border-border text-foreground font-mono text-sm flex-1"
+            data-testid="input-test-url"
+          />
+          <Select value={testMethod} onValueChange={setTestMethod}>
+            <SelectTrigger className="w-24 bg-muted border-border text-foreground" data-testid="select-test-method">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="GET">GET</SelectItem>
+              <SelectItem value="POST">POST</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={handleTest}
+            disabled={testLoading || !testUrl}
+            variant="outline"
+            className="border-border"
+            data-testid="button-test-postback"
+          >
+            {testLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+          </Button>
+        </div>
+        
+        {testResult && (
+          <div className={`p-3 rounded border ${testResult.success ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+            <div className="flex items-center gap-2 mb-2">
+              {testResult.success ? (
+                <CheckCircle className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <XCircle className="w-4 h-4 text-red-400" />
+              )}
+              <span className={`text-sm font-semibold ${testResult.success ? 'text-emerald-400' : 'text-red-400'}`}>
+                {testResult.success ? 'Успешно' : 'Ошибка'}
+              </span>
+              {testResult.status && (
+                <span className="text-xs text-muted-foreground">HTTP {testResult.status}</span>
+              )}
+              {testResult.responseTime && (
+                <span className="text-xs text-muted-foreground">{testResult.responseTime}ms</span>
+              )}
+            </div>
+            {testResult.error && (
+              <p className="text-xs text-red-400 mt-1">{testResult.error}</p>
+            )}
+          </div>
+        )}
       </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

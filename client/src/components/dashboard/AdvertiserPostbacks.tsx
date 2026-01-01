@@ -126,11 +126,11 @@ export function AdvertiserPostbacks() {
     setTestResult(null);
     
     try {
-      const res = await fetch("/api/advertiser/postbacks/test", {
+      const res = await fetch("/api/postback-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ url: testUrl, method: "GET" }),
+        body: JSON.stringify({ url: testUrl, method: currentMethod }),
       });
       const result = await res.json();
       setTestResult(result);
