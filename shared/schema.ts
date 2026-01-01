@@ -1318,6 +1318,11 @@ export const customDomains = pgTable("custom_domains", {
   // Cloudflare Worker Domain Binding
   cloudflareWorkerBindingId: text("cloudflare_worker_binding_id"), // Worker domain binding ID
   
+  // Provision status: tracks overall provisioning state
+  // pending - not started, ssl_pending - SSL creating, ssl_active - SSL ready but no Worker,
+  // worker_pending - Worker creating, worker_failed - Worker failed, active - fully provisioned
+  provisionStatus: text("provision_status").default("pending"),
+  
   // Usage
   isPrimary: boolean("is_primary").default(false),
   isActive: boolean("is_active").default(true),
