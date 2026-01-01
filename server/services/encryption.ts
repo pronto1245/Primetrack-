@@ -60,6 +60,20 @@ export function maskSecret(secret: string | null | undefined): string {
   return secret.substring(0, 4) + "****" + secret.substring(secret.length - 4);
 }
 
+export function isEncrypted(value: string | null | undefined): boolean {
+  if (!value) return false;
+  
+  const parts = value.split(":");
+  if (parts.length !== 3) return false;
+  
+  const [iv, authTag, encrypted] = parts;
+  if (iv.length !== 32 || authTag.length !== 32) return false;
+  if (!/^[0-9a-f]+$/i.test(iv) || !/^[0-9a-f]+$/i.test(authTag)) return false;
+  if (!/^[0-9a-f]+$/i.test(encrypted)) return false;
+  
+  return true;
+}
+
 export function hasSecret(encryptedValue: string | null | undefined): boolean {
-  return Boolean(encryptedValue && encryptedValue.includes(":"));
+  return isEncrypted(encryptedValue);
 }
