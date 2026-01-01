@@ -17,7 +17,57 @@ interface TlsCheckResult {
 }
 
 class TlsChecker {
-  async checkSsl(domain: string, timeout = 10000): Promise<TlsCheckResult> {
+  private async checkHttpStatus(domain: string): Promise<{ success: boolean; error?: string; statusCode?: number }> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch(`https://${domain}/`, {
+        method: "HEAD",
+        signal: controller.signal,
+        redirect: "follow",
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.status >= 500 && response.status < 600) {
+        const errorMessages: Record<number, string> = {
+          520: "Web server returned unknown error",
+          521: "Web server is down",
+          522: "Connection timed out to origin",
+          523: "Origin is unreachable",
+          524: "Origin timeout",
+          525: "SSL handshake failed with origin (check Fallback Origin config)",
+          526: "Invalid SSL certificate on origin",
+          527: "Railgun error",
+        };
+        const msg = errorMessages[response.status] || "Origin server error";
+        return { 
+          success: false, 
+          error: `HTTP ${response.status}: ${msg}`,
+          statusCode: response.status
+        };
+      }
+      
+      return { success: true, statusCode: response.status };
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        return { success: false, error: "HTTP request timeout" };
+      }
+      console.log(`[TlsChecker] HTTP check error for ${domain}: ${error.message}`);
+      return { success: false, error: `HTTP error: ${error.message}` };
+    }
+  }
+
+  private performTlsCheck(domain: string, timeout: number): Promise<{
+    success: boolean;
+    error?: string;
+    cert?: {
+      validTo: Date;
+      issuer: string;
+      domains: string[];
+    };
+  }> {
     return new Promise((resolve) => {
       const socket = tls.connect(
         {
@@ -32,11 +82,7 @@ class TlsChecker {
             socket.end();
 
             if (!cert || !cert.subject) {
-              resolve({
-                success: false,
-                status: "verified_no_ssl",
-                error: "No certificate found",
-              });
+              resolve({ success: false, error: "No certificate found" });
               return;
             }
 
@@ -45,12 +91,7 @@ class TlsChecker {
             const now = new Date();
 
             if (now < validFrom || now > validTo) {
-              resolve({
-                success: false,
-                status: "ssl_failed",
-                error: "Certificate expired or not yet valid",
-                expiresAt: validTo,
-              });
+              resolve({ success: false, error: "Certificate expired or not yet valid" });
               return;
             }
 
@@ -77,62 +118,85 @@ class TlsChecker {
             });
 
             if (!domainMatches) {
-              resolve({
-                success: false,
-                status: "ssl_failed",
-                error: `Certificate does not match domain. Cert covers: ${certDomains.join(", ")}`,
+              resolve({ 
+                success: false, 
+                error: `Certificate does not match domain. Cert covers: ${certDomains.join(", ")}` 
               });
               return;
             }
 
             resolve({
               success: true,
-              status: "ssl_active",
-              expiresAt: validTo,
-              issuer: cert.issuer?.O || cert.issuer?.CN || "Unknown",
+              cert: {
+                validTo,
+                issuer: cert.issuer?.O || cert.issuer?.CN || "Unknown",
+                domains: certDomains
+              }
             });
           } catch (error: any) {
             socket.end();
-            resolve({
-              success: false,
-              status: "ssl_failed",
-              error: error.message,
-            });
+            resolve({ success: false, error: error.message });
           }
         }
       );
 
       socket.on("error", (error: any) => {
         if (error.code === "ECONNREFUSED" || error.code === "ENOTFOUND") {
-          resolve({
-            success: false,
-            status: "verified_no_ssl",
-            error: "Cannot connect to domain on port 443",
-          });
+          resolve({ success: false, error: "Cannot connect to domain on port 443" });
         } else if (error.code === "ECONNRESET" || error.code === "ETIMEDOUT") {
-          resolve({
-            success: false,
-            status: "ssl_activating",
-            error: "Connection timeout - SSL may be propagating",
-          });
+          resolve({ success: false, error: "Connection timeout - SSL may be propagating" });
         } else {
-          resolve({
-            success: false,
-            status: "ssl_failed",
-            error: error.message || "TLS handshake failed",
-          });
+          resolve({ success: false, error: error.message || "TLS handshake failed" });
         }
       });
 
       socket.setTimeout(timeout, () => {
         socket.destroy();
-        resolve({
-          success: false,
-          status: "ssl_activating",
-          error: "Connection timeout - SSL may be propagating",
-        });
+        resolve({ success: false, error: "Connection timeout - SSL may be propagating" });
       });
     });
+  }
+
+  async checkSsl(domain: string, timeout = 10000): Promise<TlsCheckResult> {
+    // Step 1: TLS handshake check
+    const tlsResult = await this.performTlsCheck(domain, timeout);
+    
+    if (!tlsResult.success) {
+      // Determine appropriate status based on error
+      let status: SslStatus = "ssl_failed";
+      if (tlsResult.error?.includes("Cannot connect")) {
+        status = "verified_no_ssl";
+      } else if (tlsResult.error?.includes("timeout") || tlsResult.error?.includes("propagating")) {
+        status = "ssl_activating";
+      }
+      
+      return {
+        success: false,
+        status,
+        error: tlsResult.error
+      };
+    }
+
+    // Step 2: HTTP status check (ensures origin is working, not just Cloudflare edge)
+    const httpResult = await this.checkHttpStatus(domain);
+    
+    if (!httpResult.success) {
+      return {
+        success: false,
+        status: "ssl_failed",
+        error: httpResult.error,
+        expiresAt: tlsResult.cert?.validTo,
+        issuer: tlsResult.cert?.issuer
+      };
+    }
+
+    // Both TLS and HTTP checks passed
+    return {
+      success: true,
+      status: "ssl_active",
+      expiresAt: tlsResult.cert?.validTo,
+      issuer: tlsResult.cert?.issuer
+    };
   }
 
   async checkDomainSsl(domainId: string): Promise<TlsCheckResult> {

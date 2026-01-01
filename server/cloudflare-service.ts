@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import { decrypt } from "./services/encryption";
+import { decrypt, hasSecret } from "./services/encryption";
 
 const CLOUDFLARE_API_BASE = "https://api.cloudflare.com/client/v4";
 
@@ -51,13 +51,18 @@ async function getCloudflareSettings(): Promise<CloudflareSettings | null> {
     return null;
   }
   
-  // Decrypt the API token (it's stored encrypted)
+  // Decrypt the API token if it's encrypted (contains ":" separator)
   let decryptedToken = cloudflareApiToken;
-  try {
-    decryptedToken = decrypt(cloudflareApiToken);
-  } catch (e) {
-    // Token might not be encrypted (legacy data), use as-is
-    console.log("[Cloudflare] Using token as-is (not encrypted or legacy)");
+  if (hasSecret(cloudflareApiToken)) {
+    const decrypted = decrypt(cloudflareApiToken);
+    if (decrypted && decrypted.length > 0) {
+      decryptedToken = decrypted;
+    } else {
+      console.error("[Cloudflare] Failed to decrypt API token - decryption returned empty");
+      return null;
+    }
+  } else {
+    console.log("[Cloudflare] Token not encrypted (legacy format), using as-is");
   }
   
   return {
