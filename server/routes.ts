@@ -276,10 +276,56 @@ async function seedUsers() {
   }
 }
 
+// Extend Express Request to include custom domain info
+declare global {
+  namespace Express {
+    interface Request {
+      customDomain?: {
+        id: string;
+        domain: string;
+        advertiserId: string;
+      };
+    }
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Custom domain resolution middleware - must be before auth
+  // This allows tracking links to work on custom domains without authentication
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const hostname = req.hostname?.toLowerCase();
+      
+      // Skip for localhost, Replit domains, and platform domain
+      if (!hostname || 
+          hostname === 'localhost' || 
+          hostname.includes('.replit.dev') || 
+          hostname.includes('.repl.co') ||
+          hostname === 'primetrack.pro' ||
+          hostname === 'www.primetrack.pro') {
+        return next();
+      }
+      
+      // Check if this is a custom domain
+      const customDomain = await storage.getCustomDomainByDomain(hostname);
+      
+      if (customDomain && customDomain.isVerified && customDomain.isActive) {
+        req.customDomain = {
+          id: customDomain.id,
+          domain: customDomain.domain,
+          advertiserId: customDomain.advertiserId,
+        };
+        console.log(`[CustomDomain] Request from ${hostname} mapped to advertiser ${customDomain.advertiserId}`);
+      }
+    } catch (error) {
+      console.error("[CustomDomain] Error resolving domain:", error);
+    }
+    next();
+  });
+
   await setupAuth(app);
   await seedUsers();
   registerObjectStorageRoutes(app);
@@ -1712,6 +1758,114 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process click" 
+      });
+    }
+  });
+
+  // Custom domain click handler - simplified URLs without /click prefix
+  // Works only when request comes from a verified custom domain
+  // Usage: /{offerId}/{landingId}?partner_id=XXX or /{offerId}/{landingId}?a=XXX
+  app.get("/:offerId/:landingId", async (req: Request, res: Response, next: NextFunction) => {
+    // Only process if this is a custom domain request
+    if (!req.customDomain) {
+      return next();
+    }
+
+    try {
+      const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
+      const rawPartnerId = (req.query.partner_id || req.query.a) as string;
+      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+
+      if (!rawPartnerId) {
+        return res.status(400).json({ 
+          error: "Missing required parameter: partner_id or a" 
+        });
+      }
+
+      // Resolve shortId or UUID to actual UUIDs
+      const offerId = await resolveOfferId(rawOfferId);
+      const landingId = await resolveLandingId(rawLandingId);
+      const partnerId = await resolvePublisherId(rawPartnerId);
+
+      if (!offerId) {
+        return res.status(404).json({ error: "Offer not found" });
+      }
+      if (!landingId) {
+        return res.status(404).json({ error: "Landing not found" });
+      }
+      if (!partnerId) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+
+      // Verify offer belongs to the custom domain's advertiser
+      const offer = await storage.getOffer(offerId);
+      if (!offer || offer.advertiserId !== req.customDomain.advertiserId) {
+        return res.status(404).json({ error: "Offer not found for this domain" });
+      }
+
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
+                 req.socket.remoteAddress || 
+                 "unknown";
+      const userAgent = req.headers["user-agent"] || "";
+      const referer = req.headers["referer"] || "";
+      
+      let geoCode = (req.headers["cf-ipcountry"] as string) ||
+                    (req.headers["x-country-code"] as string);
+      
+      if (!geoCode && ip && ip !== "unknown") {
+        const geoData = geoip.lookup(ip);
+        if (geoData?.country) {
+          geoCode = geoData.country;
+        }
+      }
+      
+      if (!geoCode) {
+        geoCode = "XX";
+      }
+
+      console.log(`[CustomDomain] Processing click: domain=${req.customDomain.domain}, offer=${rawOfferId}, landing=${rawLandingId}, partner=${rawPartnerId}`);
+
+      const result = await clickHandler.processClick({
+        offerId,
+        landingId,
+        partnerId,
+        sub1: sub1 as string,
+        sub2: sub2 as string,
+        sub3: sub3 as string,
+        sub4: sub4 as string,
+        sub5: sub5 as string,
+        sub6: sub6 as string,
+        sub7: sub7 as string,
+        sub8: sub8 as string,
+        sub9: sub9 as string,
+        sub10: sub10 as string,
+        ip,
+        userAgent,
+        referer,
+        geo: geoCode,
+        visitorId: visitor_id as string,
+        fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+      });
+
+      if (result.isBlocked) {
+        if (result.capReached) {
+          return res.status(410).json({ 
+            error: "Offer cap reached", 
+            reason: "cap_exceeded"
+          });
+        }
+        return res.status(403).json({ 
+          error: "Traffic blocked", 
+          reason: "fraud_detected",
+          fraudScore: result.fraudScore 
+        });
+      }
+
+      res.redirect(302, result.redirectUrl);
+    } catch (error: any) {
+      console.error("[CustomDomain] Click handler error:", error);
       res.status(400).json({ 
         error: error.message || "Failed to process click" 
       });
