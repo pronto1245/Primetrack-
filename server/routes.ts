@@ -6509,27 +6509,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Domain not found" });
       }
 
-      // Deprovision from Cloudflare if configured
-      if (existing.cloudflareHostnameId || existing.cloudflareWorkerBindingId) {
-        try {
-          const { cloudflareService } = await import("./cloudflare-service");
-          const deprovResult = await cloudflareService.deprovisionDomain(id);
-          if (!deprovResult.success) {
-            // Cloudflare cleanup failed - don't delete from DB, return error
-            console.error(`Cloudflare deprovisioning failed for ${existing.domain}: ${deprovResult.error}`);
-            return res.status(502).json({ 
-              message: `Failed to remove domain from Cloudflare: ${deprovResult.error}. Please retry or contact support.`,
-              cloudflareError: deprovResult.error,
-            });
-          }
-        } catch (cfError) {
-          const errorMsg = cfError instanceof Error ? cfError.message : String(cfError);
-          console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
-          return res.status(502).json({ 
-            message: `Failed to remove domain from Cloudflare: ${errorMsg}. Please retry or contact support.`,
-            cloudflareError: errorMsg,
-          });
+      try {
+        const { cloudflareService } = await import("./cloudflare-service");
+        if (existing.cloudflareHostnameId) {
+          await cloudflareService.deprovisionDomain(id);
         }
+      } catch (cfError) {
+        console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
       }
 
       await storage.deleteCustomDomain(id);

@@ -8,9 +8,6 @@ interface CloudflareSettings {
   apiToken: string;
   cnameTarget: string;
   fallbackOrigin: string;
-  accountId?: string;
-  workerName?: string;
-  workerEnvironment?: string;
 }
 
 interface CloudflareCustomHostname {
@@ -37,15 +34,6 @@ interface CloudflareCustomHostname {
   created_at: string;
 }
 
-interface WorkerDomain {
-  id: string;
-  hostname: string;
-  service: string;
-  zone_id: string;
-  zone_name: string;
-  environment: string;
-}
-
 interface CloudflareApiResponse<T> {
   success: boolean;
   errors: Array<{ code: number; message: string }>;
@@ -53,35 +41,28 @@ interface CloudflareApiResponse<T> {
   result: T;
 }
 
-// ==================== SETTINGS ====================
-
 async function getCloudflareSettings(): Promise<CloudflareSettings | null> {
   const settings = await storage.getPlatformSettings();
   if (!settings) return null;
   
-  const { 
-    cloudflareZoneId, 
-    cloudflareApiToken, 
-    cloudflareCnameTarget, 
-    cloudflareFallbackOrigin,
-    cloudflareAccountId,
-    cloudflareWorkerName,
-    cloudflareWorkerEnvironment,
-  } = settings;
+  const { cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin } = settings;
   
   if (!cloudflareZoneId || !cloudflareApiToken || !cloudflareFallbackOrigin) {
     return null;
   }
   
+  // Decrypt the API token if it's encrypted (contains ":" separator)
   let decryptedToken = cloudflareApiToken;
   if (hasSecret(cloudflareApiToken)) {
     const decrypted = decrypt(cloudflareApiToken);
     if (decrypted && decrypted.length > 0) {
       decryptedToken = decrypted;
     } else {
-      console.error("[Cloudflare] Failed to decrypt API token");
+      console.error("[Cloudflare] Failed to decrypt API token - decryption returned empty");
       return null;
     }
+  } else {
+    console.log("[Cloudflare] Token not encrypted (legacy format), using as-is");
   }
   
   return {
@@ -89,19 +70,21 @@ async function getCloudflareSettings(): Promise<CloudflareSettings | null> {
     apiToken: decryptedToken,
     cnameTarget: cloudflareCnameTarget || `customers.${cloudflareFallbackOrigin.replace('tracking.', '')}`,
     fallbackOrigin: cloudflareFallbackOrigin,
-    accountId: cloudflareAccountId || undefined,
-    workerName: cloudflareWorkerName || undefined,
-    workerEnvironment: cloudflareWorkerEnvironment || undefined,
   };
 }
 
-// ==================== API HELPERS ====================
-
-async function zoneRequest<T>(method: string, endpoint: string, body?: object): Promise<CloudflareApiResponse<T>> {
+async function cloudflareRequest<T>(
+  method: string,
+  endpoint: string,
+  body?: object
+): Promise<CloudflareApiResponse<T>> {
   const settings = await getCloudflareSettings();
-  if (!settings) throw new Error("Cloudflare not configured");
+  if (!settings) {
+    throw new Error("Cloudflare not configured. Please set Zone ID and API Token in Admin Settings.");
+  }
   
   const url = `${CLOUDFLARE_API_BASE}/zones/${settings.zoneId}${endpoint}`;
+  
   const response = await fetch(url, {
     method,
     headers: {
@@ -112,158 +95,143 @@ async function zoneRequest<T>(method: string, endpoint: string, body?: object): 
   });
   
   const data = await response.json() as CloudflareApiResponse<T>;
+  
   if (!data.success) {
-    throw new Error(`Cloudflare: ${data.errors.map(e => e.message).join(", ")}`);
+    const errorMsg = data.errors.map(e => e.message).join(", ");
+    throw new Error(`Cloudflare API error: ${errorMsg}`);
   }
+  
   return data;
 }
-
-async function accountRequest<T>(method: string, endpoint: string, body?: object): Promise<CloudflareApiResponse<T>> {
-  const settings = await getCloudflareSettings();
-  if (!settings) throw new Error("Cloudflare not configured");
-  if (!settings.accountId) throw new Error("Cloudflare Account ID not set");
-  
-  const url = `${CLOUDFLARE_API_BASE}/accounts/${settings.accountId}${endpoint}`;
-  const response = await fetch(url, {
-    method,
-    headers: {
-      "Authorization": `Bearer ${settings.apiToken}`,
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  
-  const data = await response.json() as CloudflareApiResponse<T>;
-  if (!data.success) {
-    throw new Error(`Cloudflare: ${data.errors.map(e => e.message).join(", ")}`);
-  }
-  return data;
-}
-
-function isNotFoundError(error: unknown): boolean {
-  const msg = error instanceof Error ? error.message : String(error);
-  return msg.includes("not_found") || msg.includes("10007") || msg.includes("not found");
-}
-
-// ==================== CUSTOM HOSTNAMES (SSL) ====================
 
 export async function isCloudflareConfigured(): Promise<boolean> {
-  return (await getCloudflareSettings()) !== null;
-}
-
-async function isWorkerConfigured(): Promise<boolean> {
   const settings = await getCloudflareSettings();
-  return !!(settings?.accountId && settings?.workerName);
+  return settings !== null;
 }
 
 export async function setFallbackOrigin(origin: string): Promise<void> {
-  await zoneRequest("PUT", "/custom_hostnames/fallback_origin", { origin });
+  await cloudflareRequest("PUT", "/custom_hostnames/fallback_origin", {
+    origin,
+  });
 }
 
 export async function getFallbackOrigin(): Promise<string | null> {
   try {
-    const response = await zoneRequest<{ origin: string }>("GET", "/custom_hostnames/fallback_origin");
+    const response = await cloudflareRequest<{ origin: string }>(
+      "GET",
+      "/custom_hostnames/fallback_origin"
+    );
     return response.result?.origin || null;
   } catch {
     return null;
   }
 }
 
-export async function createCustomHostname(hostname: string): Promise<CloudflareCustomHostname> {
+export async function createCustomHostname(
+  hostname: string
+): Promise<CloudflareCustomHostname> {
   const settings = await getCloudflareSettings();
-  if (!settings) throw new Error("Cloudflare not configured");
+  if (!settings) {
+    throw new Error("Cloudflare not configured");
+  }
   
-  const response = await zoneRequest<CloudflareCustomHostname>("POST", "/custom_hostnames", {
-    hostname,
-    ssl: { method: "http", type: "dv", settings: { http2: "on", min_tls_version: "1.2" } },
-    custom_origin_server: settings.fallbackOrigin,
-    custom_origin_sni_value: settings.fallbackOrigin,
-  });
+  const response = await cloudflareRequest<CloudflareCustomHostname>(
+    "POST",
+    "/custom_hostnames",
+    {
+      hostname,
+      ssl: {
+        method: "http",
+        type: "dv",
+        settings: {
+          http2: "on",
+          min_tls_version: "1.2",
+        },
+      },
+      custom_origin_server: settings.fallbackOrigin,
+      custom_origin_sni_value: settings.fallbackOrigin,
+    }
+  );
+  
   return response.result;
 }
 
-export async function getCustomHostname(hostnameId: string): Promise<CloudflareCustomHostname> {
-  const response = await zoneRequest<CloudflareCustomHostname>("GET", `/custom_hostnames/${hostnameId}`);
+export async function getCustomHostname(
+  hostnameId: string
+): Promise<CloudflareCustomHostname> {
+  const response = await cloudflareRequest<CloudflareCustomHostname>(
+    "GET",
+    `/custom_hostnames/${hostnameId}`
+  );
+  
   return response.result;
 }
 
 export async function deleteCustomHostname(hostnameId: string): Promise<void> {
-  try {
-    await zoneRequest("DELETE", `/custom_hostnames/${hostnameId}`);
-  } catch (error) {
-    if (!isNotFoundError(error)) throw error;
-  }
+  await cloudflareRequest("DELETE", `/custom_hostnames/${hostnameId}`);
 }
 
-export async function updateCustomHostnameOrigin(hostnameId: string): Promise<CloudflareCustomHostname> {
+export async function updateCustomHostnameOrigin(
+  hostnameId: string
+): Promise<CloudflareCustomHostname> {
   const settings = await getCloudflareSettings();
-  if (!settings) throw new Error("Cloudflare not configured");
+  if (!settings) {
+    throw new Error("Cloudflare not configured");
+  }
   
-  const response = await zoneRequest<CloudflareCustomHostname>("PATCH", `/custom_hostnames/${hostnameId}`, {
-    custom_origin_server: settings.fallbackOrigin,
-    custom_origin_sni_value: settings.fallbackOrigin,
-  });
+  const response = await cloudflareRequest<CloudflareCustomHostname>(
+    "PATCH",
+    `/custom_hostnames/${hostnameId}`,
+    {
+      custom_origin_server: settings.fallbackOrigin,
+      custom_origin_sni_value: settings.fallbackOrigin,
+    }
+  );
+  
   return response.result;
 }
 
-export async function findCustomHostnameByName(hostname: string): Promise<CloudflareCustomHostname | null> {
-  try {
-    const response = await zoneRequest<CloudflareCustomHostname[]>("GET", `/custom_hostnames?hostname=${encodeURIComponent(hostname)}`);
-    return response.result?.[0] || null;
-  } catch {
-    return null;
-  }
-}
-
 export async function listCustomHostnames(): Promise<CloudflareCustomHostname[]> {
-  const response = await zoneRequest<CloudflareCustomHostname[]>("GET", "/custom_hostnames?per_page=50");
-  return response.result || [];
-}
-
-// ==================== WORKER DOMAINS ====================
-
-async function createWorkerBinding(hostname: string): Promise<string> {
-  const settings = await getCloudflareSettings();
-  if (!settings?.accountId || !settings?.workerName) {
-    throw new Error("Worker settings not configured");
-  }
+  const response = await cloudflareRequest<CloudflareCustomHostname[]>(
+    "GET",
+    "/custom_hostnames?per_page=100"
+  );
   
-  const response = await accountRequest<{ id: string }>("PUT", "/workers/domains", {
-    hostname,
-    service: settings.workerName,
-    environment: settings.workerEnvironment || "production",
-    zone_id: settings.zoneId,
-  });
-  return response.result.id;
+  return response.result;
 }
 
-async function deleteWorkerBinding(bindingId: string): Promise<void> {
+export async function findCustomHostnameByName(
+  hostname: string
+): Promise<CloudflareCustomHostname | null> {
   try {
-    await accountRequest("DELETE", `/workers/domains/${bindingId}`);
+    const response = await cloudflareRequest<CloudflareCustomHostname[]>(
+      "GET",
+      `/custom_hostnames?hostname=${encodeURIComponent(hostname)}`
+    );
+    
+    if (response.result && response.result.length > 0) {
+      return response.result[0];
+    }
+    return null;
   } catch (error) {
-    if (!isNotFoundError(error)) throw error;
-  }
-}
-
-async function findWorkerBindingByHostname(hostname: string): Promise<string | null> {
-  const settings = await getCloudflareSettings();
-  if (!settings?.accountId) return null;
-  
-  try {
-    const response = await accountRequest<WorkerDomain[]>("GET", `/workers/domains`);
-    const binding = response.result?.find(d => d.hostname === hostname);
-    return binding?.id || null;
-  } catch {
+    console.error(`[Cloudflare] Failed to find hostname ${hostname}:`, error);
     return null;
   }
 }
 
-// ==================== SYNC STATUS ====================
-
-export async function syncDomainStatus(domainId: string): Promise<{ status: string; sslStatus: string; error?: string }> {
+export async function syncDomainStatus(domainId: string): Promise<{
+  status: string;
+  sslStatus: string;
+  error?: string;
+}> {
   const domain = await storage.getCustomDomain(domainId);
-  if (!domain) throw new Error("Domain not found");
-  if (!domain.cloudflareHostnameId) throw new Error("Domain not registered with Cloudflare");
+  if (!domain) {
+    throw new Error("Domain not found");
+  }
+  
+  if (!domain.cloudflareHostnameId) {
+    throw new Error("Domain not registered with Cloudflare");
+  }
   
   try {
     const cfHostname = await getCustomHostname(domain.cloudflareHostnameId);
@@ -279,231 +247,141 @@ export async function syncDomainStatus(domainId: string): Promise<{ status: stri
       updateData.sslStatus = "ssl_active";
       updateData.isVerified = true;
       updateData.verifiedAt = new Date();
+    } else if (cfHostname.ssl.status === "pending_validation") {
+      updateData.sslStatus = "pending";
+    } else if (cfHostname.ssl.status === "pending_deployment") {
+      updateData.sslStatus = "provisioning";
     }
     
     await storage.updateCustomDomain(domainId, updateData);
-    return { status: cfHostname.status, sslStatus: cfHostname.ssl.status };
+    
+    return {
+      status: cfHostname.status,
+      sslStatus: cfHostname.ssl.status,
+    };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    await storage.updateCustomDomain(domainId, { cloudflareError: errorMsg, lastSyncedAt: new Date() });
-    return { status: "error", sslStatus: "error", error: errorMsg };
-  }
-}
-
-// ==================== PROVISION ====================
-
-export async function provisionDomain(domainId: string, hostname: string): Promise<{ success: boolean; error?: string }> {
-  const settings = await getCloudflareSettings();
-  if (!settings) return { success: false, error: "Cloudflare not configured" };
-  
-  const existingDomain = await storage.getCustomDomain(domainId);
-  let hostnameId: string | null = null;
-  let bindingId: string | null = null;
-  let isNewHostname = false;
-  
-  try {
-    // Step 1: Set pending status
-    await storage.updateCustomDomain(domainId, { provisionStatus: "ssl_pending", cloudflareError: null });
     
-    // Step 2: Create or reuse hostname
-    const existing = await findCustomHostnameByName(hostname);
-    if (existing) {
-      hostnameId = existing.id;
-      await updateCustomHostnameOrigin(hostnameId);
-    } else {
-      const created = await createCustomHostname(hostname);
-      hostnameId = created.id;
-      isNewHostname = true;
-    }
-    
-    // Step 3: Update DB with hostname
     await storage.updateCustomDomain(domainId, {
-      cloudflareHostnameId: hostnameId,
-      cloudflareStatus: "pending",
-      cloudflareSslStatus: "pending",
-      dnsTarget: settings.cnameTarget,
-      provisionStatus: "ssl_active",
+      cloudflareError: errorMsg,
       lastSyncedAt: new Date(),
     });
     
-    // Step 4: Create Worker binding if configured
-    if (settings.accountId && settings.workerName) {
-      await storage.updateCustomDomain(domainId, { provisionStatus: "worker_pending" });
-      
-      // Delete old binding if exists
-      if (existingDomain?.cloudflareWorkerBindingId) {
-        await deleteWorkerBinding(existingDomain.cloudflareWorkerBindingId);
-      }
-      
-      bindingId = await createWorkerBinding(hostname);
-      
-      await storage.updateCustomDomain(domainId, {
-        cloudflareWorkerBindingId: bindingId,
-        provisionStatus: "active",
-        cloudflareError: null,
-      });
+    return {
+      status: "error",
+      sslStatus: "error",
+      error: errorMsg,
+    };
+  }
+}
+
+export async function provisionDomain(
+  domainId: string,
+  hostname: string
+): Promise<{ success: boolean; error?: string }> {
+  const settings = await getCloudflareSettings();
+  if (!settings) {
+    return { success: false, error: "Cloudflare not configured" };
+  }
+  
+  try {
+    // First check if hostname already exists in Cloudflare
+    const existing = await findCustomHostnameByName(hostname);
+    
+    let cfHostname: { id: string; status: string; ssl: { status: string } };
+    
+    if (existing) {
+      console.log(`[Cloudflare] Hostname ${hostname} already exists (id: ${existing.id}), updating origin to ${settings.fallbackOrigin}`);
+      cfHostname = await updateCustomHostnameOrigin(existing.id);
     } else {
-      await storage.updateCustomDomain(domainId, { provisionStatus: "active" });
+      console.log(`[Cloudflare] Creating new hostname ${hostname} with origin ${settings.fallbackOrigin}`);
+      cfHostname = await createCustomHostname(hostname);
     }
     
-    return { success: true };
+    await storage.updateCustomDomain(domainId, {
+      cloudflareHostnameId: cfHostname.id,
+      cloudflareStatus: cfHostname.status,
+      cloudflareSslStatus: cfHostname.ssl.status,
+      dnsTarget: settings.cnameTarget,
+      lastSyncedAt: new Date(),
+      cloudflareError: null,
+    });
     
+    return { success: true };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
     
-    // Rollback: delete new hostname if Worker binding failed
-    if (isNewHostname && hostnameId && !bindingId) {
-      try { await deleteCustomHostname(hostnameId); } catch {}
-      await storage.updateCustomDomain(domainId, {
-        cloudflareHostnameId: null,
-        cloudflareWorkerBindingId: null,
-        cloudflareStatus: null,
-        cloudflareSslStatus: null,
-        provisionStatus: "worker_failed",
-        cloudflareError: errorMsg,
-      });
-    } else if (hostnameId && !bindingId) {
-      // Keep existing hostname, mark Worker failed
-      await storage.updateCustomDomain(domainId, {
-        cloudflareWorkerBindingId: null,
-        provisionStatus: "worker_failed",
-        cloudflareError: errorMsg,
-      });
-    } else {
-      await storage.updateCustomDomain(domainId, {
-        provisionStatus: "ssl_failed",
-        cloudflareSslStatus: "failed",
-        cloudflareError: errorMsg,
-      });
-    }
+    await storage.updateCustomDomain(domainId, {
+      cloudflareError: errorMsg,
+      sslStatus: "ssl_failed",
+    });
     
     return { success: false, error: errorMsg };
   }
 }
 
-// ==================== DEPROVISION ====================
-
-export async function deprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string }> {
+export async function deprovisionDomain(domainId: string): Promise<void> {
   const domain = await storage.getCustomDomain(domainId);
-  if (!domain) return { success: false, error: "Domain not found" };
-  
-  const errors: string[] = [];
-  
-  // Step 1: Find and delete Worker binding
-  let workerId = domain.cloudflareWorkerBindingId;
-  if (!workerId) {
-    workerId = await findWorkerBindingByHostname(domain.domain);
+  if (!domain?.cloudflareHostnameId) {
+    return;
   }
   
-  if (workerId) {
-    try {
-      await deleteWorkerBinding(workerId);
-    } catch (error) {
-      errors.push(`Worker: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-  
-  // Step 2: Delete hostname (only if Worker succeeded or didn't exist)
-  if (errors.length === 0 && domain.cloudflareHostnameId) {
-    try {
-      await deleteCustomHostname(domain.cloudflareHostnameId);
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        errors.push(`Hostname: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-  }
-  
-  // Step 3: Update DB
-  if (errors.length === 0) {
-    await storage.updateCustomDomain(domainId, {
-      cloudflareHostnameId: null,
-      cloudflareWorkerBindingId: null,
-      cloudflareStatus: null,
-      cloudflareSslStatus: null,
-      provisionStatus: "pending",
-      cloudflareError: null,
-      lastSyncedAt: new Date(),
-    });
-    return { success: true };
-  } else {
-    await storage.updateCustomDomain(domainId, {
-      cloudflareError: errors.join("; "),
-      lastSyncedAt: new Date(),
-    });
-    return { success: false, error: errors.join("; ") };
+  try {
+    await deleteCustomHostname(domain.cloudflareHostnameId);
+  } catch (error) {
+    console.error(`Failed to delete Cloudflare hostname: ${error}`);
   }
 }
-
-// ==================== REPROVISION ====================
 
 export async function reprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string }> {
   const domain = await storage.getCustomDomain(domainId);
-  if (!domain) return { success: false, error: "Domain not found" };
-  
-  // If no hostname exists, do full provision
-  if (!domain.cloudflareHostnameId) {
-    return provisionDomain(domainId, domain.domain);
+  if (!domain) {
+    return { success: false, error: "Domain not found" };
   }
   
   const settings = await getCloudflareSettings();
-  if (!settings) return { success: false, error: "Cloudflare not configured" };
+  if (!settings) {
+    return { success: false, error: "Cloudflare not configured" };
+  }
   
   try {
-    await storage.updateCustomDomain(domainId, { provisionStatus: "ssl_pending", cloudflareError: null });
-    
-    const updated = await updateCustomHostnameOrigin(domain.cloudflareHostnameId);
-    
-    await storage.updateCustomDomain(domainId, {
-      cloudflareStatus: updated.status,
-      cloudflareSslStatus: updated.ssl.status,
-      dnsTarget: settings.cnameTarget,
-      provisionStatus: "ssl_active",
-      lastSyncedAt: new Date(),
-    });
-    
-    if (settings.accountId && settings.workerName) {
-      await storage.updateCustomDomain(domainId, { provisionStatus: "worker_pending" });
-      
-      if (domain.cloudflareWorkerBindingId) {
-        await deleteWorkerBinding(domain.cloudflareWorkerBindingId);
-      }
-      
-      const bindingId = await createWorkerBinding(domain.domain);
+    if (domain.cloudflareHostnameId) {
+      console.log(`[Cloudflare] Updating origin for hostname ${domain.cloudflareHostnameId} to ${settings.fallbackOrigin}`);
+      const updated = await updateCustomHostnameOrigin(domain.cloudflareHostnameId);
       
       await storage.updateCustomDomain(domainId, {
-        cloudflareWorkerBindingId: bindingId,
-        provisionStatus: "active",
+        cloudflareStatus: updated.status,
+        cloudflareSslStatus: updated.ssl.status,
+        dnsTarget: settings.cnameTarget,
+        lastSyncedAt: new Date(),
         cloudflareError: null,
       });
+      
+      return { success: true };
     } else {
-      await storage.updateCustomDomain(domainId, { provisionStatus: "active" });
+      console.log(`[Cloudflare] No existing hostname, creating new for ${domain.domain}`);
+      return await provisionDomain(domainId, domain.domain);
     }
-    
-    return { success: true };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[Cloudflare] Reprovision failed: ${errorMsg}`);
+    
     await storage.updateCustomDomain(domainId, {
       cloudflareError: errorMsg,
-      provisionStatus: "ssl_failed",
       lastSyncedAt: new Date(),
     });
+    
     return { success: false, error: errorMsg };
   }
 }
-
-// ==================== UTILITIES ====================
 
 export async function getCnameTarget(): Promise<string | null> {
   const settings = await getCloudflareSettings();
   return settings?.cnameTarget || null;
 }
 
-// ==================== EXPORTS ====================
-
 export const cloudflareService = {
   isCloudflareConfigured,
-  isWorkerConfigured,
   setFallbackOrigin,
   getFallbackOrigin,
   createCustomHostname,
@@ -517,6 +395,4 @@ export const cloudflareService = {
   deprovisionDomain,
   reprovisionDomain,
   getCnameTarget,
-  createWorkerBinding,
-  deleteWorkerBinding,
 };
