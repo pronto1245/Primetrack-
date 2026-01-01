@@ -34,6 +34,11 @@ export function AdvertiserProvider({ children, role }: { children: ReactNode; ro
 
   const { data: advertisers = [], isLoading } = useQuery<AdvertiserInfo[]>({
     queryKey: ["/api/publisher/advertisers-extended"],
+    queryFn: async () => {
+      const res = await fetch("/api/publisher/advertisers-extended", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
     enabled: role === "publisher",
   });
 

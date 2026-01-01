@@ -78,66 +78,75 @@ export default function Dashboard() {
 }
 
 function ManagerCard() {
-  const { data: manager } = useQuery<any>({
-    queryKey: ["platform-manager"],
+  // Берём контакты из настроек платформы (supportTelegram, supportPhone, supportEmail)
+  const { data: platformSettings } = useQuery<any>({
+    queryKey: ["/api/public/platform-settings"],
     queryFn: async () => {
-      const res = await fetch("/api/platform-manager", { credentials: "include" });
+      const res = await fetch("/api/public/platform-settings", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
   });
 
-  if (!manager) return null;
+  // Если нет контактов платформы - не показываем карточку
+  if (!platformSettings?.supportTelegram && !platformSettings?.supportPhone && !platformSettings?.supportEmail) {
+    return null;
+  }
 
   return (
     <div className="p-3 mb-16">
       <div className="bg-gradient-to-br from-red-900/30 to-slate-900/50 rounded-lg p-3 border border-red-500/20" data-testid="manager-card">
-        <div className="text-[10px] text-red-400 uppercase font-bold mb-2">Ваш менеджер</div>
+        <div className="text-[10px] text-red-400 uppercase font-bold mb-2">Поддержка</div>
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-primary-foreground font-bold text-sm">
-            {(manager.fullName || manager.username || "M").charAt(0).toUpperCase()}
-          </div>
+          {platformSettings.platformLogoUrl ? (
+            <img 
+              src={platformSettings.platformLogoUrl} 
+              alt={platformSettings.platformName || "Platform"}
+              className="w-10 h-10 rounded-lg bg-muted object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-primary-foreground font-bold text-sm">
+              {(platformSettings.platformName || "P").charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">
-              {manager.fullName || manager.username}
-            </p>
-            <p className="text-[10px] text-muted-foreground truncate">
-              Администратор
+              {platformSettings.platformName || "Платформа"}
             </p>
           </div>
         </div>
         
         <div className="space-y-2">
-          {manager.telegram && (
+          {platformSettings.supportTelegram && (
             <a 
-              href={`https://t.me/${manager.telegram.replace('@', '')}`}
+              href={`https://t.me/${platformSettings.supportTelegram.replace('@', '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-xs text-muted-foreground hover:text-blue-400 transition-colors"
               data-testid="manager-telegram"
             >
               <Send className="w-3 h-3" />
-              <span className="truncate">{manager.telegram}</span>
+              <span className="truncate">{platformSettings.supportTelegram}</span>
             </a>
           )}
-          {manager.phone && (
+          {platformSettings.supportPhone && (
             <a 
-              href={`tel:${manager.phone}`}
+              href={`tel:${platformSettings.supportPhone}`}
               className="flex items-center gap-2 text-xs text-muted-foreground hover:text-emerald-400 transition-colors"
               data-testid="manager-phone"
             >
               <Phone className="w-3 h-3" />
-              <span className="truncate">{manager.phone}</span>
+              <span className="truncate">{platformSettings.supportPhone}</span>
             </a>
           )}
-          {manager.email && (
+          {platformSettings.supportEmail && (
             <a 
-              href={`mailto:${manager.email}`}
+              href={`mailto:${platformSettings.supportEmail}`}
               className="flex items-center gap-2 text-xs text-muted-foreground hover:text-yellow-400 transition-colors"
               data-testid="manager-email"
             >
               <User className="w-3 h-3" />
-              <span className="truncate">{manager.email}</span>
+              <span className="truncate">{platformSettings.supportEmail}</span>
             </a>
           )}
         </div>
@@ -338,12 +347,22 @@ function MainContent({ role, t }: { role: string, t: any }) {
   // Load advertiser settings for White-label logo
   const { data: advertiserSettings } = useQuery<any>({
     queryKey: ["/api/advertiser/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/advertiser/settings", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
     enabled: role === "advertiser",
   });
 
   // Load platform settings for platform logo (public endpoint - available to all roles)
   const { data: platformSettings } = useQuery<any>({
     queryKey: ["/api/public/platform-settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/public/platform-settings", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
   });
 
   // Handle auth error - redirect to login

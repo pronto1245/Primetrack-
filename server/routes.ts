@@ -1207,22 +1207,12 @@ export async function registerRoutes(
         const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, req.session.userId!);
         const { internalCost, ...safeOffer } = offer;
         
-        // Получаем контактные данные рекламодателя для партнёра
-        const advertiser = await storage.getUser(offer.advertiserId);
-        const advertiserInfo = advertiser ? {
-          advertiserName: advertiser.companyName || advertiser.username,
-          advertiserEmail: advertiser.email,
-          advertiserPhone: advertiser.phone,
-          advertiserTelegram: advertiser.telegram,
-          advertiserLogoUrl: advertiser.logoUrl,
-        } : {};
-        
         if (!hasAccess) {
           // Проверяем статус заявки
           const accessRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, req.session.userId!);
           const accessStatus = accessRequest?.status || null;
-          // Без доступа - возвращаем оффер БЕЗ лендингов (но с контактами рекла)
-          return res.json({ ...safeOffer, ...advertiserInfo, landings: [], hasAccess: false, accessStatus });
+          // Без доступа - возвращаем оффер БЕЗ лендингов
+          return res.json({ ...safeOffer, landings: [], hasAccess: false, accessStatus });
         }
         
         // С доступом - показываем лендинги с tracking URLs (без internalCost)
@@ -1235,7 +1225,7 @@ export async function registerRoutes(
           ...rest,
           trackingUrl: `https://${trackingDomain}/click/${offer.id}/${rest.id}?partner_id=${publisherId}`,
         }));
-        return res.json({ ...safeOffer, ...advertiserInfo, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
+        return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
       }
       
       // Для advertiser/admin - полная информация
