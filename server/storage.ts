@@ -151,6 +151,7 @@ export interface PublisherStatsResult {
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
+  getUserByShortId(shortId: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUsersByRole(role: string): Promise<User[]>;
@@ -168,6 +169,7 @@ export interface IStorage {
   
   // Offers
   getOffer(id: string): Promise<Offer | undefined>;
+  getOfferByShortId(shortId: number): Promise<Offer | undefined>;
   getOffersByAdvertiser(advertiserId: string, includeArchived?: boolean): Promise<Offer[]>;
   getArchivedOffersByAdvertiser(advertiserId: string): Promise<Offer[]>;
   getActiveOffers(): Promise<Offer[]>;
@@ -179,6 +181,7 @@ export interface IStorage {
   
   // Offer Landings
   getOfferLandings(offerId: string): Promise<OfferLanding[]>;
+  getOfferLandingByShortId(shortId: number): Promise<OfferLanding | undefined>;
   createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding>;
   updateOfferLanding(id: string, data: Partial<InsertOfferLanding>): Promise<OfferLanding | undefined>;
   deleteOfferLandings(offerId: string): Promise<void>;
@@ -405,6 +408,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByShortId(shortId: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.shortId, shortId));
+    return user;
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
@@ -431,9 +439,12 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    // Get next short_id from sequence
+    const [{ nextval }] = await db.execute(sql`SELECT nextval('users_short_id_seq')`) as any;
     const [user] = await db.insert(users).values({
       ...insertUser,
       password: hashedPassword,
+      shortId: Number(nextval),
     }).returning();
     return user;
   }
@@ -528,6 +539,11 @@ export class DatabaseStorage implements IStorage {
     return offer;
   }
 
+  async getOfferByShortId(shortId: number): Promise<Offer | undefined> {
+    const [offer] = await db.select().from(offers).where(eq(offers.shortId, shortId));
+    return offer;
+  }
+
   async getOffersByAdvertiser(advertiserId: string, includeArchived: boolean = false): Promise<Offer[]> {
     if (includeArchived) {
       return db.select().from(offers)
@@ -552,7 +568,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOffer(insertOffer: InsertOffer): Promise<Offer> {
-    const [offer] = await db.insert(offers).values(insertOffer).returning();
+    // Get next short_id from sequence
+    const [{ nextval }] = await db.execute(sql`SELECT nextval('offers_short_id_seq')`) as any;
+    const [offer] = await db.insert(offers).values({
+      ...insertOffer,
+      shortId: Number(nextval),
+    }).returning();
     return offer;
   }
 
@@ -610,8 +631,18 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(offerLandings).where(eq(offerLandings.offerId, offerId));
   }
 
+  async getOfferLandingByShortId(shortId: number): Promise<OfferLanding | undefined> {
+    const [landing] = await db.select().from(offerLandings).where(eq(offerLandings.shortId, shortId));
+    return landing;
+  }
+
   async createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding> {
-    const [result] = await db.insert(offerLandings).values(landing).returning();
+    // Get next short_id from sequence
+    const [{ nextval }] = await db.execute(sql`SELECT nextval('landings_short_id_seq')`) as any;
+    const [result] = await db.insert(offerLandings).values({
+      ...landing,
+      shortId: Number(nextval),
+    }).returning();
     return result;
   }
 
