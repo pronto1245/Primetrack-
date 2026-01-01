@@ -164,7 +164,7 @@ export class PostbackSender {
       const fetchOptions: RequestInit = {
         method: target.method,
         headers: {
-          "User-Agent": "PrimeTrack/1.0",
+          "User-Agent": "AffiliateTracker/1.0",
         },
         signal: AbortSignal.timeout(10000),
       };
@@ -228,7 +228,7 @@ export class PostbackSender {
       const fetchOptions: RequestInit = {
         method: target.method,
         headers: {
-          "User-Agent": "PrimeTrack/1.0",
+          "User-Agent": "AffiliateTracker/1.0",
         },
         signal: AbortSignal.timeout(10000),
       };

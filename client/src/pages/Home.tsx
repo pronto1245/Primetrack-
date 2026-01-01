@@ -40,6 +40,15 @@ export default function Home() {
     queryKey: ["/api/subscription/plans"],
   });
 
+  const { data: platformSettings } = useQuery<any>({
+    queryKey: ["/api/public/platform-settings"],
+  });
+
+  const platformName = platformSettings?.platformName || t("brand");
+  const supportEmail = platformSettings?.supportEmail || "support@example.com";
+  const supportTelegram = platformSettings?.supportTelegram || "";
+  const copyrightText = platformSettings?.copyrightText || `© ${new Date().getFullYear()} ${platformName}. Все права защищены.`;
+
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -66,8 +75,7 @@ export default function Home() {
               </h1>
               
               <p className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed font-light">
-                PrimeTrack — централизованная SaaS платформа для партнёрского трекинга. 
-                Все клики, конверсии и выплаты в одном месте.
+                {platformSettings?.platformDescription || `${platformName} — централизованная SaaS платформа для партнёрского трекинга. Все клики, конверсии и выплаты в одном месте.`}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -113,11 +121,11 @@ export default function Home() {
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
-                  <div className="ml-2 text-[10px] font-mono text-muted-foreground">PrimeTrack Dashboard</div>
+                  <div className="ml-2 text-[10px] font-mono text-muted-foreground">{platformName} Dashboard</div>
                 </div>
                 <img 
                   src={heroImage} 
-                  alt="PrimeTrack Dashboard" 
+                  alt={`${platformName} Dashboard`} 
                   className="w-full h-auto opacity-90 group-hover:opacity-100 transition-opacity"
                 />
                 <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
@@ -422,7 +430,7 @@ export default function Home() {
         <div className="container px-4 mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Готовы начать?</h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Присоединяйтесь к сотням рекламодателей, которые уже используют PrimeTrack
+            Присоединяйтесь к сотням рекламодателей, которые уже используют {platformName}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -452,17 +460,21 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div>
-              <div className="text-xl font-bold text-foreground mb-4">PrimeTrack</div>
+              <div className="text-xl font-bold text-foreground mb-4">{platformName}</div>
               <p className="text-sm text-muted-foreground mb-4">
                 Партнёрская платформа для рекламодателей и издателей
               </p>
               <div className="flex gap-4">
-                <a href="mailto:support@primetrack.pro" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Mail className="w-5 h-5" />
-                </a>
-                <a href="https://t.me/primetrack" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <MessageCircle className="w-5 h-5" />
-                </a>
+                {supportEmail && (
+                  <a href={`mailto:${supportEmail}`} className="text-muted-foreground hover:text-foreground transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </a>
+                )}
+                {supportTelegram && (
+                  <a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                    <MessageCircle className="w-5 h-5" />
+                  </a>
+                )}
               </div>
             </div>
             
@@ -486,14 +498,14 @@ export default function Home() {
             <div>
               <div className="font-medium text-foreground mb-4">Поддержка</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="mailto:support@primetrack.pro" className="hover:text-foreground transition-colors">support@primetrack.pro</a></li>
-                <li><a href="https://t.me/primetrack" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>
+                {supportEmail && <li><a href={`mailto:${supportEmail}`} className="hover:text-foreground transition-colors">{supportEmail}</a></li>}
+                {supportTelegram && <li><a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>}
               </ul>
             </div>
           </div>
           
           <div className="pt-8 border-t border-border text-center text-xs text-muted-foreground font-mono">
-            <p>&copy; 2025 PrimeTrack. Все права защищены.</p>
+            <p>{copyrightText}</p>
           </div>
         </div>
       </footer>

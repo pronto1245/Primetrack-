@@ -688,13 +688,13 @@ function WhiteLabelTab() {
           </p>
           <div className="relative">
             <pre className="bg-muted p-3 rounded-md font-mono text-xs overflow-x-auto max-h-48 whitespace-pre-wrap">
-{`<!-- PrimeTrack FingerprintJS Integration -->
+{`<!-- FingerprintJS Integration -->
 <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
 <script>
 (function() {
   var fpPromise = FingerprintJS.load();
   
-  window.PrimeTrack = {
+  window.AffiliateTracker = {
     getVisitorId: function() {
       return fpPromise.then(function(fp) {
         return fp.get();
@@ -721,10 +721,10 @@ function WhiteLabelTab() {
   
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-      window.PrimeTrack.enhanceLinks();
+      window.AffiliateTracker.enhanceLinks();
     });
   } else {
-    window.PrimeTrack.enhanceLinks();
+    window.AffiliateTracker.enhanceLinks();
   }
 })();
 </script>`}
@@ -1127,7 +1127,7 @@ function MigrationTab() {
             <Database className="h-5 w-5" />
             Миграция данных
           </CardTitle>
-          <CardDescription>Перенесите данные из других трекеров в PrimeTrack</CardDescription>
+          <CardDescription>Перенесите данные из других трекеров</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {!selectedTracker ? (

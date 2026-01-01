@@ -353,6 +353,25 @@ export async function registerRoutes(
     });
   });
 
+  // Public platform settings (no auth required) - for landing page branding
+  app.get("/api/public/platform-settings", async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getPlatformSettings();
+      res.json({
+        platformName: settings?.platformName || "PrimeTrack",
+        platformDescription: settings?.platformDescription || null,
+        platformLogoUrl: settings?.platformLogoUrl || null,
+        platformFaviconUrl: settings?.platformFaviconUrl || null,
+        supportEmail: settings?.supportEmail || null,
+        supportPhone: settings?.supportPhone || null,
+        supportTelegram: settings?.supportTelegram || null,
+        copyrightText: settings?.copyrightText || null,
+      });
+    } catch (error) {
+      res.json({ platformName: "PrimeTrack" });
+    }
+  });
+
   app.get("/api/auth/me", async (req: Request, res: Response) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });

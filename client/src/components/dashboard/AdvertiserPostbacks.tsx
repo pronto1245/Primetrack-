@@ -235,7 +235,7 @@ export function AdvertiserPostbacks() {
           <div>
             <h3 className="text-lg font-semibold text-foreground">Исходящий постбек (уведомление вашей системы)</h3>
             <p className="text-xs text-muted-foreground">
-              URL куда PrimeTrack будет отправлять уведомления о конверсиях
+              URL куда система будет отправлять уведомления о конверсиях
             </p>
           </div>
         </div>

@@ -120,7 +120,7 @@ export default function AdvertiserRegister() {
               Заявка отправлена!
             </CardTitle>
             <CardDescription className="text-muted-foreground text-base mt-2">
-              Спасибо за регистрацию в PrimeTrack
+              Спасибо за регистрацию
             </CardDescription>
           </CardHeader>
 

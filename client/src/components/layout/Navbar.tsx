@@ -5,12 +5,19 @@ import { Globe, Menu, X, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useQuery } from "@tanstack/react-query";
 
 export function Navbar() {
   const { t, i18n } = useTranslation();
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { data: platformSettings } = useQuery<any>({
+    queryKey: ["/api/public/platform-settings"],
+  });
+
+  const platformName = platformSettings?.platformName || t("brand");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,11 +41,15 @@ export function Navbar() {
         
         {/* Brand - Tech/Terminal Style */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-foreground font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
-            PT
-          </div>
+          {platformSettings?.platformLogoUrl ? (
+            <img src={platformSettings.platformLogoUrl} alt={platformName} className="w-8 h-8 rounded object-cover" />
+          ) : (
+            <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-foreground font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
+              {platformName.substring(0, 2).toUpperCase()}
+            </div>
+          )}
           <span className="font-bold text-lg tracking-tight text-foreground group-hover:text-emerald-400 transition-colors font-mono">
-            PrimeTrack_
+            {platformName}_
           </span>
         </Link>
 

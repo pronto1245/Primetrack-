@@ -612,9 +612,13 @@ function PlatformTab() {
 
   const [formData, setFormData] = useState({
     platformName: "PrimeTrack",
+    platformDescription: "",
     platformLogoUrl: "",
     platformFaviconUrl: "",
     supportEmail: "",
+    supportPhone: "",
+    supportTelegram: "",
+    copyrightText: "",
     defaultTelegramBotToken: "",
     ipinfoToken: "",
     fingerprintjsApiKey: "",
@@ -639,9 +643,13 @@ function PlatformTab() {
     if (settings) {
       setFormData({
         platformName: settings.platformName || "PrimeTrack",
+        platformDescription: settings.platformDescription || "",
         platformLogoUrl: settings.platformLogoUrl || "",
         platformFaviconUrl: settings.platformFaviconUrl || "",
         supportEmail: settings.supportEmail || "",
+        supportPhone: settings.supportPhone || "",
+        supportTelegram: settings.supportTelegram || "",
+        copyrightText: settings.copyrightText || "",
         defaultTelegramBotToken: "",
         ipinfoToken: "",
         fingerprintjsApiKey: "",
@@ -705,9 +713,54 @@ function PlatformTab() {
                 data-testid="input-support-email"
                 value={formData.supportEmail}
                 onChange={(e) => setFormData({ ...formData, supportEmail: e.target.value })}
-                placeholder="support@primetrack.io"
+                placeholder="support@example.com"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="supportPhone">Телефон поддержки</Label>
+              <Input
+                id="supportPhone"
+                data-testid="input-support-phone"
+                value={formData.supportPhone}
+                onChange={(e) => setFormData({ ...formData, supportPhone: e.target.value })}
+                placeholder="+7 999 123-45-67"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supportTelegram">Telegram поддержки</Label>
+              <Input
+                id="supportTelegram"
+                data-testid="input-support-telegram"
+                value={formData.supportTelegram}
+                onChange={(e) => setFormData({ ...formData, supportTelegram: e.target.value })}
+                placeholder="@support"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="platformDescription">Описание платформы</Label>
+            <Input
+              id="platformDescription"
+              data-testid="input-platform-description"
+              value={formData.platformDescription}
+              onChange={(e) => setFormData({ ...formData, platformDescription: e.target.value })}
+              placeholder="SaaS платформа для партнёрского трекинга"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="copyrightText">Текст копирайта</Label>
+            <Input
+              id="copyrightText"
+              data-testid="input-copyright-text"
+              value={formData.copyrightText}
+              onChange={(e) => setFormData({ ...formData, copyrightText: e.target.value })}
+              placeholder="© 2025 Название. Все права защищены."
+            />
           </div>
 
           <div className="space-y-4">

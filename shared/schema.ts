@@ -974,9 +974,13 @@ export const platformSettings = pgTable("platform_settings", {
   
   // Platform branding
   platformName: text("platform_name").default("PrimeTrack"),
+  platformDescription: text("platform_description"),
   platformLogoUrl: text("platform_logo_url"),
   platformFaviconUrl: text("platform_favicon_url"),
   supportEmail: text("support_email"),
+  supportPhone: text("support_phone"),
+  supportTelegram: text("support_telegram"),
+  copyrightText: text("copyright_text"),
   
   // Default notification settings
   defaultTelegramBotToken: text("default_telegram_bot_token"), // encrypted - platform bot for system notifications

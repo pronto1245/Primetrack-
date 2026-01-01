@@ -3,7 +3,14 @@ import QRCode from "qrcode";
 import { storage } from "../storage";
 import { encrypt, decrypt } from "./encryption";
 
-const APP_NAME = "PrimeTrack";
+async function getAppName(): Promise<string> {
+  try {
+    const settings = await storage.getPlatformSettings();
+    return settings?.platformName || "PrimeTrack";
+  } catch {
+    return "PrimeTrack";
+  }
+}
 
 export const totpService = {
   async generateSecret(userId: string): Promise<{ secret: string; qrCode: string; otpAuthUrl: string }> {
@@ -13,7 +20,8 @@ export const totpService = {
     }
 
     const secret = authenticator.generateSecret();
-    const otpAuthUrl = authenticator.keyuri(user.email, APP_NAME, secret);
+    const appName = await getAppName();
+    const otpAuthUrl = authenticator.keyuri(user.email, appName, secret);
     const qrCode = await QRCode.toDataURL(otpAuthUrl);
 
     return { secret, qrCode, otpAuthUrl };

@@ -1,4 +1,14 @@
 import { Resend } from 'resend';
+import { storage } from '../storage';
+
+async function getPlatformName(): Promise<string> {
+  try {
+    const settings = await storage.getPlatformSettings();
+    return settings?.platformName || 'PrimeTrack';
+  } catch {
+    return 'PrimeTrack';
+  }
+}
 
 // Use RESEND_API_KEY from environment secrets
 function getResendClient() {
@@ -10,7 +20,7 @@ function getResendClient() {
   return {
     client: new Resend(apiKey),
     // Use Resend's test sender for development
-    fromEmail: 'PrimeTrack <onboarding@resend.dev>'
+    fromEmail: 'Platform <onboarding@resend.dev>'
   };
 }
 
@@ -22,10 +32,12 @@ export async function sendPasswordResetEmail(to: string, resetToken: string, use
     
     console.log('[email] Sending from:', fromEmail, 'to:', to);
     
+    const platformName = await getPlatformName();
+    
     const result = await client.emails.send({
       from: fromEmail,
       to: [to],
-      subject: 'Восстановление пароля - PrimeTrack',
+      subject: `Восстановление пароля - ${platformName}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -44,7 +56,7 @@ export async function sendPasswordResetEmail(to: string, resetToken: string, use
         <body>
           <div class="container">
             <div class="header">
-              <h1>PrimeTrack</h1>
+              <h1>${platformName}</h1>
               <p>Восстановление пароля</p>
             </div>
             <div class="content">
@@ -65,7 +77,7 @@ export async function sendPasswordResetEmail(to: string, resetToken: string, use
               <p style="word-break: break-all; color: #10b981;">${resetLink}</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} PrimeTrack. Все права защищены.</p>
+              <p>© ${new Date().getFullYear()} ${platformName}. Все права защищены.</p>
               <p>Это автоматическое письмо, не отвечайте на него.</p>
             </div>
           </div>

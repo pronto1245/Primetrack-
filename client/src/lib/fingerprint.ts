@@ -48,14 +48,14 @@ export function appendFingerprintToUrl(url: string, visitorId: string, confidenc
   return urlObj.toString();
 }
 
-export function getIntegrationScript(trackingDomain: string): string {
-  return `<!-- PrimeTrack FingerprintJS Integration -->
+export function getIntegrationScript(trackingDomain: string, platformName: string = "AffiliateTracker"): string {
+  return `<!-- ${platformName} FingerprintJS Integration -->
 <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
 <script>
 (function() {
   var fpPromise = FingerprintJS.load();
   
-  window.PrimeTrack = {
+  window.AffiliateTracker = {
     getVisitorId: function() {
       return fpPromise.then(function(fp) {
         return fp.get();
@@ -81,10 +81,10 @@ export function getIntegrationScript(trackingDomain: string): string {
   
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-      window.PrimeTrack.enhanceLinks();
+      window.AffiliateTracker.enhanceLinks();
     });
   } else {
-    window.PrimeTrack.enhanceLinks();
+    window.AffiliateTracker.enhanceLinks();
   }
 })();
 </script>`;
