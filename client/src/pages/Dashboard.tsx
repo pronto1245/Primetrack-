@@ -33,8 +33,9 @@ import { AccessRequests } from "@/components/dashboard/AccessRequests";
 import { AdvertiserFinance } from "@/components/dashboard/AdvertiserFinance";
 import { AdminFinance } from "@/components/dashboard/AdminFinance";
 import { PublisherPayouts } from "@/components/dashboard/PublisherPayouts";
-import { PostbackSettings } from "@/components/dashboard/PostbackSettings";
 import { AdvertiserPostbacks } from "@/components/dashboard/AdvertiserPostbacks";
+import { PublisherPostbacks } from "@/components/dashboard/PublisherPostbacks";
+import { AdminPostbacks } from "@/components/dashboard/AdminPostbacks";
 import AntifraudDashboard from "@/components/dashboard/AntifraudDashboard";
 import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
 import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
@@ -487,7 +488,12 @@ function MainContent({ role, t }: { role: string, t: any }) {
       if (role === 'advertiser') {
         return <AdvertiserPostbacks />;
       }
-      return <PostbackSettings />;
+      if (role === 'publisher') {
+        return <PublisherPostbacks />;
+      }
+      if (role === 'admin') {
+        return <AdminPostbacks />;
+      }
     }
 
     if (showNewsCreate) {
