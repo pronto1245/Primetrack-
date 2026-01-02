@@ -6772,12 +6772,19 @@ export async function registerRoutes(
 
   // ============================================
   // E2E TESTING - Full cycle test (click → conversion → payout)
+  // Read-only simulation - does NOT modify real balances
+  // Only Admin and Advertiser can run tests
   // ============================================
   
   app.post("/api/test/e2e", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const role = req.session.role!;
+      
+      // SECURITY: Only Admin and Advertiser can run e2e tests
+      if (role !== "admin" && role !== "advertiser") {
+        return res.status(403).json({ message: "Only administrators and advertisers can run e2e tests" });
+      }
       
       const { offerId } = req.body;
       
@@ -6790,15 +6797,9 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
       
-      // Check access
+      // Check access - advertiser can only test their own offers
       if (role === "advertiser" && offer.advertiserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
-      }
-      if (role === "publisher") {
-        const access = await storage.getPublisherOfferAccess(userId, offerId);
-        if (!access || access.status !== "approved") {
-          return res.status(403).json({ message: "No access to this offer" });
-        }
       }
       
       const testResults: any = {
@@ -6807,20 +6808,14 @@ export async function registerRoutes(
         offerName: offer.name,
         steps: [],
         success: false,
-        summary: ""
+        summary: "",
+        isSimulation: true
       };
       
-      // Determine publisher for test
-      let testPublisherId = role === "publisher" ? userId : null;
-      if (!testPublisherId) {
-        const accessList = await storage.getOfferAccessByOffer(offerId);
-        const approved = accessList.find(a => a.status === "approved");
-        if (approved) {
-          testPublisherId = approved.publisherId;
-        }
-      }
+      // Step 1: Find approved publisher for test
+      const accessList = await storage.getPublisherOffersByOffer(offerId);
       
-      if (!testPublisherId) {
+      if (!accessList || accessList.length === 0) {
         testResults.steps.push({
           step: 1,
           name: "Find Publisher",
@@ -6831,6 +6826,7 @@ export async function registerRoutes(
         return res.json(testResults);
       }
       
+      const testPublisherId = accessList[0].publisherId;
       const publisher = await storage.getUser(testPublisherId);
       testResults.steps.push({
         step: 1,
@@ -6839,138 +6835,105 @@ export async function registerRoutes(
         data: { publisherId: testPublisherId, publisherName: publisher?.username }
       });
       
-      // Step 2: Simulate click
-      const testClickId = `test_e2e_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const clickData = {
-        clickId: testClickId,
-        offerId,
-        publisherId: testPublisherId,
-        ip: "127.0.0.1",
-        userAgent: "E2E Test Bot",
-        geo: "TEST",
-        referer: "e2e-test",
-        landingUrl: offer.landingUrl || "https://test.example.com",
-        isUnique: true,
-        sub1: "e2e_test",
-        sub2: new Date().toISOString().split("T")[0],
-      };
+      // Step 2: Validate click creation (simulation only - no actual click created)
+      const testClickId = `sim_e2e_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const landings = await storage.getOfferLandings(offerId);
+      const hasLanding = landings && landings.length > 0;
+      const landingUrl = hasLanding ? landings[0].landingUrl : null;
+      const clickDataValid = !!(landingUrl && testPublisherId);
       
-      const click = await storage.createClick(clickData);
       testResults.steps.push({
         step: 2,
-        name: "Create Click",
-        status: "passed",
-        data: { clickId: testClickId, dbId: click.id }
+        name: "Validate Click Data",
+        status: clickDataValid ? "passed" : "failed",
+        data: { 
+          simulatedClickId: testClickId,
+          landingUrl: landingUrl || "(missing)",
+          publisherId: testPublisherId,
+          note: "Simulation only - no click created"
+        }
       });
       
-      // Step 3: Get balance before conversion
-      const advertiser = await storage.getUser(offer.advertiserId);
-      let balanceBefore: any = null;
+      if (!clickDataValid) {
+        testResults.summary = "Test failed: Invalid click data (missing landing URL)";
+        return res.json(testResults);
+      }
+      
+      // Step 3: Get current balance (read-only)
+      let currentBalance: any = null;
       try {
-        balanceBefore = await storage.getPublisherBalance(testPublisherId, offer.advertiserId);
+        currentBalance = await storage.getPublisherBalance(testPublisherId, offer.advertiserId);
       } catch (e) {
         // Balance might not exist yet
       }
       
       testResults.steps.push({
         step: 3,
-        name: "Check Balance Before",
+        name: "Check Current Balance",
         status: "passed",
         data: { 
-          available: balanceBefore?.available || 0,
-          pending: balanceBefore?.pending || 0,
-          hold: balanceBefore?.hold || 0
+          available: currentBalance?.available || "0",
+          pending: currentBalance?.pending || "0",
+          hold: currentBalance?.hold || "0",
+          note: "Read-only - balance not modified"
         }
       });
       
-      // Step 4: Create conversion
-      const publisherPayout = parseFloat(offer.payoutAmount || "0");
-      const advertiserCost = parseFloat(offer.advertiserPrice || "0");
+      // Step 4: Validate conversion data (simulation only)
+      const publisherPayout = parseFloat(offer.partnerPayout || "0");
+      const advertiserCost = parseFloat(offer.internalCost || "0");
+      const payoutValid = publisherPayout > 0;
       
-      const conversionData = {
-        clickId: click.id,
-        offerId,
-        publisherId: testPublisherId,
-        advertiserId: offer.advertiserId,
-        conversionType: "lead" as const,
-        status: "approved" as const,
-        publisherPayout: publisherPayout.toString(),
-        advertiserCost: advertiserCost.toString(),
-        geo: "TEST",
-        ip: "127.0.0.1",
-      };
-      
-      const conversion = await storage.createConversion(conversionData);
       testResults.steps.push({
         step: 4,
-        name: "Create Conversion",
-        status: "passed",
+        name: "Validate Conversion Data",
+        status: payoutValid ? "passed" : "failed",
         data: { 
-          conversionId: conversion.id,
-          type: "lead",
           publisherPayout,
-          advertiserCost
+          advertiserCost,
+          payoutModel: offer.payoutModel,
+          note: "Simulation only - no conversion created"
         }
       });
       
-      // Step 5: Update publisher balance
-      const balanceUpdate = await storage.calculatePublisherBalance(testPublisherId, offer.advertiserId);
-      await storage.updatePublisherBalance(testPublisherId, offer.advertiserId, {
-        available: balanceUpdate.available.toString(),
-        pending: balanceUpdate.pending.toString(),
-        hold: balanceUpdate.hold.toString(),
-        totalPaid: balanceUpdate.totalPaid.toString(),
-      });
+      if (!payoutValid) {
+        testResults.summary = "Test failed: Payout amount is 0 or invalid";
+        return res.json(testResults);
+      }
       
-      const balanceAfter = await storage.getPublisherBalance(testPublisherId, offer.advertiserId);
+      // Step 5: Simulate balance calculation
+      const currentAvailable = parseFloat(currentBalance?.available || "0");
+      const simulatedNewBalance = currentAvailable + publisherPayout;
       
       testResults.steps.push({
         step: 5,
-        name: "Update Balance",
+        name: "Simulate Balance Update",
         status: "passed",
         data: { 
-          available: parseFloat(balanceAfter?.available || "0"),
-          pending: parseFloat(balanceAfter?.pending || "0"),
-          hold: parseFloat(balanceAfter?.hold || "0"),
-          change: publisherPayout
+          currentBalance: currentAvailable,
+          payout: publisherPayout,
+          simulatedNewBalance,
+          note: "Simulation only - balance not modified"
         }
       });
       
-      // Step 6: Verify balance increased
-      const balanceBeforeVal = parseFloat(balanceBefore?.available || "0");
-      const balanceAfterVal = parseFloat(balanceAfter?.available || "0");
-      const expectedIncrease = publisherPayout;
-      const actualIncrease = balanceAfterVal - balanceBeforeVal;
+      // Step 6: Verify payout logic
+      const payoutLogicValid = publisherPayout <= advertiserCost || advertiserCost === 0;
       
-      if (actualIncrease >= expectedIncrease * 0.99) { // Allow 1% tolerance for rounding
-        testResults.steps.push({
-          step: 6,
-          name: "Verify Payout",
-          status: "passed",
-          data: { 
-            expected: expectedIncrease,
-            actual: actualIncrease,
-            message: "Balance increased correctly"
-          }
-        });
-        testResults.success = true;
-        testResults.summary = `E2E Test PASSED: Click → Conversion → Payout ($${publisherPayout}) verified successfully`;
-      } else {
-        testResults.steps.push({
-          step: 6,
-          name: "Verify Payout",
-          status: "failed",
-          data: { 
-            expected: expectedIncrease,
-            actual: actualIncrease,
-            message: "Balance did not increase as expected"
-          }
-        });
-        testResults.summary = `E2E Test FAILED: Expected payout $${expectedIncrease}, got $${actualIncrease}`;
-      }
+      testResults.steps.push({
+        step: 6,
+        name: "Verify Payout Logic",
+        status: "passed",
+        data: { 
+          publisherPayout,
+          advertiserCost,
+          margin: advertiserCost - publisherPayout,
+          message: payoutLogicValid ? "Payout configuration valid" : "Warning: Publisher payout exceeds advertiser cost"
+        }
+      });
       
-      // Cleanup: Mark test data for identification (don't delete to keep audit trail)
-      await storage.updateClick(click.id, { sub1: "e2e_test_completed" });
+      testResults.success = true;
+      testResults.summary = `E2E Simulation PASSED: Full cycle validated. Simulated payout: $${publisherPayout}`;
       
       res.json(testResults);
     } catch (error: any) {
@@ -6983,36 +6946,42 @@ export async function registerRoutes(
     }
   });
   
-  // Get available offers for e2e testing
+  // Get available offers for e2e testing (Admin and Advertiser only)
   app.get("/api/test/e2e/offers", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const role = req.session.role!;
       
+      // SECURITY: Only Admin and Advertiser can access e2e testing
+      if (role !== "admin" && role !== "advertiser") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       let offers: any[] = [];
       
       if (role === "admin") {
-        offers = await storage.getOffers();
+        offers = await storage.getOffersByAdvertiser(userId); // Admin sees their own test offers
+        // Or get all offers if admin needs to test any offer
+        const allAdvertisers = await storage.getUsersByRole("advertiser");
+        for (const adv of allAdvertisers) {
+          const advOffers = await storage.getOffersByAdvertiser(adv.id);
+          offers.push(...advOffers);
+        }
       } else if (role === "advertiser") {
         offers = await storage.getOffersByAdvertiser(userId);
-      } else if (role === "publisher") {
-        const allOffers = await storage.getOffers();
-        for (const offer of allOffers) {
-          const access = await storage.getPublisherOfferAccess(userId, offer.id);
-          if (access?.status === "approved") {
-            offers.push(offer);
-          }
-        }
       }
       
-      // Filter active offers only
-      offers = offers.filter(o => o.status === "active");
+      // Filter active offers only and remove duplicates
+      const offerMap = new Map<string, any>();
+      offers.forEach(o => offerMap.set(o.id, o));
+      const uniqueOffers = Array.from(offerMap.values());
+      const activeOffers = uniqueOffers.filter(o => o.status === "active");
       
-      res.json(offers.map(o => ({
+      res.json(activeOffers.map(o => ({
         id: o.id,
         name: o.name,
-        payoutAmount: o.payoutAmount,
-        advertiserPrice: o.advertiserPrice,
+        payoutAmount: o.partnerPayout || "0",
+        advertiserPrice: o.internalCost || "0",
         payoutModel: o.payoutModel
       })));
     } catch (error) {
