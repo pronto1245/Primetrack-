@@ -132,12 +132,12 @@ export function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-card border-border">
+        <Card className="bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50 transition-colors">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Доход платформы</p>
-                <p className="text-2xl font-bold text-foreground" data-testid="text-total-revenue">
+                <p className="text-xs text-emerald-400 uppercase tracking-wider">Доход платформы</p>
+                <p className="text-2xl font-bold text-emerald-400" data-testid="text-total-revenue">
                   {formatCurrency(platformStats?.totalRevenue)}
                 </p>
               </div>
@@ -147,17 +147,19 @@ export function AdminDashboard() {
             </div>
             <div className="mt-2 flex items-center text-xs">
               <ArrowUpRight className="w-3 h-3 text-emerald-500 mr-1" />
-              <span className="text-emerald-500">Маржа: {formatCurrency(platformStats?.platformMargin)}</span>
+              <span className={safeNumber(platformStats?.platformMargin) >= 0 ? "text-emerald-500" : "text-red-500"}>
+                Маржа: {formatCurrency(platformStats?.platformMargin)}
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card className="bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50 transition-colors">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Выплаты партнёрам</p>
-                <p className="text-2xl font-bold text-foreground" data-testid="text-total-payouts">
+                <p className="text-xs text-blue-400 uppercase tracking-wider">Выплаты партнёрам</p>
+                <p className="text-2xl font-bold text-blue-400" data-testid="text-total-payouts">
                   {formatCurrency(platformStats?.totalPayouts)}
                 </p>
               </div>
@@ -171,12 +173,12 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card className="bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50 transition-colors">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Всего конверсий</p>
-                <p className="text-2xl font-bold text-foreground" data-testid="text-total-conversions">
+                <p className="text-xs text-purple-400 uppercase tracking-wider">Всего конверсий</p>
+                <p className="text-2xl font-bold text-purple-400" data-testid="text-total-conversions">
                   {formatNumber(platformStats?.totalConversions)}
                 </p>
               </div>
@@ -185,17 +187,19 @@ export function AdminDashboard() {
               </div>
             </div>
             <div className="mt-2 flex items-center text-xs">
-              <span className="text-muted-foreground">ROI: {safeNumber(platformStats?.avgROI).toFixed(1)}%</span>
+              <span className={safeNumber(platformStats?.avgROI) >= 0 ? "text-emerald-500" : "text-red-500"}>
+                ROI: {safeNumber(platformStats?.avgROI).toFixed(1)}%
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card className="bg-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50 transition-colors">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Всего пользователей</p>
-                <p className="text-2xl font-bold text-foreground" data-testid="text-total-users">
+                <p className="text-xs text-cyan-400 uppercase tracking-wider">Всего пользователей</p>
+                <p className="text-2xl font-bold text-cyan-400" data-testid="text-total-users">
                   {formatNumber(adminStats?.totalUsers)}
                 </p>
               </div>
@@ -203,7 +207,7 @@ export function AdminDashboard() {
                 <Users className="w-5 h-5 text-cyan-500" />
               </div>
             </div>
-            <div className="mt-2 flex items-center text-xs text-muted-foreground">
+            <div className="mt-2 flex items-center text-xs text-cyan-400/70">
               <span>{safeNumber(platformStats?.activeAdvertisers)} адв. / {safeNumber(platformStats?.activePublishers)} парт.</span>
             </div>
           </CardContent>
