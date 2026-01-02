@@ -290,54 +290,78 @@ export function AdvertiserDashboard() {
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        <StatBox
-          label={t('stats.clicks')}
-          value={stats.totalClicks.toLocaleString()}
-          icon={MousePointer2}
-          color="text-blue-500"
-        />
-        <StatBox
-          label={t('stats.leads')}
-          value={stats.totalLeads.toLocaleString()}
-          icon={Users}
-          color="text-purple-500"
-        />
-        <StatBox
-          label={t('stats.sales')}
-          value={stats.totalSales.toLocaleString()}
-          icon={DollarSign}
-          color="text-green-500"
-        />
-        <StatBox
-          label={t('stats.advertiserCost')}
-          value={`$${stats.advertiserCost.toFixed(2)}`}
-          icon={DollarSign}
-          color="text-red-500"
-        />
-        <StatBox
-          label={t('stats.publisherPayout')}
-          value={`$${stats.publisherPayout.toFixed(2)}`}
-          icon={DollarSign}
-          color="text-yellow-500"
-        />
-        <StatBox
-          label={t('stats.margin')}
-          value={`$${stats.margin.toFixed(2)}`}
-          icon={TrendingUp}
-          color={stats.margin >= 0 ? "text-emerald-500" : "text-red-500"}
-        />
-        <StatBox
-          label={t('stats.roi')}
-          value={`${stats.roi.toFixed(1)}%`}
-          icon={TrendingUp}
-          color={stats.roi >= 0 ? "text-emerald-500" : "text-red-500"}
-        />
-        <StatBox
-          label={t('stats.cr')}
-          value={`${stats.cr.toFixed(2)}%`}
-          icon={TrendingUp}
-          color="text-cyan-500"
-        />
+        <Card className="bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <MousePointer2 className="w-3 h-3 text-blue-400" />
+              <span className="text-[10px] uppercase font-medium text-blue-400">{t('stats.clicks')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-blue-400">{stats.totalClicks.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="w-3 h-3 text-purple-400" />
+              <span className="text-[10px] uppercase font-medium text-purple-400">{t('stats.leads')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-purple-400">{stats.totalLeads.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-orange-500/5 border-orange-500/30 hover:border-orange-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-3 h-3 text-orange-400" />
+              <span className="text-[10px] uppercase font-medium text-orange-400">{t('stats.sales')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-orange-400">{stats.totalSales.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-red-500/5 border-red-500/30 hover:border-red-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-3 h-3 text-red-400" />
+              <span className="text-[10px] uppercase font-medium text-red-400">{t('stats.advertiserCost')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-red-400">${stats.advertiserCost.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-500/5 border-green-500/30 hover:border-green-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-3 h-3 text-green-400" />
+              <span className="text-[10px] uppercase font-medium text-green-400">{t('stats.publisherPayout')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-green-400">${stats.publisherPayout.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card className={`${stats.margin >= 0 ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className={`w-3 h-3 ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`} />
+              <span className={`text-[10px] uppercase font-medium ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{t('stats.margin')}</span>
+            </div>
+            <div className={`text-lg font-bold font-mono ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>${stats.margin.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card className={`${stats.roi >= 0 ? 'bg-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className={`w-3 h-3 ${stats.roi >= 0 ? 'text-cyan-400' : 'text-red-400'}`} />
+              <span className={`text-[10px] uppercase font-medium ${stats.roi >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>{t('stats.roi')}</span>
+            </div>
+            <div className={`text-lg font-bold font-mono ${stats.roi >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>{stats.roi.toFixed(1)}%</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-500/5 border-yellow-500/30 hover:border-yellow-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-3 h-3 text-yellow-400" />
+              <span className="text-[10px] uppercase font-medium text-yellow-400">{t('stats.cr')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-yellow-400">{stats.cr.toFixed(2)}%</div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -546,13 +570,17 @@ export function AdvertiserDashboard() {
   );
 }
 
-function StatBox({ label, value, icon: Icon, color }: { label: string; value: string; icon: any; color: string }) {
+function StatBox({ label, value, icon: Icon, color, bgColor }: { label: string; value: string; icon: any; color: string; bgColor?: string }) {
+  const bgClass = bgColor || color.replace('text-', 'bg-').replace('-500', '-500/5').replace('-400', '-500/5');
+  const borderClass = color.replace('text-', 'border-').replace('-500', '-500/30').replace('-400', '-500/30');
+  const hoverBorderClass = color.replace('text-', 'hover:border-').replace('-500', '-500/50').replace('-400', '-500/50');
+  
   return (
-    <Card className="bg-card border-border">
+    <Card className={`${bgClass} ${borderClass} ${hoverBorderClass} transition-colors`}>
       <CardContent className="p-3">
         <div className="flex items-center gap-2 mb-1">
           <Icon className={`w-3 h-3 ${color}`} />
-          <span className="text-[10px] uppercase text-muted-foreground font-medium">{label}</span>
+          <span className={`text-[10px] uppercase font-medium ${color.replace('-500', '-400').replace('-400', '-400')}`}>{label}</span>
         </div>
         <div className={`text-lg font-bold font-mono ${color}`}>{value}</div>
       </CardContent>
