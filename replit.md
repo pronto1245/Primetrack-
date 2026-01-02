@@ -119,6 +119,16 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Запросы на выплату
 - ✅ Крипто-биржи: Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX
 
+### Централизованный HTTP-клиент (server/lib/http-client.ts)
+- ✅ Единый HTTP-клиент для всех внешних API
+- ✅ Retry с экспоненциальным backoff и jitter
+- ✅ AbortController для таймаутов
+- ✅ Correlation ID для трассировки запросов
+- ✅ ExternalApiError для типизированных ошибок
+- ✅ Методы: request() для JSON, requestRaw() для полного ответа
+- ✅ Мигрированные сервисы: Telegram, IPinfo, Blockchain verifiers, Webhooks, Postbacks, Cloudflare
+- ⏳ Отложены: crypto-payout (сложная HMAC логика бирж), migration-service (редко используется)
+
 ### Уведомления
 - ✅ In-app (колокольчик)
 - ✅ Telegram уведомления (см. инструкцию ниже)
