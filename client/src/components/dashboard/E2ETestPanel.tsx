@@ -17,7 +17,7 @@ interface TestStep {
 
 interface TestResult {
   timestamp: string;
-  offerId: number;
+  offerId: string;
   offerName: string;
   steps: TestStep[];
   success: boolean;
@@ -25,7 +25,7 @@ interface TestResult {
 }
 
 interface Offer {
-  id: number;
+  id: string;
   name: string;
   payoutAmount: string;
   advertiserPrice: string;
@@ -41,7 +41,7 @@ export function E2ETestPanel() {
   });
 
   const runTestMutation = useMutation({
-    mutationFn: async (offerId: number) => {
+    mutationFn: async (offerId: string) => {
       const response = await apiRequest("POST", "/api/test/e2e", { offerId });
       return response.json();
     },
@@ -51,7 +51,7 @@ export function E2ETestPanel() {
     onError: (error: any) => {
       setTestResult({
         timestamp: new Date().toISOString(),
-        offerId: parseInt(selectedOfferId),
+        offerId: selectedOfferId as any,
         offerName: "",
         steps: [],
         success: false,
@@ -63,7 +63,7 @@ export function E2ETestPanel() {
   const handleRunTest = () => {
     if (!selectedOfferId) return;
     setTestResult(null);
-    runTestMutation.mutate(parseInt(selectedOfferId));
+    runTestMutation.mutate(selectedOfferId);
   };
 
   return (
