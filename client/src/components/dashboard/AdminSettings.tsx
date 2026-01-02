@@ -1117,7 +1117,7 @@ function PlatformTab() {
             </div>
           </div>
 
-          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret && (
+          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret && formData.cloudflareWorkerSecret !== "***configured***" && (
             <div className="space-y-3">
               <Label>Cloudflare Worker Script (с авторизацией)</Label>
               <div className="relative">
@@ -1204,6 +1204,15 @@ function PlatformTab() {
               <p className="text-sm text-yellow-700 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
                 Сгенерируйте Worker Secret для защиты от спуфинга X-Forwarded-Host
+              </p>
+            </div>
+          )}
+
+          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret === "***configured***" && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700 flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Worker Secret уже настроен. Чтобы получить скрипт, сгенерируйте новый секрет и сохраните настройки.
               </p>
             </div>
           )}
