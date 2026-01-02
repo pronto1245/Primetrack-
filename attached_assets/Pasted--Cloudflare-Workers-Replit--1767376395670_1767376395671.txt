@@ -1,0 +1,157 @@
+через Cloudflare Workers это РАБОТАЕТ — и это лучшее решение, если ты хочешь оставить Replit и при этом нормально поддерживать SSL for SaaS + кастомные домены.
+
+Теперь подробно, но по делу.
+
+✅ Ответ: через Workers — ПРАВИЛЬНО
+
+Cloudflare Workers в твоей схеме решают ровно ту проблему, из-за которой у тебя сейчас Not Found.
+
+Что именно ломалось без Workers
+
+Replit не принимает произвольные Host
+
+Cloudflare SSL for SaaS проксирует запросы
+
+Replit edge возвращает 404 до твоего приложения
+
+Workers позволяют:
+
+принять любой кастомный домен
+
+переписать Host
+
+проксировать запрос как будто он пришёл на *.replit.app
+
+🧠 Архитектура с Workers (рекомендуемая)
+click.partner.com
+↓ CNAME
+customers.primetrack.pro
+↓
+Cloudflare SSL for SaaS (Custom Hostnames)
+↓
+Cloudflare Worker  ← КЛЮЧЕВО
+↓
+your-app.replit.app
+
+
+Workers = прослойка-адаптер между SaaS-доменами и Replit.
+
+🔥 Что делает Worker (по факту)
+
+Принимает HTTPS-запрос
+
+Меняет:
+
+Host
+
+Origin
+
+Проксирует запрос в Replit
+
+Возвращает ответ клиенту
+
+➡ Replit думает, что запрос пришёл на его родной домен
+
+✅ Минимальный Worker (рабочий)
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+
+    // проксируем в Replit
+    url.hostname = "your-app.replit.app";
+
+    const newHeaders = new Headers(request.headers);
+    newHeaders.set("Host", "your-app.replit.app");
+    newHeaders.set("X-Forwarded-Host", request.headers.get("Host"));
+
+    return fetch(new Request(url, {
+      method: request.method,
+      headers: newHeaders,
+      body: request.body,
+      redirect: "manual"
+    }));
+  }
+};
+
+
+⚠️ your-app.replit.app — реальный origin
+
+🧩 Как определить пользователя / домен
+
+Ты теряешь оригинальный Host?
+Нет — он у тебя есть в:
+
+X-Forwarded-Host
+
+
+В Replit:
+
+const originalHost =
+  req.headers["x-forwarded-host"] || req.headers.host;
+
+
+➡ дальше:
+
+ищешь домен в customDomains
+
+определяешь userId
+
+генерируешь ссылки
+
+🔐 SSL for SaaS + Workers
+Custom Hostnames API
+
+ssl.type = managed
+
+origin = customers.primetrack.pro
+
+route → Worker
+
+⚠️ Важно:
+
+Worker должен быть назначен на dnsTarget
+
+НЕ напрямую на *.replit.app
+
+✅ Почему это решение лучше предыдущих
+Критерий	Без Workers	С Workers
+SSL for SaaS	✅	✅
+Кастомные домены	❌	✅
+Replit	❌	✅
+White-label	❌	✅
+Масштаб	❌	✅
+Автоматизация	❌	✅
+🚨 Ограничения (честно)
+
+Workers обязательны (ещё один слой)
+
+Нужно следить за:
+
+streaming body
+
+uploads
+
+WebSockets (Replit их плохо любит)
+
+Бесплатный лимит Workers может быть маловат → Business/Enterprise OK
+
+🧪 Чек-лист, чтобы у тебя заработало
+
+1️⃣ Worker привязан к:
+
+customers.primetrack.pro/*
+
+
+2️⃣ В Custom Hostnames:
+
+origin → customers.primetrack.pro
+
+3️⃣ В Worker:
+
+Host переписывается в *.replit.app
+
+4️⃣ В Replit:
+
+нет проверки hostname
+
+есть / или /health
