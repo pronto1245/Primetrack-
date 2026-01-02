@@ -14,6 +14,7 @@ import { Orchestrator } from "./services/orchestrator";
 import { notificationService } from "./services/notification-service";
 import { totpService } from "./services/totp-service";
 import geoip from "geoip-lite";
+import { resolveRequestHost, resolveRequestOrigin } from "./lib/request-utils";
 
 const clickHandler = new ClickHandler();
 const orchestrator = new Orchestrator();
@@ -298,14 +299,14 @@ export async function registerRoutes(
   // This allows tracking links to work on custom domains without authentication
   app.use(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Support Cloudflare Worker proxy - check X-Original-Host first
-      const originalHost = req.headers['x-original-host'] as string | undefined;
-      const hostname = (originalHost || req.hostname)?.toLowerCase();
+      // Support Cloudflare Worker proxy - resolves X-Forwarded-Host, X-Original-Host, or hostname
+      const hostname = resolveRequestHost(req);
       
       // Skip for localhost, Replit domains, and platform domain
       if (!hostname || 
           hostname === 'localhost' || 
           hostname.includes('.replit.dev') || 
+          hostname.includes('.replit.app') ||
           hostname.includes('.repl.co') ||
           hostname === 'primetrack.pro' ||
           hostname === 'www.primetrack.pro') {
@@ -3244,9 +3245,7 @@ export async function registerRoutes(
       if (platformDomain) {
         baseUrl = platformDomain.startsWith('http') ? platformDomain : `https://${platformDomain}`;
       } else {
-        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-        const host = req.headers['x-forwarded-host'] || req.headers.host || req.hostname;
-        baseUrl = `${protocol}://${host}`;
+        baseUrl = resolveRequestOrigin(req);
       }
       const registrationLink = `${baseUrl}/register?ref=${referralCode}`;
       
