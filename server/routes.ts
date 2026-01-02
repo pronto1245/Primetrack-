@@ -6770,5 +6770,256 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // E2E TESTING - Full cycle test (click → conversion → payout)
+  // ============================================
+  
+  app.post("/api/test/e2e", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      
+      const { offerId } = req.body;
+      
+      if (!offerId) {
+        return res.status(400).json({ message: "Offer ID is required" });
+      }
+      
+      const offer = await storage.getOffer(offerId);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      // Check access
+      if (role === "advertiser" && offer.advertiserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      if (role === "publisher") {
+        const access = await storage.getPublisherOfferAccess(userId, offerId);
+        if (!access || access.status !== "approved") {
+          return res.status(403).json({ message: "No access to this offer" });
+        }
+      }
+      
+      const testResults: any = {
+        timestamp: new Date().toISOString(),
+        offerId,
+        offerName: offer.name,
+        steps: [],
+        success: false,
+        summary: ""
+      };
+      
+      // Determine publisher for test
+      let testPublisherId = role === "publisher" ? userId : null;
+      if (!testPublisherId) {
+        const accessList = await storage.getOfferAccessByOffer(offerId);
+        const approved = accessList.find(a => a.status === "approved");
+        if (approved) {
+          testPublisherId = approved.publisherId;
+        }
+      }
+      
+      if (!testPublisherId) {
+        testResults.steps.push({
+          step: 1,
+          name: "Find Publisher",
+          status: "failed",
+          error: "No approved publishers for this offer"
+        });
+        testResults.summary = "Test failed: No approved publishers";
+        return res.json(testResults);
+      }
+      
+      const publisher = await storage.getUser(testPublisherId);
+      testResults.steps.push({
+        step: 1,
+        name: "Find Publisher",
+        status: "passed",
+        data: { publisherId: testPublisherId, publisherName: publisher?.username }
+      });
+      
+      // Step 2: Simulate click
+      const testClickId = `test_e2e_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const clickData = {
+        clickId: testClickId,
+        offerId,
+        publisherId: testPublisherId,
+        ip: "127.0.0.1",
+        userAgent: "E2E Test Bot",
+        geo: "TEST",
+        referer: "e2e-test",
+        landingUrl: offer.landingUrl || "https://test.example.com",
+        isUnique: true,
+        sub1: "e2e_test",
+        sub2: new Date().toISOString().split("T")[0],
+      };
+      
+      const click = await storage.createClick(clickData);
+      testResults.steps.push({
+        step: 2,
+        name: "Create Click",
+        status: "passed",
+        data: { clickId: testClickId, dbId: click.id }
+      });
+      
+      // Step 3: Get balance before conversion
+      const advertiser = await storage.getUser(offer.advertiserId);
+      let balanceBefore: any = null;
+      try {
+        balanceBefore = await storage.getPublisherBalance(testPublisherId, offer.advertiserId);
+      } catch (e) {
+        // Balance might not exist yet
+      }
+      
+      testResults.steps.push({
+        step: 3,
+        name: "Check Balance Before",
+        status: "passed",
+        data: { 
+          available: balanceBefore?.available || 0,
+          pending: balanceBefore?.pending || 0,
+          hold: balanceBefore?.hold || 0
+        }
+      });
+      
+      // Step 4: Create conversion
+      const publisherPayout = parseFloat(offer.payoutAmount || "0");
+      const advertiserCost = parseFloat(offer.advertiserPrice || "0");
+      
+      const conversionData = {
+        clickId: click.id,
+        offerId,
+        publisherId: testPublisherId,
+        advertiserId: offer.advertiserId,
+        conversionType: "lead" as const,
+        status: "approved" as const,
+        publisherPayout: publisherPayout.toString(),
+        advertiserCost: advertiserCost.toString(),
+        geo: "TEST",
+        ip: "127.0.0.1",
+      };
+      
+      const conversion = await storage.createConversion(conversionData);
+      testResults.steps.push({
+        step: 4,
+        name: "Create Conversion",
+        status: "passed",
+        data: { 
+          conversionId: conversion.id,
+          type: "lead",
+          publisherPayout,
+          advertiserCost
+        }
+      });
+      
+      // Step 5: Update publisher balance
+      const balanceUpdate = await storage.calculatePublisherBalance(testPublisherId, offer.advertiserId);
+      await storage.updatePublisherBalance(testPublisherId, offer.advertiserId, {
+        available: balanceUpdate.available.toString(),
+        pending: balanceUpdate.pending.toString(),
+        hold: balanceUpdate.hold.toString(),
+        totalPaid: balanceUpdate.totalPaid.toString(),
+      });
+      
+      const balanceAfter = await storage.getPublisherBalance(testPublisherId, offer.advertiserId);
+      
+      testResults.steps.push({
+        step: 5,
+        name: "Update Balance",
+        status: "passed",
+        data: { 
+          available: parseFloat(balanceAfter?.available || "0"),
+          pending: parseFloat(balanceAfter?.pending || "0"),
+          hold: parseFloat(balanceAfter?.hold || "0"),
+          change: publisherPayout
+        }
+      });
+      
+      // Step 6: Verify balance increased
+      const balanceBeforeVal = parseFloat(balanceBefore?.available || "0");
+      const balanceAfterVal = parseFloat(balanceAfter?.available || "0");
+      const expectedIncrease = publisherPayout;
+      const actualIncrease = balanceAfterVal - balanceBeforeVal;
+      
+      if (actualIncrease >= expectedIncrease * 0.99) { // Allow 1% tolerance for rounding
+        testResults.steps.push({
+          step: 6,
+          name: "Verify Payout",
+          status: "passed",
+          data: { 
+            expected: expectedIncrease,
+            actual: actualIncrease,
+            message: "Balance increased correctly"
+          }
+        });
+        testResults.success = true;
+        testResults.summary = `E2E Test PASSED: Click → Conversion → Payout ($${publisherPayout}) verified successfully`;
+      } else {
+        testResults.steps.push({
+          step: 6,
+          name: "Verify Payout",
+          status: "failed",
+          data: { 
+            expected: expectedIncrease,
+            actual: actualIncrease,
+            message: "Balance did not increase as expected"
+          }
+        });
+        testResults.summary = `E2E Test FAILED: Expected payout $${expectedIncrease}, got $${actualIncrease}`;
+      }
+      
+      // Cleanup: Mark test data for identification (don't delete to keep audit trail)
+      await storage.updateClick(click.id, { sub1: "e2e_test_completed" });
+      
+      res.json(testResults);
+    } catch (error: any) {
+      console.error("E2E test error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message,
+        summary: `E2E Test ERROR: ${error.message}`
+      });
+    }
+  });
+  
+  // Get available offers for e2e testing
+  app.get("/api/test/e2e/offers", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      
+      let offers: any[] = [];
+      
+      if (role === "admin") {
+        offers = await storage.getOffers();
+      } else if (role === "advertiser") {
+        offers = await storage.getOffersByAdvertiser(userId);
+      } else if (role === "publisher") {
+        const allOffers = await storage.getOffers();
+        for (const offer of allOffers) {
+          const access = await storage.getPublisherOfferAccess(userId, offer.id);
+          if (access?.status === "approved") {
+            offers.push(offer);
+          }
+        }
+      }
+      
+      // Filter active offers only
+      offers = offers.filter(o => o.status === "active");
+      
+      res.json(offers.map(o => ({
+        id: o.id,
+        name: o.name,
+        payoutAmount: o.payoutAmount,
+        advertiserPrice: o.advertiserPrice,
+        payoutModel: o.payoutModel
+      })));
+    } catch (error) {
+      console.error("Get e2e offers error:", error);
+      res.status(500).json({ message: "Failed to fetch offers" });
+    }
+  });
+
   return httpServer;
 }
