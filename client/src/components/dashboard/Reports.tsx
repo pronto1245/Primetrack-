@@ -323,8 +323,8 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
       clicks: data.summary.clicks || 0,
       uniqueClicks: data.summary.uniqueClicks || 0,
       conversions: data.summary.conversions || 0,
-      leads: 0,
-      sales: 0,
+      leads: data.summary.leads || 0,
+      sales: data.summary.sales || 0,
       payout: data.summary.payout || 0,
       cost: data.summary.advertiserCost || 0,
     };
@@ -332,8 +332,8 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
     roi = data.summary.roi || 0;
     cr = data.summary.cr || 0;
   } else {
-    // Calculate from rows (grouped data)
-    const rows = data?.rows || [];
+    // Calculate from rows (grouped data) - groupedData uses 'data' not 'rows'
+    const rows = data?.data || data?.rows || [];
     totals = rows.reduce((acc: any, row: any) => ({
       clicks: acc.clicks + (row.clicks || 0),
       uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
