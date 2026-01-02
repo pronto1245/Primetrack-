@@ -21,7 +21,15 @@ export interface HttpClientOptions {
 export interface RequestOptions extends HttpClientOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: any;
+  rawBody?: string;
   skipRetryOnStatus?: number[];
+}
+
+export interface RawResponse {
+  statusCode: number;
+  ok: boolean;
+  body: string;
+  headers: Headers;
 }
 
 interface RetryConfig {
@@ -140,10 +148,14 @@ export class HttpClient {
           maxRetries: maxRetries + 1,
         });
 
+        const requestBody = options.rawBody !== undefined 
+          ? options.rawBody 
+          : options.body ? JSON.stringify(options.body) : undefined;
+
         const response = await fetch(fullUrl, {
           method,
           headers,
-          body: options.body ? JSON.stringify(options.body) : undefined,
+          body: requestBody,
           signal: controller.signal,
         });
 
@@ -247,6 +259,76 @@ export class HttpClient {
       false,
       lastError || undefined
     );
+  }
+
+  async requestRaw(url: string, options: RequestOptions = {}): Promise<RawResponse> {
+    const correlationId = generateCorrelationId();
+    const fullUrl = this.baseUrl ? `${this.baseUrl}${url}` : url;
+    const method = options.method || "GET";
+    const timeout = options.timeout ?? this.defaultTimeout;
+
+    const headers = {
+      ...this.defaultHeaders,
+      ...options.headers,
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const startTime = Date.now();
+
+    try {
+      this.log("info", correlationId, `Raw request started`, { method, url: fullUrl });
+
+      const requestBody = options.rawBody !== undefined 
+        ? options.rawBody 
+        : options.body ? JSON.stringify(options.body) : undefined;
+
+      const response = await fetch(fullUrl, {
+        method,
+        headers,
+        body: requestBody,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+      const body = await response.text();
+
+      this.log("info", correlationId, `Raw request completed`, {
+        status: response.status,
+        latency,
+      });
+
+      return {
+        statusCode: response.status,
+        ok: response.ok,
+        body,
+        headers: response.headers,
+      };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+
+      if (error.name === "AbortError") {
+        this.log("error", correlationId, `Raw request timeout`, { timeout, latency });
+        throw new ExternalApiError(
+          `${this.serviceName} request timeout after ${timeout}ms`,
+          this.serviceName,
+          undefined,
+          true,
+          error
+        );
+      }
+
+      this.log("error", correlationId, `Raw request network error`, { error: error.message, latency });
+      throw new ExternalApiError(
+        `${this.serviceName} network error: ${error.message}`,
+        this.serviceName,
+        undefined,
+        true,
+        error
+      );
+    }
   }
 
   async get<T = any>(url: string, options?: Omit<RequestOptions, "method" | "body">): Promise<T> {

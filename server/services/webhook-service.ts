@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { storage } from "../storage";
 import type { WebhookEndpoint, InsertWebhookLog } from "@shared/schema";
-import { HttpClient, ExternalApiError } from "../lib/http-client";
+import { HttpClient, ExternalApiError, RawResponse } from "../lib/http-client";
 
 export type WebhookEventType = "click" | "lead" | "sale" | "install" | "rejected" | "hold_released" | "payout_approved" | "payout_paid";
 
@@ -91,23 +91,27 @@ class WebhookService {
         retries: 0,
       });
 
-      const response = await client.request(endpoint.url, {
+      const response = await client.requestRaw(endpoint.url, {
         method: (endpoint.method || "POST") as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
-        body: payload,
+        rawBody: payloadString,
         headers,
       });
 
-      logData.statusCode = 200;
-      logData.response = typeof response === "string" ? response : JSON.stringify(response);
-      logData.status = "success";
-      
-      await storage.createWebhookLog(logData);
-      await storage.updateWebhookEndpoint(endpoint.id, {
-        lastTriggeredAt: new Date(),
-        failedAttempts: 0,
-        lastError: null,
-      });
-      return true;
+      logData.statusCode = response.statusCode;
+      logData.response = response.body;
+
+      if (response.ok) {
+        logData.status = "success";
+        await storage.createWebhookLog(logData);
+        await storage.updateWebhookEndpoint(endpoint.id, {
+          lastTriggeredAt: new Date(),
+          failedAttempts: 0,
+          lastError: null,
+        });
+        return true;
+      } else {
+        throw new Error(`HTTP ${response.statusCode}: ${response.body?.substring(0, 200)}`);
+      }
     } catch (error: any) {
       if (error instanceof ExternalApiError) {
         logData.statusCode = error.statusCode;
@@ -287,18 +291,16 @@ class WebhookService {
         retries: 0,
       });
 
-      const response = await client.request(endpoint.url, {
+      const response = await client.requestRaw(endpoint.url, {
         method: (endpoint.method || "POST") as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
-        body: testPayload,
+        rawBody: payloadString,
         headers,
       });
 
-      const responseText = typeof response === "string" ? response : JSON.stringify(response);
-
       return {
-        success: true,
-        statusCode: 200,
-        response: responseText.substring(0, 500),
+        success: response.ok,
+        statusCode: response.statusCode,
+        response: response.body?.substring(0, 500),
       };
     } catch (error: any) {
       if (error instanceof ExternalApiError) {

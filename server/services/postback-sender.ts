@@ -1,6 +1,6 @@
 import { storage } from "../storage";
 import type { Conversion, Click, Offer, PostbackLog, PublisherPostbackEndpoint } from "@shared/schema";
-import { HttpClient, ExternalApiError } from "../lib/http-client";
+import { HttpClient, ExternalApiError, RawResponse } from "../lib/http-client";
 
 interface PostbackTarget {
   url: string;
@@ -168,13 +168,13 @@ export class PostbackSender {
         headers: { "User-Agent": "AffiliateTracker/1.0" },
       });
 
-      const response = await client.get(postbackUrl);
+      const response = await client.requestRaw(postbackUrl, { method: "GET" });
 
-      responseCode = 200;
-      responseBody = typeof response === "string" ? response : JSON.stringify(response);
-      success = true;
+      responseCode = response.statusCode;
+      responseBody = response.body;
+      success = response.ok;
 
-      console.log(`[PostbackSender] ${target.recipientType} response: ${responseCode} - OK`);
+      console.log(`[PostbackSender] ${target.recipientType} response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
     } catch (error: any) {
       if (error instanceof ExternalApiError) {
         responseCode = error.statusCode;
@@ -235,13 +235,13 @@ export class PostbackSender {
         headers: { "User-Agent": "AffiliateTracker/1.0" },
       });
 
-      const response = await client.get(postbackUrl);
+      const response = await client.requestRaw(postbackUrl, { method: "GET" });
 
-      responseCode = 200;
-      responseBody = typeof response === "string" ? response : JSON.stringify(response);
-      success = true;
+      responseCode = response.statusCode;
+      responseBody = response.body;
+      success = response.ok;
 
-      console.log(`[PostbackSender] Publisher response: ${responseCode} - OK`);
+      console.log(`[PostbackSender] Publisher response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
     } catch (error: any) {
       if (error instanceof ExternalApiError) {
         responseCode = error.statusCode;
