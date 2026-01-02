@@ -11,13 +11,14 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Settings, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Shield, Key, CheckCircle2, Globe,
-  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image
+  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image, TestTube2
 } from "lucide-react";
 import { useUpload } from "@/hooks/use-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { E2ETestPanel } from "./E2ETestPanel";
 
 export function AdminSettings() {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ export function AdminSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
             <User className="h-4 w-4" />
             Профиль
@@ -49,6 +50,10 @@ export function AdminSettings() {
           <TabsTrigger value="platform" className="flex items-center gap-2" data-testid="tab-platform">
             <Settings className="h-4 w-4" />
             Платформа
+          </TabsTrigger>
+          <TabsTrigger value="testing" className="flex items-center gap-2" data-testid="tab-testing">
+            <TestTube2 className="h-4 w-4" />
+            Тесты
           </TabsTrigger>
           <TabsTrigger value="migration" className="flex items-center gap-2" data-testid="tab-migration">
             <Database className="h-4 w-4" />
@@ -67,6 +72,9 @@ export function AdminSettings() {
         </TabsContent>
         <TabsContent value="platform">
           <PlatformTab />
+        </TabsContent>
+        <TabsContent value="testing">
+          <E2ETestPanel />
         </TabsContent>
         <TabsContent value="migration">
           <MigrationTab />

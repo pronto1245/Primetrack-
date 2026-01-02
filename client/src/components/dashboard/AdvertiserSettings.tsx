@@ -11,12 +11,13 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Palette, Database, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Mail, Globe, Upload, Shield, Key, AlertCircle,
-  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint, CreditCard, Clock
+  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint, CreditCard, Clock, TestTube2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { WebhooksSettings } from "./WebhooksSettings";
 import { CustomDomainsSettings } from "./CustomDomainsSettings";
+import { E2ETestPanel } from "./E2ETestPanel";
 
 export function AdvertiserSettings() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ export function AdvertiserSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8 gap-1">
+        <TabsList className="grid w-full grid-cols-9 gap-1">
           <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
             <User className="h-4 w-4" />
             Профиль
@@ -61,6 +62,10 @@ export function AdvertiserSettings() {
             <Webhook className="h-4 w-4" />
             Webhooks
           </TabsTrigger>
+          <TabsTrigger value="testing" className="flex items-center gap-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white" data-testid="tab-testing">
+            <TestTube2 className="h-4 w-4" />
+            Тесты
+          </TabsTrigger>
           <TabsTrigger value="migration" className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white" data-testid="tab-migration">
             <Database className="h-4 w-4" />
             Миграция
@@ -87,6 +92,9 @@ export function AdvertiserSettings() {
         </TabsContent>
         <TabsContent value="webhooks">
           <WebhooksTab />
+        </TabsContent>
+        <TabsContent value="testing">
+          <E2ETestPanel />
         </TabsContent>
         <TabsContent value="migration">
           <MigrationTab />
