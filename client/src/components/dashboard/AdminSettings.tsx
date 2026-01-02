@@ -595,6 +595,7 @@ function PlatformTab() {
   const [showIpinfoToken, setShowIpinfoToken] = useState(false);
   const [showFingerprintKey, setShowFingerprintKey] = useState(false);
   const [showCloudflareToken, setShowCloudflareToken] = useState(false);
+  const [generatedWorkerSecret, setGeneratedWorkerSecret] = useState<string | null>(null);
   
   const { uploadFile, isUploading: isUploadingLogo } = useUpload({
     onSuccess: (response) => {
@@ -1106,7 +1107,8 @@ function PlatformTab() {
                   onClick={() => {
                     const secret = crypto.randomUUID();
                     setFormData({ ...formData, cloudflareWorkerSecret: secret });
-                    toast({ title: "Секрет сгенерирован", description: "Сохраните настройки и обновите Worker скрипт" });
+                    setGeneratedWorkerSecret(secret);
+                    toast({ title: "Секрет сгенерирован", description: "Скопируйте скрипт и сохраните настройки" });
                   }}
                   data-testid="button-generate-worker-secret"
                 >
@@ -1117,7 +1119,7 @@ function PlatformTab() {
             </div>
           </div>
 
-          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret && formData.cloudflareWorkerSecret !== "***configured***" && (
+          {formData.cloudflareWorkerOrigin && generatedWorkerSecret && (
             <div className="space-y-3">
               <Label>Cloudflare Worker Script (с авторизацией)</Label>
               <div className="relative">
@@ -1125,7 +1127,7 @@ function PlatformTab() {
 {`export default {
   async fetch(request) {
     const ORIGIN = "${formData.cloudflareWorkerOrigin}";
-    const SECRET = "${formData.cloudflareWorkerSecret}";
+    const SECRET = "${generatedWorkerSecret}";
     const url = new URL(request.url);
     const originalHost = url.hostname;
     
@@ -1160,7 +1162,7 @@ function PlatformTab() {
                     navigator.clipboard.writeText(`export default {
   async fetch(request) {
     const ORIGIN = "${formData.cloudflareWorkerOrigin}";
-    const SECRET = "${formData.cloudflareWorkerSecret}";
+    const SECRET = "${generatedWorkerSecret}";
     const url = new URL(request.url);
     const originalHost = url.hostname;
     
@@ -1208,11 +1210,11 @@ function PlatformTab() {
             </div>
           )}
 
-          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret === "***configured***" && (
+          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret === "***configured***" && !generatedWorkerSecret && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-700 flex items-center gap-2">
                 <Key className="h-4 w-4" />
-                Worker Secret уже настроен. Чтобы получить скрипт, сгенерируйте новый секрет и сохраните настройки.
+                Worker Secret уже настроен. Чтобы получить скрипт, сгенерируйте новый секрет.
               </p>
             </div>
           )}
