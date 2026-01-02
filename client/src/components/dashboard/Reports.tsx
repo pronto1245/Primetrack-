@@ -23,6 +23,7 @@ export function Reports({ role }: ReportsProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("clicks");
   const [filters, setFilters] = useState({
+    freeSearch: "",
     dateFrom: "",
     dateTo: "",
     offerId: "",
@@ -38,6 +39,7 @@ export function Reports({ role }: ReportsProps) {
   const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
 
   const queryParams = new URLSearchParams();
+  if (filters.freeSearch) queryParams.set("search", filters.freeSearch);
   if (filters.dateFrom) queryParams.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) queryParams.set("dateTo", filters.dateTo);
   if (filters.offerId) queryParams.set("offerId", filters.offerId);
@@ -138,6 +140,17 @@ export function Reports({ role }: ReportsProps) {
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">{t('reports.freeSearch') || 'Free Search'}</Label>
+              <Input
+                type="text"
+                data-testid="input-free-search"
+                placeholder={t('reports.freeSearchPlaceholder') || 'Search...'}
+                value={filters.freeSearch}
+                onChange={(e) => setFilters(f => ({ ...f, freeSearch: e.target.value }))}
+                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
+              />
+            </div>
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.dateFrom') || 'Date From'}</Label>
               <Input
@@ -240,7 +253,7 @@ export function Reports({ role }: ReportsProps) {
             <div className="flex items-end">
               <Button 
                 variant="outline"
-                onClick={() => { setFilters({ dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date", dateMode: "click" }); setPage(1); }}
+                onClick={() => { setFilters({ freeSearch: "", dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date", dateMode: "click" }); setPage(1); }}
                 className="w-full border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:text-orange-300"
                 data-testid="button-clear-filters"
               >

@@ -114,6 +114,8 @@ const resources = {
         statsByOffer: "Statistics by Offer",
         statsByPublisher: "Statistics by Publisher",
         filters: "Filters",
+        freeSearch: "Free Search",
+        freeSearchPlaceholder: "Search...",
         dateFrom: "Date From",
         dateTo: "Date To",
         menu: {
@@ -186,6 +188,8 @@ const resources = {
       },
       reports: {
         filters: "Filters",
+        freeSearch: "Free Search",
+        freeSearchPlaceholder: "Search...",
         dateFrom: "From (dd.mm.yyyy)",
         dateTo: "To (dd.mm.yyyy)",
         geo: "GEO",
@@ -347,6 +351,8 @@ const resources = {
         statsByOffer: "Статистика по офферам",
         statsByPublisher: "Статистика по вебмастерам",
         filters: "Фильтры",
+        freeSearch: "Свободный поиск",
+        freeSearchPlaceholder: "Поиск...",
         dateFrom: "Дата от",
         dateTo: "Дата до",
         menu: {
@@ -439,6 +445,8 @@ const resources = {
       },
       reports: {
         filters: "Фильтры",
+        freeSearch: "Свободный фильтр",
+        freeSearchPlaceholder: "Введите запрос...",
         dateFrom: "От (дд.мм.гггг)",
         dateTo: "До (дд.мм.гггг)",
         geo: "ГЕО",
