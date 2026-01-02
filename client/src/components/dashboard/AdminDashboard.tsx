@@ -221,27 +221,27 @@ export function AdminDashboard() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Link href="/dashboard/admin/users">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-users">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 hover:border-emerald-500/50" data-testid="link-users">
                   <Users className="w-6 h-6 text-emerald-400" />
-                  <span className="text-xs">Пользователи</span>
+                  <span className="text-xs text-emerald-300">Пользователи</span>
                 </Button>
               </Link>
               <Link href="/dashboard/admin/finance">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-finance">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 hover:border-yellow-500/50" data-testid="link-finance">
                   <DollarSign className="w-6 h-6 text-yellow-400" />
-                  <span className="text-xs">Финансы</span>
+                  <span className="text-xs text-yellow-300">Финансы</span>
                 </Button>
               </Link>
               <Link href="/dashboard/admin/antifraud">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-antifraud">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-red-500/10 border-red-500/30 hover:bg-red-500/20 hover:border-red-500/50" data-testid="link-antifraud">
                   <Activity className="w-6 h-6 text-red-400" />
-                  <span className="text-xs">Антифрод</span>
+                  <span className="text-xs text-red-300">Антифрод</span>
                 </Button>
               </Link>
               <Link href="/dashboard/admin/reports">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-secondary/50 border-border hover:bg-secondary" data-testid="link-reports">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2 bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50" data-testid="link-reports">
                   <MousePointer2 className="w-6 h-6 text-purple-400" />
-                  <span className="text-xs">Статистика</span>
+                  <span className="text-xs text-purple-300">Статистика</span>
                 </Button>
               </Link>
             </div>
