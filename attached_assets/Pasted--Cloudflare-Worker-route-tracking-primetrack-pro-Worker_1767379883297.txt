@@ -1,0 +1,16 @@
+Пользователь настроил Cloudflare Worker и route для tracking.primetrack.pro. Worker работает, сайт открывается.
+
+Но пользователь показал ссылку: https://24b37059-5b12-44cb-b70b-19a2dcb6cd9e-00-2qvmj5tosito.riker.replit.dev/click/0019/0002?partner_id=003
+
+Это ссылка с Replit доменом вместо tracking.primetrack.pro.
+
+Вопрос: откуда эта ссылка? Если это из UI платформы при генерации трекинговой ссылки — нужно проверить откуда берётся trackingDomain и почему не используется кастомный домен.
+
+Проанализируй код и определи:
+
+Где генерируются эти ссылки
+Откуда берётся trackingDomain
+Что нужно исправить чтобы ссылки генерировались с правильным доменом
+Thought for 42 seconds
+Result
+Update the tracking link builders in server/routes.ts to source trackingDomain from resolveRequestHost(req) (with req.customDomain fallback when present, platformSettings default otherwise) so the Cloudflare Worker “X-Forwarded-Host” is honored and offers return https://tracking.primetrack.pro URLs instead of the Replit host; currently the handlers in publisher/advertiser offer responses still rely on req.hostname, so when the UI is served through the native Replit domain the trackingUrl string is hydrated with that domain despite the Worker being configured, leaving partners with unusable Replit-based links. Critical findings: 1) The offer listing endpoints map landing records to trackingUrl using a trackingDomain variable that derives from the raw request host, bypassing resolveRequestHost, so the Worker-provided host is ignored. 2) As long as the admin portal is accessed via Replit, all generated links inherit that host, which matches the user’s observation. Security: none observed. Next actions: (1) Refactor trackingDomain resolution in routes.ts to prefer req.customDomain?.domain ?? resolveRequestHost(req) ?? platformSettings.cloudflareWorkerOriginHost fallback. (2) Retest offer retrieval from tracking.primetrack.pro to confirm returned trackingUrl uses the custom domain. (3) (Optional) add unit/integration coverage for trackingDomain resolution to prevent regressions.

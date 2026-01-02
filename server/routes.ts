@@ -1358,12 +1358,8 @@ export async function registerRoutes(
         // С доступом - показываем лендинги с tracking URLs (без internalCost)
         const landings = await storage.getOfferLandings(offer.id);
         const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
-        // In development, use REPLIT_DEV_DOMAIN; in production use PLATFORM_DOMAIN
-        const isProduction = process.env.NODE_ENV === "production";
-        const defaultDomain = isProduction 
-          ? (process.env.PLATFORM_DOMAIN || "tracking.example.com")
-          : (process.env.REPLIT_DEV_DOMAIN || process.env.PLATFORM_DOMAIN || "tracking.example.com");
-        const trackingDomain = customDomain || defaultDomain;
+        // Always use PLATFORM_DOMAIN for tracking links
+        const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
         const publisherId = req.session.userId!;
         
         // Get shortIds for compact tracking URLs
@@ -2407,7 +2403,7 @@ export async function registerRoutes(
           if (hasAccess) {
             const landings = await storage.getOfferLandings(offer.id);
             const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
-            const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "tracking.example.com";
+            const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
             
             // Get shortIds for compact tracking URLs
             const publisher = await storage.getUser(publisherId);
