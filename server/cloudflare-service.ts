@@ -1,5 +1,6 @@
 import { storage } from "./storage";
 import { decrypt, hasSecret } from "./services/encryption";
+import { HttpClient, ExternalApiError } from "./lib/http-client";
 
 const CLOUDFLARE_API_BASE = "https://api.cloudflare.com/client/v4";
 
@@ -83,25 +84,33 @@ async function cloudflareRequest<T>(
     throw new Error("Cloudflare not configured. Please set Zone ID and API Token in Admin Settings.");
   }
   
-  const url = `${CLOUDFLARE_API_BASE}/zones/${settings.zoneId}${endpoint}`;
-  
-  const response = await fetch(url, {
-    method,
+  const client = new HttpClient("Cloudflare", {
+    baseUrl: `${CLOUDFLARE_API_BASE}/zones/${settings.zoneId}`,
+    timeout: 15000,
+    retries: 2,
     headers: {
       "Authorization": `Bearer ${settings.apiToken}`,
-      "Content-Type": "application/json",
     },
-    body: body ? JSON.stringify(body) : undefined,
   });
   
-  const data = await response.json() as CloudflareApiResponse<T>;
-  
-  if (!data.success) {
-    const errorMsg = data.errors.map(e => e.message).join(", ");
-    throw new Error(`Cloudflare API error: ${errorMsg}`);
+  try {
+    const data = await client.request<CloudflareApiResponse<T>>(endpoint, {
+      method: method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+      body,
+    });
+    
+    if (!data.success) {
+      const errorMsg = data.errors.map(e => e.message).join(", ");
+      throw new Error(`Cloudflare API error: ${errorMsg}`);
+    }
+    
+    return data;
+  } catch (error) {
+    if (error instanceof ExternalApiError) {
+      throw new Error(`Cloudflare API error: ${error.message}`);
+    }
+    throw error;
   }
-  
-  return data;
 }
 
 export async function isCloudflareConfigured(): Promise<boolean> {

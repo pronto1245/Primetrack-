@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { HttpClient, ExternalApiError } from "../lib/http-client";
 
 interface IpInfo {
   ip: string;
@@ -84,21 +85,24 @@ class IpIntelService {
     }
 
     try {
-      const response = await fetch(`https://ipinfo.io/${ip}?token=${token}`);
-      
-      if (!response.ok) {
-        console.warn(`[IpIntel] ipinfo.io returned ${response.status} for ${ip}`);
-        return this.getFallbackIntelligence(ip);
-      }
+      const client = new HttpClient("IPinfo", {
+        baseUrl: "https://ipinfo.io",
+        timeout: 5000,
+        retries: 2,
+      });
 
-      const data: IpInfo = await response.json();
+      const data: IpInfo = await client.get(`/${ip}?token=${token}`);
       const intel = this.parseIpInfo(ip, data);
       
       this.cache.set(ip, { data: intel, expires: Date.now() + this.cacheTTL });
       
       return intel;
     } catch (error: any) {
-      console.error(`[IpIntel] Error fetching IP info for ${ip}:`, error.message);
+      if (error instanceof ExternalApiError) {
+        console.warn(`[IpIntel] API error for ${ip}: ${error.message}`);
+      } else {
+        console.error(`[IpIntel] Unexpected error for ${ip}:`, error.message);
+      }
       return this.getFallbackIntelligence(ip);
     }
   }

@@ -1,4 +1,23 @@
 import { storage } from "../storage";
+import { HttpClient, ExternalApiError } from "../lib/http-client";
+
+const btcClient = new HttpClient("Blockchain.info", {
+  baseUrl: "https://blockchain.info",
+  timeout: 10000,
+  retries: 2,
+});
+
+const tronClient = new HttpClient("TronScan", {
+  baseUrl: "https://apilist.tronscan.org",
+  timeout: 10000,
+  retries: 2,
+});
+
+const ethClient = new HttpClient("Etherscan", {
+  baseUrl: "https://api.etherscan.io",
+  timeout: 10000,
+  retries: 2,
+});
 
 interface BlockchainTxInfo {
   confirmed: boolean;
@@ -11,10 +30,7 @@ export class CryptoPaymentService {
   
   async verifyBtcTransaction(txHash: string, expectedAddress: string): Promise<BlockchainTxInfo | null> {
     try {
-      const response = await fetch(`https://blockchain.info/rawtx/${txHash}?format=json`);
-      if (!response.ok) return null;
-      
-      const data = await response.json();
+      const data = await btcClient.get(`/rawtx/${txHash}?format=json`);
       
       const outputs = data.out || [];
       const matchingOutput = outputs.find((out: any) => out.addr === expectedAddress);
@@ -30,17 +46,18 @@ export class CryptoPaymentService {
         timestamp: data.time * 1000,
       };
     } catch (error) {
-      console.error("BTC verification error:", error);
+      if (error instanceof ExternalApiError) {
+        console.error(`[BTC] API error: ${error.message}`);
+      } else {
+        console.error("[BTC] Verification error:", error);
+      }
       return null;
     }
   }
   
   async verifyTrc20Transaction(txHash: string, expectedAddress: string): Promise<BlockchainTxInfo | null> {
     try {
-      const response = await fetch(`https://apilist.tronscan.org/api/transaction-info?hash=${txHash}`);
-      if (!response.ok) return null;
-      
-      const data = await response.json();
+      const data = await tronClient.get(`/api/transaction-info?hash=${txHash}`);
       
       if (!data.contractData) return null;
       
@@ -57,17 +74,18 @@ export class CryptoPaymentService {
         timestamp: data.timestamp,
       };
     } catch (error) {
-      console.error("TRC20 verification error:", error);
+      if (error instanceof ExternalApiError) {
+        console.error(`[TRC20] API error: ${error.message}`);
+      } else {
+        console.error("[TRC20] Verification error:", error);
+      }
       return null;
     }
   }
   
   async verifyEthTransaction(txHash: string, expectedAddress: string): Promise<BlockchainTxInfo | null> {
     try {
-      const response = await fetch(`https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}`);
-      if (!response.ok) return null;
-      
-      const data = await response.json();
+      const data = await ethClient.get(`/api?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}`);
       if (!data.result) return null;
       
       const tx = data.result;
@@ -83,17 +101,18 @@ export class CryptoPaymentService {
         timestamp: Date.now(),
       };
     } catch (error) {
-      console.error("ETH verification error:", error);
+      if (error instanceof ExternalApiError) {
+        console.error(`[ETH] API error: ${error.message}`);
+      } else {
+        console.error("[ETH] Verification error:", error);
+      }
       return null;
     }
   }
   
   async verifyErc20Transaction(txHash: string, expectedAddress: string): Promise<BlockchainTxInfo | null> {
     try {
-      const response = await fetch(`https://api.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=${txHash}`);
-      if (!response.ok) return null;
-      
-      const data = await response.json();
+      const data = await ethClient.get(`/api?module=proxy&action=eth_getTransactionReceipt&txhash=${txHash}`);
       if (!data.result || !data.result.logs) return null;
       
       const logs = data.result.logs;
@@ -116,7 +135,11 @@ export class CryptoPaymentService {
         timestamp: Date.now(),
       };
     } catch (error) {
-      console.error("ERC20 verification error:", error);
+      if (error instanceof ExternalApiError) {
+        console.error(`[ERC20] API error: ${error.message}`);
+      } else {
+        console.error("[ERC20] Verification error:", error);
+      }
       return null;
     }
   }

@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import type { Conversion, Click, Offer, PostbackLog, PublisherPostbackEndpoint } from "@shared/schema";
+import { HttpClient, ExternalApiError } from "../lib/http-client";
 
 interface PostbackTarget {
   url: string;
@@ -161,23 +162,26 @@ export class PostbackSender {
     try {
       console.log(`[PostbackSender] Sending ${target.recipientType} postback: ${postbackUrl}`);
       
-      const fetchOptions: RequestInit = {
-        method: target.method,
-        headers: {
-          "User-Agent": "AffiliateTracker/1.0",
-        },
-        signal: AbortSignal.timeout(10000),
-      };
+      const client = new HttpClient(`Postback:${target.recipientType}`, {
+        timeout: 10000,
+        retries: 0,
+        headers: { "User-Agent": "AffiliateTracker/1.0" },
+      });
 
-      const response = await fetch(postbackUrl, fetchOptions);
+      const response = await client.get(postbackUrl);
 
-      responseCode = response.status;
-      responseBody = await response.text().catch(() => "");
-      success = response.ok;
+      responseCode = 200;
+      responseBody = typeof response === "string" ? response : JSON.stringify(response);
+      success = true;
 
-      console.log(`[PostbackSender] ${target.recipientType} response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
+      console.log(`[PostbackSender] ${target.recipientType} response: ${responseCode} - OK`);
     } catch (error: any) {
-      console.error(`[PostbackSender] ${target.recipientType} request failed: ${error.message}`);
+      if (error instanceof ExternalApiError) {
+        responseCode = error.statusCode;
+        console.error(`[PostbackSender] ${target.recipientType} API error: ${error.message}`);
+      } else {
+        console.error(`[PostbackSender] ${target.recipientType} request failed: ${error.message}`);
+      }
       responseBody = error.message;
     }
 
@@ -225,23 +229,26 @@ export class PostbackSender {
     try {
       console.log(`[PostbackSender] Sending publisher postback (${endpoint.trackerType}): ${postbackUrl}`);
       
-      const fetchOptions: RequestInit = {
-        method: target.method,
-        headers: {
-          "User-Agent": "AffiliateTracker/1.0",
-        },
-        signal: AbortSignal.timeout(10000),
-      };
+      const client = new HttpClient(`Postback:publisher:${endpoint.trackerType || 'custom'}`, {
+        timeout: 10000,
+        retries: 0,
+        headers: { "User-Agent": "AffiliateTracker/1.0" },
+      });
 
-      const response = await fetch(postbackUrl, fetchOptions);
+      const response = await client.get(postbackUrl);
 
-      responseCode = response.status;
-      responseBody = await response.text().catch(() => "");
-      success = response.ok;
+      responseCode = 200;
+      responseBody = typeof response === "string" ? response : JSON.stringify(response);
+      success = true;
 
-      console.log(`[PostbackSender] Publisher response: ${responseCode} - ${success ? "OK" : "FAILED"}`);
+      console.log(`[PostbackSender] Publisher response: ${responseCode} - OK`);
     } catch (error: any) {
-      console.error(`[PostbackSender] Publisher request failed: ${error.message}`);
+      if (error instanceof ExternalApiError) {
+        responseCode = error.statusCode;
+        console.error(`[PostbackSender] Publisher API error: ${error.message}`);
+      } else {
+        console.error(`[PostbackSender] Publisher request failed: ${error.message}`);
+      }
       responseBody = error.message;
     }
 

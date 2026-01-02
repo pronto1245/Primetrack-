@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { storage } from "../storage";
 import type { WebhookEndpoint, InsertWebhookLog } from "@shared/schema";
+import { HttpClient, ExternalApiError } from "../lib/http-client";
 
 export type WebhookEventType = "click" | "lead" | "sale" | "install" | "rejected" | "hold_released" | "payout_approved" | "payout_paid";
 
@@ -85,32 +86,32 @@ class WebhookService {
     };
 
     try {
-      const response = await fetch(endpoint.url, {
-        method: endpoint.method || "POST",
-        headers,
-        body: payloadString,
-        signal: AbortSignal.timeout(30000),
+      const client = new HttpClient(`Webhook:${endpoint.id.substring(0, 8)}`, {
+        timeout: 30000,
+        retries: 0,
       });
 
-      logData.statusCode = response.status;
-      
-      try {
-        logData.response = await response.text();
-      } catch {}
+      const response = await client.request(endpoint.url, {
+        method: (endpoint.method || "POST") as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+        body: payload,
+        headers,
+      });
 
-      if (response.ok) {
-        logData.status = "success";
-        await storage.createWebhookLog(logData);
-        await storage.updateWebhookEndpoint(endpoint.id, {
-          lastTriggeredAt: new Date(),
-          failedAttempts: 0,
-          lastError: null,
-        });
-        return true;
-      } else {
-        throw new Error(`HTTP ${response.status}: ${logData.response?.substring(0, 200)}`);
-      }
+      logData.statusCode = 200;
+      logData.response = typeof response === "string" ? response : JSON.stringify(response);
+      logData.status = "success";
+      
+      await storage.createWebhookLog(logData);
+      await storage.updateWebhookEndpoint(endpoint.id, {
+        lastTriggeredAt: new Date(),
+        failedAttempts: 0,
+        lastError: null,
+      });
+      return true;
     } catch (error: any) {
+      if (error instanceof ExternalApiError) {
+        logData.statusCode = error.statusCode;
+      }
       logData.status = "failed";
       logData.response = error.message;
 
@@ -281,21 +282,32 @@ class WebhookService {
     }
 
     try {
-      const response = await fetch(endpoint.url, {
-        method: endpoint.method || "POST",
-        headers,
-        body: payloadString,
-        signal: AbortSignal.timeout(10000),
+      const client = new HttpClient(`Webhook:test`, {
+        timeout: 10000,
+        retries: 0,
       });
 
-      const responseText = await response.text().catch(() => "");
+      const response = await client.request(endpoint.url, {
+        method: (endpoint.method || "POST") as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+        body: testPayload,
+        headers,
+      });
+
+      const responseText = typeof response === "string" ? response : JSON.stringify(response);
 
       return {
-        success: response.ok,
-        statusCode: response.status,
+        success: true,
+        statusCode: 200,
         response: responseText.substring(0, 500),
       };
     } catch (error: any) {
+      if (error instanceof ExternalApiError) {
+        return {
+          success: false,
+          statusCode: error.statusCode,
+          error: error.message,
+        };
+      }
       return {
         success: false,
         error: error.message,
