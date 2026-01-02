@@ -462,9 +462,9 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   return (
     <Card className="bg-card border-border">
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="max-h-[1100px] overflow-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b border-border bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3 font-medium">{t('reports.table.date') || 'Date'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
@@ -580,7 +580,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 ))
               )}
             </tbody>
-            <tfoot>
+            <tfoot className="sticky bottom-0 bg-card">
               <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
                 <td colSpan={9} className="px-4 py-3 text-muted-foreground uppercase text-[10px]">
                   {t('reports.total') || 'Total'}
@@ -662,9 +662,9 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
   return (
     <Card className="bg-card border-border">
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="max-h-[1100px] overflow-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b border-border bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3 font-medium">{t('reports.table.date') || 'Date'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.type') || 'Type'}</th>
