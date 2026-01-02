@@ -6880,8 +6880,11 @@ export async function registerRoutes(
       });
       
       // Step 4: Validate conversion data (simulation only)
-      const publisherPayout = parseFloat(offer.partnerPayout || "0");
-      const advertiserCost = parseFloat(offer.internalCost || "0");
+      // Get payout from landing if not set on offer level
+      const landingPayout = hasLanding ? parseFloat(landings[0].partnerPayout || "0") : 0;
+      const landingCost = hasLanding ? parseFloat(landings[0].internalCost || "0") : 0;
+      const publisherPayout = parseFloat(offer.partnerPayout || "0") || landingPayout;
+      const advertiserCost = parseFloat(offer.internalCost || "0") || landingCost;
       const payoutValid = publisherPayout > 0;
       
       testResults.steps.push({
