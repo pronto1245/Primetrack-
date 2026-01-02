@@ -74,7 +74,7 @@ export function E2ETestPanel() {
           E2E Тестирование
         </CardTitle>
         <CardDescription>
-          Проверка полного цикла: клик → конверсия → выплата
+          Симуляция полного цикла: клик → конверсия → выплата (без изменения данных)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -185,15 +185,16 @@ export function E2ETestPanel() {
         )}
 
         <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/50 rounded-lg">
-          <strong>Как работает тест:</strong>
+          <strong>Как работает симуляция:</strong>
           <ol className="list-decimal list-inside mt-1 space-y-1">
             <li>Находит партнёра с доступом к офферу</li>
-            <li>Создаёт тестовый клик</li>
-            <li>Фиксирует баланс партнёра до конверсии</li>
-            <li>Создаёт конверсию (lead)</li>
-            <li>Пересчитывает баланс партнёра</li>
-            <li>Проверяет что выплата начислена корректно</li>
+            <li>Проверяет наличие лендинга</li>
+            <li>Читает текущий баланс партнёра (без изменений)</li>
+            <li>Проверяет настройки выплат</li>
+            <li>Симулирует расчёт нового баланса</li>
+            <li>Проверяет корректность настроек</li>
           </ol>
+          <p className="mt-2 text-green-600 font-medium">✓ Безопасно: реальные данные не изменяются</p>
         </div>
       </CardContent>
     </Card>
