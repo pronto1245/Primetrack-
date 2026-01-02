@@ -1119,14 +1119,16 @@ function PlatformTab() {
             </div>
           </div>
 
-          {formData.cloudflareWorkerOrigin && generatedWorkerSecret && (
+          {formData.cloudflareWorkerOrigin && generatedWorkerSecret && (() => {
+            const cleanOrigin = formData.cloudflareWorkerOrigin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+            return (
             <div className="space-y-3">
               <Label>Cloudflare Worker Script (с авторизацией)</Label>
               <div className="relative">
                 <pre className="p-4 bg-muted rounded-lg text-xs overflow-x-auto">
 {`export default {
   async fetch(request) {
-    const ORIGIN = "${formData.cloudflareWorkerOrigin}";
+    const ORIGIN = "${cleanOrigin}";
     const SECRET = "${generatedWorkerSecret}";
     const url = new URL(request.url);
     const originalHost = url.hostname;
@@ -1161,7 +1163,7 @@ function PlatformTab() {
                   onClick={() => {
                     navigator.clipboard.writeText(`export default {
   async fetch(request) {
-    const ORIGIN = "${formData.cloudflareWorkerOrigin}";
+    const ORIGIN = "${cleanOrigin}";
     const SECRET = "${generatedWorkerSecret}";
     const url = new URL(request.url);
     const originalHost = url.hostname;
@@ -1199,7 +1201,8 @@ function PlatformTab() {
                 Создайте Worker в Cloudflare Dashboard → Workers & Pages → Create Worker, вставьте этот код
               </p>
             </div>
-          )}
+            );
+          })()}
 
           {formData.cloudflareWorkerOrigin && !formData.cloudflareWorkerSecret && (
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
