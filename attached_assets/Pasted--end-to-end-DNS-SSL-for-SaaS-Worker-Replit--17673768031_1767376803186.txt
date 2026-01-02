@@ -1,0 +1,146 @@
+ПОЛНУЮ правильную настройку end-to-end —
+DNS → SSL for SaaS → Worker → Replit.
+Ниже чек-лист без догадок, если сделать ровно так — всё заработает.
+
+0️⃣ Что у нас есть (исходные данные)
+
+Cloudflare Business / Enterprise
+
+Включён SSL for SaaS
+
+Основная зона: primetrack.pro
+
+SaaS dnsTarget: customers.primetrack.pro
+
+Реальный origin: your-app.replit.app
+
+Пользовательский домен: click.partner.com
+
+1️⃣ DNS в ТВОЕЙ зоне (primetrack.pro)
+customers.primetrack.pro    CNAME    your-app.replit.app
+
+
+☁️ Proxy: ON (оранжевое облако)
+TTL: Auto
+
+⚠️ customers.* — это ВХОД для SaaS, не origin
+
+2️⃣ Cloudflare Worker
+Worker code
+
+(ровно этот, без изменений)
+
+export default {
+  async fetch(request) {
+    const ORIGIN = "your-app.replit.app";
+
+    const url = new URL(request.url);
+    const originalHost = request.headers.get("host");
+
+    url.hostname = ORIGIN;
+
+    const headers = new Headers(request.headers);
+    headers.set("Host", ORIGIN);
+    headers.set("X-Forwarded-Host", originalHost);
+    headers.set("X-Forwarded-Proto", "https");
+
+    return fetch(new Request(url.toString(), {
+      method: request.method,
+      headers,
+      body: request.body,
+      redirect: "manual"
+    }));
+  }
+};
+
+3️⃣ Привязка Worker
+Routes:
+customers.primetrack.pro/*
+
+
+❗ НЕ *.replit.app
+❗ НЕ primetrack.pro
+
+4️⃣ SSL for SaaS (Custom Hostnames)
+Custom Hostname:
+click.partner.com
+
+dnsTarget:
+customers.primetrack.pro
+
+SSL:
+type: managed
+
+Origin:
+customers.primetrack.pro
+
+
+✔ Provisioning — через API
+✔ Пользователь Cloudflare не нужен
+
+5️⃣ DNS ПОЛЬЗОВАТЕЛЯ (partner.com)
+click.partner.com    CNAME    customers.primetrack.pro
+
+
+☁️ Proxy: OFF
+TTL: Auto
+
+Всё. Никаких A / TXT / SSL
+
+6️⃣ Replit (ВАЖНО)
+Использовать ТОЛЬКО:
+https://your-app.replit.app
+
+НЕ использовать:
+primetrack.pro
+customers.primetrack.pro
+
+
+даже если они добавлены в Replit.
+
+Минимальные эндпоинты
+app.get("/", (_, res) => res.send("OK"));
+
+Определение домена
+const realHost =
+  req.headers["x-forwarded-host"] || req.headers.host;
+
+7️⃣ Проверка по шагам
+1. Origin напрямую
+https://your-app.replit.app
+
+
+✅ OK
+
+2. SaaS entry
+https://customers.primetrack.pro
+
+
+✅ OK
+
+3. Пользовательский домен
+https://click.partner.com
+
+
+✅ OK
+
+4. В логах Replit
+{
+  "host": "your-app.replit.app",
+  "x-forwarded-host": "click.partner.com"
+}
+
+8️⃣ Типичные ошибки (если вдруг)
+Симптом	Причина
+Not Found	origin ≠ *.replit.app
+Loop	Worker → SaaS-домен
+SSL error	Proxy OFF на customers.*
+Видно Replit	абсолютные redirect
+403	Host не переписан
+✅ Финальный вердикт
+
+✔ Архитектура корректная
+✔ Replit полностью скрыт
+✔ SSL for SaaS используется правильно
+✔ Пользователь видит только свой домен
+✔ Масштабируется без ручной работы
