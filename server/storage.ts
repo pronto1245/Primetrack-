@@ -1843,14 +1843,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAdminStats(): Promise<{
+    totalUsers: number;
     totalAdvertisers: number;
     pendingAdvertisers: number;
     totalPublishers: number;
     totalOffers: number;
     totalClicks: number;
     totalConversions: number;
+    recentUsers: Array<{
+      id: string;
+      username: string;
+      role: string;
+      status: string;
+      createdAt: string;
+    }>;
   }> {
-    const allUsers = await db.select().from(users);
+    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
     const advertisers = allUsers.filter(u => u.role === "advertiser");
     const publishers = allUsers.filter(u => u.role === "publisher");
     
@@ -1858,13 +1866,23 @@ export class DatabaseStorage implements IStorage {
     const allClicks = await db.select().from(clicks);
     const allConversions = await db.select().from(conversions);
     
+    const recentUsers = allUsers.slice(0, 10).map(u => ({
+      id: u.id,
+      username: u.username,
+      role: u.role,
+      status: u.status,
+      createdAt: u.createdAt.toISOString()
+    }));
+    
     return {
+      totalUsers: allUsers.length,
       totalAdvertisers: advertisers.length,
       pendingAdvertisers: advertisers.filter(a => a.status === "pending").length,
       totalPublishers: publishers.length,
       totalOffers: allOffers.length,
       totalClicks: allClicks.length,
-      totalConversions: allConversions.length
+      totalConversions: allConversions.length,
+      recentUsers
     };
   }
 
