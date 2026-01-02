@@ -185,13 +185,60 @@ export function Reports({ role }: ReportsProps) {
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.geo') || 'GEO'}</Label>
-              <Input
-                data-testid="input-geo"
-                placeholder="US, DE, RU..."
-                value={filters.geo}
-                onChange={(e) => setFilters(f => ({ ...f, geo: e.target.value.toUpperCase() }))}
-                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
-              />
+              <Select value={filters.geo || "all"} onValueChange={(v) => setFilters(f => ({ ...f, geo: v === "all" ? "" : v }))}>
+                <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-geo">
+                  <SelectValue placeholder={t('reports.all') || 'All'} />
+                </SelectTrigger>
+                <SelectContent className="bg-input border-border max-h-[300px]">
+                  <SelectItem value="all">🌍 Все страны</SelectItem>
+                  <SelectItem value="RU">🇷🇺 Россия</SelectItem>
+                  <SelectItem value="UA">🇺🇦 Украина</SelectItem>
+                  <SelectItem value="BY">🇧🇾 Беларусь</SelectItem>
+                  <SelectItem value="KZ">🇰🇿 Казахстан</SelectItem>
+                  <SelectItem value="US">🇺🇸 США</SelectItem>
+                  <SelectItem value="DE">🇩🇪 Германия</SelectItem>
+                  <SelectItem value="GB">🇬🇧 Великобритания</SelectItem>
+                  <SelectItem value="FR">🇫🇷 Франция</SelectItem>
+                  <SelectItem value="IT">🇮🇹 Италия</SelectItem>
+                  <SelectItem value="ES">🇪🇸 Испания</SelectItem>
+                  <SelectItem value="PL">🇵🇱 Польша</SelectItem>
+                  <SelectItem value="NL">🇳🇱 Нидерланды</SelectItem>
+                  <SelectItem value="BE">🇧🇪 Бельгия</SelectItem>
+                  <SelectItem value="AT">🇦🇹 Австрия</SelectItem>
+                  <SelectItem value="CH">🇨🇭 Швейцария</SelectItem>
+                  <SelectItem value="SE">🇸🇪 Швеция</SelectItem>
+                  <SelectItem value="NO">🇳🇴 Норвегия</SelectItem>
+                  <SelectItem value="DK">🇩🇰 Дания</SelectItem>
+                  <SelectItem value="FI">🇫🇮 Финляндия</SelectItem>
+                  <SelectItem value="PT">🇵🇹 Португалия</SelectItem>
+                  <SelectItem value="GR">🇬🇷 Греция</SelectItem>
+                  <SelectItem value="CZ">🇨🇿 Чехия</SelectItem>
+                  <SelectItem value="RO">🇷🇴 Румыния</SelectItem>
+                  <SelectItem value="HU">🇭🇺 Венгрия</SelectItem>
+                  <SelectItem value="BG">🇧🇬 Болгария</SelectItem>
+                  <SelectItem value="TR">🇹🇷 Турция</SelectItem>
+                  <SelectItem value="CA">🇨🇦 Канада</SelectItem>
+                  <SelectItem value="AU">🇦🇺 Австралия</SelectItem>
+                  <SelectItem value="JP">🇯🇵 Япония</SelectItem>
+                  <SelectItem value="KR">🇰🇷 Южная Корея</SelectItem>
+                  <SelectItem value="CN">🇨🇳 Китай</SelectItem>
+                  <SelectItem value="IN">🇮🇳 Индия</SelectItem>
+                  <SelectItem value="BR">🇧🇷 Бразилия</SelectItem>
+                  <SelectItem value="MX">🇲🇽 Мексика</SelectItem>
+                  <SelectItem value="AR">🇦🇷 Аргентина</SelectItem>
+                  <SelectItem value="ZA">🇿🇦 ЮАР</SelectItem>
+                  <SelectItem value="EG">🇪🇬 Египет</SelectItem>
+                  <SelectItem value="AE">🇦🇪 ОАЭ</SelectItem>
+                  <SelectItem value="SA">🇸🇦 Саудовская Аравия</SelectItem>
+                  <SelectItem value="IL">🇮🇱 Израиль</SelectItem>
+                  <SelectItem value="TH">🇹🇭 Таиланд</SelectItem>
+                  <SelectItem value="VN">🇻🇳 Вьетнам</SelectItem>
+                  <SelectItem value="ID">🇮🇩 Индонезия</SelectItem>
+                  <SelectItem value="MY">🇲🇾 Малайзия</SelectItem>
+                  <SelectItem value="SG">🇸🇬 Сингапур</SelectItem>
+                  <SelectItem value="PH">🇵🇭 Филиппины</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.device') || 'Device'}</Label>
@@ -250,16 +297,16 @@ export function Reports({ role }: ReportsProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <Button 
-                variant="outline"
-                onClick={() => { setFilters({ freeSearch: "", dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date", dateMode: "click" }); setPage(1); }}
-                className="w-full border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:text-orange-300"
-                data-testid="button-clear-filters"
-              >
-                {t('reports.clearFilters') || 'Clear'}
-              </Button>
-            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline"
+              onClick={() => { setFilters({ freeSearch: "", dateFrom: "", dateTo: "", offerId: "", publisherId: "", geo: "", device: "", groupBy: "date", dateMode: "click" }); setPage(1); }}
+              className="border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:text-orange-300"
+              data-testid="button-clear-filters"
+            >
+              {t('reports.clearFilters') || 'Clear'}
+            </Button>
           </div>
         </CardContent>
       </Card>
