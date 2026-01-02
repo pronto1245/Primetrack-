@@ -391,58 +391,58 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
 
   return (
     <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-      <Card className="bg-card border-border">
+      <Card className="bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50 transition-colors">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.clicks') || 'Clicks'}</div>
-          <div className="text-xl font-bold text-foreground">{totals.clicks.toLocaleString()}</div>
-          <div className="text-[10px] text-muted-foreground">{totals.uniqueClicks.toLocaleString()} unique</div>
+          <div className="text-[10px] uppercase text-blue-400 mb-1">{t('stats.clicks') || 'Clicks'}</div>
+          <div className="text-xl font-bold text-blue-400">{totals.clicks.toLocaleString()}</div>
+          <div className="text-[10px] text-blue-400/70">{totals.uniqueClicks.toLocaleString()} unique</div>
         </CardContent>
       </Card>
-      <Card className="bg-card border-border">
+      <Card className="bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50 transition-colors">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.conversions') || 'Conv'}</div>
+          <div className="text-[10px] uppercase text-emerald-400 mb-1">{t('stats.conversions') || 'Conv'}</div>
           <div className="text-xl font-bold text-emerald-400">{totals.conversions}</div>
           <div className="text-[10px] text-yellow-400">CR: {cr.toFixed(2)}%</div>
         </CardContent>
       </Card>
-      <Card className="bg-card border-border">
+      <Card className="bg-green-500/5 border-green-500/30 hover:border-green-500/50 transition-colors">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
-          <div className="text-xl font-bold text-emerald-400">${totals.payout.toFixed(2)}</div>
+          <div className="text-[10px] uppercase text-green-400 mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
+          <div className="text-xl font-bold text-green-400">${totals.payout.toFixed(2)}</div>
         </CardContent>
       </Card>
-      <Card className="bg-card border-border">
+      <Card className="bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50 transition-colors">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.leads') || 'Leads'}</div>
+          <div className="text-[10px] uppercase text-purple-400 mb-1">{t('stats.leads') || 'Leads'}</div>
           <div className="text-xl font-bold text-purple-400">{totals.leads}</div>
         </CardContent>
       </Card>
-      <Card className="bg-card border-border">
+      <Card className="bg-orange-500/5 border-orange-500/30 hover:border-orange-500/50 transition-colors">
         <CardContent className="p-4">
-          <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.sales') || 'Sales'}</div>
+          <div className="text-[10px] uppercase text-orange-400 mb-1">{t('stats.sales') || 'Sales'}</div>
           <div className="text-xl font-bold text-orange-400">{totals.sales}</div>
         </CardContent>
       </Card>
       {(isAdvertiser || role === "admin") && (
         <>
-          <Card className="bg-card border-border">
+          <Card className="bg-red-500/5 border-red-500/30 hover:border-red-500/50 transition-colors">
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.advertiserCost') || 'Cost'}</div>
-              <div className="text-xl font-bold text-blue-400">${totals.cost.toFixed(2)}</div>
+              <div className="text-[10px] uppercase text-red-400 mb-1">{t('stats.advertiserCost') || 'Cost'}</div>
+              <div className="text-xl font-bold text-red-400">${totals.cost.toFixed(2)}</div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border">
+          <Card className={`${margin >= 0 ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.margin') || 'Margin'}</div>
+              <div className={`text-[10px] uppercase mb-1 ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{t('stats.margin') || 'Margin'}</div>
               <div className={`text-xl font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 ${margin.toFixed(2)}
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border">
+          <Card className={`${roi >= 0 ? 'bg-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
             <CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground mb-1">{t('stats.roi') || 'ROI'}</div>
-              <div className={`text-xl font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-[10px] uppercase mb-1 ${roi >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>{t('stats.roi') || 'ROI'}</div>
+              <div className={`text-xl font-bold ${roi >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                 {roi.toFixed(1)}%
               </div>
             </CardContent>
