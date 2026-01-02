@@ -139,60 +139,24 @@ export function Reports({ role }: ReportsProps) {
         <CardContent className="pt-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             <div>
-              <Label className="text-xs text-muted-foreground">{t('reports.dateFrom') || 'От (дд.мм.гггг)'}</Label>
-              <div className="flex gap-1 mt-1">
-                <Input
-                  type="text"
-                  placeholder="дд.мм.гггг"
-                  data-testid="input-date-from-text"
-                  value={filters.dateFrom ? filters.dateFrom.split('-').reverse().join('.') : ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const match = val.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-                    if (match) {
-                      setFilters(f => ({ ...f, dateFrom: `${match[3]}-${match[2]}-${match[1]}` }));
-                    } else if (val === '') {
-                      setFilters(f => ({ ...f, dateFrom: '' }));
-                    }
-                  }}
-                  className="bg-input border-border text-foreground font-mono text-sm flex-1"
-                />
-                <Input
-                  type="date"
-                  data-testid="input-date-from"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters(f => ({ ...f, dateFrom: e.target.value }))}
-                  className="bg-input border-border text-foreground font-mono text-sm w-10 px-1"
-                />
-              </div>
+              <Label className="text-xs text-muted-foreground">{t('reports.dateFrom') || 'Date From'}</Label>
+              <Input
+                type="date"
+                data-testid="input-date-from"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters(f => ({ ...f, dateFrom: e.target.value }))}
+                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
+              />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">{t('reports.dateTo') || 'До (дд.мм.гггг)'}</Label>
-              <div className="flex gap-1 mt-1">
-                <Input
-                  type="text"
-                  placeholder="дд.мм.гггг"
-                  data-testid="input-date-to-text"
-                  value={filters.dateTo ? filters.dateTo.split('-').reverse().join('.') : ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const match = val.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-                    if (match) {
-                      setFilters(f => ({ ...f, dateTo: `${match[3]}-${match[2]}-${match[1]}` }));
-                    } else if (val === '') {
-                      setFilters(f => ({ ...f, dateTo: '' }));
-                    }
-                  }}
-                  className="bg-input border-border text-foreground font-mono text-sm flex-1"
-                />
-                <Input
-                  type="date"
-                  data-testid="input-date-to"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters(f => ({ ...f, dateTo: e.target.value }))}
-                  className="bg-input border-border text-foreground font-mono text-sm w-10 px-1"
-                />
-              </div>
+              <Label className="text-xs text-muted-foreground">{t('reports.dateTo') || 'Date To'}</Label>
+              <Input
+                type="date"
+                data-testid="input-date-to"
+                value={filters.dateTo}
+                onChange={(e) => setFilters(f => ({ ...f, dateTo: e.target.value }))}
+                className="mt-1 bg-input border-border text-foreground font-mono text-sm"
+              />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Режим даты</Label>
