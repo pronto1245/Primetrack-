@@ -14,7 +14,7 @@ import { Orchestrator } from "./services/orchestrator";
 import { notificationService } from "./services/notification-service";
 import { totpService } from "./services/totp-service";
 import geoip from "geoip-lite";
-import { resolveRequestHost, resolveRequestOrigin } from "./lib/request-utils";
+import { resolveRequestHost, resolveRequestOrigin, setWorkerSecret } from "./lib/request-utils";
 
 const clickHandler = new ClickHandler();
 const orchestrator = new Orchestrator();
@@ -295,6 +295,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Load Worker secret for X-Forwarded-Host validation
+  try {
+    const platformSettings = await storage.getPlatformSettings();
+    if (platformSettings?.cloudflareWorkerSecret) {
+      setWorkerSecret(platformSettings.cloudflareWorkerSecret);
+      console.log("[WorkerAuth] Worker secret loaded for X-Forwarded-Host validation");
+    }
+  } catch (error) {
+    console.log("[WorkerAuth] No worker secret configured");
+  }
+
   // Custom domain resolution middleware - must be before auth
   // This allows tracking links to work on custom domains without authentication
   app.use(async (req: Request, res: Response, next: NextFunction) => {
@@ -5269,6 +5280,8 @@ export async function registerRoutes(
     cloudflareApiToken: secretFieldSchema,
     cloudflareCnameTarget: z.string().optional().or(z.literal("")),
     cloudflareFallbackOrigin: z.string().optional().or(z.literal("")),
+    cloudflareWorkerOrigin: z.string().optional().or(z.literal("")),
+    cloudflareWorkerSecret: secretFieldSchema,
   });
 
   // Update user profile (all roles)
@@ -5711,7 +5724,8 @@ export async function registerRoutes(
         stripeSecretKey: settings.stripeSecretKey ? SENTINEL_CONFIGURED : null,
         ipinfoToken: settings.ipinfoToken ? SENTINEL_CONFIGURED : null,
         fingerprintjsApiKey: settings.fingerprintjsApiKey ? SENTINEL_CONFIGURED : null,
-        cloudflareApiToken: settings.cloudflareApiToken ? SENTINEL_CONFIGURED : null
+        cloudflareApiToken: settings.cloudflareApiToken ? SENTINEL_CONFIGURED : null,
+        cloudflareWorkerSecret: settings.cloudflareWorkerSecret ? SENTINEL_CONFIGURED : null
       });
     } catch (error) {
       console.error("Failed to fetch platform settings:", error);
@@ -5733,7 +5747,8 @@ export async function registerRoutes(
         defaultTelegramBotToken, stripeSecretKey, ipinfoToken, fingerprintjsApiKey,
         allowPublisherRegistration, allowAdvertiserRegistration, requireAdvertiserApproval,
         enableProxyDetection, enableVpnDetection, enableFingerprintTracking, maxFraudScore,
-        cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin
+        cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin,
+        cloudflareWorkerOrigin, cloudflareWorkerSecret
       } = parseResult.data;
       console.log("[PATCH platform-settings] platformLogoUrl:", platformLogoUrl);
       
@@ -5755,7 +5770,8 @@ export async function registerRoutes(
         maxFraudScore,
         cloudflareZoneId: cloudflareZoneId || null,
         cloudflareCnameTarget: cloudflareCnameTarget || null,
-        cloudflareFallbackOrigin: cloudflareFallbackOrigin || null
+        cloudflareFallbackOrigin: cloudflareFallbackOrigin || null,
+        cloudflareWorkerOrigin: cloudflareWorkerOrigin || null
       };
       
       // Handle secret fields: new value = update, empty string = clear, sentinel = no-op
@@ -5774,8 +5790,18 @@ export async function registerRoutes(
       if (cloudflareApiToken !== undefined && cloudflareApiToken !== SENTINEL_CONFIGURED) {
         updateData.cloudflareApiToken = cloudflareApiToken === "" ? null : cloudflareApiToken;
       }
+      if (cloudflareWorkerSecret !== undefined && cloudflareWorkerSecret !== SENTINEL_CONFIGURED) {
+        updateData.cloudflareWorkerSecret = cloudflareWorkerSecret === "" ? null : cloudflareWorkerSecret;
+      }
       
       const settings = await storage.updatePlatformSettings(updateData);
+      
+      // Update Worker secret cache if it was changed
+      if (updateData.cloudflareWorkerSecret !== undefined) {
+        setWorkerSecret(updateData.cloudflareWorkerSecret);
+        console.log("[WorkerAuth] Worker secret updated in cache");
+      }
+      
       res.json({ success: true, settings });
     } catch (error) {
       console.error("Failed to update platform settings:", error);

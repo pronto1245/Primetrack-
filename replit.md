@@ -188,10 +188,41 @@ Preferred communication style: Simple, everyday language (Russian).
   - ✅ server/cloudflare-service.ts - полное API (createCustomHostname, getCustomHostname, deleteCustomHostname, syncDomainStatus)
   - ✅ Автоматический provisioning при создании домена
   - ✅ Автоматический deprovisioning при удалении
-  - ✅ Настройки в Admin → Платформа (Zone ID, API Token, Fallback Origin, CNAME Target)
+  - ✅ Настройки в Admin → Платформа (Zone ID, API Token, Fallback Origin, CNAME Target, Worker Origin)
 - ✅ UI: кнопка "Проверить SSL", кнопка "Синхронизировать", инструкции для Cloudflare
 - ✅ CNAME Target динамически берётся из platform_settings
 - ❌ ACME/Let's Encrypt удалён (не работает на Replit - нет доступа к порту 80)
+
+### Cloudflare Worker Proxy (для Replit)
+Replit не передаёт оригинальный Host header при проксировании через кастомные домены. Решение — Cloudflare Worker как промежуточный слой.
+
+**Архитектура:**
+```
+[Клиент] → [Cloudflare Custom Hostname] → [Worker] → [Replit App]
+                                              ↓
+                                    X-Forwarded-Host: original.domain.com
+                                    X-CF-Worker-Auth: <secret>
+                                    Host: app.replit.app
+```
+
+**Настройка:**
+1. Admin → Платформа → указать "Worker Proxy Origin" (Replit origin, например: `theme-forge--username.replit.app`)
+2. Сгенерировать Worker Secret (кнопка "Сгенерировать")
+3. Сохранить настройки
+4. Скопировать сгенерированный Worker скрипт (появится после заполнения Origin + Secret)
+5. Cloudflare Dashboard → Workers & Pages → Create Worker → вставить код
+6. Привязать Worker к кастомным доменам через Routes
+
+**Безопасность:**
+- ✅ Worker Secret валидация — X-Forwarded-Host доверяется ТОЛЬКО если запрос содержит правильный X-CF-Worker-Auth
+- ✅ Без секрета — используется только req.hostname (безопасный fallback)
+- ✅ Защита от спуфинга — атакующий не может подставить фейковый X-Forwarded-Host без знания секрета
+
+**Backend обработка:**
+- ✅ `server/lib/request-utils.ts` — утилиты resolveRequestHost(), resolveRequestOrigin(), setWorkerSecret()
+- ✅ Загрузка секрета при старте сервера из platform_settings.cloudflareWorkerSecret
+- ✅ Валидация X-CF-Worker-Auth перед доверием X-Forwarded-Host
+- ✅ Middleware кастомных доменов использует resolveRequestHost()
 
 ### IP Intelligence (ipinfo.io)
 - ✅ Токен хранится зашифрованно в platformSettings (ipinfoToken)

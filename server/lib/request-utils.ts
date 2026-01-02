@@ -1,24 +1,71 @@
 import type { Request } from "express";
 
+// Worker secret is loaded from platform_settings and cached
+let cachedWorkerSecret: string | null = null;
+let secretLastFetched = 0;
+const SECRET_CACHE_TTL = 60000; // 1 minute
+
+/**
+ * Sets the worker secret for validation (called from routes.ts on startup)
+ */
+export function setWorkerSecret(secret: string | null): void {
+  cachedWorkerSecret = secret;
+  secretLastFetched = Date.now();
+}
+
+/**
+ * Gets the cached worker secret
+ */
+export function getWorkerSecret(): string | null {
+  return cachedWorkerSecret;
+}
+
+/**
+ * Checks if X-Forwarded-Host should be trusted based on Worker secret validation.
+ * If no secret is configured, falls back to not trusting the header.
+ */
+function isWorkerRequestTrusted(req: Request): boolean {
+  const workerAuth = req.headers["x-cf-worker-auth"] as string | undefined;
+  
+  // No secret configured - don't trust X-Forwarded-Host
+  if (!cachedWorkerSecret) {
+    return false;
+  }
+  
+  // Validate secret matches
+  return workerAuth === cachedWorkerSecret;
+}
+
 /**
  * Resolves the original hostname from request headers.
  * Supports Cloudflare Worker proxy which sets X-Forwarded-Host.
  * 
- * Priority:
+ * SECURITY: Only trusts X-Forwarded-Host if request includes valid Worker secret.
+ * 
+ * Priority (if Worker auth is valid):
  * 1. X-Forwarded-Host (set by Cloudflare Worker)
  * 2. X-Original-Host (legacy support)
  * 3. req.hostname (Express parsed Host header)
+ * 
+ * If Worker auth is invalid, only uses req.hostname.
  * 
  * @param req Express request object
  * @returns Original hostname in lowercase, or undefined if not available
  */
 export function resolveRequestHost(req: Request): string | undefined {
-  const xForwardedHost = req.headers["x-forwarded-host"] as string | undefined;
-  const xOriginalHost = req.headers["x-original-host"] as string | undefined;
+  // Only trust forwarded headers if request came from our Worker
+  if (isWorkerRequestTrusted(req)) {
+    const xForwardedHost = req.headers["x-forwarded-host"] as string | undefined;
+    const xOriginalHost = req.headers["x-original-host"] as string | undefined;
+    
+    if (xForwardedHost || xOriginalHost) {
+      const host = xForwardedHost || xOriginalHost;
+      return host?.toLowerCase();
+    }
+  }
   
-  const host = xForwardedHost || xOriginalHost || req.hostname;
-  
-  return host?.toLowerCase();
+  // Fall back to req.hostname (safe, parsed by Express)
+  return req.hostname?.toLowerCase();
 }
 
 /**

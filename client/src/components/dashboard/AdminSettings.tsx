@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Settings, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Shield, Key, CheckCircle2, Globe,
-  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image, TestTube2
+  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image, TestTube2, Copy
 } from "lucide-react";
 import { useUpload } from "@/hooks/use-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -640,6 +640,8 @@ function PlatformTab() {
     cloudflareApiToken: "",
     cloudflareCnameTarget: "",
     cloudflareFallbackOrigin: "",
+    cloudflareWorkerOrigin: "",
+    cloudflareWorkerSecret: "",
   });
 
   const { data: settings, isLoading } = useQuery<any>({
@@ -664,6 +666,8 @@ function PlatformTab() {
         cloudflareApiToken: "",
         cloudflareCnameTarget: settings.cloudflareCnameTarget || "",
         cloudflareFallbackOrigin: settings.cloudflareFallbackOrigin || "",
+        cloudflareWorkerOrigin: settings.cloudflareWorkerOrigin || "",
+        cloudflareWorkerSecret: settings.cloudflareWorkerSecret || "",
         allowPublisherRegistration: settings.allowPublisherRegistration ?? true,
         allowAdvertiserRegistration: settings.allowAdvertiserRegistration ?? true,
         requireAdvertiserApproval: settings.requireAdvertiserApproval ?? true,
@@ -1069,6 +1073,140 @@ function PlatformTab() {
               <p className="text-xs text-muted-foreground">Куда рекламодатели будут направлять CNAME</p>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cloudflareWorkerOrigin">Worker Proxy Origin (Replit)</Label>
+              <Input
+                id="cloudflareWorkerOrigin"
+                placeholder="your-app.replit.app"
+                value={formData.cloudflareWorkerOrigin}
+                onChange={(e) => setFormData({ ...formData, cloudflareWorkerOrigin: e.target.value })}
+                data-testid="input-cloudflare-worker-origin"
+              />
+              <p className="text-xs text-muted-foreground">
+                Replit origin (например: theme-forge--username.replit.app)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cloudflareWorkerSecret">Worker Secret (безопасность)</Label>
+              <Input
+                id="cloudflareWorkerSecret"
+                type="password"
+                placeholder={settings?.cloudflareWorkerSecret ? "***configured***" : "Сгенерируйте секрет"}
+                value={formData.cloudflareWorkerSecret}
+                onChange={(e) => setFormData({ ...formData, cloudflareWorkerSecret: e.target.value })}
+                data-testid="input-cloudflare-worker-secret"
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const secret = crypto.randomUUID();
+                    setFormData({ ...formData, cloudflareWorkerSecret: secret });
+                    toast({ title: "Секрет сгенерирован", description: "Сохраните настройки и обновите Worker скрипт" });
+                  }}
+                  data-testid="button-generate-worker-secret"
+                >
+                  <Key className="h-3 w-3 mr-1" />
+                  Сгенерировать
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {formData.cloudflareWorkerOrigin && formData.cloudflareWorkerSecret && (
+            <div className="space-y-3">
+              <Label>Cloudflare Worker Script (с авторизацией)</Label>
+              <div className="relative">
+                <pre className="p-4 bg-muted rounded-lg text-xs overflow-x-auto">
+{`export default {
+  async fetch(request) {
+    const ORIGIN = "${formData.cloudflareWorkerOrigin}";
+    const SECRET = "${formData.cloudflareWorkerSecret}";
+    const url = new URL(request.url);
+    const originalHost = url.hostname;
+    
+    url.hostname = ORIGIN;
+    
+    const headers = new Headers(request.headers);
+    headers.set("Host", ORIGIN);
+    headers.set("X-Forwarded-Host", originalHost);
+    headers.set("X-Forwarded-Proto", "https");
+    headers.set("X-CF-Worker-Auth", SECRET);
+    
+    const response = await fetch(url.toString(), {
+      method: request.method,
+      headers: headers,
+      body: request.body,
+      redirect: "manual",
+    });
+    
+    return new Response(response.body, {
+      status: response.status,
+      headers: response.headers,
+    });
+  },
+};`}
+                </pre>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`export default {
+  async fetch(request) {
+    const ORIGIN = "${formData.cloudflareWorkerOrigin}";
+    const SECRET = "${formData.cloudflareWorkerSecret}";
+    const url = new URL(request.url);
+    const originalHost = url.hostname;
+    
+    url.hostname = ORIGIN;
+    
+    const headers = new Headers(request.headers);
+    headers.set("Host", ORIGIN);
+    headers.set("X-Forwarded-Host", originalHost);
+    headers.set("X-Forwarded-Proto", "https");
+    headers.set("X-CF-Worker-Auth", SECRET);
+    
+    const response = await fetch(url.toString(), {
+      method: request.method,
+      headers: headers,
+      body: request.body,
+      redirect: "manual",
+    });
+    
+    return new Response(response.body, {
+      status: response.status,
+      headers: response.headers,
+    });
+  },
+};`);
+                    toast({ title: "Скрипт скопирован" });
+                  }}
+                  data-testid="button-copy-worker-script"
+                >
+                  <Copy className="h-4 w-4 mr-1" />
+                  Копировать
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Создайте Worker в Cloudflare Dashboard → Workers & Pages → Create Worker, вставьте этот код
+              </p>
+            </div>
+          )}
+
+          {formData.cloudflareWorkerOrigin && !formData.cloudflareWorkerSecret && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-700 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Сгенерируйте Worker Secret для защиты от спуфинга X-Forwarded-Host
+              </p>
+            </div>
+          )}
 
           {settings?.cloudflareZoneId && settings?.cloudflareApiToken && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">

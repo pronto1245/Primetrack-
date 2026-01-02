@@ -1023,6 +1023,8 @@ export const platformSettings = pgTable("platform_settings", {
   cloudflareApiToken: text("cloudflare_api_token"), // encrypted API token
   cloudflareCnameTarget: text("cloudflare_cname_target"), // e.g., customers.example.com
   cloudflareFallbackOrigin: text("cloudflare_fallback_origin"), // e.g., tracking.example.com
+  cloudflareWorkerOrigin: text("cloudflare_worker_origin"), // Replit origin e.g., app-name.replit.app
+  cloudflareWorkerSecret: text("cloudflare_worker_secret"), // Secret for Worker auth
   
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
