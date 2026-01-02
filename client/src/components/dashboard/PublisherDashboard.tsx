@@ -270,48 +270,69 @@ export function PublisherDashboard() {
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <StatBox
-          label={t('stats.clicks')}
-          value={stats.totalClicks.toLocaleString()}
-          icon={MousePointer2}
-          color="text-blue-500"
-        />
-        <StatBox
-          label={t('stats.leads')}
-          value={stats.totalLeads.toLocaleString()}
-          icon={Users}
-          color="text-purple-500"
-        />
-        <StatBox
-          label={t('stats.sales')}
-          value={stats.totalSales.toLocaleString()}
-          icon={DollarSign}
-          color="text-green-500"
-        />
-        <StatBox
-          label={t('publisherDashboard.totalPayout')}
-          value={`$${stats.totalPayout.toFixed(2)}`}
-          icon={DollarSign}
-          color="text-emerald-500"
-        />
-        <StatBox
-          label={t('publisherDashboard.hold')}
-          value={`$${stats.holdPayout.toFixed(2)}`}
-          icon={Clock}
-          color="text-yellow-500"
-        />
-        <StatBox
-          label={t('stats.cr')}
-          value={`${stats.cr.toFixed(2)}%`}
-          icon={TrendingUp}
-          color="text-cyan-500"
-        />
-        <StatBox
-          label={t('publisherDashboard.epc')}
-          value={`$${stats.epc.toFixed(3)}`}
-          icon={TrendingUp}
-          color="text-orange-500"
-        />
+        <Card className="bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <MousePointer2 className="w-3 h-3 text-blue-400" />
+              <span className="text-[10px] uppercase font-medium text-blue-400">{t('stats.clicks')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-blue-400">{stats.totalClicks.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="w-3 h-3 text-purple-400" />
+              <span className="text-[10px] uppercase font-medium text-purple-400">{t('stats.leads')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-purple-400">{stats.totalLeads.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-orange-500/5 border-orange-500/30 hover:border-orange-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-3 h-3 text-orange-400" />
+              <span className="text-[10px] uppercase font-medium text-orange-400">{t('stats.sales')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-orange-400">{stats.totalSales.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-3 h-3 text-emerald-400" />
+              <span className="text-[10px] uppercase font-medium text-emerald-400">{t('publisherDashboard.totalPayout')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-emerald-400">${stats.totalPayout.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-500/5 border-yellow-500/30 hover:border-yellow-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="w-3 h-3 text-yellow-400" />
+              <span className="text-[10px] uppercase font-medium text-yellow-400">{t('publisherDashboard.hold')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-yellow-400">${stats.holdPayout.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-3 h-3 text-cyan-400" />
+              <span className="text-[10px] uppercase font-medium text-cyan-400">{t('stats.cr')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-cyan-400">{stats.cr.toFixed(2)}%</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-pink-500/5 border-pink-500/30 hover:border-pink-500/50 transition-colors">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-3 h-3 text-pink-400" />
+              <span className="text-[10px] uppercase font-medium text-pink-400">{t('publisherDashboard.epc')}</span>
+            </div>
+            <div className="text-lg font-bold font-mono text-pink-400">${stats.epc.toFixed(3)}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
