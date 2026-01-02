@@ -14,6 +14,15 @@ import {
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
+import { COUNTRIES } from "@/lib/countries";
+
+const getCountryFlag = (code: string): string => {
+  const codePoints = code
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
 
 interface ReportsProps {
   role: string;
@@ -191,52 +200,11 @@ export function Reports({ role }: ReportsProps) {
                 </SelectTrigger>
                 <SelectContent className="bg-input border-border max-h-[300px]">
                   <SelectItem value="all">🌍 Все страны</SelectItem>
-                  <SelectItem value="RU">🇷🇺 Россия</SelectItem>
-                  <SelectItem value="UA">🇺🇦 Украина</SelectItem>
-                  <SelectItem value="BY">🇧🇾 Беларусь</SelectItem>
-                  <SelectItem value="KZ">🇰🇿 Казахстан</SelectItem>
-                  <SelectItem value="US">🇺🇸 США</SelectItem>
-                  <SelectItem value="DE">🇩🇪 Германия</SelectItem>
-                  <SelectItem value="GB">🇬🇧 Великобритания</SelectItem>
-                  <SelectItem value="FR">🇫🇷 Франция</SelectItem>
-                  <SelectItem value="IT">🇮🇹 Италия</SelectItem>
-                  <SelectItem value="ES">🇪🇸 Испания</SelectItem>
-                  <SelectItem value="PL">🇵🇱 Польша</SelectItem>
-                  <SelectItem value="NL">🇳🇱 Нидерланды</SelectItem>
-                  <SelectItem value="BE">🇧🇪 Бельгия</SelectItem>
-                  <SelectItem value="AT">🇦🇹 Австрия</SelectItem>
-                  <SelectItem value="CH">🇨🇭 Швейцария</SelectItem>
-                  <SelectItem value="SE">🇸🇪 Швеция</SelectItem>
-                  <SelectItem value="NO">🇳🇴 Норвегия</SelectItem>
-                  <SelectItem value="DK">🇩🇰 Дания</SelectItem>
-                  <SelectItem value="FI">🇫🇮 Финляндия</SelectItem>
-                  <SelectItem value="PT">🇵🇹 Португалия</SelectItem>
-                  <SelectItem value="GR">🇬🇷 Греция</SelectItem>
-                  <SelectItem value="CZ">🇨🇿 Чехия</SelectItem>
-                  <SelectItem value="RO">🇷🇴 Румыния</SelectItem>
-                  <SelectItem value="HU">🇭🇺 Венгрия</SelectItem>
-                  <SelectItem value="BG">🇧🇬 Болгария</SelectItem>
-                  <SelectItem value="TR">🇹🇷 Турция</SelectItem>
-                  <SelectItem value="CA">🇨🇦 Канада</SelectItem>
-                  <SelectItem value="AU">🇦🇺 Австралия</SelectItem>
-                  <SelectItem value="JP">🇯🇵 Япония</SelectItem>
-                  <SelectItem value="KR">🇰🇷 Южная Корея</SelectItem>
-                  <SelectItem value="CN">🇨🇳 Китай</SelectItem>
-                  <SelectItem value="IN">🇮🇳 Индия</SelectItem>
-                  <SelectItem value="BR">🇧🇷 Бразилия</SelectItem>
-                  <SelectItem value="MX">🇲🇽 Мексика</SelectItem>
-                  <SelectItem value="AR">🇦🇷 Аргентина</SelectItem>
-                  <SelectItem value="ZA">🇿🇦 ЮАР</SelectItem>
-                  <SelectItem value="EG">🇪🇬 Египет</SelectItem>
-                  <SelectItem value="AE">🇦🇪 ОАЭ</SelectItem>
-                  <SelectItem value="SA">🇸🇦 Саудовская Аравия</SelectItem>
-                  <SelectItem value="IL">🇮🇱 Израиль</SelectItem>
-                  <SelectItem value="TH">🇹🇭 Таиланд</SelectItem>
-                  <SelectItem value="VN">🇻🇳 Вьетнам</SelectItem>
-                  <SelectItem value="ID">🇮🇩 Индонезия</SelectItem>
-                  <SelectItem value="MY">🇲🇾 Малайзия</SelectItem>
-                  <SelectItem value="SG">🇸🇬 Сингапур</SelectItem>
-                  <SelectItem value="PH">🇵🇭 Филиппины</SelectItem>
+                  {COUNTRIES.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {getCountryFlag(country.code)} {country.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
