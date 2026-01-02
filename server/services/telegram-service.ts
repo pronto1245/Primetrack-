@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import { decrypt } from "./encryption";
+import { HttpClient, ExternalApiError } from "../lib/http-client";
 
 interface TelegramMessage {
   chatId: string;
@@ -41,28 +42,25 @@ class TelegramService {
     }
 
     try {
-      const response = await fetch(
-        `https://api.telegram.org/bot${botToken}/sendMessage`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: message.chatId,
-            text: message.text,
-            parse_mode: message.parseMode || "HTML",
-          }),
-        }
-      );
+      const client = new HttpClient("Telegram", {
+        baseUrl: "https://api.telegram.org",
+        timeout: 10000,
+        retries: 2,
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("[Telegram] Send error:", error);
-        return false;
-      }
+      await client.post(`/bot${botToken}/sendMessage`, {
+        chat_id: message.chatId,
+        text: message.text,
+        parse_mode: message.parseMode || "HTML",
+      });
 
       return true;
     } catch (error) {
-      console.error("[Telegram] Network error:", error);
+      if (error instanceof ExternalApiError) {
+        console.error(`[Telegram] API error: ${error.message}`);
+      } else {
+        console.error("[Telegram] Unexpected error:", error);
+      }
       return false;
     }
   }
