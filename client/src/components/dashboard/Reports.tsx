@@ -151,7 +151,7 @@ export function Reports({ role }: ReportsProps) {
             data-testid="button-refresh-reports"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            {t('common.refresh') || 'Refresh'}
+            Обновить
           </Button>
         </div>
       </div>
