@@ -5,6 +5,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,17 +24,33 @@ export type ExportDataset =
 
 export type ExportFormat = "csv" | "xlsx" | "pdf";
 
+interface AdditionalDataset {
+  id: ExportDataset;
+  label: string;
+}
+
 interface ExportMenuProps {
   dataset: ExportDataset;
   getFilters?: () => Record<string, string | undefined>;
   disabled?: boolean;
+  additionalDatasets?: AdditionalDataset[];
 }
 
-export function ExportMenu({ dataset, getFilters, disabled }: ExportMenuProps) {
-  const [loading, setLoading] = useState<ExportFormat | null>(null);
+const datasetLabels: Record<ExportDataset, string> = {
+  "reports-clicks": "Клики",
+  "reports-conversions": "Конверсии",
+  "finance-transactions": "Транзакции",
+  "finance-payouts": "Выплаты",
+  "publisher-payouts": "Мои выплаты",
+  "postback-logs": "Постбеки",
+};
 
-  const handleExport = async (format: ExportFormat) => {
-    setLoading(format);
+export function ExportMenu({ dataset, getFilters, disabled, additionalDatasets }: ExportMenuProps) {
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleExport = async (targetDataset: ExportDataset, format: ExportFormat) => {
+    const loadingKey = `${targetDataset}-${format}`;
+    setLoading(loadingKey);
     
     try {
       const filters = getFilters?.() || {};
@@ -42,7 +63,7 @@ export function ExportMenu({ dataset, getFilters, disabled }: ExportMenuProps) {
         }
       });
 
-      const response = await fetch(`/api/export/${dataset}?${params.toString()}`, {
+      const response = await fetch(`/api/export/${targetDataset}?${params.toString()}`, {
         credentials: "include",
       });
 
@@ -52,7 +73,7 @@ export function ExportMenu({ dataset, getFilters, disabled }: ExportMenuProps) {
       }
 
       const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `${dataset}_${new Date().toISOString().split("T")[0]}.${format}`;
+      let filename = `${targetDataset}_${new Date().toISOString().split("T")[0]}.${format}`;
       
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
@@ -84,6 +105,28 @@ export function ExportMenu({ dataset, getFilters, disabled }: ExportMenuProps) {
     pdf: { label: "PDF", icon: FileText },
   };
 
+  const formats: ExportFormat[] = ["csv", "xlsx", "pdf"];
+  const hasMultipleDatasets = additionalDatasets && additionalDatasets.length > 0;
+
+  const renderFormatItems = (targetDataset: ExportDataset) => (
+    formats.map((format) => {
+      const { label, icon: Icon } = formatLabels[format];
+      const loadingKey = `${targetDataset}-${format}`;
+      return (
+        <DropdownMenuItem
+          key={format}
+          onClick={() => handleExport(targetDataset, format)}
+          disabled={loading !== null}
+          className="cursor-pointer"
+          data-testid={`button-export-${targetDataset}-${format}`}
+        >
+          <Icon className="w-4 h-4 mr-2" />
+          {loading === loadingKey ? "Экспорт..." : label}
+        </DropdownMenuItem>
+      );
+    })
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -103,21 +146,32 @@ export function ExportMenu({ dataset, getFilters, disabled }: ExportMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card border-border">
-        {(["csv", "xlsx", "pdf"] as ExportFormat[]).map((format) => {
-          const { label, icon: Icon } = formatLabels[format];
-          return (
-            <DropdownMenuItem
-              key={format}
-              onClick={() => handleExport(format)}
-              disabled={loading !== null}
-              className="cursor-pointer"
-              data-testid={`button-export-${format}`}
-            >
-              <Icon className="w-4 h-4 mr-2" />
-              {loading === format ? "Экспорт..." : `Экспорт в ${label}`}
-            </DropdownMenuItem>
-          );
-        })}
+        {hasMultipleDatasets ? (
+          <>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="cursor-pointer">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                {datasetLabels[dataset]}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="bg-card border-border">
+                {renderFormatItems(dataset)}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            {additionalDatasets.map((ds) => (
+              <DropdownMenuSub key={ds.id}>
+                <DropdownMenuSubTrigger className="cursor-pointer">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  {ds.label}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="bg-card border-border">
+                  {renderFormatItems(ds.id)}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            ))}
+          </>
+        ) : (
+          renderFormatItems(dataset)
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

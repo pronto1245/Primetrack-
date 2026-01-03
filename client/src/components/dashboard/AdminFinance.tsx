@@ -72,10 +72,12 @@ export function AdminFinance() {
             Глобальная статистика и управление финансами
           </p>
         </div>
-        <div className="flex gap-2">
-          <ExportMenu dataset="finance-transactions" />
-          <ExportMenu dataset="finance-payouts" />
-        </div>
+        <ExportMenu 
+          dataset="finance-transactions" 
+          additionalDatasets={[
+            { id: "finance-payouts", label: "Выплаты" }
+          ]}
+        />
       </div>
 
       {/* Platform Overview Cards */}

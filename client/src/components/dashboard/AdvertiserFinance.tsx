@@ -272,10 +272,12 @@ export function AdvertiserFinance() {
           <h1 className="text-2xl font-bold text-foreground">Финансы</h1>
           <p className="text-muted-foreground text-sm">Управление выплатами партнерам</p>
         </div>
-        <div className="flex gap-2">
-          <ExportMenu dataset="finance-transactions" />
-          <ExportMenu dataset="finance-payouts" />
-        </div>
+        <ExportMenu 
+          dataset="finance-transactions" 
+          additionalDatasets={[
+            { id: "finance-payouts", label: "Выплаты" }
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
