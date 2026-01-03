@@ -1,9 +1,10 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard";
@@ -19,6 +20,8 @@ import ResetPassword from "@/pages/ResetPassword";
 import "./lib/i18n";
 
 function DashboardGuard() {
+  const [, navigate] = useLocation();
+  
   const { data: session, isLoading } = useQuery({
     queryKey: ["/api/auth/session"],
     queryFn: async () => {
@@ -30,19 +33,21 @@ function DashboardGuard() {
     retry: false,
   });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      if (session?.role) {
+        navigate(`/dashboard/${session.role}`, { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
+    }
+  }, [isLoading, session, navigate]);
 
-  if (!session?.role) {
-    return <Redirect to="/login" />;
-  }
-
-  return <Redirect to={`/dashboard/${session.role}`} />;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+    </div>
+  );
 }
 
 function Router() {
