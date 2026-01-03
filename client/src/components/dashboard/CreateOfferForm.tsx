@@ -9,7 +9,7 @@ import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { useUpload } from "@/hooks/use-upload";
 import { CountrySelector } from "./CountrySelector";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const TRAFFIC_SOURCES = ["Facebook", "Google", "TikTok", "UAC", "PPC", "Push", "Native", "Email", "SEO", "Telegram", "Instagram", "YouTube", "Snapchat", "X (Twitter)", "Pinterest", "LinkedIn", "Reddit", "PopUnder", "ClickUnder", "InApp", "SMS", "Viber", "WhatsApp", "ASO"];
 const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"];
@@ -64,6 +64,7 @@ interface Landing {
 
 export function CreateOfferForm({ role }: { role: string }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [location, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -244,6 +245,7 @@ export function CreateOfferForm({ role }: { role: string }) {
       });
 
       if (response.ok) {
+        await queryClient.invalidateQueries({ queryKey: ["/api/offers"] });
         setLocation(`/dashboard/${role}/offers`);
       } else {
         const data = await response.json();
