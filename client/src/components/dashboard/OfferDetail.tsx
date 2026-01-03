@@ -26,6 +26,42 @@ function getCountryFlag(code: string): string {
   return String.fromCodePoint(...codePoints);
 }
 
+const TRAFFIC_SOURCE_COLORS: Record<string, string> = {
+  "Facebook": "bg-blue-600",
+  "Google": "bg-red-500",
+  "TikTok": "bg-pink-500",
+  "UAC": "bg-green-600",
+  "PPC": "bg-orange-500",
+  "Push": "bg-yellow-600",
+  "Native": "bg-teal-500",
+  "Email": "bg-indigo-500",
+  "SEO": "bg-lime-600",
+  "Telegram": "bg-sky-500",
+  "Instagram": "bg-fuchsia-500",
+  "YouTube": "bg-red-600",
+  "Snapchat": "bg-yellow-400",
+  "X (Twitter)": "bg-slate-600",
+  "Pinterest": "bg-red-400",
+  "LinkedIn": "bg-blue-700",
+  "Reddit": "bg-orange-600",
+  "PopUnder": "bg-purple-600",
+  "ClickUnder": "bg-violet-500",
+  "InApp": "bg-cyan-500",
+  "SMS": "bg-emerald-500",
+  "Viber": "bg-purple-500",
+  "WhatsApp": "bg-green-500",
+  "ASO": "bg-amber-500",
+};
+
+const APP_TYPE_COLORS: Record<string, string> = {
+  "PWA": "bg-blue-500",
+  "WebView": "bg-orange-500",
+  "iOS App": "bg-slate-500",
+  "Android App": "bg-green-600",
+  "APK": "bg-lime-600",
+  "Desktop": "bg-indigo-500",
+};
+
 interface OfferLanding {
   id: string;
   geo: string;
@@ -593,7 +629,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
               </h3>
               <div className="flex flex-wrap gap-2">
                 {offer.trafficSources.length > 0 ? offer.trafficSources.map((source, i) => (
-                  <Badge key={i} variant="outline" className="border-border text-muted-foreground text-xs">
+                  <Badge key={i} className={`${TRAFFIC_SOURCE_COLORS[source] || "bg-blue-600"} text-white text-xs border-0`}>
                     {source}
                   </Badge>
                 )) : (
@@ -611,7 +647,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
               </h3>
               <div className="flex flex-wrap gap-2">
                 {offer.appTypes.length > 0 ? offer.appTypes.map((type, i) => (
-                  <Badge key={i} variant="outline" className="border-border text-muted-foreground text-xs">
+                  <Badge key={i} className={`${APP_TYPE_COLORS[type] || "bg-emerald-600"} text-white text-xs border-0`}>
                     {type}
                   </Badge>
                 )) : (

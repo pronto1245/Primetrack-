@@ -16,6 +16,42 @@ const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"]
 const PAYOUT_MODELS = ["CPA", "CPL", "CPI", "RevShare", "CPC", "CPM"];
 const CATEGORIES = ["Gambling", "Betting", "Crypto", "Nutra", "Dating", "Finance", "Sweepstakes", "Gaming", "Utilities", "eCommerce"];
 
+const TRAFFIC_SOURCE_COLORS: Record<string, string> = {
+  "Facebook": "bg-blue-600",
+  "Google": "bg-red-500",
+  "TikTok": "bg-pink-500",
+  "UAC": "bg-green-600",
+  "PPC": "bg-orange-500",
+  "Push": "bg-yellow-600",
+  "Native": "bg-teal-500",
+  "Email": "bg-indigo-500",
+  "SEO": "bg-lime-600",
+  "Telegram": "bg-sky-500",
+  "Instagram": "bg-fuchsia-500",
+  "YouTube": "bg-red-600",
+  "Snapchat": "bg-yellow-400",
+  "X (Twitter)": "bg-slate-600",
+  "Pinterest": "bg-red-400",
+  "LinkedIn": "bg-blue-700",
+  "Reddit": "bg-orange-600",
+  "PopUnder": "bg-purple-600",
+  "ClickUnder": "bg-violet-500",
+  "InApp": "bg-cyan-500",
+  "SMS": "bg-emerald-500",
+  "Viber": "bg-purple-500",
+  "WhatsApp": "bg-green-500",
+  "ASO": "bg-amber-500",
+};
+
+const APP_TYPE_COLORS: Record<string, string> = {
+  "PWA": "bg-blue-500",
+  "WebView": "bg-orange-500",
+  "iOS App": "bg-slate-500",
+  "Android App": "bg-green-600",
+  "APK": "bg-lime-600",
+  "Desktop": "bg-indigo-500",
+};
+
 interface Landing {
   id?: string; // ID для обновления существующих
   geo: string;
@@ -625,7 +661,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                     onClick={() => toggleArrayItem("trafficSources", source)}
                     className={`px-3 py-1.5 rounded text-xs font-mono transition-all ${
                       formData.trafficSources.includes(source)
-                        ? "bg-blue-600 text-foreground"
+                        ? `${TRAFFIC_SOURCE_COLORS[source] || "bg-blue-600"} text-white`
                         : "bg-muted text-muted-foreground hover:bg-white/10"
                     }`}
                   >
@@ -651,7 +687,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                     onClick={() => toggleArrayItem("appTypes", appType)}
                     className={`px-3 py-1.5 rounded text-xs font-mono transition-all ${
                       formData.appTypes.includes(appType)
-                        ? "bg-emerald-600 text-foreground"
+                        ? `${APP_TYPE_COLORS[appType] || "bg-emerald-600"} text-white`
                         : "bg-muted text-muted-foreground hover:bg-white/10"
                     }`}
                   >
