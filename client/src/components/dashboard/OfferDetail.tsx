@@ -409,6 +409,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
   const { t } = useTranslation();
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [accessRequested, setAccessRequested] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: offer, isLoading, error } = useQuery<Offer>({
@@ -506,7 +507,27 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
 
               <div className="mb-6">
                 <h3 className="text-xs font-bold uppercase text-muted-foreground mb-2">Описание</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed" data-testid="text-offer-description">{offer.description || "Описание не указано"}</p>
+                {offer.description ? (
+                  <div>
+                    <p 
+                      className={`text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`} 
+                      data-testid="text-offer-description"
+                    >
+                      {offer.description}
+                    </p>
+                    {offer.description.length > 200 && (
+                      <button
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="text-blue-400 hover:text-blue-300 text-sm mt-2 font-medium"
+                        data-testid="button-toggle-description"
+                      >
+                        {isDescriptionExpanded ? "Свернуть ↑" : "Развернуть ↓"}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm" data-testid="text-offer-description">Описание не указано</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
