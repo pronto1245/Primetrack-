@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 interface PostbackLog {
   id: string;
@@ -98,7 +99,16 @@ export function AdminPostbacks() {
             Обзор всех постбеков в системе
           </p>
         </div>
-        <Globe className="w-8 h-8 text-red-400" />
+        <div className="flex gap-2 items-center">
+          <ExportMenu 
+            dataset="postback-logs"
+            getFilters={() => ({
+              status: statusFilter !== "all" ? statusFilter : undefined,
+              direction: directionFilter !== "all" ? directionFilter : undefined,
+            })}
+          />
+          <Globe className="w-8 h-8 text-red-400" />
+        </div>
       </div>
 
       <Card className="bg-card border-border p-6">

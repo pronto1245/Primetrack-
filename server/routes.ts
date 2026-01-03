@@ -7014,5 +7014,225 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // EXPORT API
+  // Export data to CSV, Excel, PDF
+  // ============================================
+  
+  app.get("/api/export/:dataset", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { generateExport, EXPORT_DATASETS } = await import("./services/export-service");
+      type ExportFormat = "csv" | "xlsx" | "pdf";
+      
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      const { dataset } = req.params;
+      const format = (req.query.format as ExportFormat) || "csv";
+      
+      if (!["csv", "xlsx", "pdf"].includes(format)) {
+        return res.status(400).json({ message: "Invalid format. Use csv, xlsx, or pdf" });
+      }
+      
+      const datasetConfig = (EXPORT_DATASETS as Record<string, any>)[dataset];
+      if (!datasetConfig) {
+        return res.status(400).json({ message: "Invalid dataset" });
+      }
+      
+      let rows: any[] = [];
+      const filters: Record<string, string> = {};
+      
+      // Parse common filters
+      const { dateFrom, dateTo, offerId, publisherId, advertiserId, status, direction } = req.query;
+      if (dateFrom) filters["Дата от"] = dateFrom as string;
+      if (dateTo) filters["Дата до"] = dateTo as string;
+      
+      switch (dataset) {
+        case "reports-clicks": {
+          const queryFilters: any = {};
+          
+          if (role === "publisher") {
+            queryFilters.publisherId = userId;
+            if (advertiserId) {
+              const advertiserOffers = await storage.getOffersByAdvertiser(advertiserId as string);
+              if (advertiserOffers.length > 0) {
+                queryFilters.offerIds = advertiserOffers.map(o => o.id);
+              }
+            }
+          } else if (role === "advertiser") {
+            const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+            if (advertiserOffers.length > 0) {
+              queryFilters.offerIds = advertiserOffers.map(o => o.id);
+            }
+          }
+          
+          if (offerId) queryFilters.offerId = offerId as string;
+          if (publisherId && role !== "publisher") queryFilters.publisherId = publisherId as string;
+          if (dateFrom) queryFilters.dateFrom = new Date(dateFrom as string);
+          if (dateTo) queryFilters.dateTo = new Date(dateTo as string);
+          
+          const result = await storage.getClicksReport(queryFilters, undefined, 1, 10000);
+          rows = result.clicks.map((c: any) => ({
+            ...c,
+            createdAt: new Date(c.createdAt).toLocaleString("ru-RU"),
+          }));
+          break;
+        }
+        
+        case "reports-conversions": {
+          const queryFilters: any = {};
+          
+          if (role === "publisher") {
+            queryFilters.publisherId = userId;
+            if (advertiserId) {
+              const advertiserOffers = await storage.getOffersByAdvertiser(advertiserId as string);
+              if (advertiserOffers.length > 0) {
+                queryFilters.offerIds = advertiserOffers.map(o => o.id);
+              }
+            }
+          } else if (role === "advertiser") {
+            const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+            if (advertiserOffers.length > 0) {
+              queryFilters.offerIds = advertiserOffers.map(o => o.id);
+            }
+          }
+          
+          if (offerId) queryFilters.offerId = offerId as string;
+          if (publisherId && role !== "publisher") queryFilters.publisherId = publisherId as string;
+          if (dateFrom) queryFilters.dateFrom = new Date(dateFrom as string);
+          if (dateTo) queryFilters.dateTo = new Date(dateTo as string);
+          if (status) queryFilters.status = status as string;
+          
+          const result = await storage.getConversionsReport(queryFilters, undefined, 1, 10000);
+          rows = result.conversions.map((c: any) => ({
+            ...c,
+            createdAt: new Date(c.createdAt).toLocaleString("ru-RU"),
+          }));
+          break;
+        }
+        
+        case "finance-transactions": {
+          if (role === "publisher") {
+            return res.status(403).json({ message: "Access denied" });
+          }
+          
+          let requests: any[] = [];
+          if (role === "admin") {
+            requests = await storage.getAllPayoutRequests();
+          } else if (role === "advertiser") {
+            requests = await storage.getPayoutRequestsByAdvertiser(userId);
+          }
+          
+          rows = requests.map((r: any) => ({
+            id: r.id,
+            createdAt: new Date(r.createdAt).toLocaleString("ru-RU"),
+            publisherName: r.publisherName || r.publisherId,
+            requestedAmount: r.requestedAmount,
+            status: r.status,
+            methodName: r.methodName || "-",
+          }));
+          break;
+        }
+        
+        case "finance-payouts": {
+          if (role === "publisher") {
+            return res.status(403).json({ message: "Access denied" });
+          }
+          
+          let payoutsList: any[] = [];
+          if (role === "admin") {
+            const allAdvertisers = await storage.getUsersByRole("advertiser");
+            for (const adv of allAdvertisers) {
+              const advPayouts = await storage.getPayoutsByAdvertiser(adv.id);
+              payoutsList.push(...advPayouts);
+            }
+          } else if (role === "advertiser") {
+            payoutsList = await storage.getPayoutsByAdvertiser(userId);
+          }
+          
+          rows = payoutsList.map((p: any) => ({
+            id: p.id,
+            createdAt: new Date(p.createdAt).toLocaleString("ru-RU"),
+            publisherName: p.publisherName || p.publisherId,
+            amount: p.amount,
+            currency: p.currency,
+            payoutType: p.payoutType,
+            transactionId: p.transactionId || "-",
+          }));
+          break;
+        }
+        
+        case "publisher-payouts": {
+          if (role !== "publisher") {
+            return res.status(403).json({ message: "Access denied" });
+          }
+          
+          const payoutsList = await storage.getPayoutsByPublisher(userId);
+          rows = payoutsList.map((p: any) => ({
+            id: p.id,
+            createdAt: new Date(p.createdAt).toLocaleString("ru-RU"),
+            amount: p.amount,
+            currency: p.currency,
+            payoutType: p.payoutType,
+            transactionId: p.transactionId || "-",
+          }));
+          break;
+        }
+        
+        case "postback-logs": {
+          let logs: any[] = [];
+          
+          if (role === "admin") {
+            logs = await storage.getPostbackLogs({});
+          } else if (role === "advertiser") {
+            logs = await storage.getPostbackLogs({ advertiserId: userId });
+          } else if (role === "publisher") {
+            logs = await storage.getPostbackLogs({ publisherId: userId });
+          }
+          
+          if (direction && direction !== "all") {
+            logs = logs.filter((l: any) => l.direction === direction);
+          }
+          if (status === "success") {
+            logs = logs.filter((l: any) => l.success);
+          } else if (status === "failed") {
+            logs = logs.filter((l: any) => !l.success);
+          }
+          
+          rows = logs.slice(0, 10000).map((l: any) => ({
+            id: l.id,
+            createdAt: new Date(l.createdAt).toLocaleString("ru-RU"),
+            direction: l.direction === "inbound" ? "Входящий" : "Исходящий",
+            url: l.url,
+            method: l.method,
+            responseCode: l.responseCode || "-",
+            success: l.success ? "Да" : "Нет",
+          }));
+          break;
+        }
+        
+        default:
+          return res.status(400).json({ message: "Unknown dataset" });
+      }
+      
+      const exportData = {
+        title: datasetConfig.title,
+        columns: datasetConfig.columns,
+        rows,
+        filters: Object.keys(filters).length > 0 ? filters : undefined,
+      };
+      
+      const result = await generateExport(exportData, format);
+      
+      const filename = `${dataset}_${new Date().toISOString().split("T")[0]}.${result.extension}`;
+      
+      res.setHeader("Content-Type", result.contentType);
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.send(result.buffer);
+    } catch (error: any) {
+      console.error("Export error:", error);
+      res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
   return httpServer;
 }

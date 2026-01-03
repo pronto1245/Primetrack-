@@ -15,6 +15,7 @@ import {
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 import { COUNTRIES } from "@/lib/countries";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 const getCountryFlag = (code: string): string => {
   const codePoints = code
@@ -127,6 +128,18 @@ export function Reports({ role }: ReportsProps) {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">{t('dashboard.menu.reports') || 'Reports'}</h1>
         <div className="flex gap-2">
+          <ExportMenu 
+            dataset={activeTab === "clicks" ? "reports-clicks" : "reports-conversions"}
+            getFilters={() => ({
+              dateFrom: filters.dateFrom,
+              dateTo: filters.dateTo,
+              offerId: filters.offerId,
+              publisherId: filters.publisherId,
+              geo: filters.geo,
+              device: filters.device,
+              advertiserId: role === "publisher" ? selectedAdvertiserId : undefined,
+            })}
+          />
           <Button 
             variant="outline" 
             size="sm" 

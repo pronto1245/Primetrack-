@@ -20,6 +20,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 const PAYMENT_TYPES = [
   { value: "crypto_usdt_trc20", label: "USDT TRC20", icon: Bitcoin, color: "text-green-500" },
@@ -270,6 +271,10 @@ export function AdvertiserFinance() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Финансы</h1>
           <p className="text-muted-foreground text-sm">Управление выплатами партнерам</p>
+        </div>
+        <div className="flex gap-2">
+          <ExportMenu dataset="finance-transactions" />
+          <ExportMenu dataset="finance-payouts" />
         </div>
       </div>
 

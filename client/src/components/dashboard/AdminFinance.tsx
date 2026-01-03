@@ -5,6 +5,7 @@ import {
   DollarSign, Users, TrendingUp, ArrowUpRight, ArrowDownRight,
   Wallet, CreditCard, Clock, CheckCircle, XCircle, Loader2
 } from "lucide-react";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 interface PlatformStats {
   totalRevenue: number;
@@ -62,13 +63,19 @@ export function AdminFinance() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-admin-finance-title">
-          Финансы платформы
-        </h2>
-        <p className="text-muted-foreground text-sm font-mono">
-          Глобальная статистика и управление финансами
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold font-mono text-foreground mb-2" data-testid="text-admin-finance-title">
+            Финансы платформы
+          </h2>
+          <p className="text-muted-foreground text-sm font-mono">
+            Глобальная статистика и управление финансами
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <ExportMenu dataset="finance-transactions" />
+          <ExportMenu dataset="finance-payouts" />
+        </div>
       </div>
 
       {/* Platform Overview Cards */}

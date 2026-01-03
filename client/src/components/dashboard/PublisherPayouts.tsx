@@ -20,6 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 const PAYMENT_ICONS: Record<string, any> = {
   crypto_usdt_trc20: { icon: Bitcoin, color: "text-green-500" },
@@ -167,6 +168,7 @@ export function PublisherPayouts() {
             )}
           </p>
         </div>
+        <ExportMenu dataset="publisher-payouts" />
       </div>
 
       {!selectedAdvertiser ? (

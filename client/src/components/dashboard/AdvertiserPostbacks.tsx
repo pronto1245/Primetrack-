@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { ExportMenu } from "@/components/ui/export-menu";
 
 interface PostbackSetting {
   id: string;
@@ -178,7 +179,10 @@ export function AdvertiserPostbacks() {
             Настройка приёма и отправки конверсий
           </p>
         </div>
-        <Globe className="w-8 h-8 text-blue-400" />
+        <div className="flex gap-2 items-center">
+          <ExportMenu dataset="postback-logs" />
+          <Globe className="w-8 h-8 text-blue-400" />
+        </div>
       </div>
 
       <Card className="bg-card border-border p-6">
