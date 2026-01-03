@@ -400,6 +400,9 @@ export interface IStorage {
   createPublisherPostbackEndpoint(endpoint: InsertPublisherPostbackEndpoint): Promise<PublisherPostbackEndpoint>;
   updatePublisherPostbackEndpoint(id: string, data: Partial<InsertPublisherPostbackEndpoint>): Promise<PublisherPostbackEndpoint | undefined>;
   deletePublisherPostbackEndpoint(id: string): Promise<void>;
+  
+  // Offer Performance Stats
+  getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3633,6 +3636,46 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("[shortId] Error initializing short IDs:", error);
     }
+  }
+
+  async getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]> {
+    const advertiserOffers = await db.select({ id: offers.id })
+      .from(offers)
+      .where(eq(offers.advertiserId, advertiserId));
+    
+    if (advertiserOffers.length === 0) {
+      return [];
+    }
+    
+    const offerIds = advertiserOffers.map(o => o.id);
+    
+    const clickCounts = await db
+      .select({
+        offerId: clicks.offerId,
+        count: sql<number>`count(*)::int`
+      })
+      .from(clicks)
+      .where(inArray(clicks.offerId, offerIds))
+      .groupBy(clicks.offerId);
+    
+    const conversionCounts = await db
+      .select({
+        offerId: conversions.offerId,
+        count: sql<number>`count(*)::int`
+      })
+      .from(conversions)
+      .where(inArray(conversions.offerId, offerIds))
+      .groupBy(conversions.offerId);
+    
+    const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
+    const convMap = new Map(conversionCounts.map(c => [c.offerId, c.count]));
+    
+    return offerIds.map(offerId => {
+      const clickCount = clickMap.get(offerId) || 0;
+      const convCount = convMap.get(offerId) || 0;
+      const cr = clickCount > 0 ? (convCount / clickCount) * 100 : 0;
+      return { offerId, clicks: clickCount, conversions: convCount, cr: Math.round(cr * 10) / 10 };
+    });
   }
 }
 

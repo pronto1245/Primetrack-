@@ -1235,6 +1235,17 @@ export async function registerRoutes(
     }
   });
 
+  // Статистика офферов (CR%)
+  app.get("/api/offers/stats", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const stats = await storage.getOfferPerformanceByAdvertiser(req.session.userId!);
+      res.json(stats);
+    } catch (error) {
+      console.error("Failed to fetch offer stats:", error);
+      res.status(500).json({ message: "Failed to fetch offer stats" });
+    }
+  });
+
   // Создать оффер с лендингами
   app.post("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
