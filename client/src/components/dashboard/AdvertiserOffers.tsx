@@ -353,25 +353,22 @@ export function AdvertiserOffers({ role }: { role: string }) {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
+          <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+            <table className="w-full text-left text-xs font-mono table-fixed">
               <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
-                  <th className="px-4 py-3 font-medium">ID</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.name')}</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.category')}</th>
-                  <th className="px-4 py-3 font-medium">CR%</th>
-                  <th className="px-4 py-3 font-medium">Partner Payout</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.geo')}</th>
-                  <th className="px-4 py-3 font-medium">Internal Cost</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.status')}</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  <th className="px-4 py-3 font-medium w-[120px]">ID</th>
+                  <th className="px-4 py-3 font-medium w-[200px]">{t('dashboard.offers.name')}</th>
+                  <th className="px-4 py-3 font-medium w-[100px]">{t('dashboard.offers.category')}</th>
+                  <th className="px-4 py-3 font-medium w-[70px]">CR%</th>
+                  <th className="px-4 py-3 font-medium w-[120px]">Partner Payout</th>
+                  <th className="px-4 py-3 font-medium w-[120px]">{t('dashboard.offers.geo')}</th>
+                  <th className="px-4 py-3 font-medium w-[110px]">Internal Cost</th>
+                  <th className="px-4 py-3 font-medium w-[80px]">{t('dashboard.offers.status')}</th>
+                  <th className="px-4 py-3 font-medium text-right w-[100px]">Actions</th>
                 </tr>
               </thead>
-            </table>
-            <div className="max-h-[630px] overflow-y-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-white/5">
                   {filteredOffers.map((offer) => (
                   <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
                     <td className="px-4 py-3 text-muted-foreground">
@@ -468,9 +465,8 @@ export function AdvertiserOffers({ role }: { role: string }) {
                     </td>
                   </tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
+              </tbody>
+            </table>
           </div>
         )}
       </Card>
