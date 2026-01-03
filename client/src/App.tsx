@@ -1,6 +1,6 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +18,33 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import "./lib/i18n";
 
+function DashboardGuard() {
+  const { data: session, isLoading } = useQuery({
+    queryKey: ["/api/auth/session"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/session", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 5000,
+    retry: false,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (!session?.role) {
+    return <Redirect to="/login" />;
+  }
+
+  return <Redirect to={`/dashboard/${session.role}`} />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -29,7 +56,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/register/advertiser" component={AdvertiserRegister} />
       <Route path="/register/:ref" component={PublisherRegister} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dashboard" component={DashboardGuard} />
       <Route path="/dashboard/:role" component={Dashboard} />
       <Route path="/dashboard/:role/*" component={Dashboard} />
       <Route path="/notifications" component={NotificationsPage} />
