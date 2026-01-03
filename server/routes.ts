@@ -7042,9 +7042,11 @@ export async function registerRoutes(
       const filters: Record<string, string> = {};
       
       // Parse common filters
-      const { dateFrom, dateTo, offerId, publisherId, advertiserId, status, direction } = req.query;
+      const { dateFrom, dateTo, offerId, publisherId, advertiserId, status, direction, search, geo, device, dateMode } = req.query;
       if (dateFrom) filters["Дата от"] = dateFrom as string;
       if (dateTo) filters["Дата до"] = dateTo as string;
+      if (geo) filters["GEO"] = geo as string;
+      if (device) filters["Устройство"] = device as string;
       
       switch (dataset) {
         case "reports-clicks": {
@@ -7069,9 +7071,26 @@ export async function registerRoutes(
           if (publisherId && role !== "publisher") queryFilters.publisherId = publisherId as string;
           if (dateFrom) queryFilters.dateFrom = new Date(dateFrom as string);
           if (dateTo) queryFilters.dateTo = new Date(dateTo as string);
+          if (geo) queryFilters.geo = geo as string;
+          if (device) queryFilters.device = device as string;
+          if (dateMode) queryFilters.dateMode = dateMode as string;
           
           const result = await storage.getClicksReport(queryFilters, undefined, 1, 10000);
-          rows = result.clicks.map((c: any) => ({
+          let clickRows = result.clicks;
+          
+          // Apply search filter client-side if provided
+          if (search) {
+            const searchLower = (search as string).toLowerCase();
+            clickRows = clickRows.filter((c: any) => 
+              c.id?.toLowerCase().includes(searchLower) ||
+              c.ip?.toLowerCase().includes(searchLower) ||
+              c.sub1?.toLowerCase().includes(searchLower) ||
+              c.sub2?.toLowerCase().includes(searchLower) ||
+              c.userAgent?.toLowerCase().includes(searchLower)
+            );
+          }
+          
+          rows = clickRows.map((c: any) => ({
             ...c,
             createdAt: new Date(c.createdAt).toLocaleString("ru-RU"),
           }));
@@ -7103,7 +7122,19 @@ export async function registerRoutes(
           if (status) queryFilters.status = status as string;
           
           const result = await storage.getConversionsReport(queryFilters, undefined, 1, 10000);
-          rows = result.conversions.map((c: any) => ({
+          let convRows = result.conversions;
+          
+          // Apply search filter if provided
+          if (search) {
+            const searchLower = (search as string).toLowerCase();
+            convRows = convRows.filter((c: any) => 
+              c.id?.toLowerCase().includes(searchLower) ||
+              c.clickId?.toLowerCase().includes(searchLower) ||
+              c.externalId?.toLowerCase().includes(searchLower)
+            );
+          }
+          
+          rows = convRows.map((c: any) => ({
             ...c,
             createdAt: new Date(c.createdAt).toLocaleString("ru-RU"),
           }));

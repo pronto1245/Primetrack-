@@ -131,12 +131,15 @@ export function Reports({ role }: ReportsProps) {
           <ExportMenu 
             dataset={activeTab === "clicks" ? "reports-clicks" : "reports-conversions"}
             getFilters={() => ({
+              search: filters.freeSearch,
               dateFrom: filters.dateFrom,
               dateTo: filters.dateTo,
+              dateMode: filters.dateMode,
               offerId: filters.offerId,
               publisherId: filters.publisherId,
               geo: filters.geo,
               device: filters.device,
+              groupBy: filters.groupBy,
               advertiserId: role === "publisher" ? selectedAdvertiserId : undefined,
             })}
           />

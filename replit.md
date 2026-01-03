@@ -101,6 +101,16 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Retry: 1м → 5м → 15м → 1ч → 2ч
 - ✅ UI в панели Advertiser
 
+### Экспорт данных
+- ✅ Форматы: CSV, Excel (xlsx), PDF
+- ✅ **Отчёты** (клики, конверсии) — все роли
+- ✅ **Финансы** (транзакции, выплаты) — Admin, Advertiser, Publisher
+- ✅ **Постбеки** (логи) — все роли
+- ✅ Role-based access control (publisher видит только свои данные)
+- ✅ Фильтры синхронизированы с UI (поиск, даты, GEO, устройство)
+- ✅ Сервис: server/services/export-service.ts
+- ✅ Компонент: client/src/components/ui/export-menu.tsx
+
 ### Антифрод
 - ✅ Fraud score
 - ✅ Proxy/VPN детекция
