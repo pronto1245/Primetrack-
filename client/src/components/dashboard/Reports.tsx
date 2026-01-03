@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,6 @@ interface ReportsProps {
 
 export function Reports({ role }: ReportsProps) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("clicks");
   const [filters, setFilters] = useState({
     freeSearch: "",
@@ -65,7 +64,7 @@ export function Reports({ role }: ReportsProps) {
   queryParams.set("page", String(page));
   queryParams.set("limit", "50");
 
-  const { data: clicksData, isLoading: clicksLoading } = useQuery({
+  const { data: clicksData, isLoading: clicksLoading, refetch: refetchClicks } = useQuery({
     queryKey: ["/api/reports/clicks", filters, page, selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch(`/api/reports/clicks?${queryParams.toString()}`, { credentials: "include" });
@@ -75,7 +74,7 @@ export function Reports({ role }: ReportsProps) {
     enabled: activeTab === "clicks"
   });
 
-  const { data: conversionsData, isLoading: conversionsLoading } = useQuery({
+  const { data: conversionsData, isLoading: conversionsLoading, refetch: refetchConversions } = useQuery({
     queryKey: ["/api/reports/conversions", filters, page, selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch(`/api/reports/conversions?${queryParams.toString()}`, { credentials: "include" });
@@ -88,7 +87,7 @@ export function Reports({ role }: ReportsProps) {
   const groupedParams = new URLSearchParams(queryParams);
   groupedParams.set("groupBy", filters.groupBy);
   
-  const { data: groupedData, isLoading: groupedLoading } = useQuery({
+  const { data: groupedData, isLoading: groupedLoading, refetch: refetchGrouped } = useQuery({
     queryKey: ["/api/reports/grouped", filters, selectedAdvertiserId],
     queryFn: async () => {
       const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`, { credentials: "include" });
@@ -109,13 +108,13 @@ export function Reports({ role }: ReportsProps) {
     enabled: role === "advertiser" || role === "admin"
   });
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     if (activeTab === "clicks") {
-      queryClient.invalidateQueries({ queryKey: ["/api/reports/clicks"] });
+      await refetchClicks();
     } else if (activeTab === "conversions") {
-      queryClient.invalidateQueries({ queryKey: ["/api/reports/conversions"] });
+      await refetchConversions();
     } else {
-      queryClient.invalidateQueries({ queryKey: ["/api/reports/grouped"] });
+      await refetchGrouped();
     }
   };
 
