@@ -241,9 +241,11 @@ export function PublisherOffers({ role }: { role: string }) {
                   <SelectValue placeholder="ГЕО" />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border max-h-[300px]">
-                  <SelectItem value="all" className="font-mono text-xs">Все ГЕО</SelectItem>
+                  <SelectItem value="all" className="font-mono text-xs">🌍 Все ГЕО</SelectItem>
                   {allGeos.map((geo) => (
-                    <SelectItem key={geo} value={geo} className="font-mono text-xs">{geo}</SelectItem>
+                    <SelectItem key={geo} value={geo} className="font-mono text-xs">
+                      {getCountryFlag(geo)} {geo}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

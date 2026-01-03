@@ -231,10 +231,12 @@ export function AdvertiserOffers({ role }: { role: string }) {
                 <Globe className="w-3 h-3 mr-1 text-muted-foreground" />
                 <SelectValue placeholder="ГЕО" />
               </SelectTrigger>
-              <SelectContent className="bg-input border-border">
-                <SelectItem value="all" className="text-foreground font-mono text-xs">Все ГЕО</SelectItem>
+              <SelectContent className="bg-input border-border max-h-[300px]">
+                <SelectItem value="all" className="text-foreground font-mono text-xs">🌍 Все ГЕО</SelectItem>
                 {allGeos.map(geo => (
-                  <SelectItem key={geo} value={geo} className="text-foreground font-mono text-xs">{geo}</SelectItem>
+                  <SelectItem key={geo} value={geo} className="text-foreground font-mono text-xs">
+                    {getCountryFlag(geo)} {geo}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
