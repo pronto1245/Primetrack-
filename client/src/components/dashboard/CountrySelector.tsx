@@ -10,12 +10,13 @@ interface CountrySelectorProps {
   testId?: string;
 }
 
-function getCountryFlag(code: string): string {
+export function getCountryFlag(code: string): string {
   const codeMap: Record<string, string> = {
     'UK': 'GB',
     'EN': 'GB',
   };
   const mappedCode = codeMap[code.toUpperCase()] || code.toUpperCase();
+  if (mappedCode.length !== 2) return '';
   const codePoints = mappedCode
     .split('')
     .map(char => 127397 + char.charCodeAt(0));
