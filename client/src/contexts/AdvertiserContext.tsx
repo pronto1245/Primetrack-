@@ -29,8 +29,23 @@ interface AdvertiserContextType {
 
 const AdvertiserContext = createContext<AdvertiserContextType | undefined>(undefined);
 
+const STORAGE_KEY = "primetrack_selected_advertiser";
+
 export function AdvertiserProvider({ children, role }: { children: ReactNode; role: string }) {
-  const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<string>("");
+  const [selectedAdvertiserId, setSelectedAdvertiserIdState] = useState<string>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) || "";
+    } catch {
+      return "";
+    }
+  });
+
+  const setSelectedAdvertiserId = (id: string) => {
+    setSelectedAdvertiserIdState(id);
+    try {
+      localStorage.setItem(STORAGE_KEY, id);
+    } catch {}
+  };
 
   const { data: advertisers = [], isLoading } = useQuery<AdvertiserInfo[]>({
     queryKey: ["/api/publisher/advertisers-extended"],
@@ -43,10 +58,14 @@ export function AdvertiserProvider({ children, role }: { children: ReactNode; ro
   });
 
   useEffect(() => {
-    if (advertisers.length > 0 && !selectedAdvertiserId) {
-      setSelectedAdvertiserId(advertisers[0].id);
+    if (advertisers.length > 0) {
+      const savedId = selectedAdvertiserId;
+      const savedExists = advertisers.some(a => a.id === savedId);
+      if (!savedId || !savedExists) {
+        setSelectedAdvertiserId(advertisers[0].id);
+      }
     }
-  }, [advertisers, selectedAdvertiserId]);
+  }, [advertisers]);
 
   const selectedAdvertiser = advertisers.find(a => a.id === selectedAdvertiserId) || null;
   const isPendingPartnership = selectedAdvertiser?.status === "pending";
