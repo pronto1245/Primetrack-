@@ -216,20 +216,32 @@ export function AdvertiserPostbacks() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3">
-            <h4 className="font-semibold text-blue-400 mb-2">Поддерживаемые параметры click_id:</h4>
-            <code className="text-muted-foreground">click_id, clickid, subid, subid_1, tid, sub1, cid</code>
+            <h4 className="font-semibold text-blue-400 mb-2">Поддерживаемые параметры:</h4>
+            <code className="text-muted-foreground">click_id, clickid, subid, tid, sub1, cid</code>
+            <br />
+            <code className="text-muted-foreground">payout, sum, revenue, amount</code>
           </div>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded p-3">
-            <h4 className="font-semibold text-amber-400 mb-2">Маппинг статусов:</h4>
-            <code className="text-muted-foreground">lead, reg → Lead | sale, dep, ftd → Sale | install → Install</code>
+            <h4 className="font-semibold text-amber-400 mb-2">Статусы (указывайте явно):</h4>
+            <code className="text-muted-foreground">status=lead (регистрация)</code>
+            <br />
+            <code className="text-muted-foreground">status=sale (депозит/покупка)</code>
           </div>
         </div>
 
         <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded">
-          <p className="text-xs text-muted-foreground">
-            <strong className="text-emerald-400">Как это работает:</strong> Вставьте этот URL в настройки вашего трекера (Keitaro, Binom, Voluum, etc.). 
-            Система автоматически определит оффер и партнёра по click_id.
+          <h4 className="font-semibold text-emerald-400 mb-2">Настройка у рекламодателя:</h4>
+          <p className="text-xs text-muted-foreground mb-2">
+            Создайте <strong>два постбека</strong> в системе рекламодателя:
           </p>
+          <div className="space-y-1 font-mono text-xs">
+            <div className="text-muted-foreground">
+              <span className="text-blue-400">Lead:</span> https://{platformDomain}/api/postback?click_id={"{click_id}"}&status=lead
+            </div>
+            <div className="text-muted-foreground">
+              <span className="text-green-400">Sale:</span> https://{platformDomain}/api/postback?click_id={"{click_id}"}&status=sale&payout={"{payout}"}
+            </div>
+          </div>
         </div>
       </Card>
 
