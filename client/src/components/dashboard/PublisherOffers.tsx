@@ -67,6 +67,23 @@ export function PublisherOffers({ role }: { role: string }) {
     },
   });
 
+  const { data: stats } = useQuery<{ offerId: string; clicks: number; conversions: number; cr: number }[]>({
+    queryKey: ["/api/publisher/offers/stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/publisher/offers/stats", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const statsMap = useMemo(() => {
+    const map = new Map<string, { clicks: number; conversions: number; cr: number }>();
+    if (stats) {
+      stats.forEach(s => map.set(s.offerId, { clicks: s.clicks, conversions: s.conversions, cr: s.cr }));
+    }
+    return map;
+  }, [stats]);
+
   const categories = useMemo(() => {
     if (!offers) return [];
     return Array.from(new Set(offers.map(o => o.category).filter(Boolean)));
@@ -295,105 +312,117 @@ export function PublisherOffers({ role }: { role: string }) {
             <p className="text-muted-foreground">Офферы не найдены</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
+          <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+            <table className="w-full text-left text-xs font-mono table-fixed" style={{ minWidth: "900px" }}>
+              <colgroup>
+                <col style={{ width: "100px" }} />
+                <col style={{ width: "200px" }} />
+                <col style={{ width: "100px" }} />
+                <col style={{ width: "70px" }} />
+                <col style={{ width: "120px" }} />
+                <col style={{ width: "100px" }} />
+                <col style={{ width: "70px" }} />
+                <col style={{ width: "80px" }} />
+                <col style={{ width: "80px" }} />
+              </colgroup>
               <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
-                  <th className="px-4 py-3 font-medium">ID</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.name')}</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.category')}</th>
-                  <th className="px-4 py-3 font-medium">{t('dashboard.offers.geo')}</th>
-                  <th className="px-4 py-3 font-medium">Payout</th>
-                  <th className="px-4 py-3 font-medium">Model</th>
-                  <th className="px-4 py-3 font-medium">Доступ</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  <th className="px-3 py-3 font-medium">ID</th>
+                  <th className="px-3 py-3 font-medium">{t('dashboard.offers.name')}</th>
+                  <th className="px-3 py-3 font-medium">{t('dashboard.offers.category')}</th>
+                  <th className="px-3 py-3 font-medium">CR%</th>
+                  <th className="px-3 py-3 font-medium">{t('dashboard.offers.geo')}</th>
+                  <th className="px-3 py-3 font-medium">Payout</th>
+                  <th className="px-3 py-3 font-medium">Model</th>
+                  <th className="px-3 py-3 font-medium">Доступ</th>
+                  <th className="px-3 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
-            </table>
-            <div className="max-h-[630px] overflow-y-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <tbody className="divide-y divide-white/5">
-                  {filteredOffers.map((offer) => {
-                  const maxPayout = getMaxPayout(offer);
-                  return (
-                    <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          {offer.logoUrl ? (
-                            <img src={offer.logoUrl} alt="" className="w-6 h-6 rounded object-cover" />
-                          ) : (
-                            <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs">
-                              {offer.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <span>#{offer.id.slice(0, 8)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                            <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
-                              {offer.name}
-                            </span>
-                          </Link>
-                          {offer.createdAt && new Date(offer.createdAt) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400 animate-pulse">
-                              NEW
-                            </span>
-                          )}
-                          {offer.isTop && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-400">
-                              TOP
-                            </span>
-                          )}
-                          {offer.isExclusive && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/20 text-purple-400">
-                              EXCLUSIVE
-                            </span>
-                          )}
-                          {offer.isPrivate && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-400">
-                              PRIVATE
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{offer.category}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        <span className="flex items-center gap-1 flex-wrap">
-                          {offer.geo.slice(0, 3).map((g, i) => (
-                            <span key={g} className="inline-flex items-center gap-0.5">
-                              <span>{getCountryFlag(g)}</span>
-                              <span>{g}</span>
-                              {i < Math.min(offer.geo.length, 3) - 1 && <span>,</span>}
-                            </span>
-                          ))}
-                          {offer.geo.length > 3 && <span className="text-muted-foreground">+{offer.geo.length - 3}</span>}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-emerald-400 font-bold">
-                        ${maxPayout}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground uppercase">
-                        {offer.payoutModel}
-                      </td>
-                      <td className="px-4 py-3">
-                        {getAccessBadge(offer)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+              <tbody className="divide-y divide-white/5">
+                {filteredOffers.map((offer) => {
+                const maxPayout = getMaxPayout(offer);
+                const stat = statsMap.get(offer.id);
+                return (
+                  <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
+                    <td className="px-3 py-3 text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        {offer.logoUrl ? (
+                          <img src={offer.logoUrl} alt="" className="w-6 h-6 rounded object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs">
+                            {offer.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="truncate">#{offer.id.slice(0, 8)}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <Button size="sm" variant="ghost" className="h-7 px-3 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10" data-testid={`button-view-${offer.id}`}>
-                            <Eye className="w-3 h-3 mr-1" />
-                            View
-                          </Button>
+                          <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer truncate" data-testid={`text-offer-name-${offer.id}`}>
+                            {offer.name}
+                          </span>
                         </Link>
-                      </td>
-                    </tr>
-                  );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        {offer.createdAt && new Date(offer.createdAt) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400 animate-pulse">
+                            NEW
+                          </span>
+                        )}
+                        {offer.isTop && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-400">
+                            TOP
+                          </span>
+                        )}
+                        {offer.isExclusive && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/20 text-purple-400">
+                            EXCLUSIVE
+                          </span>
+                        )}
+                        {offer.isPrivate && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-400">
+                            PRIVATE
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground truncate">{offer.category}</td>
+                    <td className="px-3 py-3 text-cyan-400 font-medium">
+                      {stat ? `${stat.cr.toFixed(1)}%` : "—"}
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground">
+                      <span className="flex items-center gap-1 flex-wrap">
+                        {offer.geo.slice(0, 3).map((g, i) => (
+                          <span key={g} className="inline-flex items-center gap-0.5">
+                            <span>{getCountryFlag(g)}</span>
+                            <span>{g}</span>
+                            {i < Math.min(offer.geo.length, 3) - 1 && <span>,</span>}
+                          </span>
+                        ))}
+                        {offer.geo.length > 3 && <span className="text-muted-foreground">+{offer.geo.length - 3}</span>}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-emerald-400 font-bold">
+                      ${maxPayout}
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground uppercase">
+                      {offer.payoutModel}
+                    </td>
+                    <td className="px-3 py-3">
+                      {getAccessBadge(offer)}
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <Link href={`/dashboard/${role}/offer/${offer.id}`}>
+                        <Button size="sm" variant="ghost" className="h-7 px-3 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10" data-testid={`button-view-${offer.id}`}>
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </Card>
