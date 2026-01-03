@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
+import { getCountryFlag } from "./CountrySelector";
 
 interface OfferLanding {
   id: string;
@@ -359,7 +360,16 @@ export function PublisherOffers({ role }: { role: string }) {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{offer.category}</td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {offer.geo.slice(0, 3).join(", ")}{offer.geo.length > 3 ? ` +${offer.geo.length - 3}` : ""}
+                        <span className="flex items-center gap-1 flex-wrap">
+                          {offer.geo.slice(0, 3).map((g, i) => (
+                            <span key={g} className="inline-flex items-center gap-0.5">
+                              <span>{getCountryFlag(g)}</span>
+                              <span>{g}</span>
+                              {i < Math.min(offer.geo.length, 3) - 1 && <span>,</span>}
+                            </span>
+                          ))}
+                          {offer.geo.length > 3 && <span className="text-muted-foreground">+{offer.geo.length - 3}</span>}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-emerald-400 font-bold">
                         ${maxPayout}
