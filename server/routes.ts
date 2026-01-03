@@ -2092,10 +2092,13 @@ export async function registerRoutes(
       const payoutValue = query.payout || query.sum || query.revenue || query.amount;
 
       // Status mapping - supports common tracker formats
+      // Note: "confirmed" = lead (регистрация подтверждена), NOT sale
+      // For sale/deposit use explicit: sale, dep, deposit, ftd, payment
       const statusMappings: Record<string, string> = {
-        lead: "lead", reg: "lead", registration: "lead", signup: "lead",
+        lead: "lead", reg: "lead", registration: "lead", signup: "lead", 
+        confirm: "lead", confirmed: "lead", approved_lead: "lead",
         sale: "sale", dep: "sale", deposit: "sale", purchase: "sale", ftd: "sale", payment: "sale",
-        rebill: "sale", approved: "sale", confirm: "sale", confirmed: "sale",
+        rebill: "sale", approved: "sale", approved_sale: "sale",
         install: "install", app_install: "install",
         rejected: "rejected", decline: "rejected", declined: "rejected", cancel: "rejected",
         "1": "lead", "2": "sale", "3": "rejected"
