@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Filter, RefreshCw, Download, ChevronLeft, ChevronRight, 
   MousePointer, Target, DollarSign, TrendingUp, Loader2,
-  Calendar
+  Calendar, Copy
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
@@ -562,7 +563,21 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     <td className="px-4 py-3 text-muted-foreground">
                       {new Date(click.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-emerald-400">{click.clickId?.slice(0, 12)}...</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => {
+                          if (click.clickId) {
+                            navigator.clipboard.writeText(click.clickId);
+                            toast.success("Click ID скопирован");
+                          }
+                        }}
+                        className="text-emerald-400 hover:text-emerald-300 cursor-pointer flex items-center gap-1 group"
+                        title={click.clickId}
+                      >
+                        {click.clickId?.slice(0, 12)}...
+                        <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    </td>
                     <td className="px-4 py-3 text-foreground">{click.offerName || click.offerId}</td>
                     <td className="px-4 py-3 text-muted-foreground">{click.publisherName || click.publisherId || '-'}</td>
                     <td className="px-4 py-3">
@@ -787,7 +802,21 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                       <td className={`px-4 py-3 text-right font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {roi.toFixed(1)}%
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{conv.clickId?.slice(0, 8)}...</td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => {
+                            if (conv.clickId) {
+                              navigator.clipboard.writeText(conv.clickId);
+                              toast.success("Click ID скопирован");
+                            }
+                          }}
+                          className="text-muted-foreground hover:text-foreground cursor-pointer flex items-center gap-1 group"
+                          title={conv.clickId}
+                        >
+                          {conv.clickId?.slice(0, 8)}...
+                          <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      </td>
                       <td className="px-4 py-3">
                         <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
                           {conv.geo || 'N/A'}
