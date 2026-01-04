@@ -2,6 +2,7 @@ import { storage } from "../storage";
 import type { InsertConversion } from "@shared/schema";
 import { postbackSender } from "./postback-sender";
 import { webhookService } from "./webhook-service";
+import { telegramService } from "./telegram-service";
 
 interface ConversionEvent {
   clickId: string;
@@ -107,6 +108,58 @@ export class Orchestrator {
         payout: publisherPayout,
         revenue: advertiserCost,
       }, click.offerId, click.publisherId).catch(console.error);
+    }
+
+    // Send Telegram notifications (async, non-blocking)
+    const offerName = offer.name || "Оффер";
+    const geo = click.geo || undefined;
+    
+    if (webhookEventType === "lead") {
+      // Notify publisher about new lead
+      telegramService.notifyNewLead(
+        click.publisherId,
+        offer.advertiserId,
+        offerName,
+        publisherPayout,
+        geo
+      ).catch(err => console.error("[Orchestrator] Telegram lead notification failed:", err));
+      
+      // Notify advertiser about new lead
+      telegramService.notifyUser(
+        offer.advertiserId,
+        "lead",
+        "Новый лид!",
+        {
+          Оффер: offerName,
+          Партнёр: click.publisherId.slice(0, 8),
+          Стоимость: `$${advertiserCost.toFixed(2)}`,
+          ГЕО: geo || "—",
+        }
+      ).catch(err => console.error("[Orchestrator] Telegram advertiser lead notification failed:", err));
+    } else if (webhookEventType === "sale") {
+      // Notify publisher about new sale
+      telegramService.notifyNewSale(
+        click.publisherId,
+        offer.advertiserId,
+        offerName,
+        event.sum || 0,
+        publisherPayout,
+        geo
+      ).catch(err => console.error("[Orchestrator] Telegram sale notification failed:", err));
+      
+      // Notify advertiser about new sale
+      telegramService.notifyUser(
+        offer.advertiserId,
+        "sale",
+        "Новая продажа!",
+        {
+          Оффер: offerName,
+          Партнёр: click.publisherId.slice(0, 8),
+          Сумма: event.sum ? `$${event.sum.toFixed(2)}` : "—",
+          Стоимость: `$${advertiserCost.toFixed(2)}`,
+          ГЕО: geo || "—",
+        }
+      ).catch(err => console.error("[Orchestrator] Telegram advertiser sale notification failed:", err));
     }
     
     return {
