@@ -754,7 +754,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <p className="text-[10px] text-blue-400 uppercase font-bold">
-                          {offer.landings[0].landingName || `${offer.landings[0].geo} Landing`}
+                          Лендинг — {offer.landings[0].landingName || offer.landings[0].geo}
                         </p>
                         <p className="text-[9px] text-muted-foreground mt-0.5">
                           {offer.landings.length > 1 ? 'Другие лендинги — в блоке ГЕО слева' : 'Ссылка с вашими sub-параметрами'}
