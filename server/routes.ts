@@ -342,6 +342,11 @@ export async function registerRoutes(
   });
 
   await setupAuth(app);
+
+  // Health check endpoint for Cloud Run
+  app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
   await seedUsers();
   registerObjectStorageRoutes(app);
 
