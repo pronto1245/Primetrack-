@@ -33,44 +33,46 @@ export function AdvertiserSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9 gap-1">
-          <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
-            <User className="h-4 w-4" />
-            Профиль
-          </TabsTrigger>
-          <TabsTrigger value="subscription" className="flex items-center gap-2 data-[state=active]:bg-yellow-500 data-[state=active]:text-white" data-testid="tab-subscription">
-            <CreditCard className="h-4 w-4" />
-            Подписка
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white" data-testid="tab-security">
-            <Lock className="h-4 w-4" />
-            Безопасность
-          </TabsTrigger>
-          <TabsTrigger value="whitelabel" className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white" data-testid="tab-whitelabel">
-            <Palette className="h-4 w-4" />
-            White-label
-          </TabsTrigger>
-          <TabsTrigger value="domains" className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white" data-testid="tab-domains">
-            <Globe className="h-4 w-4" />
-            Домены
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-white" data-testid="tab-notifications">
-            <Bell className="h-4 w-4" />
-            Уведомления
-          </TabsTrigger>
-          <TabsTrigger value="webhooks" className="flex items-center gap-2 data-[state=active]:bg-teal-500 data-[state=active]:text-white" data-testid="tab-webhooks">
-            <Webhook className="h-4 w-4" />
-            Webhooks
-          </TabsTrigger>
-          <TabsTrigger value="testing" className="flex items-center gap-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white" data-testid="tab-testing">
-            <TestTube2 className="h-4 w-4" />
-            Тесты
-          </TabsTrigger>
-          <TabsTrigger value="migration" className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white" data-testid="tab-migration">
-            <Database className="h-4 w-4" />
-            Миграция
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-2 px-2 pb-2">
+          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-9 gap-1">
+            <TabsTrigger value="profile" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Профиль</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-yellow-500 data-[state=active]:text-white" data-testid="tab-subscription">
+              <CreditCard className="h-4 w-4" />
+              <span className="hidden sm:inline">Подписка</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-red-500 data-[state=active]:text-white" data-testid="tab-security">
+              <Lock className="h-4 w-4" />
+              <span className="hidden sm:inline">Безопасность</span>
+            </TabsTrigger>
+            <TabsTrigger value="whitelabel" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-purple-500 data-[state=active]:text-white" data-testid="tab-whitelabel">
+              <Palette className="h-4 w-4" />
+              <span className="hidden sm:inline">White-label</span>
+            </TabsTrigger>
+            <TabsTrigger value="domains" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-indigo-500 data-[state=active]:text-white" data-testid="tab-domains">
+              <Globe className="h-4 w-4" />
+              <span className="hidden sm:inline">Домены</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-amber-500 data-[state=active]:text-white" data-testid="tab-notifications">
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">Уведомления</span>
+            </TabsTrigger>
+            <TabsTrigger value="webhooks" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-teal-500 data-[state=active]:text-white" data-testid="tab-webhooks">
+              <Webhook className="h-4 w-4" />
+              <span className="hidden sm:inline">Webhooks</span>
+            </TabsTrigger>
+            <TabsTrigger value="testing" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-cyan-500 data-[state=active]:text-white" data-testid="tab-testing">
+              <TestTube2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Тесты</span>
+            </TabsTrigger>
+            <TabsTrigger value="migration" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-emerald-500 data-[state=active]:text-white" data-testid="tab-migration">
+              <Database className="h-4 w-4" />
+              <span className="hidden sm:inline">Миграция</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="profile">
           <ProfileTab />

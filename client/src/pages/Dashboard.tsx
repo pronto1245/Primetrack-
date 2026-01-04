@@ -8,8 +8,9 @@ import {
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar,
   Plus, Search, UserPlus, ChevronDown, Building2,
-  Phone, Send, Globe, Newspaper
+  Phone, Send, Globe, Newspaper, Menu, X
 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Match multiple route patterns
   const [matchBase, paramsBase] = useRoute("/dashboard/:role");
@@ -70,11 +72,172 @@ export default function Dashboard() {
 
   return (
     <AdvertiserProvider role={role}>
-      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col md:flex-row overflow-hidden">
-        <Sidebar role={role} t={t} />
-        <MainContent role={role} t={t} />
+      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
+        {/* Mobile Header */}
+        <MobileHeader 
+          role={role} 
+          mobileMenuOpen={mobileMenuOpen} 
+          setMobileMenuOpen={setMobileMenuOpen} 
+          t={t} 
+        />
+        
+        <div className="flex flex-1 overflow-hidden">
+          {/* Desktop Sidebar */}
+          <Sidebar role={role} t={t} onNavigate={() => setMobileMenuOpen(false)} />
+          
+          <MainContent role={role} t={t} />
+        </div>
+        
+        {/* Mobile Sidebar (Sheet) - moved outside flex container */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-72 p-0 bg-card border-border">
+            <MobileSidebar role={role} t={t} onNavigate={() => setMobileMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
       </div>
     </AdvertiserProvider>
+  );
+}
+
+function MobileHeader({ role, mobileMenuOpen, setMobileMenuOpen, t }: { 
+  role: string, 
+  mobileMenuOpen: boolean, 
+  setMobileMenuOpen: (open: boolean) => void,
+  t: any 
+}) {
+  const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
+  
+  const { data: platformSettings } = useQuery<any>({
+    queryKey: ["/api/public/platform-settings"],
+  });
+  
+  return (
+    <header className="md:hidden h-14 bg-card border-b border-border flex items-center justify-between px-4 flex-shrink-0">
+      <div className="flex items-center gap-3">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="h-9 w-9"
+          data-testid="mobile-menu-toggle"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center gap-2">
+          <div className={`w-3 h-3 rounded-sm ${roleColor}`} />
+          <span className="font-mono font-bold text-xs tracking-wider uppercase">
+            {platformSettings?.platformName || role}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <ThemeToggle />
+      </div>
+    </header>
+  );
+}
+
+function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate: () => void }) {
+  const { selectedAdvertiser } = useAdvertiserContext();
+  const [, setLocation] = useLocation();
+  
+  const handleNavClick = (path: string) => {
+    setLocation(path);
+    onNavigate();
+  };
+  
+  const { data: unreadNewsData } = useQuery<{ count: number }>({
+    queryKey: ["unread-news-count", selectedAdvertiser?.id],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedAdvertiser?.id) params.set("advertiserId", selectedAdvertiser.id);
+      const res = await fetch(`/api/news/unread-count?${params}`, { credentials: "include" });
+      if (!res.ok) return { count: 0 };
+      return res.json();
+    },
+  });
+  
+  const unreadNewsCount = unreadNewsData?.count || 0;
+  
+  const menus = {
+    admin: [
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers`, color: "text-orange-400" },
+      { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
+      { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
+      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
+      { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
+      { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
+    ],
+    advertiser: [
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers`, color: "text-orange-400" },
+      { icon: UserPlus, label: t('dashboard.menu.requests'), path: `/dashboard/${role}/requests`, color: "text-cyan-400" },
+      { icon: Users, label: t('dashboard.menu.partners'), path: `/dashboard/${role}/partners`, color: "text-emerald-400" },
+      { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
+      { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
+      { icon: Wallet, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
+      { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
+    ],
+    publisher: [
+      { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
+      { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
+      { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
+      { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
+      { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
+      { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
+    ]
+  };
+
+  const currentMenu = menus[role as keyof typeof menus] || menus.publisher;
+  const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="h-14 flex items-center px-4 border-b border-border">
+        <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
+        <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
+      </div>
+
+      <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
+        {currentMenu.map((item, i) => {
+          const isNewsItem = item.path.includes('/news');
+          return (
+            <button 
+              key={i} 
+              onClick={() => handleNavClick(item.path)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <item.icon className={`w-4 h-4 ${item.color}`} />
+              <span className="flex-1 text-left">{item.label}</span>
+              {isNewsItem && unreadNewsCount > 0 && (
+                <span className="min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full">
+                  {unreadNewsCount > 99 ? '99+' : unreadNewsCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-border">
+        <button 
+          onClick={() => handleNavClick("/dashboard")}
+          className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full"
+        >
+          <LogOut className="w-3 h-3 text-red-500" />
+          {t('dashboard.menu.logout')}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -156,7 +319,7 @@ function ManagerCard() {
   );
 }
 
-function Sidebar({ role, t }: { role: string, t: any }) {
+function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: () => void }) {
   const { selectedAdvertiser } = useAdvertiserContext();
   
   // Fetch unread news count

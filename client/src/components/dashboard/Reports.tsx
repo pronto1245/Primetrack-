@@ -399,7 +399,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
 
   if (loading) {
     return (
-      <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {[...Array(8)].map((_, i) => (
           <Card key={i} className="bg-card border-border animate-pulse">
             <CardContent className="p-3 h-16" />
@@ -410,7 +410,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
   }
 
   return (
-    <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
       <Card className="bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50 transition-colors">
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-blue-400 mb-1">{t('stats.clicks') || 'Clicks'}</div>

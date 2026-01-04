@@ -34,30 +34,30 @@ export function AdminSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
             <User className="h-4 w-4" />
-            Профиль
+            <span className="hidden sm:inline">Профиль</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2" data-testid="tab-security">
             <Lock className="h-4 w-4" />
-            Безопасность
+            <span className="hidden sm:inline">Безопасность</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2" data-testid="tab-notifications">
             <Bell className="h-4 w-4" />
-            Уведомления
+            <span className="hidden sm:inline">Уведомления</span>
           </TabsTrigger>
           <TabsTrigger value="platform" className="flex items-center gap-2" data-testid="tab-platform">
             <Settings className="h-4 w-4" />
-            Платформа
+            <span className="hidden sm:inline">Платформа</span>
           </TabsTrigger>
           <TabsTrigger value="testing" className="flex items-center gap-2" data-testid="tab-testing">
             <TestTube2 className="h-4 w-4" />
-            Тесты
+            <span className="hidden sm:inline">Тесты</span>
           </TabsTrigger>
           <TabsTrigger value="migration" className="flex items-center gap-2" data-testid="tab-migration">
             <Database className="h-4 w-4" />
-            Миграция
+            <span className="hidden sm:inline">Миграция</span>
           </TabsTrigger>
         </TabsList>
 
