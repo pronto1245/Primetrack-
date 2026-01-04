@@ -75,11 +75,13 @@ interface OfferLanding {
 function LandingsGroupedByGeo({ 
   landings, 
   copiedUrl, 
-  copyToClipboard 
+  copyToClipboard,
+  buildUrlWithSubs
 }: { 
   landings: OfferLanding[]; 
   copiedUrl: string | null; 
   copyToClipboard: (url: string, id: string) => void;
+  buildUrlWithSubs: (url: string) => string;
 }) {
   const [openGeos, setOpenGeos] = useState<Set<string>>(new Set());
 
@@ -186,7 +188,8 @@ function LandingsGroupedByGeo({
                           className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
-                            copyToClipboard(landing.trackingUrl || landing.landingUrl, landing.id);
+                            const baseUrl = landing.trackingUrl || landing.landingUrl;
+                            copyToClipboard(buildUrlWithSubs(baseUrl), landing.id);
                           }}
                           data-testid={`button-copy-landing-${geo}-${index}`}
                         >
@@ -410,7 +413,31 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [accessRequested, setAccessRequested] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [subParams, setSubParams] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
+
+  const updateSubParam = (key: string, value: string) => {
+    setSubParams(prev => {
+      if (value === '') {
+        const newParams = { ...prev };
+        delete newParams[key];
+        return newParams;
+      }
+      return { ...prev, [key]: value };
+    });
+  };
+
+  const buildUrlWithSubs = (baseUrl: string): string => {
+    if (Object.keys(subParams).length === 0) return baseUrl;
+    const url = new URL(baseUrl, window.location.origin);
+    for (let i = 1; i <= 10; i++) {
+      const key = `sub${i}`;
+      if (subParams[key]) {
+        url.searchParams.set(key, subParams[key]);
+      }
+    }
+    return url.toString();
+  };
 
   const { data: offer, isLoading, error } = useQuery<Offer>({
     queryKey: ["/api/offers", offerId],
@@ -567,7 +594,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
           </Card>
 
           {canSeeLinks && offer.landings && offer.landings.length > 0 && (
-            <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} />
+            <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
           )}
 
           {!canSeeLinks && (
@@ -677,6 +704,46 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
               </div>
             </CardContent>
           </Card>
+
+          {canSeeLinks && (
+            <Card className="bg-card border-border">
+              <CardContent className="p-6">
+                <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4 flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  Sub-параметры
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Заполните нужные поля — они автоматически добавятся к ссылке при копировании
+                </p>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground w-10 flex-shrink-0">sub{i}</Label>
+                      <Input
+                        placeholder={`Значение sub${i}`}
+                        value={subParams[`sub${i}`] || ''}
+                        onChange={(e) => updateSubParam(`sub${i}`, e.target.value)}
+                        className="bg-muted border-border text-foreground text-sm h-8"
+                        data-testid={`input-sub${i}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {Object.keys(subParams).length > 0 && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Добавлено к ссылке:</p>
+                    <p className="text-xs text-emerald-400 font-mono break-all">
+                      {Object.entries(subParams)
+                        .filter(([, v]) => v)
+                        .sort(([a], [b]) => parseInt(a.replace('sub', '')) - parseInt(b.replace('sub', '')))
+                        .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+                        .join('&')}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {canSeeLinks && offer.creativeLinks && offer.creativeLinks.length > 0 && (
             <Card className="bg-card border-border">
