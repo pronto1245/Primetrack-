@@ -722,32 +722,28 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                   <Link2 className="w-4 h-4" />
                   Sub-параметры
                 </h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Заполните нужные поля — они автоматически добавятся к ссылке при копировании
+                <p className="text-xs text-muted-foreground mb-3">
+                  Заполните нужные поля — они добавятся к ссылке
                 </p>
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
-                    <div key={i} className="flex items-center gap-2">
-                      <Label className="text-xs text-muted-foreground w-10 flex-shrink-0">sub{i}</Label>
+                    <div key={i} className="flex items-center gap-1">
+                      <Label className="text-[10px] text-muted-foreground w-7 flex-shrink-0">sub{i}</Label>
                       <Input
-                        placeholder={`Значение sub${i}`}
+                        placeholder={`sub${i}`}
                         value={subParams[`sub${i}`] || ''}
                         onChange={(e) => updateSubParam(`sub${i}`, e.target.value)}
-                        className="bg-muted border-border text-foreground text-sm h-8"
+                        className="bg-muted border-border text-foreground text-xs h-7 px-2"
                         data-testid={`input-sub${i}`}
                       />
                     </div>
                   ))}
                 </div>
-                {Object.keys(subParams).length > 0 && (
-                  <div className="mt-4 p-3 bg-muted rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Добавлено к ссылке:</p>
-                    <p className="text-xs text-emerald-400 font-mono break-all">
-                      {Object.entries(subParams)
-                        .filter(([, v]) => v)
-                        .sort(([a], [b]) => parseInt(a.replace('sub', '')) - parseInt(b.replace('sub', '')))
-                        .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-                        .join('&')}
+                {offer.landings && offer.landings.length > 0 && (
+                  <div className="mt-4 p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
+                    <p className="text-[10px] text-blue-400 uppercase font-bold mb-2">Превью ссылки</p>
+                    <p className="text-[11px] text-foreground font-mono break-all leading-relaxed">
+                      {buildUrlWithSubs(offer.landings[0].trackingUrl || offer.landings[0].landingUrl)}
                     </p>
                   </div>
                 )}
