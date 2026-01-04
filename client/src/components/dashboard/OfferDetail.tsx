@@ -535,17 +535,48 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                       {offer.status === 'active' ? 'Активен' : 'Приостановлен'}
                     </Badge>
                     {canSeeLinks && offer.creativeLinks && offer.creativeLinks.length > 0 && (
-                      <a
-                        href={offer.creativeLinks[0]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
-                        data-testid="button-creatives"
-                      >
-                        <Monitor className="w-4 h-4" />
-                        Креативы
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      offer.creativeLinks.length === 1 ? (
+                        <a
+                          href={offer.creativeLinks[0]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                          data-testid="button-creatives"
+                        >
+                          <Monitor className="w-4 h-4" />
+                          Креативы
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                              data-testid="button-creatives"
+                            >
+                              <Monitor className="w-4 h-4" />
+                              Креативы ({offer.creativeLinks.length})
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            {offer.creativeLinks.map((link, i) => (
+                              <DropdownMenuItem key={i} asChild>
+                                <a
+                                  href={link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 cursor-pointer"
+                                  data-testid={`link-creative-${i}`}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                  Креатив {i + 1}
+                                </a>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
