@@ -154,9 +154,9 @@ export function PostbackSettings() {
           
           <div className="space-y-4">
             <div>
-              <Label className="text-muted-foreground text-xs mb-2 block">Postback URL</Label>
+              <Label className="text-muted-foreground text-xs mb-2 block">Postback URL (Lead / Registration)</Label>
               <Input
-                placeholder="https://your-tracker.com/postback?click_id={click_id}&status={status}"
+                placeholder="https://your-tracker.com/postback?click_id={click_id}&status=lead"
                 value={leadUrl}
                 onChange={(e) => {
                   setLeadUrl(e.target.value);
@@ -165,6 +165,9 @@ export function PostbackSettings() {
                 className="bg-muted border-border text-foreground font-mono text-sm"
                 data-testid="input-lead-postback-url"
               />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Используйте <code className="bg-white/5 px-1 rounded">status=lead</code> для регистраций
+              </p>
             </div>
             <div>
               <Label className="text-muted-foreground text-xs mb-2 block">HTTP метод</Label>
@@ -194,9 +197,9 @@ export function PostbackSettings() {
           
           <div className="space-y-4">
             <div>
-              <Label className="text-muted-foreground text-xs mb-2 block">Postback URL</Label>
+              <Label className="text-muted-foreground text-xs mb-2 block">Postback URL (Sale / Deposit)</Label>
               <Input
-                placeholder="https://your-tracker.com/postback?click_id={click_id}&status={status}&sum={sum}"
+                placeholder="https://your-tracker.com/postback?click_id={click_id}&status=sale&payout={payout}"
                 value={saleUrl}
                 onChange={(e) => {
                   setSaleUrl(e.target.value);
@@ -205,6 +208,9 @@ export function PostbackSettings() {
                 className="bg-muted border-border text-foreground font-mono text-sm"
                 data-testid="input-sale-postback-url"
               />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Используйте <code className="bg-white/5 px-1 rounded">status=sale</code> и <code className="bg-white/5 px-1 rounded">payout={"{payout}"}</code> для депозитов
+              </p>
             </div>
             <div>
               <Label className="text-muted-foreground text-xs mb-2 block">HTTP метод</Label>
