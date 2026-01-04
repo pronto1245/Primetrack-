@@ -429,14 +429,24 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
 
   const buildUrlWithSubs = (baseUrl: string): string => {
     if (Object.keys(subParams).length === 0) return baseUrl;
-    const url = new URL(baseUrl, window.location.origin);
-    for (let i = 1; i <= 10; i++) {
-      const key = `sub${i}`;
-      if (subParams[key]) {
-        url.searchParams.set(key, subParams[key]);
+    try {
+      const url = new URL(baseUrl, window.location.origin);
+      for (let i = 1; i <= 10; i++) {
+        const key = `sub${i}`;
+        if (subParams[key]) {
+          url.searchParams.set(key, subParams[key]);
+        }
       }
+      return url.toString();
+    } catch {
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const params = Object.entries(subParams)
+        .filter(([, v]) => v)
+        .sort(([a], [b]) => parseInt(a.replace('sub', '')) - parseInt(b.replace('sub', '')))
+        .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+        .join('&');
+      return params ? `${baseUrl}${separator}${params}` : baseUrl;
     }
-    return url.toString();
   };
 
   const { data: offer, isLoading, error } = useQuery<Offer>({
