@@ -84,8 +84,6 @@ function LandingsGroupedByGeo({
   copyToClipboard: (url: string, id: string) => void;
   buildUrlWithSubs: (url: string) => string;
 }) {
-  const [openGeos, setOpenGeos] = useState<Set<string>>(new Set());
-
   const groupedByGeo = useMemo(() => {
     const groups: Record<string, OfferLanding[]> = {};
     landings.forEach(landing => {
@@ -95,6 +93,12 @@ function LandingsGroupedByGeo({
       groups[landing.geo].push(landing);
     });
     return Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+  }, [landings]);
+
+  const [openGeos, setOpenGeos] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setOpenGeos(new Set(groupedByGeo.map(([geo]) => geo)));
   }, [landings]);
 
   const toggleGeo = (geo: string) => {
