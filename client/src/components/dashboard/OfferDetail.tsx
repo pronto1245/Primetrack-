@@ -534,6 +534,19 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                     <Badge className={`${offer.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                       {offer.status === 'active' ? 'Активен' : 'Приостановлен'}
                     </Badge>
+                    {canSeeLinks && offer.creativeLinks && offer.creativeLinks.length > 0 && (
+                      <a
+                        href={offer.creativeLinks[0]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                        data-testid="button-creatives"
+                      >
+                        <Monitor className="w-4 h-4" />
+                        Креативы
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
                     <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${categoryColor}`}>
@@ -805,31 +818,6 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
             </Card>
           )}
 
-          {canSeeLinks && offer.creativeLinks && offer.creativeLinks.length > 0 && (
-            <Card className="bg-card border-border">
-              <CardContent className="p-6">
-                <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4 flex items-center gap-2">
-                  <Monitor className="w-4 h-4" />
-                  Креативы
-                </h3>
-                <div className="space-y-2">
-                  {offer.creativeLinks.map((link, i) => (
-                    <a
-                      key={i}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors bg-muted rounded-lg p-3"
-                      data-testid={`link-creative-${i}`}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Креативы {i + 1}
-                    </a>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
         </div>
       </div>
