@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Users, UserPlus, Loader2, Mail, User, Shield, Briefcase, 
-  BarChart2, HeadphonesIcon, Wallet, Trash2, Edit, KeyRound
+  BarChart2, HeadphonesIcon, Wallet, Trash2, Edit, KeyRound, Info, ChevronDown
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest } from "@/lib/queryClient";
 
 interface StaffMember {
@@ -34,6 +35,7 @@ export function AdvertiserTeam() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [formData, setFormData] = useState({ fullName: "", email: "", staffRole: "analyst", password: "" });
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const { data: staff = [], isLoading } = useQuery<StaffMember[]>({
     queryKey: ["advertiser-staff"],
@@ -196,6 +198,79 @@ export function AdvertiserTeam() {
           </Card>
         ))}
       </div>
+
+      <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+        <Card className="bg-blue-500/5 border-blue-500/20">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-blue-500/10 transition-colors">
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                <div className="flex items-center gap-2 text-blue-400">
+                  <Info className="w-4 h-4" />
+                  Инструкция по управлению командой
+                </div>
+                <ChevronDown className={`w-4 h-4 text-blue-400 transition-transform ${isInstructionOpen ? 'rotate-180' : ''}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0 text-sm text-muted-foreground space-y-4">
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Как добавить сотрудника:</h4>
+                <ol className="list-decimal list-inside space-y-1 ml-2">
+                  <li>Нажмите кнопку "Добавить сотрудника"</li>
+                  <li>Заполните имя, email и пароль</li>
+                  <li>Выберите роль с нужными правами доступа</li>
+                  <li>Сотрудник получит доступ по email + пароль</li>
+                </ol>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Роли и права доступа:</h4>
+                <div className="space-y-2 ml-2">
+                  <div className="flex items-start gap-2">
+                    <Briefcase className="w-4 h-4 mt-0.5 text-purple-400" />
+                    <div>
+                      <span className="font-medium text-foreground">Менеджер</span>
+                      <span className="text-muted-foreground"> — полный доступ ко всем разделам: офферы, партнёры, статистика, финансы</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <BarChart2 className="w-4 h-4 mt-0.5 text-blue-400" />
+                    <div>
+                      <span className="font-medium text-foreground">Аналитик</span>
+                      <span className="text-muted-foreground"> — просмотр статистики, отчётов и дашбордов (без редактирования)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <HeadphonesIcon className="w-4 h-4 mt-0.5 text-emerald-400" />
+                    <div>
+                      <span className="font-medium text-foreground">Поддержка</span>
+                      <span className="text-muted-foreground"> — работа с партнёрами, запросами и коммуникациями</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Wallet className="w-4 h-4 mt-0.5 text-yellow-400" />
+                    <div>
+                      <span className="font-medium text-foreground">Финансист</span>
+                      <span className="text-muted-foreground"> — управление балансами, выплатами и финансовыми операциями</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Важно:</h4>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>Каждый сотрудник входит под своим email и паролем</li>
+                  <li>Сотрудники видят только данные вашего аккаунта рекламодателя</li>
+                  <li>Вы можете изменить роль или заблокировать сотрудника в любой момент</li>
+                  <li>При смене пароля старый пароль перестаёт работать сразу</li>
+                </ul>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       <Card className="bg-card border-border">
         <CardHeader>
