@@ -12,7 +12,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 function getCountryFlag(code: string): string {
   const codeMap: Record<string, string> = {
@@ -416,6 +416,11 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
   const [subParams, setSubParams] = useState<Record<string, string>>({});
   const [selectedLandingIndex, setSelectedLandingIndex] = useState(0);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setSelectedLandingIndex(0);
+    setSubParams({});
+  }, [offerId]);
 
   const updateSubParam = (key: string, value: string) => {
     setSubParams(prev => {
