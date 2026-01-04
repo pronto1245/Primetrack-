@@ -414,6 +414,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
   const [accessRequested, setAccessRequested] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [subParams, setSubParams] = useState<Record<string, string>>({});
+  const [selectedLandingIndex, setSelectedLandingIndex] = useState(0);
   const queryClient = useQueryClient();
 
   const updateSubParam = (key: string, value: string) => {
@@ -749,32 +750,52 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                     </div>
                   ))}
                 </div>
-                {offer.landings && offer.landings.length > 0 && (
-                  <div className="mt-4 p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="text-[10px] text-blue-400 uppercase font-bold">
-                          Лендинг — {offer.landings[0].landingName || offer.landings[0].geo}
-                        </p>
-                        <p className="text-[9px] text-muted-foreground mt-0.5">
-                          {offer.landings.length > 1 ? 'Другие лендинги — в блоке ГЕО слева' : 'Ссылка с вашими sub-параметрами'}
-                        </p>
+                {offer.landings && offer.landings.length > 0 && (() => {
+                  const selectedLanding = offer.landings[selectedLandingIndex] || offer.landings[0];
+                  return (
+                    <div className="mt-4 p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
+                      {offer.landings.length > 1 && (
+                        <div className="mb-3">
+                          <Label className="text-[10px] text-muted-foreground mb-1 block">Выберите лендинг</Label>
+                          <select
+                            value={selectedLandingIndex}
+                            onChange={(e) => setSelectedLandingIndex(parseInt(e.target.value))}
+                            className="w-full bg-muted border border-border rounded-md text-xs h-8 px-2 text-foreground"
+                            data-testid="select-landing"
+                          >
+                            {offer.landings.map((landing, idx) => (
+                              <option key={landing.id} value={idx}>
+                                {landing.geo} — {landing.landingName || `Landing ${idx + 1}`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="text-[10px] text-blue-400 uppercase font-bold">
+                            Лендинг — {selectedLanding.landingName || selectedLanding.geo}
+                          </p>
+                          <p className="text-[9px] text-muted-foreground mt-0.5">
+                            Ссылка с вашими sub-параметрами
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                          onClick={() => copyToClipboard(buildUrlWithSubs(selectedLanding.trackingUrl || selectedLanding.landingUrl), 'preview')}
+                          data-testid="button-copy-preview"
+                        >
+                          {copiedUrl === 'preview' ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        </Button>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
-                        onClick={() => copyToClipboard(buildUrlWithSubs(offer.landings[0].trackingUrl || offer.landings[0].landingUrl), 'preview')}
-                        data-testid="button-copy-preview"
-                      >
-                        {copiedUrl === 'preview' ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      </Button>
+                      <p className="text-[11px] text-foreground font-mono break-all leading-relaxed">
+                        {buildUrlWithSubs(selectedLanding.trackingUrl || selectedLanding.landingUrl)}
+                      </p>
                     </div>
-                    <p className="text-[11px] text-foreground font-mono break-all leading-relaxed">
-                      {buildUrlWithSubs(offer.landings[0].trackingUrl || offer.landings[0].landingUrl)}
-                    </p>
-                  </div>
-                )}
+                  );
+                })()}
               </CardContent>
             </Card>
           )}
