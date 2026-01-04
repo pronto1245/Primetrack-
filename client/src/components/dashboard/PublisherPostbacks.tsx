@@ -33,14 +33,17 @@ interface PostbackSettings {
 
 export function PublisherPostbacks() {
   const queryClient = useQueryClient();
-  const [postbackUrl, setPostbackUrl] = useState("");
-  const [postbackMethod, setPostbackMethod] = useState("GET");
+  const [leadUrl, setLeadUrl] = useState("");
+  const [leadMethod, setLeadMethod] = useState("GET");
+  const [saleUrl, setSaleUrl] = useState("");
+  const [saleMethod, setSaleMethod] = useState("GET");
   const [testUrl, setTestUrl] = useState("");
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { data: settings, isLoading: settingsLoading } = useQuery<PostbackSettings>({
-    queryKey: ["/api/user/postback-settings"],
+    queryKey: ["/api/postback-settings"],
   });
 
   const { data: logs, isLoading: logsLoading, refetch: refetchLogs } = useQuery<PostbackLog[]>({
@@ -48,15 +51,18 @@ export function PublisherPostbacks() {
   });
 
   useEffect(() => {
-    if (settings) {
-      setPostbackUrl(settings.leadPostbackUrl || settings.salePostbackUrl || "");
-      setPostbackMethod(settings.leadPostbackMethod || "GET");
+    if (settings && !isInitialized) {
+      setLeadUrl(settings.leadPostbackUrl || "");
+      setLeadMethod(settings.leadPostbackMethod || "GET");
+      setSaleUrl(settings.salePostbackUrl || "");
+      setSaleMethod(settings.salePostbackMethod || "GET");
+      setIsInitialized(true);
     }
-  }, [settings]);
+  }, [settings, isInitialized]);
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: { leadPostbackUrl: string; salePostbackUrl: string; leadPostbackMethod: string; salePostbackMethod: string }) => {
-      const res = await fetch("/api/user/postback-settings", {
+    mutationFn: async (data: { leadPostbackUrl: string | null; salePostbackUrl: string | null; leadPostbackMethod: string; salePostbackMethod: string }) => {
+      const res = await fetch("/api/postback-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -66,7 +72,7 @@ export function PublisherPostbacks() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/postback-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/postback-settings"] });
       toast.success("Настройки сохранены");
     },
     onError: () => {
@@ -76,10 +82,10 @@ export function PublisherPostbacks() {
 
   const handleSave = () => {
     updateSettingsMutation.mutate({
-      leadPostbackUrl: postbackUrl,
-      salePostbackUrl: postbackUrl,
-      leadPostbackMethod: postbackMethod,
-      salePostbackMethod: postbackMethod,
+      leadPostbackUrl: leadUrl || null,
+      salePostbackUrl: saleUrl || null,
+      leadPostbackMethod: leadMethod,
+      salePostbackMethod: saleMethod,
     });
   };
 
@@ -93,7 +99,7 @@ export function PublisherPostbacks() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ url: testUrl, method: postbackMethod }),
+        body: JSON.stringify({ url: testUrl, method: "GET" }),
       });
       const result = await res.json();
       setTestResult(result);
@@ -138,7 +144,7 @@ export function PublisherPostbacks() {
         <div className="flex items-center gap-3 mb-4">
           <ArrowDownToLine className="w-5 h-5 text-emerald-400" />
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Ваш постбек URL</h3>
+            <h3 className="text-lg font-semibold text-foreground">Ваши постбек URL</h3>
             <p className="text-xs text-muted-foreground">
               URL для получения уведомлений о конверсиях от рекламодателей
             </p>
@@ -159,28 +165,73 @@ export function PublisherPostbacks() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="md:col-span-2">
-            <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
-            <Input
-              placeholder="https://your-tracker.com/postback?subid={click_id}&status={status}&payout={payout}"
-              value={postbackUrl}
-              onChange={(e) => setPostbackUrl(e.target.value)}
-              className="bg-muted border-border text-foreground font-mono text-sm"
-              data-testid="input-postback-url"
-            />
+        <div className="grid gap-6 md:grid-cols-2 mb-4">
+          <div className="space-y-4 p-4 border border-border rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <span className="text-emerald-400 font-bold text-xs">REG</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Lead / Регистрация</h4>
+                <p className="text-[10px] text-muted-foreground">Постбек при регистрации</p>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
+              <Input
+                placeholder="https://your-tracker.com/postback?subid={click_id}&status=lead"
+                value={leadUrl}
+                onChange={(e) => setLeadUrl(e.target.value)}
+                className="bg-muted border-border text-foreground font-mono text-sm"
+                data-testid="input-lead-postback-url"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
+              <Select value={leadMethod} onValueChange={setLeadMethod}>
+                <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-lead-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
-            <Select value={postbackMethod} onValueChange={setPostbackMethod}>
-              <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-method">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-card border-border">
-                <SelectItem value="GET">GET</SelectItem>
-                <SelectItem value="POST">POST</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          <div className="space-y-4 p-4 border border-border rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <span className="text-blue-400 font-bold text-xs">FTD</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Sale / Депозит</h4>
+                <p className="text-[10px] text-muted-foreground">Постбек при продаже</p>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
+              <Input
+                placeholder="https://your-tracker.com/postback?subid={click_id}&status=sale"
+                value={saleUrl}
+                onChange={(e) => setSaleUrl(e.target.value)}
+                className="bg-muted border-border text-foreground font-mono text-sm"
+                data-testid="input-sale-postback-url"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
+              <Select value={saleMethod} onValueChange={setSaleMethod}>
+                <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-sale-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         

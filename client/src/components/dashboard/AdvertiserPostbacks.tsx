@@ -46,6 +46,10 @@ interface PostbackData {
   globalSettings: {
     postbackUrl: string | null;
     postbackMethod: string | null;
+    leadPostbackUrl: string | null;
+    leadPostbackMethod: string | null;
+    salePostbackUrl: string | null;
+    salePostbackMethod: string | null;
   } | null;
   offerSettings: PostbackSetting[];
   logs: PostbackLog[];
@@ -53,33 +57,41 @@ interface PostbackData {
 
 export function AdvertiserPostbacks() {
   const queryClient = useQueryClient();
-  const [globalUrl, setGlobalUrl] = useState<string | null>(null);
-  const [globalMethod, setGlobalMethod] = useState<string | null>(null);
+  const [leadUrl, setLeadUrl] = useState("");
+  const [leadMethod, setLeadMethod] = useState("GET");
+  const [saleUrl, setSaleUrl] = useState("");
+  const [saleMethod, setSaleMethod] = useState("GET");
   const [testUrl, setTestUrl] = useState("");
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
   const [expandedOffers, setExpandedOffers] = useState<Set<string>>(new Set());
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { data, isLoading } = useQuery<PostbackData>({
     queryKey: ["/api/advertiser/postbacks"],
   });
   
   useEffect(() => {
-    if (data?.globalSettings && globalUrl === null) {
-      setGlobalUrl(data.globalSettings.postbackUrl || "");
-      setGlobalMethod(data.globalSettings.postbackMethod || "GET");
+    if (data?.globalSettings && !isInitialized) {
+      setLeadUrl(data.globalSettings.leadPostbackUrl || "");
+      setLeadMethod(data.globalSettings.leadPostbackMethod || "GET");
+      setSaleUrl(data.globalSettings.salePostbackUrl || "");
+      setSaleMethod(data.globalSettings.salePostbackMethod || "GET");
+      setIsInitialized(true);
     }
-  }, [data]);
-  
-  const currentUrl = globalUrl ?? "";
-  const currentMethod = globalMethod ?? "GET";
+  }, [data, isInitialized]);
 
   const { data: offers } = useQuery<any[]>({
     queryKey: ["/api/advertiser/offers"],
   });
 
   const updateGlobalMutation = useMutation({
-    mutationFn: async (data: { postbackUrl: string; postbackMethod: string }) => {
+    mutationFn: async (data: { 
+      leadPostbackUrl: string | null; 
+      leadPostbackMethod: string;
+      salePostbackUrl: string | null;
+      salePostbackMethod: string;
+    }) => {
       const res = await fetch("/api/advertiser/postbacks/global", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -89,14 +101,8 @@ export function AdvertiserPostbacks() {
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/postbacks"] });
-      if (response?.postbackUrl !== undefined) {
-        setGlobalUrl(response.postbackUrl || "");
-      }
-      if (response?.postbackMethod !== undefined) {
-        setGlobalMethod(response.postbackMethod || "GET");
-      }
       toast.success("Настройки сохранены");
     },
     onError: () => {
@@ -131,7 +137,7 @@ export function AdvertiserPostbacks() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ url: testUrl, method: currentMethod }),
+        body: JSON.stringify({ url: testUrl, method: "GET" }),
       });
       const result = await res.json();
       setTestResult(result);
@@ -270,38 +276,82 @@ export function AdvertiserPostbacks() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="md:col-span-2">
-            <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
-            <Input
-              placeholder="https://your-system.com/postback?click_id={click_id}&status={status}"
-              value={currentUrl}
-              onChange={(e) => setGlobalUrl(e.target.value)}
-              className="bg-muted border-border text-foreground font-mono text-sm"
-              data-testid="input-global-postback-url"
-            />
+        <div className="grid gap-6 md:grid-cols-2 mb-4">
+          <div className="space-y-4 p-4 border border-border rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <span className="text-emerald-400 font-bold text-xs">REG</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Lead / Регистрация</h4>
+                <p className="text-[10px] text-muted-foreground">Постбек при регистрации</p>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
+              <Input
+                placeholder="https://your-system.com/postback?click_id={click_id}&status=lead"
+                value={leadUrl}
+                onChange={(e) => setLeadUrl(e.target.value)}
+                className="bg-muted border-border text-foreground font-mono text-sm"
+                data-testid="input-lead-postback-url"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
+              <Select value={leadMethod} onValueChange={setLeadMethod}>
+                <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-lead-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
-            <Select 
-              value={currentMethod} 
-              onValueChange={setGlobalMethod}
-            >
-              <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-global-method">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-card border-border">
-                <SelectItem value="GET">GET</SelectItem>
-                <SelectItem value="POST">POST</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          <div className="space-y-4 p-4 border border-border rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <span className="text-blue-400 font-bold text-xs">FTD</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Sale / Депозит</h4>
+                <p className="text-[10px] text-muted-foreground">Постбек при продаже</p>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
+              <Input
+                placeholder="https://your-system.com/postback?click_id={click_id}&status=sale"
+                value={saleUrl}
+                onChange={(e) => setSaleUrl(e.target.value)}
+                className="bg-muted border-border text-foreground font-mono text-sm"
+                data-testid="input-sale-postback-url"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground font-mono mb-2 block">Метод</Label>
+              <Select value={saleMethod} onValueChange={setSaleMethod}>
+                <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-sale-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         
         <Button
           onClick={() => updateGlobalMutation.mutate({ 
-            postbackUrl: currentUrl, 
-            postbackMethod: currentMethod 
+            leadPostbackUrl: leadUrl || null,
+            leadPostbackMethod: leadMethod,
+            salePostbackUrl: saleUrl || null,
+            salePostbackMethod: saleMethod,
           })}
           disabled={updateGlobalMutation.isPending}
           className="bg-blue-600 hover:bg-blue-700"

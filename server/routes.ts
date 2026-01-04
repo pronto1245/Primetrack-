@@ -2690,6 +2690,10 @@ export async function registerRoutes(
         globalSettings: advertiserSettings ? {
           postbackUrl: advertiserSettings.postbackUrl,
           postbackMethod: advertiserSettings.postbackMethod,
+          leadPostbackUrl: advertiserSettings.leadPostbackUrl,
+          leadPostbackMethod: advertiserSettings.leadPostbackMethod,
+          salePostbackUrl: advertiserSettings.salePostbackUrl,
+          salePostbackMethod: advertiserSettings.salePostbackMethod,
         } : null,
         offerSettings,
         logs,
@@ -2703,21 +2707,29 @@ export async function registerRoutes(
   app.put("/api/advertiser/postbacks/global", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const advertiserId = req.session.userId!;
-      const { postbackUrl, postbackMethod } = req.body;
+      const { 
+        postbackUrl, postbackMethod,
+        leadPostbackUrl, leadPostbackMethod,
+        salePostbackUrl, salePostbackMethod 
+      } = req.body;
       
       const existing = await storage.getAdvertiserSettings(advertiserId);
       
+      const updateData: Record<string, string | null | undefined> = {};
+      if (postbackUrl !== undefined) updateData.postbackUrl = postbackUrl;
+      if (postbackMethod !== undefined) updateData.postbackMethod = postbackMethod;
+      if (leadPostbackUrl !== undefined) updateData.leadPostbackUrl = leadPostbackUrl;
+      if (leadPostbackMethod !== undefined) updateData.leadPostbackMethod = leadPostbackMethod;
+      if (salePostbackUrl !== undefined) updateData.salePostbackUrl = salePostbackUrl;
+      if (salePostbackMethod !== undefined) updateData.salePostbackMethod = salePostbackMethod;
+      
       if (existing) {
-        const updated = await storage.updateAdvertiserSettings(advertiserId, {
-          postbackUrl,
-          postbackMethod,
-        });
+        const updated = await storage.updateAdvertiserSettings(advertiserId, updateData);
         res.json(updated);
       } else {
         const created = await storage.createAdvertiserSettings({
           advertiserId,
-          postbackUrl,
-          postbackMethod,
+          ...updateData,
         });
         res.json(created);
       }

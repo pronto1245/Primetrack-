@@ -60,14 +60,34 @@ export class PostbackSender {
       }
     } else {
       const advertiserSettings = await storage.getAdvertiserSettings(offer.advertiserId);
-      if (advertiserSettings?.postbackUrl) {
-        advertiserTargets.push({
-          url: advertiserSettings.postbackUrl,
-          method: advertiserSettings.postbackMethod || "GET",
-          recipientType: "advertiser",
-          recipientId: offer.advertiserId,
-          offerId: offer.id,
-        });
+      if (advertiserSettings) {
+        // Use type-specific URL if available, otherwise fall back to global URL
+        if (conversion.conversionType === "lead" && advertiserSettings.leadPostbackUrl) {
+          advertiserTargets.push({
+            url: advertiserSettings.leadPostbackUrl,
+            method: advertiserSettings.leadPostbackMethod || "GET",
+            recipientType: "advertiser",
+            recipientId: offer.advertiserId,
+            offerId: offer.id,
+          });
+        } else if (conversion.conversionType === "sale" && advertiserSettings.salePostbackUrl) {
+          advertiserTargets.push({
+            url: advertiserSettings.salePostbackUrl,
+            method: advertiserSettings.salePostbackMethod || "GET",
+            recipientType: "advertiser",
+            recipientId: offer.advertiserId,
+            offerId: offer.id,
+          });
+        } else if (advertiserSettings.postbackUrl) {
+          // Fallback to global postback URL
+          advertiserTargets.push({
+            url: advertiserSettings.postbackUrl,
+            method: advertiserSettings.postbackMethod || "GET",
+            recipientType: "advertiser",
+            recipientId: offer.advertiserId,
+            offerId: offer.id,
+          });
+        }
       }
     }
 
