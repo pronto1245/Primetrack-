@@ -555,10 +555,20 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                     {offer.description.length > 200 && (
                       <button
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                        className="text-blue-400 hover:text-blue-300 text-sm mt-2 font-medium"
+                        className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 text-xs font-medium transition-all border border-blue-500/20"
                         data-testid="button-toggle-description"
                       >
-                        {isDescriptionExpanded ? "Свернуть ↑" : "Развернуть ↓"}
+                        {isDescriptionExpanded ? (
+                          <>
+                            <ChevronDown className="w-3.5 h-3.5 rotate-180" />
+                            Свернуть
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3.5 h-3.5" />
+                            Развернуть
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
