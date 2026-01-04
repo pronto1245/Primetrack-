@@ -751,7 +751,25 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 </div>
                 {offer.landings && offer.landings.length > 0 && (
                   <div className="mt-4 p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-                    <p className="text-[10px] text-blue-400 uppercase font-bold mb-2">Превью ссылки</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="text-[10px] text-blue-400 uppercase font-bold">
+                          {offer.landings[0].landingName || `${offer.landings[0].geo} Landing`}
+                        </p>
+                        {offer.landings.length > 1 && (
+                          <p className="text-[9px] text-muted-foreground mt-0.5">Другие лендинги — в блоке ГЕО слева</p>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                        onClick={() => copyToClipboard(buildUrlWithSubs(offer.landings[0].trackingUrl || offer.landings[0].landingUrl), 'preview')}
+                        data-testid="button-copy-preview"
+                      >
+                        {copiedUrl === 'preview' ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      </Button>
+                    </div>
                     <p className="text-[11px] text-foreground font-mono break-all leading-relaxed">
                       {buildUrlWithSubs(offer.landings[0].trackingUrl || offer.landings[0].landingUrl)}
                     </p>
