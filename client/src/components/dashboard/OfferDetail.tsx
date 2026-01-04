@@ -756,9 +756,9 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                         <p className="text-[10px] text-blue-400 uppercase font-bold">
                           {offer.landings[0].landingName || `${offer.landings[0].geo} Landing`}
                         </p>
-                        {offer.landings.length > 1 && (
-                          <p className="text-[9px] text-muted-foreground mt-0.5">Другие лендинги — в блоке ГЕО слева</p>
-                        )}
+                        <p className="text-[9px] text-muted-foreground mt-0.5">
+                          {offer.landings.length > 1 ? 'Другие лендинги — в блоке ГЕО слева' : 'Ссылка с вашими sub-параметрами'}
+                        </p>
                       </div>
                       <Button
                         size="sm"
