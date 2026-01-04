@@ -127,21 +127,29 @@ export class PostbackSender {
       const publisherPostbackSettings = await storage.getUserPostbackSettings(conversion.publisherId);
       
       if (publisherPostbackSettings) {
+        let legacyUrl: string | null = null;
+        let legacyMethod = "GET";
+        
         if (conversion.conversionType === "lead" && publisherPostbackSettings.leadPostbackUrl) {
-          advertiserTargets.push({
-            url: publisherPostbackSettings.leadPostbackUrl,
-            method: publisherPostbackSettings.leadPostbackMethod || "GET",
-            recipientType: "publisher",
-            recipientId: conversion.publisherId,
-            offerId: offer.id,
-          });
+          legacyUrl = publisherPostbackSettings.leadPostbackUrl;
+          legacyMethod = publisherPostbackSettings.leadPostbackMethod || "GET";
         } else if (conversion.conversionType === "sale" && publisherPostbackSettings.salePostbackUrl) {
-          advertiserTargets.push({
-            url: publisherPostbackSettings.salePostbackUrl,
-            method: publisherPostbackSettings.salePostbackMethod || "GET",
+          legacyUrl = publisherPostbackSettings.salePostbackUrl;
+          legacyMethod = publisherPostbackSettings.salePostbackMethod || "GET";
+        } else if (publisherPostbackSettings.postbackUrl) {
+          // Fallback to global postback URL
+          legacyUrl = publisherPostbackSettings.postbackUrl;
+          legacyMethod = publisherPostbackSettings.postbackMethod || "GET";
+        }
+        
+        if (legacyUrl) {
+          publisherTargets.push({
+            url: legacyUrl,
+            method: legacyMethod,
             recipientType: "publisher",
             recipientId: conversion.publisherId,
             offerId: offer.id,
+            endpoint: null as any,
           });
         }
       }
@@ -160,9 +168,21 @@ export class PostbackSender {
       await this.executePostback(conversion, click, offer, target);
     }
     
-    // Send to publisher targets (new flexible format)
+    // Send to publisher targets
     for (const target of publisherTargets) {
-      await this.executePublisherPostback(conversion, click, offer, target);
+      if (target.endpoint) {
+        // New flexible format with endpoint
+        await this.executePublisherPostback(conversion, click, offer, target);
+      } else {
+        // Legacy format - use executePostback
+        await this.executePostback(conversion, click, offer, {
+          url: target.url,
+          method: target.method,
+          recipientType: "publisher",
+          recipientId: target.recipientId,
+          offerId: target.offerId,
+        });
+      }
     }
   }
 
