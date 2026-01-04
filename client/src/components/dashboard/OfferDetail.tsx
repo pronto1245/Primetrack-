@@ -10,6 +10,7 @@ import {
   Lock, Clock, Send, AlertCircle, ChevronDown, ChevronRight
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo, useEffect } from "react";
