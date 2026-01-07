@@ -62,7 +62,7 @@ export type User = typeof users.$inferSelect;
 export const advertiserStaff = pgTable("advertiser_staff", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(), // Global unique to prevent cross-tenant issues
   fullName: text("full_name").notNull(),
   staffRole: text("staff_role").notNull(), // manager, analyst, support, finance
   password: text("password").notNull(),
