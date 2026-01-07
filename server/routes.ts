@@ -4344,8 +4344,11 @@ export async function registerRoutes(
   // Get advertiser's payment methods
   app.get("/api/advertiser/payment-methods", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
-      const methods = await storage.getPaymentMethodsByAdvertiser(userId);
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const methods = await storage.getPaymentMethodsByAdvertiser(effectiveAdvertiserId);
       res.json(methods);
     } catch (error: any) {
       console.error("Get payment methods error:", error);
@@ -4356,7 +4359,10 @@ export async function registerRoutes(
   // Create payment method
   app.post("/api/advertiser/payment-methods", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { methodType, methodName, currency, minPayout, maxPayout, feePercent, feeFixed, instructions } = req.body;
       
       if (!methodType || !methodName || !currency) {
@@ -4364,7 +4370,7 @@ export async function registerRoutes(
       }
       
       const method = await storage.createPaymentMethod({
-        advertiserId: userId,
+        advertiserId: effectiveAdvertiserId,
         methodType,
         methodName,
         currency,
@@ -4386,11 +4392,14 @@ export async function registerRoutes(
   // Update payment method
   app.put("/api/advertiser/payment-methods/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
       
       const existing = await storage.getPaymentMethod(id);
-      if (!existing || existing.advertiserId !== userId) {
+      if (!existing || existing.advertiserId !== effectiveAdvertiserId) {
         return res.status(404).json({ message: "Payment method not found" });
       }
       
@@ -4405,11 +4414,14 @@ export async function registerRoutes(
   // Delete payment method
   app.delete("/api/advertiser/payment-methods/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
       
       const existing = await storage.getPaymentMethod(id);
-      if (!existing || existing.advertiserId !== userId) {
+      if (!existing || existing.advertiserId !== effectiveAdvertiserId) {
         return res.status(404).json({ message: "Payment method not found" });
       }
       
@@ -5013,8 +5025,11 @@ export async function registerRoutes(
   // Get crypto keys status (never return actual keys)
   app.get("/api/advertiser/crypto/keys/status", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
-      const status = await storage.getCryptoKeysStatus(userId);
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const status = await storage.getCryptoKeysStatus(effectiveAdvertiserId);
       res.json(status);
     } catch (error: any) {
       console.error("Get crypto keys status error:", error);
@@ -5025,7 +5040,10 @@ export async function registerRoutes(
   // Save crypto API keys (encrypted)
   app.post("/api/advertiser/crypto/keys", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { exchange, apiKey, secretKey } = req.body;
 
       const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
@@ -5063,8 +5081,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "OKX requires passphrase" });
       }
 
-      await storage.saveAdvertiserCryptoKeys(userId, keys);
-      const status = await storage.getCryptoKeysStatus(userId);
+      await storage.saveAdvertiserCryptoKeys(effectiveAdvertiserId, keys);
+      const status = await storage.getCryptoKeysStatus(effectiveAdvertiserId);
       
       res.json({ 
         success: true, 
@@ -5080,7 +5098,10 @@ export async function registerRoutes(
   // Delete crypto API keys
   app.delete("/api/advertiser/crypto/keys/:exchange", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { exchange } = req.params;
 
       const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
@@ -5104,8 +5125,8 @@ export async function registerRoutes(
         keys[field] = "";
       }
 
-      await storage.saveAdvertiserCryptoKeys(userId, keys);
-      const status = await storage.getCryptoKeysStatus(userId);
+      await storage.saveAdvertiserCryptoKeys(effectiveAdvertiserId, keys);
+      const status = await storage.getCryptoKeysStatus(effectiveAdvertiserId);
       
       res.json({ 
         success: true, 
@@ -5129,14 +5150,13 @@ export async function registerRoutes(
   app.get("/api/antifraud/rules", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
 
       if (role === "publisher") {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const advertiserId = role === "advertiser" ? userId : undefined;
-      const rules = await storage.getAntifraudRules(advertiserId);
+      const advertiserId = role === "advertiser" ? getEffectiveAdvertiserId(req) : undefined;
+      const rules = await storage.getAntifraudRules(advertiserId || undefined);
       res.json(rules);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch antifraud rules" });
@@ -5147,7 +5167,6 @@ export async function registerRoutes(
   app.post("/api/antifraud/rules", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
 
       if (role === "publisher") {
         return res.status(403).json({ message: "Access denied" });
@@ -5171,8 +5190,12 @@ export async function registerRoutes(
 
       // Advertisers can ONLY create rules for themselves
       if (role === "advertiser") {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (!effectiveAdvertiserId) {
+          return res.status(401).json({ message: "Not authorized as advertiser" });
+        }
         safeRuleData.scope = "advertiser";
-        safeRuleData.advertiserId = userId;
+        safeRuleData.advertiserId = effectiveAdvertiserId;
       } else if (role === "admin") {
         // Admin can choose scope
         safeRuleData.scope = req.body.scope || "global";
@@ -5190,7 +5213,6 @@ export async function registerRoutes(
   app.patch("/api/antifraud/rules/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
       const ruleId = req.params.id;
 
       if (role === "publisher") {
@@ -5204,7 +5226,8 @@ export async function registerRoutes(
 
       // Advertisers can only edit their own (non-global) rules
       if (role === "advertiser") {
-        if (existingRule.scope === "global" || existingRule.advertiserId !== userId) {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (existingRule.scope === "global" || existingRule.advertiserId !== effectiveAdvertiserId) {
           return res.status(403).json({ message: "Access denied" });
         }
       }
@@ -5235,7 +5258,6 @@ export async function registerRoutes(
   app.delete("/api/antifraud/rules/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
       const ruleId = req.params.id;
 
       if (role === "publisher") {
@@ -5248,8 +5270,11 @@ export async function registerRoutes(
       }
 
       // Advertisers can only delete their own rules
-      if (role === "advertiser" && existingRule.advertiserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
+      if (role === "advertiser") {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (existingRule.advertiserId !== effectiveAdvertiserId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       // Only admin can delete global rules
@@ -5268,7 +5293,6 @@ export async function registerRoutes(
   app.get("/api/antifraud/logs", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
 
       if (role === "publisher") {
         return res.status(403).json({ message: "Access denied" });
@@ -5280,7 +5304,7 @@ export async function registerRoutes(
       
       // Advertisers can only see logs for their offers
       if (role === "advertiser") {
-        filters.advertiserId = userId;
+        filters.advertiserId = getEffectiveAdvertiserId(req);
       }
 
       if (offerId) filters.offerId = offerId as string;
@@ -5301,7 +5325,6 @@ export async function registerRoutes(
   app.get("/api/antifraud/suspicious-clicks", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
 
       if (role === "publisher") {
         return res.status(403).json({ message: "Access denied" });
@@ -5313,7 +5336,7 @@ export async function registerRoutes(
       
       // Advertisers can only see their offers' suspicious clicks
       if (role === "advertiser") {
-        filters.advertiserId = userId;
+        filters.advertiserId = getEffectiveAdvertiserId(req);
       } else if (role === "admin") {
         // Admins MUST specify advertiserId OR offerId to prevent cross-tenant exposure
         // Check BEFORE allowing any other filters
@@ -5354,14 +5377,13 @@ export async function registerRoutes(
   app.get("/api/antifraud/summary", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
 
       if (role === "publisher") {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const advertiserId = role === "advertiser" ? userId : undefined;
-      const summary = await storage.getAntifraudSummary(advertiserId);
+      const advertiserId = role === "advertiser" ? getEffectiveAdvertiserId(req) : undefined;
+      const summary = await storage.getAntifraudSummary(advertiserId || undefined);
       res.json(summary);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch antifraud summary" });
@@ -5372,7 +5394,6 @@ export async function registerRoutes(
   app.get("/api/antifraud/metrics", requireAuth, async (req: Request, res: Response) => {
     try {
       const role = req.session.role!;
-      const userId = req.session.userId!;
 
       if (role === "publisher") {
         return res.status(403).json({ message: "Access denied" });
@@ -5383,7 +5404,7 @@ export async function registerRoutes(
       const filters: any = {};
       
       if (role === "advertiser") {
-        filters.advertiserId = userId;
+        filters.advertiserId = getEffectiveAdvertiserId(req);
       }
 
       if (offerId) filters.offerId = offerId as string;
@@ -7109,8 +7130,11 @@ export async function registerRoutes(
       }
       
       // Check access - advertiser can only test their own offers
-      if (role === "advertiser" && offer.advertiserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
+      if (role === "advertiser") {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (offer.advertiserId !== effectiveAdvertiserId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
       
       const testResults: any = {
@@ -7274,15 +7298,17 @@ export async function registerRoutes(
       let offers: any[] = [];
       
       if (role === "admin") {
-        offers = await storage.getOffersByAdvertiser(userId); // Admin sees their own test offers
-        // Or get all offers if admin needs to test any offer
+        // Admin sees all offers for e2e testing
         const allAdvertisers = await storage.getUsersByRole("advertiser");
         for (const adv of allAdvertisers) {
           const advOffers = await storage.getOffersByAdvertiser(adv.id);
           offers.push(...advOffers);
         }
       } else if (role === "advertiser") {
-        offers = await storage.getOffersByAdvertiser(userId);
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (effectiveAdvertiserId) {
+          offers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
+        }
       }
       
       // Filter active offers only and remove duplicates
@@ -7351,9 +7377,12 @@ export async function registerRoutes(
               }
             }
           } else if (role === "advertiser") {
-            const advertiserOffers = await storage.getOffersByAdvertiser(userId);
-            if (advertiserOffers.length > 0) {
-              queryFilters.offerIds = advertiserOffers.map(o => o.id);
+            const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+            if (effectiveAdvertiserId) {
+              const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
+              if (advertiserOffers.length > 0) {
+                queryFilters.offerIds = advertiserOffers.map(o => o.id);
+              }
             }
           }
           
@@ -7399,9 +7428,12 @@ export async function registerRoutes(
               }
             }
           } else if (role === "advertiser") {
-            const advertiserOffers = await storage.getOffersByAdvertiser(userId);
-            if (advertiserOffers.length > 0) {
-              queryFilters.offerIds = advertiserOffers.map(o => o.id);
+            const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+            if (effectiveAdvertiserId) {
+              const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
+              if (advertiserOffers.length > 0) {
+                queryFilters.offerIds = advertiserOffers.map(o => o.id);
+              }
             }
           }
           
@@ -7440,7 +7472,10 @@ export async function registerRoutes(
           if (role === "admin") {
             requests = await storage.getAllPayoutRequests();
           } else if (role === "advertiser") {
-            requests = await storage.getPayoutRequestsByAdvertiser(userId);
+            const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+            if (effectiveAdvertiserId) {
+              requests = await storage.getPayoutRequestsByAdvertiser(effectiveAdvertiserId);
+            }
           }
           
           rows = requests.map((r: any) => ({
@@ -7467,7 +7502,10 @@ export async function registerRoutes(
               payoutsList.push(...advPayouts);
             }
           } else if (role === "advertiser") {
-            payoutsList = await storage.getPayoutsByAdvertiser(userId);
+            const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+            if (effectiveAdvertiserId) {
+              payoutsList = await storage.getPayoutsByAdvertiser(effectiveAdvertiserId);
+            }
           }
           
           rows = payoutsList.map((p: any) => ({
@@ -7505,7 +7543,8 @@ export async function registerRoutes(
           if (role === "admin") {
             logs = await storage.getPostbackLogs({});
           } else if (role === "advertiser") {
-            logs = await storage.getPostbackLogs({ advertiserId: userId });
+            const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+            logs = await storage.getPostbackLogs({ advertiserId: effectiveAdvertiserId || undefined });
           } else if (role === "publisher") {
             logs = await storage.getPostbackLogs({ publisherId: userId });
           }
