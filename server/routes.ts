@@ -15,6 +15,7 @@ import { notificationService } from "./services/notification-service";
 import { totpService } from "./services/totp-service";
 import geoip from "geoip-lite";
 import { resolveRequestHost, resolveRequestOrigin, setWorkerSecret } from "./lib/request-utils";
+import { requireStaffWriteAccess } from "./staffAccessMiddleware";
 
 const clickHandler = new ClickHandler();
 const orchestrator = new Orchestrator();
@@ -1255,7 +1256,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/advertiser/staff", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/advertiser/staff", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
     try {
       const { email, fullName, staffRole, password, advertiserId: bodyAdvertiserId } = req.body;
       
@@ -1302,7 +1303,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put("/api/advertiser/staff/:id", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/advertiser/staff/:id", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { fullName, staffRole, status, password } = req.body;
@@ -1341,7 +1342,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/advertiser/staff/:id", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/advertiser/staff/:id", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
 
@@ -1402,7 +1403,7 @@ export async function registerRoutes(
   });
 
   // Создать оффер с лендингами
-  app.post("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/offers", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const { landings, ...rawOfferData } = req.body;
       
@@ -1552,7 +1553,7 @@ export async function registerRoutes(
   });
 
   // Обновить оффер
-  app.put("/api/offers/:id", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/offers/:id", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1618,7 +1619,7 @@ export async function registerRoutes(
   });
 
   // Архивировать оффер
-  app.patch("/api/offers/:id/archive", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.patch("/api/offers/:id/archive", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1638,7 +1639,7 @@ export async function registerRoutes(
   });
 
   // Восстановить оффер из архива
-  app.patch("/api/offers/:id/restore", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.patch("/api/offers/:id/restore", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.id);
       if (!offer) {
@@ -1658,7 +1659,7 @@ export async function registerRoutes(
   });
 
   // Add landing to offer
-  app.post("/api/offers/:offerId/landings", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/offers/:offerId/landings", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const offer = await storage.getOffer(req.params.offerId);
       if (!offer) {
@@ -3111,7 +3112,7 @@ export async function registerRoutes(
   });
 
   // Advertiser approves or rejects access request
-  app.put("/api/advertiser/access-requests/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.put("/api/advertiser/access-requests/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("requests"), async (req: Request, res: Response) => {
     try {
       const requestId = req.params.id;
       const { action, rejectionReason } = req.body;
@@ -3273,7 +3274,7 @@ export async function registerRoutes(
   });
 
   // Update partner status (approve, block, pause)
-  app.put("/api/advertiser/partners/:id/status", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.put("/api/advertiser/partners/:id/status", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -3392,7 +3393,7 @@ export async function registerRoutes(
   });
 
   // Update partner's offer access status
-  app.put("/api/advertiser/partners/:publisherId/offers/:offerId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.put("/api/advertiser/partners/:publisherId/offers/:offerId", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
     try {
       const { publisherId, offerId } = req.params;
       const { status } = req.body;
@@ -3675,7 +3676,7 @@ export async function registerRoutes(
   });
 
   // Update offer caps
-  app.put("/api/offers/:id/caps", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/offers/:id/caps", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { dailyCap, totalCap, capReachedAction, capRedirectUrl } = req.body;
@@ -4619,7 +4620,7 @@ export async function registerRoutes(
   });
   
   // Advertiser: Update payout request (approve, reject, partial, pay)
-  app.put("/api/advertiser/payout-requests/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.put("/api/advertiser/payout-requests/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("finance"), async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const { id } = req.params;
@@ -4708,7 +4709,7 @@ export async function registerRoutes(
   });
   
   // Advertiser: Create bonus payout
-  app.post("/api/advertiser/payouts/bonus", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/advertiser/payouts/bonus", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("finance"), async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const { publisherId, paymentMethodId, walletAddress, amount, currency, note } = req.body;
@@ -4739,7 +4740,7 @@ export async function registerRoutes(
   });
 
   // Advertiser: Mass payout (pay multiple approved requests at once)
-  app.post("/api/advertiser/mass-payout", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/advertiser/mass-payout", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("finance"), async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const { requestIds } = req.body;
@@ -4802,7 +4803,7 @@ export async function registerRoutes(
   });
   
   // Advertiser: Bulk auto-payout
-  app.post("/api/advertiser/payouts/bulk", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/advertiser/payouts/bulk", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("finance"), async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const { publisherIds, paymentMethodId, note } = req.body;
@@ -4908,7 +4909,7 @@ export async function registerRoutes(
   });
 
   // Send crypto payout
-  app.post("/api/advertiser/crypto/payout", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/advertiser/crypto/payout", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("finance"), async (req: Request, res: Response) => {
     try {
       const { cryptoPayoutService } = await import("./services/crypto-payout-service");
       const userId = req.session.userId!;
@@ -5809,7 +5810,7 @@ export async function registerRoutes(
   });
 
   // Update white-label settings
-  app.patch("/api/advertiser/settings/whitelabel", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.patch("/api/advertiser/settings/whitelabel", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const parseResult = whitelabelSchema.safeParse(req.body);
@@ -5837,7 +5838,7 @@ export async function registerRoutes(
   });
 
   // Update email/SMTP settings (advertiser)
-  app.post("/api/advertiser/settings/email", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  app.post("/api/advertiser/settings/email", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const parseResult = emailSettingsSchema.safeParse(req.body);
