@@ -129,6 +129,65 @@ function getEffectiveAdvertiserId(req: Request): string | null {
   return null;
 }
 
+// Staff role access control
+// manager - full access (same as advertiser)
+// analyst - read-only (reports, statistics, offers view)
+// support - partners and requests
+// finance - payouts and financial operations
+
+function canStaffAccess(req: Request, permission: "read" | "write" | "partners" | "finance" | "offers" | "reports" | "team" | "settings" | "webhooks" | "postbacks"): boolean {
+  if (!req.session.isStaff) return true; // Regular user, full access
+  
+  const role = req.session.staffRole;
+  
+  // Manager has full access
+  if (role === "manager") return true;
+  
+  switch (permission) {
+    case "read":
+      // All roles can read basic data
+      return true;
+    case "reports":
+      // Analyst, Manager can access reports
+      return role === "analyst" || role === "manager";
+    case "partners":
+      // Support, Manager can access partners
+      return role === "support" || role === "manager";
+    case "finance":
+      // Finance, Manager can access payouts
+      return role === "finance" || role === "manager";
+    case "offers":
+      // Analyst (read), Manager (write) - but write is checked separately
+      return role === "analyst" || role === "manager";
+    case "write":
+      // Only Manager can write/modify
+      return role === "manager";
+    case "team":
+      // Only Manager can manage team
+      return role === "manager";
+    case "settings":
+      // Only Manager can access settings
+      return role === "manager";
+    case "webhooks":
+      // Only Manager can manage webhooks
+      return role === "manager";
+    case "postbacks":
+      // All roles can view postbacks
+      return true;
+    default:
+      return false;
+  }
+}
+
+function staffAccessMiddleware(permission: "read" | "write" | "partners" | "finance" | "offers" | "reports" | "team" | "settings" | "webhooks" | "postbacks") {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!canStaffAccess(req, permission)) {
+      return res.status(403).json({ message: "Access denied for your staff role" });
+    }
+    next();
+  };
+}
+
 const MemorySessionStore = MemoryStore(session);
 const PgSessionStore = pgSession(session);
 
