@@ -371,59 +371,100 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Username and password required" });
       }
 
+      // First try to find regular user
       const user = await storage.getUserByUsername(username);
       
-      if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
+      if (user) {
+        // Regular user login
+        const isValidPassword = await storage.verifyPassword(password, user.password);
+        if (!isValidPassword) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
 
-      const isValidPassword = await storage.verifyPassword(password, user.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
+        // Check if 2FA is enabled - don't create full session yet
+        if (user.twoFactorEnabled) {
+          req.session.pending2FAUserId = user.id;
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+          return res.json({ 
+            requires2FA: true,
+            userId: user.id 
+          });
+        }
 
-      // Check if 2FA is enabled - don't create full session yet
-      if (user.twoFactorEnabled) {
-        // Store pending 2FA verification in session
-        req.session.pending2FAUserId = user.id;
+        req.session.userId = user.id;
+        req.session.role = user.role;
+        delete req.session.isStaff;
+        delete req.session.staffRole;
+        delete req.session.staffAdvertiserId;
+
         await new Promise<void>((resolve, reject) => {
           req.session.save((err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error("[session] Failed to save session:", err);
+              reject(err);
+            } else {
+              console.log("[session] Session saved successfully for user:", user.username);
+              resolve();
+            }
           });
         });
+
+        const needsSetup2FA = !user.twoFactorEnabled && !user.twoFactorSetupCompleted;
+
         return res.json({ 
-          requires2FA: true,
-          userId: user.id 
+          id: user.id, 
+          username: user.username, 
+          role: user.role,
+          email: user.email,
+          needsSetup2FA
         });
       }
 
-      req.session.userId = user.id;
-      req.session.role = user.role;
+      // Try staff login (username is email for staff)
+      const staff = await storage.getAdvertiserStaffByEmailOnly(username);
+      
+      if (!staff) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
 
-      // Explicitly save session before responding to ensure it's persisted
+      // Verify staff password
+      const isValidStaffPassword = await storage.verifyPassword(password, staff.password);
+      if (!isValidStaffPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Staff session
+      req.session.userId = staff.id;
+      req.session.role = "advertiser"; // Staff acts as advertiser
+      req.session.isStaff = true;
+      req.session.staffRole = staff.role;
+      req.session.staffAdvertiserId = staff.advertiserId;
+
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
-            console.error("[session] Failed to save session:", err);
+            console.error("[session] Failed to save staff session:", err);
             reject(err);
           } else {
-            console.log("[session] Session saved successfully for user:", user.username);
+            console.log("[session] Staff session saved for:", staff.email, "role:", staff.role);
             resolve();
           }
         });
       });
 
-      // Check if user needs to setup 2FA (first time after registration)
-      // Only require setup if: 2FA not enabled AND never completed setup before
-      const needsSetup2FA = !user.twoFactorEnabled && !user.twoFactorSetupCompleted;
-
       res.json({ 
-        id: user.id, 
-        username: user.username, 
-        role: user.role,
-        email: user.email,
-        needsSetup2FA
+        id: staff.id, 
+        username: staff.email, 
+        role: "advertiser",
+        email: staff.email,
+        isStaff: true,
+        staffRole: staff.role,
+        needsSetup2FA: false // Staff don't have 2FA for now
       });
     } catch (error) {
       console.error("[auth] Login error:", error);
@@ -550,6 +591,31 @@ export async function registerRoutes(
   app.get("/api/user", async (req: Request, res: Response) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // Check if this is a staff session
+    if (req.session.isStaff && req.session.staffAdvertiserId) {
+      const staff = await storage.getAdvertiserStaffById(req.session.userId);
+      if (!staff) {
+        return res.status(401).json({ message: "Staff not found" });
+      }
+      
+      // Get advertiser info for display
+      const advertiser = await storage.getUser(staff.advertiserId);
+      
+      return res.json({
+        id: staff.id,
+        username: staff.email,
+        role: "advertiser",
+        email: staff.email,
+        fullName: staff.name,
+        isStaff: true,
+        staffRole: staff.role,
+        staffAdvertiserId: staff.advertiserId,
+        advertiserName: advertiser?.username || advertiser?.companyName || "Unknown",
+        twoFactorEnabled: false,
+        twoFactorSetupCompleted: true,
+      });
     }
 
     const user = await storage.getUser(req.session.userId);
