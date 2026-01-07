@@ -28,7 +28,18 @@ Preferred communication style: Simple, everyday language (Russian).
 - ✅ Admin - полный доступ
 - ✅ Advertiser - офферы, партнёры, финансы
 - ✅ Publisher - доступ к офферам, ссылки, выплаты
-- ✅ Advertiser Staff (Manager, Support, Finance)
+- ✅ Advertiser Staff (Manager, Analyst, Support, Finance)
+
+### Advertiser Staff (Команда)
+- ✅ Создание сотрудников через Команда → Добавить сотрудника
+- ✅ Вход по email + пароль (указанные при создании)
+- ✅ Session-based аутентификация (без 2FA для staff)
+- ✅ Автоматическая фильтрация меню по роли
+- ✅ Роли и доступ:
+  - **Manager** - полный доступ (как advertiser)
+  - **Analyst** - обзор, офферы (чтение), отчёты, антифрод, новости, постбеки
+  - **Support** - обзор, запросы, партнёры, новости, постбеки
+  - **Finance** - обзор, финансы, новости, постбеки
 
 ---
 
