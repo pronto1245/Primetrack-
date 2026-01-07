@@ -1188,7 +1188,7 @@ export async function registerRoutes(
     try {
       const advertiserId = req.session.role === "admin" 
         ? req.query.advertiserId as string 
-        : req.session.userId!;
+        : getEffectiveAdvertiserId(req)!;
       
       if (!advertiserId) {
         return res.status(400).json({ message: "Advertiser ID required" });
@@ -1208,7 +1208,7 @@ export async function registerRoutes(
       
       const advertiserId = req.session.role === "admin" 
         ? bodyAdvertiserId 
-        : req.session.userId!;
+        : getEffectiveAdvertiserId(req)!;
       
       if (!email || !fullName || !staffRole || !password) {
         return res.status(400).json({ message: "All fields are required" });
@@ -1259,7 +1259,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Staff member not found" });
       }
 
-      if (req.session.role !== "admin" && staff.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (req.session.role !== "admin" && staff.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -1297,7 +1298,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Staff member not found" });
       }
 
-      if (req.session.role !== "admin" && staff.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (req.session.role !== "admin" && staff.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -1313,7 +1315,11 @@ export async function registerRoutes(
   // Получить офферы текущего advertiser
   app.get("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
-      const offers = await storage.getOffersByAdvertiser(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const offers = await storage.getOffersByAdvertiser(advertiserId);
       const offersWithLandings = await Promise.all(
         offers.map(async (offer) => {
           const landings = await storage.getOfferLandings(offer.id);
@@ -1329,7 +1335,11 @@ export async function registerRoutes(
   // Статистика офферов (CR%)
   app.get("/api/offers/stats", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
-      const stats = await storage.getOfferPerformanceByAdvertiser(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const stats = await storage.getOfferPerformanceByAdvertiser(advertiserId);
       res.json(stats);
     } catch (error) {
       console.error("Failed to fetch offer stats:", error);
@@ -1354,6 +1364,11 @@ export async function registerRoutes(
       const { landings, ...rawOfferData } = req.body;
       
       // Санитизация всех полей - numeric() в Drizzle ожидает string
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
       const sanitizedData = {
         ...rawOfferData,
         revSharePercent: sanitizeNumericToString(rawOfferData.revSharePercent),
@@ -1362,7 +1377,7 @@ export async function registerRoutes(
         internalCost: sanitizeNumericToString(rawOfferData.internalCost),
         dailyCap: sanitizeInteger(rawOfferData.dailyCap),
         totalCap: sanitizeInteger(rawOfferData.totalCap),
-        advertiserId: req.session.userId,
+        advertiserId: effectiveAdvertiserId,
         geo: Array.isArray(rawOfferData.geo) ? rawOfferData.geo.filter((g: string) => g && g.trim()) : [],
         trafficSources: Array.isArray(rawOfferData.trafficSources) ? rawOfferData.trafficSources : [],
         appTypes: Array.isArray(rawOfferData.appTypes) ? rawOfferData.appTypes : [],
@@ -1434,7 +1449,11 @@ export async function registerRoutes(
   // Получить архивированные офферы (ВАЖНО: этот route должен быть ДО /api/offers/:id)
   app.get("/api/offers/archived", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
-      const archivedOffers = await storage.getArchivedOffersByAdvertiser(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const archivedOffers = await storage.getArchivedOffersByAdvertiser(advertiserId);
       const offersWithLandings = await Promise.all(
         archivedOffers.map(async (offer) => {
           const landings = await storage.getOfferLandings(offer.id);
@@ -1506,7 +1525,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
       
-      if (offer.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -1572,7 +1592,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
       
-      if (offer.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -1592,7 +1613,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
       
-      if (offer.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -1612,7 +1634,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
       
-      if (offer.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -1794,7 +1817,11 @@ export async function registerRoutes(
   // Статистика для advertiser
   app.get("/api/stats/advertiser", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const offers = await storage.getOffersByAdvertiser(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const offers = await storage.getOffersByAdvertiser(advertiserId);
       
       let totalClicks = 0;
       let totalConversions = 0;
@@ -2329,7 +2356,11 @@ export async function registerRoutes(
 
   app.get("/api/incoming-postback-configs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(advertiserId);
       res.json(configs);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch postback configs" });
@@ -2338,10 +2369,14 @@ export async function registerRoutes(
 
   app.post("/api/incoming-postback-configs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { label, offerId, clickIdParam, statusParam, payoutParam, storeClickIdIn, statusMappings } = req.body;
       
       const config = await storage.createIncomingPostbackConfig({
-        advertiserId: req.session.userId!,
+        advertiserId,
         label: label || "Default",
         offerId: offerId || null,
         clickIdParam: clickIdParam || "click_id",
@@ -2358,10 +2393,14 @@ export async function registerRoutes(
 
   app.put("/api/incoming-postback-configs/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
       const { label, clickIdParam, statusParam, payoutParam, storeClickIdIn, statusMappings, isActive } = req.body;
       
-      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(req.session.userId!);
+      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(advertiserId);
       const config = configs.find(c => c.id === id);
       if (!config) {
         return res.status(404).json({ message: "Config not found" });
@@ -2385,9 +2424,13 @@ export async function registerRoutes(
 
   app.delete("/api/incoming-postback-configs/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
       
-      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(req.session.userId!);
+      const configs = await storage.getIncomingPostbackConfigsByAdvertiser(advertiserId);
       const config = configs.find(c => c.id === id);
       if (!config) {
         return res.status(404).json({ message: "Config not found" });
@@ -2766,7 +2809,10 @@ export async function registerRoutes(
   // Get advertiser's postback settings (global + per-offer)
   app.get("/api/advertiser/postbacks", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       
       // Get global settings from advertiser_settings
       const advertiserSettings = await storage.getAdvertiserSettings(advertiserId);
@@ -2797,7 +2843,10 @@ export async function registerRoutes(
   // Update advertiser's global postback settings
   app.put("/api/advertiser/postbacks/global", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { 
         postbackUrl, postbackMethod,
         leadPostbackUrl, leadPostbackMethod,
@@ -2832,7 +2881,10 @@ export async function registerRoutes(
   // Create/Update per-offer postback settings
   app.put("/api/advertiser/postbacks/offer/:offerId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { offerId } = req.params;
       const { postbackUrl, httpMethod, sendOnLead, sendOnSale, sendOnRejected, isActive } = req.body;
       
@@ -2875,7 +2927,10 @@ export async function registerRoutes(
   // Delete per-offer postback settings
   app.delete("/api/advertiser/postbacks/offer/:offerId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { offerId } = req.params;
       
       // Verify offer belongs to advertiser
@@ -2894,7 +2949,10 @@ export async function registerRoutes(
   // Get postback logs for advertiser
   app.get("/api/advertiser/postbacks/logs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const logs = await storage.getPostbackLogs({ advertiserId, limit: 100 });
       res.json(logs);
     } catch (error) {
@@ -3035,7 +3093,11 @@ export async function registerRoutes(
   // Advertiser views access requests for their offers
   app.get("/api/advertiser/access-requests", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const requests = await storage.getAccessRequestsByAdvertiser(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const requests = await storage.getAccessRequestsByAdvertiser(advertiserId);
       
       const safeRequests = requests.map(r => ({
         ...r,
@@ -3080,8 +3142,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Request already processed" });
       }
 
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       const offer = await storage.getOffer(request.offerId);
-      if (!offer || offer.advertiserId !== req.session.userId) {
+      if (!offer || offer.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3096,7 +3159,7 @@ export async function registerRoutes(
         // Send notification to publisher
         notificationService.notifyAccessApproved(
           request.publisherId,
-          req.session.userId!,
+          effectiveAdvertiserId!,
           offer.name
         ).catch(console.error);
         
@@ -3115,7 +3178,7 @@ export async function registerRoutes(
         // Send notification to publisher
         notificationService.notifyAccessRejected(
           request.publisherId,
-          req.session.userId!,
+          effectiveAdvertiserId!,
           offer.name,
           rejectionReason
         ).catch(console.error);
@@ -3135,7 +3198,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
 
-      if (offer.advertiserId !== req.session.userId) {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3166,6 +3230,10 @@ export async function registerRoutes(
   // Advanced statistics with filters
   app.get("/api/advertiser/stats", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { dateFrom, dateTo, offerIds, publisherIds, geo, status } = req.query;
       
       const filters: any = {};
@@ -3176,7 +3244,7 @@ export async function registerRoutes(
       if (geo) filters.geo = (geo as string).split(',');
       if (status) filters.status = (status as string).split(',');
 
-      const stats = await storage.getAdvertiserStats(req.session.userId!, filters);
+      const stats = await storage.getAdvertiserStats(advertiserId, filters);
       res.json(stats);
     } catch (error) {
       console.error("Stats error:", error);
@@ -3188,15 +3256,19 @@ export async function registerRoutes(
   // Get all partner relations for advertiser with status filter
   app.get("/api/advertiser/partners", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { status } = req.query;
       const relations = await storage.getPublisherAdvertiserRelations(
-        req.session.userId!, 
+        advertiserId, 
         status as string | undefined
       );
       
       // Get stats for each publisher
       const result = await Promise.all(relations.map(async (rel) => {
-        const stats = await storage.getPublisherStatsForAdvertiser(rel.publisherId, req.session.userId!);
+        const stats = await storage.getPublisherStatsForAdvertiser(rel.publisherId, advertiserId);
         return {
           id: rel.id,
           publisherId: rel.publisherId,
@@ -3243,8 +3315,11 @@ export async function registerRoutes(
   // Get partner profile with full details and metrics
   app.get("/api/advertiser/partners/:publisherId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { publisherId } = req.params;
-      const advertiserId = req.session.userId!;
       
       // Get publisher user data
       const publisher = await storage.getUser(publisherId);
@@ -3283,8 +3358,11 @@ export async function registerRoutes(
   // Get offers connected to partner with their status
   app.get("/api/advertiser/partners/:publisherId/offers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { publisherId } = req.params;
-      const advertiserId = req.session.userId!;
       
       // Verify relation exists
       const relation = await storage.getPublisherAdvertiserRelation(publisherId, advertiserId);
@@ -3341,9 +3419,12 @@ export async function registerRoutes(
   // Update partner's offer access status
   app.put("/api/advertiser/partners/:publisherId/offers/:offerId", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { publisherId, offerId } = req.params;
       const { status } = req.body;
-      const advertiserId = req.session.userId!;
       
       if (!["approved", "rejected", "revoked"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
@@ -3365,12 +3446,16 @@ export async function registerRoutes(
   // Get/Generate registration link for advertiser
   app.get("/api/advertiser/registration-link", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      let referralCode = await storage.getAdvertiserReferralCode(req.session.userId!);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      let referralCode = await storage.getAdvertiserReferralCode(advertiserId);
       
       if (!referralCode) {
         // Generate a new referral code
-        referralCode = `ref_${req.session.userId!.slice(0, 8)}_${Date.now().toString(36)}`;
-        await storage.setAdvertiserReferralCode(req.session.userId!, referralCode);
+        referralCode = `ref_${advertiserId.slice(0, 8)}_${Date.now().toString(36)}`;
+        await storage.setAdvertiserReferralCode(advertiserId, referralCode);
       }
       
       // Use PLATFORM_DOMAIN or APP_DOMAIN env or fallback to request host
@@ -5737,11 +5822,14 @@ export async function registerRoutes(
   // Get advertiser settings
   app.get("/api/advertiser/settings", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
-      let settings = await storage.getAdvertiserSettings(userId);
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      let settings = await storage.getAdvertiserSettings(advertiserId);
       
       if (!settings) {
-        settings = await storage.createAdvertiserSettings({ advertiserId: userId });
+        settings = await storage.createAdvertiserSettings({ advertiserId });
       }
       
       // Don't send encrypted values
@@ -5758,14 +5846,17 @@ export async function registerRoutes(
   // Update white-label settings
   app.patch("/api/advertiser/settings/whitelabel", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const parseResult = whitelabelSchema.safeParse(req.body);
       if (!parseResult.success) {
         return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
       }
       const { brandName, logoUrl, primaryColor, customDomain, hidePlatformBranding } = parseResult.data;
       
-      const settings = await storage.updateAdvertiserSettings(userId, {
+      const settings = await storage.updateAdvertiserSettings(advertiserId, {
         brandName,
         logoUrl,
         primaryColor,
@@ -5786,7 +5877,10 @@ export async function registerRoutes(
   // Update email/SMTP settings (advertiser)
   app.post("/api/advertiser/settings/email", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const parseResult = emailSettingsSchema.safeParse(req.body);
       if (!parseResult.success) {
         return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
@@ -5818,7 +5912,7 @@ export async function registerRoutes(
         updateData.telegramBotToken = telegramBotToken === "" ? null : telegramBotToken;
       }
       
-      const settings = await storage.updateAdvertiserSettings(userId, updateData);
+      const settings = await storage.updateAdvertiserSettings(advertiserId, updateData);
       
       if (!settings) {
         return res.status(404).json({ message: "Settings not found" });
@@ -6276,7 +6370,10 @@ export async function registerRoutes(
   // Get all webhooks for advertiser
   app.get("/api/webhooks", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const webhooks = await storage.getWebhookEndpointsByAdvertiser(advertiserId);
       res.json(webhooks);
     } catch (error) {
@@ -6287,7 +6384,10 @@ export async function registerRoutes(
   // Create webhook endpoint
   app.post("/api/webhooks", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { name, url, events, offerIds, publisherIds, method, headers } = req.body;
       
       if (!name || !url || !events || !Array.isArray(events)) {
@@ -6319,8 +6419,11 @@ export async function registerRoutes(
   // Update webhook endpoint
   app.patch("/api/webhooks/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getWebhookEndpoint(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6349,8 +6452,11 @@ export async function registerRoutes(
   // Delete webhook endpoint
   app.delete("/api/webhooks/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getWebhookEndpoint(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6367,8 +6473,11 @@ export async function registerRoutes(
   // Test webhook
   app.post("/api/webhooks/:id/test", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getWebhookEndpoint(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6386,8 +6495,11 @@ export async function registerRoutes(
   // Get webhook logs
   app.get("/api/webhooks/:id/logs", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getWebhookEndpoint(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6404,8 +6516,11 @@ export async function registerRoutes(
   // Regenerate webhook secret
   app.post("/api/webhooks/:id/regenerate-secret", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getWebhookEndpoint(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6429,7 +6544,10 @@ export async function registerRoutes(
   // Get all domains for advertiser
   app.get("/api/domains", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const domains = await storage.getCustomDomainsByAdvertiser(advertiserId);
       
       // Add current CNAME target to domains that don't have dnsTarget set
@@ -6450,7 +6568,10 @@ export async function registerRoutes(
   // Add new domain
   app.post("/api/domains", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { domain } = req.body;
       
       if (!domain) {
@@ -6508,8 +6629,11 @@ export async function registerRoutes(
   // Verify domain
   app.post("/api/domains/:id/verify", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getCustomDomain(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6533,8 +6657,11 @@ export async function registerRoutes(
   // Check SSL status (real TLS handshake)
   app.post("/api/domains/:id/check-ssl", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getCustomDomain(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6567,8 +6694,11 @@ export async function registerRoutes(
   // Set primary domain
   app.post("/api/domains/:id/set-primary", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getCustomDomain(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6590,8 +6720,11 @@ export async function registerRoutes(
   // Sync domain status with Cloudflare
   app.post("/api/domains/:id/sync", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getCustomDomain(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6624,8 +6757,11 @@ export async function registerRoutes(
   // Reprovision domain (delete and recreate Cloudflare hostname)
   app.post("/api/domains/:id/reprovision", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getCustomDomain(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6650,8 +6786,11 @@ export async function registerRoutes(
   // Delete domain
   app.delete("/api/domains/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { id } = req.params;
-      const advertiserId = req.session.userId!;
       
       const existing = await storage.getCustomDomain(id);
       if (!existing || existing.advertiserId !== advertiserId) {
@@ -6678,8 +6817,11 @@ export async function registerRoutes(
   // Get tracking links with custom domain
   app.get("/api/domains/tracking-links/:offerId/:landingId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const { offerId, landingId } = req.params;
-      const advertiserId = req.session.userId!;
 
       const { domainService } = await import("./services/domain-service");
       const links = await domainService.generateTrackingLinks(advertiserId, offerId, landingId);
@@ -6710,7 +6852,10 @@ export async function registerRoutes(
   // Get current subscription status
   app.get("/api/subscription/current", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       let subscription = await storage.getAdvertiserSubscription(advertiserId);
       
       // Create trial if no subscription exists
@@ -6734,7 +6879,10 @@ export async function registerRoutes(
   // Get payment history
   app.get("/api/subscription/payments", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
-      const advertiserId = req.session.userId!;
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
       const payments = await storage.getAdvertiserPayments(advertiserId);
       res.json(payments);
     } catch (error) {
