@@ -1,0 +1,101 @@
+Настройки
+Управление профилем, безопасностью и интеграциями
+
+
+Профиль
+
+Подписка
+
+Безопасность
+
+White-label
+
+Домены
+
+Уведомления
+
+Webhooks
+
+Тесты
+
+Миграция
+White-label настройки
+Настройте брендинг для ваших партнёров
+Название бренда
+парта
+Основной цвет
+
+#e71313
+Дополнительный цвет
+
+#165dc0
+Акцентный цвет
+
+#17d32d
+Логотип бренда
+https://24b37059-5b12-44cb-b70b-19a2dcb6cd9e-00-2qvmj5tosito.riker.replit.dev/objects/uploads/8c900b69-12a7-4a56-92ba-f64370730f81
+Файл не выбранЗагрузить
+Logo preview
+Favicon (иконка вкладки)
+https://example.com/favicon.ico
+Файл не выбранЗагрузить
+URL иконки для вкладки браузера (16x16 или 32x32 px)
+
+Email брендинг
+Логотип для Email
+https://example.com/email-logo.png
+Текст футера Email
+© 2025 Ваша компания
+Расширенные настройки
+Кастомный CSS
+.my-class { color: red; }
+CSS-стили применятся к партнёрскому кабинету
+
+Скрыть брендинг платформы
+Партнёры будут видеть только ваш бренд
+
+FingerprintJS интеграция
+Добавьте этот скрипт на ваш landing page для сбора fingerprint и улучшения антифрод аналитики. Скрипт автоматически добавит visitor_id к tracking ссылкам.
+
+<!-- FingerprintJS Integration -->
+<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+<script>
+(function() {
+  var fpPromise = FingerprintJS.load();
+  
+  window.AffiliateTracker = {
+    getVisitorId: function() {
+      return fpPromise.then(function(fp) {
+        return fp.get();
+      }).then(function(result) {
+        return {
+          visitorId: result.visitorId,
+          confidence: result.confidence.score
+        };
+      });
+    },
+    
+    enhanceLinks: function() {
+      var domain = '24b37059-5b12-44cb-b70b-19a2dcb6cd9e-00-2qvmj5tosito.riker.replit.dev';
+      this.getVisitorId().then(function(data) {
+        document.querySelectorAll('a[href*="' + domain + '"]').forEach(function(link) {
+          var url = new URL(link.href);
+          url.searchParams.set('visitor_id', data.visitorId);
+          url.searchParams.set('fp_confidence', data.confidence.toString());
+          link.href = url.toString();
+        });
+      });
+    }
+  };
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      window.AffiliateTracker.enhanceLinks();
+    });
+  } else {
+    window.AffiliateTracker.enhanceLinks();
+  }
+})();
+</script>
+Копировать
+Сохранить

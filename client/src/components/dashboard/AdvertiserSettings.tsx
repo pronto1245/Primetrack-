@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Palette, Database, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Mail, Globe, Upload, Shield, Key, AlertCircle,
-  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint, CreditCard, Clock, TestTube2
+  CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint, CreditCard, Clock, TestTube2, Info
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -593,16 +593,34 @@ function WhiteLabelTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
-          White-label настройки
-        </CardTitle>
-        <CardDescription>Настройте брендинг для ваших партнёров</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+    <div className="space-y-6">
+      <Card className="bg-blue-500/10 border-blue-500/30">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2 text-blue-400">
+            <Info className="h-4 w-4" />
+            Как работает White-label
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p><strong>1. Название и логотип</strong> — заменяют брендинг платформы в партнёрском кабинете</p>
+          <p><strong>2. Цветовая схема</strong> — основной, дополнительный и акцентный цвета применяются к интерфейсу</p>
+          <p><strong>3. Favicon</strong> — иконка вкладки браузера для партнёров</p>
+          <p><strong>4. Email брендинг</strong> — логотип и футер в письмах партнёрам</p>
+          <p><strong>5. Кастомный CSS</strong> — дополнительные стили для тонкой настройки</p>
+          <p className="text-blue-400 pt-2">Включите "Скрыть брендинг платформы" чтобы партнёры видели только ваш бренд</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            White-label настройки
+          </CardTitle>
+          <CardDescription>Настройте брендинг для ваших партнёров</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="brandName">Название бренда</Label>
             <Input
@@ -911,7 +929,8 @@ function WhiteLabelTab() {
           Сохранить
         </Button>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }
 
