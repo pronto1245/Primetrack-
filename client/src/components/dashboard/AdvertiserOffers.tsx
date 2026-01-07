@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { getCountryFlag } from "./CountrySelector";
+import { useStaff } from "@/contexts/StaffContext";
 
 interface OfferLanding {
   id: string;

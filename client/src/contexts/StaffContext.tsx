@@ -1,7 +1,15 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { 
+  type StaffRole, 
+  type StaffSection,
+  canStaffAccess,
+  canStaffWrite,
+  getSectionFromPath,
+} from "@shared/staffPermissions";
 
-export type StaffRole = "manager" | "analyst" | "support" | "finance";
+export type { StaffRole, StaffSection };
+export { getSectionFromPath };
 
 interface StaffContextType {
   isStaff: boolean;
@@ -11,38 +19,6 @@ interface StaffContextType {
   canWrite: (section: StaffSection) => boolean;
   canAccess: (section: StaffSection) => boolean;
 }
-
-export type StaffSection = 
-  | "overview"
-  | "offers"
-  | "partners"
-  | "requests"
-  | "reports"
-  | "finance"
-  | "antifraud"
-  | "postbacks"
-  | "news"
-  | "team"
-  | "settings";
-
-const ROLE_ACCESS: Record<StaffRole, { view: StaffSection[]; write: StaffSection[] }> = {
-  manager: {
-    view: ["overview", "offers", "partners", "requests", "reports", "finance", "antifraud", "postbacks", "news", "team", "settings"],
-    write: ["overview", "offers", "partners", "requests", "reports", "finance", "antifraud", "postbacks", "news", "team", "settings"],
-  },
-  analyst: {
-    view: ["overview", "offers", "reports", "antifraud", "postbacks", "news"],
-    write: [], // Read-only
-  },
-  support: {
-    view: ["overview", "partners", "requests", "postbacks", "news"],
-    write: ["partners", "requests"], // Can manage partners and requests
-  },
-  finance: {
-    view: ["overview", "finance", "postbacks", "news"],
-    write: ["finance"], // Can manage finance
-  },
-};
 
 const StaffContext = createContext<StaffContextType>({
   isStaff: false,
@@ -69,13 +45,13 @@ export function StaffProvider({ children }: { children: ReactNode }) {
   const advertiserName = userData?.advertiserName || null;
 
   const canAccess = (section: StaffSection): boolean => {
-    if (!isStaff) return true; // Non-staff has full access
-    return ROLE_ACCESS[staffRole].view.includes(section);
+    if (!isStaff) return true;
+    return canStaffAccess(staffRole, section);
   };
 
   const canWrite = (section: StaffSection): boolean => {
-    if (!isStaff) return true; // Non-staff has full access
-    return ROLE_ACCESS[staffRole].write.includes(section);
+    if (!isStaff) return true;
+    return canStaffWrite(staffRole, section);
   };
 
   return (

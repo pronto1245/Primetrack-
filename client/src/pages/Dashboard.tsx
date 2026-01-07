@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
-import { useStaff, type StaffSection } from "@/contexts/StaffContext";
+import { useStaff, getSectionFromPath } from "@/contexts/StaffContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -149,26 +149,6 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
     onNavigate();
   };
   
-  // Map path sections to StaffSection
-  const pathToSection = (path: string): StaffSection | null => {
-    const section = path.split('/').pop() || "";
-    const mapping: Record<string, StaffSection> = {
-      "": "overview",
-      "offers": "offers",
-      "partners": "partners",
-      "requests": "requests",
-      "reports": "reports",
-      "finance": "finance",
-      "antifraud": "antifraud",
-      "postbacks": "postbacks",
-      "news": "news",
-      "team": "team",
-      "settings": "settings",
-    };
-    if (path === `/dashboard/${role}`) return "overview";
-    return mapping[section] || null;
-  };
-  
   const { data: unreadNewsData } = useQuery<{ count: number }>({
     queryKey: ["unread-news-count", selectedAdvertiser?.id],
     queryFn: async () => {
@@ -224,7 +204,7 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
   // Filter menu for staff roles (only for advertiser staff)
   if (isStaff && role === "advertiser") {
     currentMenu = currentMenu.filter(item => {
-      const section = pathToSection(item.path);
+      const section = getSectionFromPath(item.path);
       return section ? canAccess(section) : true;
     });
   }
@@ -369,26 +349,6 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
   
   const unreadNewsCount = unreadNewsData?.count || 0;
   
-  // Map path sections to StaffSection
-  const pathToSection = (path: string): StaffSection | null => {
-    const section = path.split('/').pop() || "";
-    const mapping: Record<string, StaffSection> = {
-      "": "overview",
-      "offers": "offers",
-      "partners": "partners",
-      "requests": "requests",
-      "reports": "reports",
-      "finance": "finance",
-      "antifraud": "antifraud",
-      "postbacks": "postbacks",
-      "news": "news",
-      "team": "team",
-      "settings": "settings",
-    };
-    if (path === `/dashboard/${role}`) return "overview";
-    return mapping[section] || null;
-  };
-  
   const menus = {
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
@@ -431,7 +391,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
   // Filter menu for staff roles (only for advertiser staff)
   if (isStaff && role === "advertiser") {
     currentMenu = currentMenu.filter(item => {
-      const section = pathToSection(item.path);
+      const section = getSectionFromPath(item.path);
       return section ? canAccess(section) : true;
     });
   }
@@ -537,6 +497,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
 
 function MainContent({ role, t }: { role: string, t: any }) {
   const [, setLocation] = useLocation();
+  const { isStaff, canAccess } = useStaff();
   const [matchOffers] = useRoute("/dashboard/:role/offers");
   const [matchArchivedOffers] = useRoute("/dashboard/:role/offers/archived");
   const [matchCreateOffer] = useRoute("/dashboard/:role/offers/new");
@@ -557,6 +518,29 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNewsCreate] = useRoute("/dashboard/:role/news/create");
   const [matchNewsEdit, newsEditParams] = useRoute("/dashboard/:role/news/edit/:newsId");
   const [matchNotifications] = useRoute("/dashboard/:role/notifications");
+  
+  // Staff access control - redirect to overview if accessing restricted section
+  useEffect(() => {
+    if (isStaff && role === "advertiser") {
+      const checkAccess = () => {
+        if (matchTeam && !canAccess("team")) return false;
+        if (matchSettings && !canAccess("settings")) return false;
+        if ((matchPartners || matchPartnerProfile) && !canAccess("partners")) return false;
+        if (matchRequests && !canAccess("requests")) return false;
+        if (matchFinance && !canAccess("finance")) return false;
+        if ((matchOffers || matchArchivedOffers || matchCreateOffer || matchOfferDetail) && !canAccess("offers")) return false;
+        if (matchReports && !canAccess("reports")) return false;
+        if (matchAntifraud && !canAccess("antifraud")) return false;
+        if (matchPostbacks && !canAccess("postbacks")) return false;
+        if ((matchNews || matchNewsCreate || matchNewsEdit) && !canAccess("news")) return false;
+        return true;
+      };
+      
+      if (!checkAccess()) {
+        setLocation(`/dashboard/${role}`);
+      }
+    }
+  }, [isStaff, role, canAccess, setLocation, matchTeam, matchSettings, matchPartners, matchPartnerProfile, matchRequests, matchFinance, matchOffers, matchArchivedOffers, matchCreateOffer, matchOfferDetail, matchReports, matchAntifraud, matchPostbacks, matchNews, matchNewsCreate, matchNewsEdit]);
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
