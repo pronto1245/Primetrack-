@@ -1280,9 +1280,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Password must be at least 6 characters" });
       }
 
-      const existing = await storage.getAdvertiserStaffByEmail(email, advertiserId);
-      if (existing) {
-        return res.status(400).json({ message: "Staff member with this email already exists" });
+      // Check if email is already used globally (prevents cross-tenant issues)
+      const existingGlobal = await storage.getAdvertiserStaffByEmailOnly(email);
+      if (existingGlobal) {
+        return res.status(400).json({ message: "Этот email уже используется другим сотрудником" });
       }
 
       const staff = await storage.createAdvertiserStaff({
