@@ -139,50 +139,6 @@ export function CustomDomainsSettings() {
     },
   });
 
-  const checkSslMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/domains/${id}/check-ssl`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "SSL check failed");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
-      const status = data.sslCheck?.status;
-      if (status === "ssl_active") {
-        toast({ 
-          title: "SSL активен!", 
-          description: data.sslCheck?.issuer ? `Сертификат от ${data.sslCheck.issuer}` : undefined 
-        });
-      } else if (status === "ssl_activating") {
-        toast({ 
-          title: "SSL в процессе", 
-          description: "Попробуйте через несколько минут" 
-        });
-      } else if (status === "verified_no_ssl") {
-        toast({ 
-          title: "SSL не настроен", 
-          description: "Подождите несколько минут и проверьте снова",
-          variant: "destructive"
-        });
-      } else {
-        toast({ 
-          title: "Проверка SSL", 
-          description: data.sslCheck?.error || "Статус обновлён",
-          variant: status === "ssl_failed" ? "destructive" : "default"
-        });
-      }
-    },
-    onError: (error: Error) => {
-      toast({ title: "Ошибка проверки SSL", description: error.message, variant: "destructive" });
-    },
-  });
-
   const syncMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/domains/${id}/sync`, {
@@ -586,26 +542,12 @@ export function CustomDomainsSettings() {
                       <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
                         <p className="text-sm font-medium text-blue-400">SSL сертификат:</p>
                         <p className="text-xs text-muted-foreground">
-                          SSL сертификат выдаётся автоматически после активации домена администратором. 
-                          Подождите несколько минут и нажмите "Проверить SSL".
+                          SSL сертификат выдаётся автоматически после активации домена администратором.
                         </p>
                       </div>
                     )}
                     
                     <div className="flex gap-2">
-                      <Button
-                        variant={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" ? "default" : "outline"}
-                        className={domain.sslStatus === "ssl_active" || domain.sslStatus === "active" 
-                          ? "bg-green-600 hover:bg-green-700 text-white" 
-                          : "border-blue-500 text-blue-500 hover:bg-blue-500/10"}
-                        onClick={() => checkSslMutation.mutate(domain.id)}
-                        disabled={checkSslMutation.isPending}
-                        data-testid={`button-check-ssl-${domain.id}`}
-                      >
-                        <Shield className={`w-4 h-4 mr-2 ${checkSslMutation.isPending ? 'animate-spin' : ''}`} />
-                        Проверить SSL
-                      </Button>
-                      
                       {domain.cloudflareHostnameId && (
                         <Button
                           variant="outline"

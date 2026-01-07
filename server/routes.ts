@@ -6145,7 +6145,7 @@ export async function registerRoutes(
   // Get tracker info (admin)
   app.get("/api/admin/migration/trackers", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     const { migrationService } = await import("./services/migration-service");
-    const trackers = ["scaleo", "affilka", "affise", "voluum", "keitaro"] as const;
+    const trackers = ["scaleo", "affilka", "affise", "alanbase"] as const;
     
     const info = trackers.map(t => ({
       id: t,
@@ -7036,7 +7036,8 @@ export async function registerRoutes(
       });
       
       // Import in background
-      const { migrationService, TrackerType } = await import("./services/migration-service");
+      const { migrationService } = await import("./services/migration-service");
+      type TrackerType = "scaleo" | "affilka" | "affise" | "alanbase";
       
       (async () => {
         try {
