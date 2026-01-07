@@ -350,6 +350,7 @@ export interface IStorage {
   getAdvertiserStaff(advertiserId: string): Promise<AdvertiserStaff[]>;
   getAdvertiserStaffById(id: string): Promise<AdvertiserStaff | undefined>;
   getAdvertiserStaffByEmail(email: string, advertiserId: string): Promise<AdvertiserStaff | undefined>;
+  getAdvertiserStaffByEmailOnly(email: string): Promise<AdvertiserStaff | undefined>;
   createAdvertiserStaff(staff: InsertAdvertiserStaff): Promise<AdvertiserStaff>;
   updateAdvertiserStaff(id: string, data: Partial<InsertAdvertiserStaff>): Promise<AdvertiserStaff | undefined>;
   deleteAdvertiserStaff(id: string): Promise<void>;
@@ -2918,6 +2919,12 @@ export class DatabaseStorage implements IStorage {
   async getAdvertiserStaffByEmail(email: string, advertiserId: string): Promise<AdvertiserStaff | undefined> {
     const [staff] = await db.select().from(advertiserStaff)
       .where(and(eq(advertiserStaff.email, email), eq(advertiserStaff.advertiserId, advertiserId)));
+    return staff;
+  }
+
+  async getAdvertiserStaffByEmailOnly(email: string): Promise<AdvertiserStaff | undefined> {
+    const [staff] = await db.select().from(advertiserStaff)
+      .where(eq(advertiserStaff.email, email));
     return staff;
   }
 

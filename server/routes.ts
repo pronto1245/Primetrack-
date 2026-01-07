@@ -113,7 +113,20 @@ declare module "express-session" {
     userId: string;
     role: string;
     pending2FAUserId?: string;
+    isStaff?: boolean;
+    staffRole?: string;
+    staffAdvertiserId?: string;
   }
+}
+
+function getEffectiveAdvertiserId(req: Request): string | null {
+  if (req.session.isStaff && req.session.staffAdvertiserId) {
+    return req.session.staffAdvertiserId;
+  }
+  if (req.session.role === "advertiser") {
+    return req.session.userId || null;
+  }
+  return null;
 }
 
 const MemorySessionStore = MemoryStore(session);
