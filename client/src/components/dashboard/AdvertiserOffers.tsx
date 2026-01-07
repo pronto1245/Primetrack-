@@ -63,6 +63,7 @@ function getOfferInternalCost(offer: Offer): string | null {
 export function AdvertiserOffers({ role }: { role: string }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { canWrite } = useStaff();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedGeo, setSelectedGeo] = useState<string>("all");
@@ -74,6 +75,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
   const [filterPrivate, setFilterPrivate] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [offerToArchive, setOfferToArchive] = useState<Offer | null>(null);
+  const hasWriteAccess = canWrite("offers");
 
   const archiveOfferMutation = useMutation({
     mutationFn: async (offerId: string) => {
@@ -201,12 +203,14 @@ export function AdvertiserOffers({ role }: { role: string }) {
               Архив
             </Button>
           </Link>
-          <Link href={`/dashboard/${role}/offers/new`}>
-            <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono" data-testid="button-create-offer">
-              <Plus className="w-4 h-4 mr-2" />
-              {t('dashboard.offers.create')}
-            </Button>
-          </Link>
+          {hasWriteAccess && (
+            <Link href={`/dashboard/${role}/offers/new`}>
+              <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono" data-testid="button-create-offer">
+                <Plus className="w-4 h-4 mr-2" />
+                {t('dashboard.offers.create')}
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -349,12 +353,14 @@ export function AdvertiserOffers({ role }: { role: string }) {
           <div className="text-center py-12">
             <Tag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">No offers yet</p>
-            <Link href={`/dashboard/${role}/offers/new`}>
-              <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Offer
-              </Button>
-            </Link>
+            {hasWriteAccess && (
+              <Link href={`/dashboard/${role}/offers/new`}>
+                <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Offer
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
@@ -461,26 +467,30 @@ export function AdvertiserOffers({ role }: { role: string }) {
                             <Eye className="w-3 h-3" />
                           </Button>
                         </Link>
-                        <Link href={`/dashboard/${role}/offers/new?edit=${offer.id}`}>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-6 w-6 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10" 
-                            data-testid={`button-edit-${offer.id}`}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                        </Link>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-6 w-6 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10" 
-                          data-testid={`button-archive-${offer.id}`}
-                          onClick={() => handleArchiveClick(offer)}
-                          title="В архив"
-                        >
-                          <Archive className="w-3 h-3" />
-                        </Button>
+                        {hasWriteAccess && (
+                          <>
+                            <Link href={`/dashboard/${role}/offers/new?edit=${offer.id}`}>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-6 w-6 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10" 
+                                data-testid={`button-edit-${offer.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </Link>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              className="h-6 w-6 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10" 
+                              data-testid={`button-archive-${offer.id}`}
+                              onClick={() => handleArchiveClick(offer)}
+                              title="В архив"
+                            >
+                              <Archive className="w-3 h-3" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

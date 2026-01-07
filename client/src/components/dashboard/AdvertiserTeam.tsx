@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest } from "@/lib/queryClient";
+import { useStaff } from "@/contexts/StaffContext";
 
 interface StaffMember {
   id: string;
@@ -32,10 +33,12 @@ const ROLES = [
 
 export function AdvertiserTeam() {
   const queryClient = useQueryClient();
+  const { canWrite } = useStaff();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [formData, setFormData] = useState({ fullName: "", email: "", staffRole: "analyst", password: "" });
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const hasWriteAccess = canWrite("team");
 
   const { data: staff = [], isLoading } = useQuery<StaffMember[]>({
     queryKey: ["advertiser-staff"],
@@ -108,13 +111,14 @@ export function AdvertiserTeam() {
           <p className="text-muted-foreground text-sm mt-1">Управление доступом сотрудников</p>
         </div>
         
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-staff" className="bg-emerald-600 hover:bg-emerald-500">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Добавить сотрудника
-            </Button>
-          </DialogTrigger>
+        {hasWriteAccess && (
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-staff" className="bg-emerald-600 hover:bg-emerald-500">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Добавить сотрудника
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Добавить сотрудника</DialogTitle>
@@ -178,6 +182,7 @@ export function AdvertiserTeam() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -335,85 +340,89 @@ export function AdvertiserTeam() {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex justify-end gap-2">
-                            <Dialog open={editingStaff?.id === member.id} onOpenChange={open => !open && setEditingStaff(null)}>
-                              <DialogTrigger asChild>
+                            {hasWriteAccess && (
+                              <>
+                                <Dialog open={editingStaff?.id === member.id} onOpenChange={open => !open && setEditingStaff(null)}>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      data-testid={`button-edit-staff-${member.id}`}
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => openEdit(member)}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Редактировать сотрудника</DialogTitle>
+                                    </DialogHeader>
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                      <div className="space-y-2">
+                                        <Label>Имя</Label>
+                                        <Input
+                                          value={formData.fullName}
+                                          onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                          required
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>Роль</Label>
+                                        <Select value={formData.staffRole} onValueChange={v => setFormData({ ...formData, staffRole: v })}>
+                                          <SelectTrigger>
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {ROLES.map(role => (
+                                              <SelectItem key={role.value} value={role.value}>
+                                                {role.label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>Новый пароль (опционально)</Label>
+                                        <Input
+                                          type="password"
+                                          value={formData.password}
+                                          onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                          placeholder="Оставьте пустым, чтобы не менять"
+                                        />
+                                      </div>
+                                      <Button type="submit" className="w-full" disabled={updateMutation.isPending}>
+                                        {updateMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                        Сохранить
+                                      </Button>
+                                    </form>
+                                  </DialogContent>
+                                </Dialog>
+                                
                                 <Button
-                                  data-testid={`button-edit-staff-${member.id}`}
+                                  data-testid={`button-toggle-staff-${member.id}`}
                                   size="sm"
-                                  variant="outline"
-                                  onClick={() => openEdit(member)}
+                                  variant={member.status === "active" ? "destructive" : "default"}
+                                  onClick={() => updateMutation.mutate({ 
+                                    id: member.id, 
+                                    data: { status: member.status === "active" ? "blocked" : "active" }
+                                  })}
+                                  disabled={updateMutation.isPending}
                                 >
-                                  <Edit className="w-4 h-4" />
+                                  <Shield className="w-4 h-4" />
                                 </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Редактировать сотрудника</DialogTitle>
-                                </DialogHeader>
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                  <div className="space-y-2">
-                                    <Label>Имя</Label>
-                                    <Input
-                                      value={formData.fullName}
-                                      onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                                      required
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Роль</Label>
-                                    <Select value={formData.staffRole} onValueChange={v => setFormData({ ...formData, staffRole: v })}>
-                                      <SelectTrigger>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {ROLES.map(role => (
-                                          <SelectItem key={role.value} value={role.value}>
-                                            {role.label}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Новый пароль (опционально)</Label>
-                                    <Input
-                                      type="password"
-                                      value={formData.password}
-                                      onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                      placeholder="Оставьте пустым, чтобы не менять"
-                                    />
-                                  </div>
-                                  <Button type="submit" className="w-full" disabled={updateMutation.isPending}>
-                                    {updateMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                    Сохранить
-                                  </Button>
-                                </form>
-                              </DialogContent>
-                            </Dialog>
-                            
-                            <Button
-                              data-testid={`button-toggle-staff-${member.id}`}
-                              size="sm"
-                              variant={member.status === "active" ? "destructive" : "default"}
-                              onClick={() => updateMutation.mutate({ 
-                                id: member.id, 
-                                data: { status: member.status === "active" ? "blocked" : "active" }
-                              })}
-                              disabled={updateMutation.isPending}
-                            >
-                              <Shield className="w-4 h-4" />
-                            </Button>
-                            
-                            <Button
-                              data-testid={`button-delete-staff-${member.id}`}
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => deleteMutation.mutate(member.id)}
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                                
+                                <Button
+                                  data-testid={`button-delete-staff-${member.id}`}
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => deleteMutation.mutate(member.id)}
+                                  disabled={deleteMutation.isPending}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
