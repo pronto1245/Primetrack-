@@ -3,7 +3,7 @@ import { InsertOffer, InsertUser, InsertPublisherAdvertiser } from "@shared/sche
 import { db } from "../../db";
 import { publisherAdvertisers } from "@shared/schema";
 
-export type TrackerType = "scaleo" | "affilka" | "affise" | "voluum" | "keitaro";
+export type TrackerType = "scaleo" | "affilka" | "affise" | "alanbase";
 
 interface MigrationResult {
   success: boolean;
@@ -61,10 +61,8 @@ class MigrationService {
           return await this.importFromAffilka(apiUrl, apiKey, advertiserId, options, result);
         case "affise":
           return await this.importFromAffise(apiUrl, apiKey, advertiserId, options, result);
-        case "voluum":
-          return await this.importFromVoluum(apiUrl, apiKey, advertiserId, options, result);
-        case "keitaro":
-          return await this.importFromKeitaro(apiUrl, apiKey, advertiserId, options, result);
+        case "alanbase":
+          return await this.importFromAlanbase(apiUrl, apiKey, advertiserId, options, result);
         default:
           result.errors.push(`Unknown tracker: ${tracker}`);
           return result;
@@ -198,7 +196,7 @@ class MigrationService {
     return result;
   }
 
-  private async importFromVoluum(
+  private async importFromAlanbase(
     apiUrl: string,
     apiKey: string,
     advertiserId: string,
@@ -212,13 +210,13 @@ class MigrationService {
 
     if (options.importOffers) {
       try {
-        const response = await fetch(`${apiUrl}/offer`, { headers });
+        const response = await fetch(`${apiUrl}/api/v1/offers`, { headers });
         if (response.ok) {
           const data = await response.json();
-          const offers = data.offers || [];
+          const offers = data.data || data.offers || [];
           
           for (const offer of offers) {
-            await this.createOfferFromVoluum(offer, advertiserId);
+            await this.createOfferFromAlanbase(offer, advertiserId);
             result.imported.offers++;
           }
         } else {
@@ -229,37 +227,22 @@ class MigrationService {
       }
     }
 
-    result.success = result.errors.length === 0;
-    return result;
-  }
-
-  private async importFromKeitaro(
-    apiUrl: string,
-    apiKey: string,
-    advertiserId: string,
-    options: any,
-    result: MigrationResult
-  ): Promise<MigrationResult> {
-    const headers = {
-      "Api-Key": apiKey,
-      "Content-Type": "application/json",
-    };
-
-    if (options.importOffers) {
+    if (options.importPublishers) {
       try {
-        const response = await fetch(`${apiUrl}/admin_api/v1/offers`, { headers });
+        const response = await fetch(`${apiUrl}/api/v1/affiliates`, { headers });
         if (response.ok) {
-          const offers = await response.json();
+          const data = await response.json();
+          const publishers = data.data || data.affiliates || [];
           
-          for (const offer of offers) {
-            await this.createOfferFromKeitaro(offer, advertiserId);
-            result.imported.offers++;
+          for (const pub of publishers) {
+            await this.createPublisherFromAlanbase(pub, advertiserId);
+            result.imported.publishers++;
           }
         } else {
-          result.errors.push(`Failed to fetch offers: ${response.status}`);
+          result.errors.push(`Failed to fetch publishers: ${response.status}`);
         }
       } catch (e: any) {
-        result.errors.push(`Offers import error: ${e.message}`);
+        result.errors.push(`Publishers import error: ${e.message}`);
       }
     }
 
@@ -338,22 +321,23 @@ class MigrationService {
     await storage.createOffer(newOffer);
   }
 
-  private async createOfferFromVoluum(offer: any, advertiserId: string) {
+  private async createOfferFromAlanbase(offer: any, advertiserId: string) {
     const payout = parseFloat(offer.payout) || 0;
+    const revenue = parseFloat(offer.revenue) || payout;
     
     const newOffer: InsertOffer = {
       advertiserId,
-      name: offer.name || "Imported Offer",
-      description: offer.notes || "",
-      status: "active",
-      geo: offer.countries || ["WW"],
-      category: "other",
+      name: offer.name || offer.title || "Imported Offer",
+      description: offer.description || "",
+      status: offer.status === "active" || offer.is_active ? "active" : "paused",
+      geo: Array.isArray(offer.geo) ? offer.geo : (offer.countries || ["WW"]),
+      category: offer.vertical || offer.category || "other",
       payoutModel: "CPA",
       partnerPayout: payout.toFixed(2),
-      internalCost: payout.toFixed(2),
+      internalCost: revenue.toFixed(2),
       currency: offer.currency || "USD",
-      holdPeriodDays: 7,
-      trafficSources: [],
+      holdPeriodDays: offer.hold_period || 7,
+      trafficSources: offer.traffic_sources || [],
       appTypes: [],
       creativeLinks: [],
     };
@@ -361,27 +345,27 @@ class MigrationService {
     await storage.createOffer(newOffer);
   }
 
-  private async createOfferFromKeitaro(offer: any, advertiserId: string) {
-    const payout = parseFloat(offer.payout) || 0;
-    
-    const newOffer: InsertOffer = {
-      advertiserId,
-      name: offer.name || "Imported Offer",
-      description: offer.notes || "",
-      status: offer.state === "active" ? "active" : "paused",
-      geo: offer.countries || ["WW"],
-      category: offer.group_id ? String(offer.group_id) : "other",
-      payoutModel: "CPA",
-      partnerPayout: payout.toFixed(2),
-      internalCost: payout.toFixed(2),
-      currency: offer.currency || "USD",
-      holdPeriodDays: 7,
-      trafficSources: [],
-      appTypes: [],
-      creativeLinks: [],
+  private async createPublisherFromAlanbase(pub: any, advertiserId: string) {
+    const existingUser = await storage.getUserByEmail(pub.email);
+    if (existingUser) {
+      return;
+    }
+
+    const newUser: InsertUser = {
+      username: pub.login || pub.username || pub.email.split("@")[0],
+      email: pub.email,
+      password: "temp_" + Math.random().toString(36).substring(7),
+      role: "publisher",
+      status: pub.status === "active" || pub.is_active ? "active" : "pending",
     };
+
+    const user = await storage.createUser(newUser);
     
-    await storage.createOffer(newOffer);
+    await db.insert(publisherAdvertisers).values({
+      publisherId: user.id,
+      advertiserId,
+      status: "active",
+    });
   }
 
   private async createPublisherFromScaleo(pub: any, advertiserId: string) {
@@ -424,15 +408,10 @@ class MigrationService {
         apiUrlPlaceholder: "https://api-your.affise.com",
         apiKeyHelp: "API Key из Settings → Security",
       },
-      voluum: {
-        name: "Voluum",
-        apiUrlPlaceholder: "https://api.voluum.com",
-        apiKeyHelp: "Access Token из Settings → Access Tokens",
-      },
-      keitaro: {
-        name: "Keitaro",
-        apiUrlPlaceholder: "https://your-tracker.com",
-        apiKeyHelp: "API Key из Maintenance → API",
+      alanbase: {
+        name: "Alanbase",
+        apiUrlPlaceholder: "https://your-domain.alanbase.com",
+        apiKeyHelp: "API Token из Settings → API",
       },
     };
 

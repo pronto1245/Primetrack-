@@ -6985,6 +6985,127 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // DATA MIGRATION (Advertiser)
+  // ============================================
+  
+  // Get migration history
+  app.get("/api/advertiser/migrations", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const migrations = await storage.getMigrationsByAdvertiser(advertiserId);
+      res.json(migrations);
+    } catch (error) {
+      console.error("Failed to get migrations:", error);
+      res.status(500).json({ message: "Failed to get migrations" });
+    }
+  });
+  
+  // Start new migration
+  app.post("/api/advertiser/migrations", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const { sourceTracker, apiUrl, apiKey, importOffers, importPublishers, importConversions, importClicks } = req.body;
+      
+      if (!sourceTracker || !apiUrl || !apiKey) {
+        return res.status(400).json({ message: "Source tracker, API URL, and API key are required" });
+      }
+      
+      const validTrackers = ["scaleo", "affilka", "affise", "alanbase"];
+      if (!validTrackers.includes(sourceTracker)) {
+        return res.status(400).json({ message: `Invalid tracker. Must be one of: ${validTrackers.join(", ")}` });
+      }
+      
+      // Create migration record
+      const migration = await storage.createMigration({
+        advertiserId,
+        sourceTracker,
+        apiUrl,
+        status: "in_progress",
+        importOffers: importOffers !== false,
+        importPublishers: importPublishers !== false,
+        importConversions: importConversions === true,
+        importClicks: importClicks === true,
+        startedAt: new Date(),
+      });
+      
+      // Import in background
+      const { migrationService, TrackerType } = await import("./services/migration-service");
+      
+      (async () => {
+        try {
+          const result = await migrationService.importFromTracker(
+            sourceTracker as TrackerType,
+            apiUrl,
+            apiKey,
+            advertiserId,
+            {
+              importOffers: importOffers !== false,
+              importPublishers: importPublishers !== false,
+              importConversions: importConversions === true,
+              importClicks: importClicks === true,
+            }
+          );
+          
+          await storage.updateMigration(migration.id, {
+            status: result.success ? "completed" : "failed",
+            importedOffers: result.imported.offers,
+            importedPublishers: result.imported.publishers,
+            importedConversions: result.imported.conversions,
+            importedClicks: result.imported.clicks,
+            totalRecords: result.imported.offers + result.imported.publishers + result.imported.conversions + result.imported.clicks,
+            processedRecords: result.imported.offers + result.imported.publishers + result.imported.conversions + result.imported.clicks,
+            failedRecords: result.errors.length,
+            errors: result.errors,
+            completedAt: new Date(),
+          });
+        } catch (error: any) {
+          await storage.updateMigration(migration.id, {
+            status: "failed",
+            errors: [error.message || "Unknown error"],
+            completedAt: new Date(),
+          });
+        }
+      })();
+      
+      res.json({ success: true, migrationId: migration.id, message: "Migration started" });
+    } catch (error) {
+      console.error("Failed to start migration:", error);
+      res.status(500).json({ message: "Failed to start migration" });
+    }
+  });
+  
+  // Get migration status
+  app.get("/api/advertiser/migrations/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const migration = await storage.getMigration(req.params.id);
+      if (!migration) {
+        return res.status(404).json({ message: "Migration not found" });
+      }
+      
+      if (migration.advertiserId !== advertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(migration);
+    } catch (error) {
+      console.error("Failed to get migration:", error);
+      res.status(500).json({ message: "Failed to get migration" });
+    }
+  });
+
+  // ============================================
   // SUBSCRIPTION PLANS (Public)
   // ============================================
   app.get("/api/subscription/plans", async (req: Request, res: Response) => {
