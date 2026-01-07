@@ -405,6 +405,28 @@ export interface IStorage {
   // Offer Performance Stats
   getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]>;
   getOfferPerformanceByPublisher(publisherId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]>;
+  
+  // Custom Domains - Admin request workflow
+  getAllDomainRequests(): Promise<(CustomDomain & { advertiser: User })[]>;
+  submitDomainRequest(domainId: string): Promise<CustomDomain | undefined>;
+  approveDomainRequest(domainId: string, adminNotes?: string): Promise<CustomDomain | undefined>;
+  rejectDomainRequest(domainId: string, reason: string): Promise<CustomDomain | undefined>;
+  activateDomain(domainId: string): Promise<CustomDomain | undefined>;
+  
+  // Whitelabel Settings
+  getWhitelabelSettings(advertiserId: string): Promise<AdvertiserSettings | undefined>;
+  updateWhitelabelSettings(advertiserId: string, data: {
+    brandName?: string;
+    logoUrl?: string;
+    faviconUrl?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+    hidePlatformBranding?: boolean;
+    customCss?: string;
+    emailLogoUrl?: string;
+    emailFooterText?: string;
+  }): Promise<AdvertiserSettings | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3225,6 +3247,104 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return domains[0]?.domain || null;
+  }
+
+  // Domain Request Workflow (Admin)
+  async getAllDomainRequests(): Promise<(CustomDomain & { advertiser: User })[]> {
+    const results = await db
+      .select({
+        domain: customDomains,
+        advertiser: users,
+      })
+      .from(customDomains)
+      .innerJoin(users, eq(customDomains.advertiserId, users.id))
+      .where(
+        or(
+          eq(customDomains.requestStatus, "admin_review"),
+          eq(customDomains.requestStatus, "ns_configured"),
+          eq(customDomains.requestStatus, "provisioning"),
+          eq(customDomains.requestStatus, "pending")
+        )
+      )
+      .orderBy(desc(customDomains.requestedAt));
+    
+    return results.map((r) => ({ ...r.domain, advertiser: r.advertiser }));
+  }
+
+  async submitDomainRequest(domainId: string): Promise<CustomDomain | undefined> {
+    const [updated] = await db.update(customDomains)
+      .set({
+        requestStatus: "admin_review",
+        requestedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(customDomains.id, domainId))
+      .returning();
+    return updated;
+  }
+
+  async approveDomainRequest(domainId: string, adminNotes?: string): Promise<CustomDomain | undefined> {
+    const [updated] = await db.update(customDomains)
+      .set({
+        requestStatus: "provisioning",
+        adminNotes: adminNotes || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(customDomains.id, domainId))
+      .returning();
+    return updated;
+  }
+
+  async rejectDomainRequest(domainId: string, reason: string): Promise<CustomDomain | undefined> {
+    const [updated] = await db.update(customDomains)
+      .set({
+        requestStatus: "rejected",
+        rejectionReason: reason,
+        updatedAt: new Date(),
+      })
+      .where(eq(customDomains.id, domainId))
+      .returning();
+    return updated;
+  }
+
+  async activateDomain(domainId: string): Promise<CustomDomain | undefined> {
+    const [updated] = await db.update(customDomains)
+      .set({
+        requestStatus: "active",
+        isVerified: true,
+        isActive: true,
+        verifiedAt: new Date(),
+        activatedAt: new Date(),
+        sslStatus: "ssl_active",
+        updatedAt: new Date(),
+      })
+      .where(eq(customDomains.id, domainId))
+      .returning();
+    return updated;
+  }
+
+  // Whitelabel Settings
+  async getWhitelabelSettings(advertiserId: string): Promise<AdvertiserSettings | undefined> {
+    return this.getAdvertiserSettings(advertiserId);
+  }
+
+  async updateWhitelabelSettings(advertiserId: string, data: {
+    brandName?: string;
+    logoUrl?: string;
+    faviconUrl?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+    hidePlatformBranding?: boolean;
+    customCss?: string;
+    emailLogoUrl?: string;
+    emailFooterText?: string;
+  }): Promise<AdvertiserSettings | undefined> {
+    let settings = await this.getAdvertiserSettings(advertiserId);
+    if (!settings) {
+      settings = await this.createAdvertiserSettings({ advertiserId });
+    }
+    return this.updateAdvertiserSettings(advertiserId, data);
   }
 
   async getAcmeAccount(): Promise<AcmeAccount | undefined> {
