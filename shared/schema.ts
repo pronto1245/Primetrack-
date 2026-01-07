@@ -365,12 +365,20 @@ export const advertiserSettings = pgTable("advertiser_settings", {
   salePostbackUrl: text("sale_postback_url"),
   salePostbackMethod: text("sale_postback_method").default("GET"),
   
-  // White-label
+  // White-label branding
   brandName: text("brand_name"),
   logoUrl: text("logo_url"),
+  faviconUrl: text("favicon_url"),
   primaryColor: text("primary_color"),
+  secondaryColor: text("secondary_color"),
+  accentColor: text("accent_color"),
   customDomain: text("custom_domain"),
   hidePlatformBranding: boolean("hide_platform_branding").default(false),
+  customCss: text("custom_css"),
+  
+  // White-label email settings
+  emailLogoUrl: text("email_logo_url"),
+  emailFooterText: text("email_footer_text"),
   
   // Financial settings
   defaultHoldPeriodDays: integer("default_hold_period_days").default(7),
@@ -1292,9 +1300,18 @@ export const customDomains = pgTable("custom_domains", {
   
   // Verification
   verificationToken: text("verification_token").notNull(),
-  verificationMethod: text("verification_method").notNull().default("cname"), // cname, txt
+  verificationMethod: text("verification_method").notNull().default("ns"), // cname, txt, ns
   isVerified: boolean("is_verified").default(false),
   verifiedAt: timestamp("verified_at"),
+  
+  // NS-based domain request workflow
+  requestStatus: text("request_status").default("pending"), // pending, ns_configured, admin_review, provisioning, active, rejected
+  nsVerified: boolean("ns_verified").default(false),
+  nsVerifiedAt: timestamp("ns_verified_at"),
+  adminNotes: text("admin_notes"),
+  rejectionReason: text("rejection_reason"),
+  requestedAt: timestamp("requested_at"),
+  activatedAt: timestamp("activated_at"),
   
   // SSL status
   sslStatus: text("ssl_status").default("pending"), // pending, provisioning, active, failed
