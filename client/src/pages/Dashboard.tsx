@@ -142,7 +142,7 @@ function MobileHeader({ role, mobileMenuOpen, setMobileMenuOpen, t }: {
 function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate: () => void }) {
   const { selectedAdvertiser } = useAdvertiserContext();
   const [, setLocation] = useLocation();
-  const { isStaff, canAccess } = useStaff();
+  const { isStaff, staffLoading, canAccess } = useStaff();
   
   const handleNavClick = (path: string) => {
     setLocation(path);
@@ -201,8 +201,8 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
 
   let currentMenu = menus[role as keyof typeof menus] || menus.publisher;
   
-  // Filter menu for staff roles (only for advertiser staff)
-  if (isStaff && role === "advertiser") {
+  // Filter menu for staff roles (only for advertiser staff, wait for loading to complete)
+  if (!staffLoading && isStaff && role === "advertiser") {
     currentMenu = currentMenu.filter(item => {
       const section = getSectionFromPath(item.path);
       return section ? canAccess(section) : true;
@@ -332,7 +332,7 @@ function ManagerCard() {
 
 function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: () => void }) {
   const { selectedAdvertiser } = useAdvertiserContext();
-  const { isStaff, canAccess } = useStaff();
+  const { isStaff, staffLoading, canAccess } = useStaff();
   
   // Fetch unread news count
   const { data: unreadNewsData } = useQuery<{ count: number }>({
@@ -388,8 +388,8 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
 
   let currentMenu = menus[role as keyof typeof menus] || menus.publisher;
   
-  // Filter menu for staff roles (only for advertiser staff)
-  if (isStaff && role === "advertiser") {
+  // Filter menu for staff roles (only for advertiser staff, wait for loading to complete)
+  if (!staffLoading && isStaff && role === "advertiser") {
     currentMenu = currentMenu.filter(item => {
       const section = getSectionFromPath(item.path);
       return section ? canAccess(section) : true;
@@ -497,7 +497,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
 
 function MainContent({ role, t }: { role: string, t: any }) {
   const [, setLocation] = useLocation();
-  const { isStaff, canAccess } = useStaff();
+  const { isStaff, staffLoading, canAccess } = useStaff();
   const [matchOffers] = useRoute("/dashboard/:role/offers");
   const [matchArchivedOffers] = useRoute("/dashboard/:role/offers/archived");
   const [matchCreateOffer] = useRoute("/dashboard/:role/offers/new");
@@ -520,7 +520,9 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNotifications] = useRoute("/dashboard/:role/notifications");
   
   // Staff access control - redirect to overview if accessing restricted section
+  // Wait for staffLoading to complete before checking access
   useEffect(() => {
+    if (staffLoading) return;
     if (isStaff && role === "advertiser") {
       const checkAccess = () => {
         if (matchTeam && !canAccess("team")) return false;
@@ -540,7 +542,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
         setLocation(`/dashboard/${role}`);
       }
     }
-  }, [isStaff, role, canAccess, setLocation, matchTeam, matchSettings, matchPartners, matchPartnerProfile, matchRequests, matchFinance, matchOffers, matchArchivedOffers, matchCreateOffer, matchOfferDetail, matchReports, matchAntifraud, matchPostbacks, matchNews, matchNewsCreate, matchNewsEdit]);
+  }, [staffLoading, isStaff, role, canAccess, setLocation, matchTeam, matchSettings, matchPartners, matchPartnerProfile, matchRequests, matchFinance, matchOffers, matchArchivedOffers, matchCreateOffer, matchOfferDetail, matchReports, matchAntifraud, matchPostbacks, matchNews, matchNewsCreate, matchNewsEdit]);
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({

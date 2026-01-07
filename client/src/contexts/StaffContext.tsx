@@ -13,24 +13,26 @@ export { getSectionFromPath };
 
 interface StaffContextType {
   isStaff: boolean;
-  staffRole: StaffRole;
+  staffRole: StaffRole | null;
   staffAdvertiserId: string | null;
   advertiserName: string | null;
+  staffLoading: boolean;
   canWrite: (section: StaffSection) => boolean;
   canAccess: (section: StaffSection) => boolean;
 }
 
 const StaffContext = createContext<StaffContextType>({
   isStaff: false,
-  staffRole: "manager",
+  staffRole: null,
   staffAdvertiserId: null,
   advertiserName: null,
+  staffLoading: true,
   canWrite: () => true,
   canAccess: () => true,
 });
 
 export function StaffProvider({ children }: { children: ReactNode }) {
-  const { data: userData } = useQuery<{
+  const { data: userData, isLoading } = useQuery<{
     isStaff?: boolean;
     staffRole?: StaffRole;
     staffAdvertiserId?: string;
@@ -39,18 +41,23 @@ export function StaffProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/user"],
   });
 
+  const staffLoading = isLoading;
   const isStaff = userData?.isStaff || false;
-  const staffRole: StaffRole = (userData?.staffRole as StaffRole) || "manager";
+  const staffRole: StaffRole | null = (userData?.staffRole as StaffRole) || null;
   const staffAdvertiserId = userData?.staffAdvertiserId || null;
   const advertiserName = userData?.advertiserName || null;
 
   const canAccess = (section: StaffSection): boolean => {
+    if (staffLoading) return true;
     if (!isStaff) return true;
+    if (!staffRole) return true;
     return canStaffAccess(staffRole, section);
   };
 
   const canWrite = (section: StaffSection): boolean => {
+    if (staffLoading) return true;
     if (!isStaff) return true;
+    if (!staffRole) return true;
     return canStaffWrite(staffRole, section);
   };
 
@@ -61,6 +68,7 @@ export function StaffProvider({ children }: { children: ReactNode }) {
         staffRole,
         staffAdvertiserId,
         advertiserName,
+        staffLoading,
         canWrite,
         canAccess,
       }}
