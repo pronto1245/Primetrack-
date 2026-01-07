@@ -4075,8 +4075,12 @@ export async function registerRoutes(
           }
         }
       } else if (role === "advertiser") {
-        // Advertiser sees only clicks on their offers
-        const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+        // Advertiser sees only clicks on their offers - use getEffectiveAdvertiserId for staff support
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (!effectiveAdvertiserId) {
+          return res.json({ clicks: [], total: 0, page: 1, limit: 50, summary: { clicks: 0, unique: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0 } });
+        }
+        const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
         if (advertiserOffers.length > 0) {
           filters.offerIds = advertiserOffers.map(o => o.id);
         } else {
@@ -4225,7 +4229,12 @@ export async function registerRoutes(
           }
         }
       } else if (role === "advertiser") {
-        const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+        // Use getEffectiveAdvertiserId for staff support
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (!effectiveAdvertiserId) {
+          return res.json({ conversions: [], total: 0, page: 1, limit: 50 });
+        }
+        const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
         if (advertiserOffers.length > 0) {
           filters.offerIds = advertiserOffers.map(o => o.id);
         } else {
@@ -4291,7 +4300,12 @@ export async function registerRoutes(
           }
         }
       } else if (role === "advertiser") {
-        const advertiserOffers = await storage.getOffersByAdvertiser(userId);
+        // Use getEffectiveAdvertiserId for staff support
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (!effectiveAdvertiserId) {
+          return res.json({ data: [], totals: {} });
+        }
+        const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
         if (advertiserOffers.length > 0) {
           filters.offerIds = advertiserOffers.map(o => o.id);
         } else {

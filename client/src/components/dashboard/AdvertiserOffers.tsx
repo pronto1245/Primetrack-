@@ -197,12 +197,14 @@ export function AdvertiserOffers({ role }: { role: string }) {
           <p className="text-muted-foreground text-sm font-mono">{t('dashboard.offers.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/dashboard/${role}/offers/archived`}>
-            <Button variant="outline" className="text-foreground font-mono" data-testid="button-view-archive">
-              <Archive className="w-4 h-4 mr-2" />
-              Архив
-            </Button>
-          </Link>
+          {canWrite("offers") && (
+            <Link href={`/dashboard/${role}/offers/archived`}>
+              <Button variant="outline" className="text-foreground font-mono" data-testid="button-view-archive">
+                <Archive className="w-4 h-4 mr-2" />
+                Архив
+              </Button>
+            </Link>
+          )}
           {hasWriteAccess && (
             <Link href={`/dashboard/${role}/offers/new`}>
               <Button className="bg-blue-600 hover:bg-blue-500 text-foreground font-mono" data-testid="button-create-offer">
