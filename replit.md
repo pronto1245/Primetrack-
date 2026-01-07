@@ -24,7 +24,12 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Financial Management:** Tracks balances (available, hold, pending), transactions, and payout requests.
 - **Centralized HTTP-Client:** Provides a unified client for external APIs with retry, exponential backoff, jitter, AbortController for timeouts, and correlation ID for tracing.
 - **Notifications:** In-app (bell icon) and Telegram notifications, configurable by Admin, Advertiser, and Publisher, with token logic for platform-wide or personal bots.
-- **Data Migration API:** `/api/migration/import` endpoint supporting data from Scaleo, Affilka, Affise, Voluum, Keitaro.
+- **Data Migration API:** `/api/advertiser/migrations` endpoints for importing data from external trackers:
+  - Supported trackers: Scaleo, Affilka, Affise, Alanbase (NOT Voluum/Keitaro)
+  - Backend: `server/services/migration-service.ts` with parsers for each tracker
+  - Database: `migration_history` table tracks import status, progress, and errors
+  - Endpoints: GET (list), POST (start), GET /:id (status)
+  - UI: `client/src/components/dashboard/DataMigrationSettings.tsx` (needs connection to real endpoints)
 - **Custom Domains:** Supports custom domain integration with Cloudflare SSL for SaaS, including DNS verification, TLS checking, and automated provisioning/deprovisioning of SSL certificates. Cloudflare Worker Proxy is used to handle Host header issues in Replit.
 - **IP Intelligence:** Integration with ipinfo.io for IP data.
 - **Fingerprinting:** Utilizes FingerprintJS for visitor identification, with integration script available in Advertiser settings.
@@ -43,3 +48,17 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Fingerprinting:** FingerprintJS
 - **Telegram:** For notifications.
 - **Crypto Exchanges:** Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX (for financial transactions, though specific HMAC logic for payouts is pending).
+
+## Pending Tasks (2025-01-07)
+
+### Data Migration UI
+- [ ] Update `DataMigrationSettings.tsx` to connect to real API endpoints
+- [ ] Remove Voluum/Keitaro from UI, show only: Scaleo, Affilka, Affise, Alanbase
+- [ ] Add migration history display from `/api/advertiser/migrations`
+- [ ] Add real-time status polling for in-progress migrations
+
+### Key Implementation Notes
+- ALL advertiser endpoints use `getEffectiveAdvertiserId(req)` for staff support
+- Staff write access for migrations: `requireStaffWriteAccess("settings")`
+- Domain workflow: Add → Configure NS (angela/drake.ns.cloudflare.com) → Submit → Admin approves → Provisions → Admin activates
+- White-label consolidated endpoint: `PATCH /api/advertiser/settings/whitelabel`
