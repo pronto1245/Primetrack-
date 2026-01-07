@@ -350,6 +350,46 @@ export type InsertPostbackLog = z.infer<typeof insertPostbackLogSchema>;
 export type PostbackLog = typeof postbackLogs.$inferSelect;
 
 // ============================================
+// MIGRATION HISTORY
+// ============================================
+export const migrationHistory = pgTable("migration_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  sourceTracker: text("source_tracker").notNull(), // scaleo, affilka, affise, voluum, keitaro
+  apiUrl: text("api_url").notNull(),
+  status: text("status").notNull().default("pending"), // pending, running, completed, failed
+  
+  // Import options
+  importOffers: boolean("import_offers").default(true),
+  importPublishers: boolean("import_publishers").default(true),
+  importConversions: boolean("import_conversions").default(false),
+  importClicks: boolean("import_clicks").default(false),
+  
+  // Results
+  totalRecords: integer("total_records").default(0),
+  processedRecords: integer("processed_records").default(0),
+  failedRecords: integer("failed_records").default(0),
+  importedOffers: integer("imported_offers").default(0),
+  importedPublishers: integer("imported_publishers").default(0),
+  importedConversions: integer("imported_conversions").default(0),
+  importedClicks: integer("imported_clicks").default(0),
+  
+  errors: text("errors").array(),
+  
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMigrationHistorySchema = createInsertSchema(migrationHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMigrationHistory = z.infer<typeof insertMigrationHistorySchema>;
+export type MigrationHistory = typeof migrationHistory.$inferSelect;
+
+// ============================================
 // ADVERTISER SETTINGS (for postbacks, white-label, etc.)
 // ============================================
 export const advertiserSettings = pgTable("advertiser_settings", {

@@ -35,7 +35,8 @@ import {
   type SubscriptionPayment, type InsertSubscriptionPayment, subscriptionPayments,
   type PasswordResetToken, passwordResetTokens,
   type IncomingPostbackConfig, type InsertIncomingPostbackConfig, incomingPostbackConfigs,
-  type PublisherPostbackEndpoint, type InsertPublisherPostbackEndpoint, publisherPostbackEndpoints
+  type PublisherPostbackEndpoint, type InsertPublisherPostbackEndpoint, publisherPostbackEndpoints,
+  type MigrationHistory, type InsertMigrationHistory, migrationHistory
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -427,6 +428,12 @@ export interface IStorage {
     emailLogoUrl?: string;
     emailFooterText?: string;
   }): Promise<AdvertiserSettings | undefined>;
+  
+  // Migration History
+  getMigrationsByAdvertiser(advertiserId: string): Promise<MigrationHistory[]>;
+  createMigration(data: InsertMigrationHistory): Promise<MigrationHistory>;
+  updateMigration(id: string, data: Partial<InsertMigrationHistory>): Promise<MigrationHistory | undefined>;
+  getMigration(id: string): Promise<MigrationHistory | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3843,6 +3850,37 @@ export class DatabaseStorage implements IStorage {
       const cr = clickCount > 0 ? (convCount / clickCount) * 100 : 0;
       return { offerId, clicks: clickCount, conversions: convCount, cr: Math.round(cr * 10) / 10 };
     });
+  }
+
+  // Migration History
+  async getMigrationsByAdvertiser(advertiserId: string): Promise<MigrationHistory[]> {
+    return await db
+      .select()
+      .from(migrationHistory)
+      .where(eq(migrationHistory.advertiserId, advertiserId))
+      .orderBy(desc(migrationHistory.createdAt));
+  }
+
+  async createMigration(data: InsertMigrationHistory): Promise<MigrationHistory> {
+    const [migration] = await db.insert(migrationHistory).values(data).returning();
+    return migration;
+  }
+
+  async updateMigration(id: string, data: Partial<InsertMigrationHistory>): Promise<MigrationHistory | undefined> {
+    const [migration] = await db
+      .update(migrationHistory)
+      .set(data)
+      .where(eq(migrationHistory.id, id))
+      .returning();
+    return migration;
+  }
+
+  async getMigration(id: string): Promise<MigrationHistory | undefined> {
+    const [migration] = await db
+      .select()
+      .from(migrationHistory)
+      .where(eq(migrationHistory.id, id));
+    return migration;
   }
 }
 
