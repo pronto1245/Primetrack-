@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
+import { useStaff, type StaffSection } from "@/contexts/StaffContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,34 +142,31 @@ function MobileHeader({ role, mobileMenuOpen, setMobileMenuOpen, t }: {
 function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate: () => void }) {
   const { selectedAdvertiser } = useAdvertiserContext();
   const [, setLocation] = useLocation();
-  
-  // Fetch user data to check if staff
-  const { data: userData } = useQuery<{ isStaff?: boolean; staffRole?: string }>({
-    queryKey: ["/api/user"],
-  });
-  
-  const isStaff = userData?.isStaff || false;
-  const staffRole = userData?.staffRole || "manager";
+  const { isStaff, canAccess } = useStaff();
   
   const handleNavClick = (path: string) => {
     setLocation(path);
     onNavigate();
   };
   
-  // Staff role permissions
-  const getStaffAllowedPaths = (staffRole: string): string[] => {
-    switch (staffRole) {
-      case "manager":
-        return []; // Empty means all allowed
-      case "analyst":
-        return ["", "offers", "reports", "antifraud", "news", "postbacks"];
-      case "support":
-        return ["", "requests", "partners", "news", "postbacks"];
-      case "finance":
-        return ["", "finance", "news", "postbacks"];
-      default:
-        return [""];
-    }
+  // Map path sections to StaffSection
+  const pathToSection = (path: string): StaffSection | null => {
+    const section = path.split('/').pop() || "";
+    const mapping: Record<string, StaffSection> = {
+      "": "overview",
+      "offers": "offers",
+      "partners": "partners",
+      "requests": "requests",
+      "reports": "reports",
+      "finance": "finance",
+      "antifraud": "antifraud",
+      "postbacks": "postbacks",
+      "news": "news",
+      "team": "team",
+      "settings": "settings",
+    };
+    if (path === `/dashboard/${role}`) return "overview";
+    return mapping[section] || null;
   };
   
   const { data: unreadNewsData } = useQuery<{ count: number }>({
@@ -225,16 +223,10 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
   
   // Filter menu for staff roles (only for advertiser staff)
   if (isStaff && role === "advertiser") {
-    const allowedPaths = getStaffAllowedPaths(staffRole);
-    if (allowedPaths.length > 0) {
-      currentMenu = currentMenu.filter(item => {
-        const pathSection = item.path.split('/').pop() || "";
-        if (item.path === `/dashboard/${role}`) {
-          return allowedPaths.includes("");
-        }
-        return allowedPaths.includes(pathSection);
-      });
-    }
+    currentMenu = currentMenu.filter(item => {
+      const section = pathToSection(item.path);
+      return section ? canAccess(section) : true;
+    });
   }
   
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
@@ -360,14 +352,7 @@ function ManagerCard() {
 
 function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: () => void }) {
   const { selectedAdvertiser } = useAdvertiserContext();
-  
-  // Fetch user data to check if staff
-  const { data: userData } = useQuery<{ isStaff?: boolean; staffRole?: string }>({
-    queryKey: ["/api/user"],
-  });
-  
-  const isStaff = userData?.isStaff || false;
-  const staffRole = userData?.staffRole || "manager";
+  const { isStaff, canAccess } = useStaff();
   
   // Fetch unread news count
   const { data: unreadNewsData } = useQuery<{ count: number }>({
@@ -384,25 +369,24 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
   
   const unreadNewsCount = unreadNewsData?.count || 0;
   
-  // Staff role permissions:
-  // manager - full access
-  // analyst - overview, offers (read), reports, antifraud (read), news, postbacks
-  // support - overview, requests, partners, news, postbacks
-  // finance - overview, finance, payouts, news, postbacks
-  
-  const getStaffAllowedPaths = (staffRole: string): string[] => {
-    switch (staffRole) {
-      case "manager":
-        return []; // Empty means all allowed
-      case "analyst":
-        return ["", "offers", "reports", "antifraud", "news", "postbacks"];
-      case "support":
-        return ["", "requests", "partners", "news", "postbacks"];
-      case "finance":
-        return ["", "finance", "news", "postbacks"];
-      default:
-        return [""];
-    }
+  // Map path sections to StaffSection
+  const pathToSection = (path: string): StaffSection | null => {
+    const section = path.split('/').pop() || "";
+    const mapping: Record<string, StaffSection> = {
+      "": "overview",
+      "offers": "offers",
+      "partners": "partners",
+      "requests": "requests",
+      "reports": "reports",
+      "finance": "finance",
+      "antifraud": "antifraud",
+      "postbacks": "postbacks",
+      "news": "news",
+      "team": "team",
+      "settings": "settings",
+    };
+    if (path === `/dashboard/${role}`) return "overview";
+    return mapping[section] || null;
   };
   
   const menus = {
@@ -446,17 +430,10 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
   
   // Filter menu for staff roles (only for advertiser staff)
   if (isStaff && role === "advertiser") {
-    const allowedPaths = getStaffAllowedPaths(staffRole);
-    if (allowedPaths.length > 0) {
-      currentMenu = currentMenu.filter(item => {
-        const pathSection = item.path.split('/').pop() || "";
-        // Overview is "" after split, so check if path ends with role
-        if (item.path === `/dashboard/${role}`) {
-          return allowedPaths.includes("");
-        }
-        return allowedPaths.includes(pathSection);
-      });
-    }
+    currentMenu = currentMenu.filter(item => {
+      const section = pathToSection(item.path);
+      return section ? canAccess(section) : true;
+    });
   }
   
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
