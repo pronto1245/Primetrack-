@@ -39,7 +39,7 @@ import {
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
-import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, or, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { encrypt, decrypt, hasSecret } from "./services/encryption";
 

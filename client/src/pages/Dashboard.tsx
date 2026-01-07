@@ -42,6 +42,7 @@ import AntifraudDashboard from "@/components/dashboard/AntifraudDashboard";
 import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
 import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
+import { AdminDomainRequests } from "@/components/dashboard/AdminDomainRequests";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
 import { NewsFeed } from "@/components/dashboard/NewsFeed";
 import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
@@ -172,6 +173,7 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Globe, label: "Домены", path: `/dashboard/${role}/domain-requests`, color: "text-cyan-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
@@ -359,6 +361,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
+      { icon: Globe, label: "Домены", path: `/dashboard/${role}/domain-requests`, color: "text-cyan-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
@@ -518,6 +521,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNewsCreate] = useRoute("/dashboard/:role/news/create");
   const [matchNewsEdit, newsEditParams] = useRoute("/dashboard/:role/news/edit/:newsId");
   const [matchNotifications] = useRoute("/dashboard/:role/notifications");
+  const [matchDomainRequests] = useRoute("/dashboard/:role/domain-requests");
   
   // Staff access control - redirect to overview if accessing restricted section
   // Wait for staffLoading to complete before checking access
@@ -681,6 +685,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showUsers) {
       return <AdminUsers />;
+    }
+
+    if (matchDomainRequests && role === 'admin') {
+      return <AdminDomainRequests />;
     }
 
     if (showRequests) {

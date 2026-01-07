@@ -43,6 +43,12 @@ interface CustomDomain {
   cloudflareHostnameId: string | null;
   cloudflareStatus: string | null;
   cloudflareSslStatus: string | null;
+  requestStatus: string | null;
+  nsVerified: boolean | null;
+  rejectionReason: string | null;
+  adminNotes: string | null;
+  requestedAt: string | null;
+  activatedAt: string | null;
 }
 
 export function CustomDomainsSettings() {
@@ -219,6 +225,27 @@ export function CustomDomainsSettings() {
     },
   });
 
+  const submitRequestMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/domains/${id}/submit-request`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Submit failed");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
+      toast({ title: "Заявка отправлена", description: "Администратор рассмотрит вашу заявку в ближайшее время" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Ошибка отправки заявки", description: error.message, variant: "destructive" });
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Скопировано" });
@@ -262,6 +289,48 @@ export function CustomDomainsSettings() {
           <Badge variant="outline">
             <Clock className="w-3 h-3 mr-1" />
             Ожидание
+          </Badge>
+        );
+    }
+  };
+
+  const getRequestStatusBadge = (status: string | null) => {
+    switch (status) {
+      case "active":
+        return (
+          <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">
+            <Check className="w-3 h-3 mr-1" />
+            Активен
+          </Badge>
+        );
+      case "admin_review":
+        return (
+          <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+            <Clock className="w-3 h-3 mr-1" />
+            На рассмотрении
+          </Badge>
+        );
+      case "provisioning":
+        return (
+          <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
+            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+            Настройка...
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="destructive">
+            <X className="w-3 h-3 mr-1" />
+            Отклонён
+          </Badge>
+        );
+      case "pending":
+      case "ns_configured":
+      default:
+        return (
+          <Badge variant="outline">
+            <Clock className="w-3 h-3 mr-1" />
+            Ожидает настройки NS
           </Badge>
         );
     }
@@ -404,44 +473,70 @@ export function CustomDomainsSettings() {
                 </div>
               </CardHeader>
               <CardContent>
-                {!domain.isVerified && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                      <h4 className="font-medium">Добавьте CNAME запись:</h4>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Тип</TableHead>
-                            <TableHead>Имя</TableHead>
-                            <TableHead>Значение</TableHead>
-                            <TableHead></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell><Badge>CNAME</Badge></TableCell>
-                            <TableCell className="font-mono text-xs">{domain.domain}</TableCell>
-                            <TableCell className="font-mono text-xs">{domain.dnsTarget || "[настройте CNAME target]"}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard(domain.dnsTarget || "")}>
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                {domain.requestStatus && getRequestStatusBadge(domain.requestStatus)}
+                
+                {domain.requestStatus === "rejected" && domain.rejectionReason && (
+                  <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
+                    <strong>Причина отклонения:</strong> {domain.rejectionReason}
+                  </div>
+                )}
+
+                {(!domain.isVerified && domain.requestStatus !== "active") && (
+                  <div className="space-y-4 mt-4">
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
+                      <h4 className="font-medium text-blue-400">Шаг 1: Настройте NS записи у регистратора</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Измените NS записи вашего домена на Cloudflare nameservers:
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-muted px-3 py-2 rounded font-mono text-sm">angela.ns.cloudflare.com</code>
+                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard("angela.ns.cloudflare.com")}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-muted px-3 py-2 rounded font-mono text-sm">drake.ns.cloudflare.com</code>
+                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard("drake.ns.cloudflare.com")}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
                       <p className="text-xs text-muted-foreground">
-                        Добавьте CNAME запись в DNS-панели регистратора. Если Cloudflare — включите Proxy (оранжевое облачко).
+                        Изменения NS могут занять до 24-48 часов для распространения.
                       </p>
                     </div>
-                    <Button
-                      onClick={() => verifyMutation.mutate(domain.id)}
-                      disabled={verifyMutation.isPending}
-                      data-testid={`button-verify-${domain.id}`}
-                    >
-                      <RefreshCw className={`w-4 h-4 mr-2 ${verifyMutation.isPending ? 'animate-spin' : ''}`} />
-                      Проверить DNS
-                    </Button>
+                    
+                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg space-y-3">
+                      <h4 className="font-medium text-yellow-400">Шаг 2: Отправьте заявку на проверку</h4>
+                      <p className="text-sm text-muted-foreground">
+                        После настройки NS записей отправьте заявку. Администратор проверит и активирует домен.
+                      </p>
+                    </div>
+                    
+                    {domain.requestStatus !== "admin_review" && domain.requestStatus !== "provisioning" && (
+                      <Button
+                        onClick={() => submitRequestMutation.mutate(domain.id)}
+                        disabled={submitRequestMutation.isPending}
+                        data-testid={`button-submit-request-${domain.id}`}
+                      >
+                        <ExternalLink className={`w-4 h-4 mr-2 ${submitRequestMutation.isPending ? 'animate-spin' : ''}`} />
+                        Отправить заявку на проверку
+                      </Button>
+                    )}
+                    
+                    {domain.requestStatus === "admin_review" && (
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-sm text-blue-400">
+                        Ваша заявка на рассмотрении. Ожидайте ответа администратора.
+                      </div>
+                    )}
+                    
+                    {domain.requestStatus === "provisioning" && (
+                      <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded text-sm text-yellow-400">
+                        Домен настраивается. Это может занять несколько минут.
+                      </div>
+                    )}
+                    
                     {domain.lastError && (
                       <div className="p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
                         {domain.lastError}

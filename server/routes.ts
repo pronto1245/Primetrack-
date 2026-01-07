@@ -448,7 +448,7 @@ export async function registerRoutes(
       req.session.userId = staff.id;
       req.session.role = "advertiser"; // Staff acts as advertiser
       req.session.isStaff = true;
-      req.session.staffRole = staff.role;
+      req.session.staffRole = staff.staffRole;
       req.session.staffAdvertiserId = staff.advertiserId;
 
       await new Promise<void>((resolve, reject) => {
@@ -457,7 +457,7 @@ export async function registerRoutes(
             console.error("[session] Failed to save staff session:", err);
             reject(err);
           } else {
-            console.log("[session] Staff session saved for:", staff.email, "role:", staff.role);
+            console.log("[session] Staff session saved for:", staff.email, "role:", staff.staffRole);
             resolve();
           }
         });
@@ -469,7 +469,7 @@ export async function registerRoutes(
         role: "advertiser",
         email: staff.email,
         isStaff: true,
-        staffRole: staff.role,
+        staffRole: staff.staffRole,
         needsSetup2FA: false // Staff don't have 2FA for now
       });
     } catch (error) {
@@ -6864,6 +6864,169 @@ export async function registerRoutes(
       res.json(links);
     } catch (error) {
       res.status(500).json({ message: "Failed to generate tracking links" });
+    }
+  });
+
+  // Submit domain request for admin review (NS-based workflow)
+  app.post("/api/domains/:id/submit-request", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const { id } = req.params;
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+
+      const updated = await storage.submitDomainRequest(id);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to submit domain request:", error);
+      res.status(500).json({ message: "Failed to submit domain request" });
+    }
+  });
+
+  // ============================================
+  // WHITELABEL SETTINGS (Advertisers only)
+  // ============================================
+  
+  // Get whitelabel settings
+  app.get("/api/advertiser/whitelabel", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const settings = await storage.getWhitelabelSettings(advertiserId);
+      res.json(settings || {});
+    } catch (error) {
+      console.error("Failed to get whitelabel settings:", error);
+      res.status(500).json({ message: "Failed to get whitelabel settings" });
+    }
+  });
+
+  // Update whitelabel settings
+  app.put("/api/advertiser/whitelabel", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const {
+        brandName,
+        logoUrl,
+        faviconUrl,
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        hidePlatformBranding,
+        customCss,
+        emailLogoUrl,
+        emailFooterText,
+      } = req.body;
+      
+      const updated = await storage.updateWhitelabelSettings(advertiserId, {
+        brandName,
+        logoUrl,
+        faviconUrl,
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        hidePlatformBranding,
+        customCss,
+        emailLogoUrl,
+        emailFooterText,
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update whitelabel settings:", error);
+      res.status(500).json({ message: "Failed to update whitelabel settings" });
+    }
+  });
+
+  // ============================================
+  // ADMIN DOMAIN MANAGEMENT
+  // ============================================
+  
+  // Get all domain requests for admin
+  app.get("/api/admin/domain-requests", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const requests = await storage.getAllDomainRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Failed to get domain requests:", error);
+      res.status(500).json({ message: "Failed to get domain requests" });
+    }
+  });
+
+  // Approve domain request
+  app.post("/api/admin/domain-requests/:id/approve", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { adminNotes } = req.body;
+      
+      const domain = await storage.getCustomDomain(id);
+      if (!domain) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+      
+      const updated = await storage.approveDomainRequest(id, adminNotes);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to approve domain request:", error);
+      res.status(500).json({ message: "Failed to approve domain request" });
+    }
+  });
+
+  // Reject domain request
+  app.post("/api/admin/domain-requests/:id/reject", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      if (!reason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+      }
+      
+      const domain = await storage.getCustomDomain(id);
+      if (!domain) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+      
+      const updated = await storage.rejectDomainRequest(id, reason);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to reject domain request:", error);
+      res.status(500).json({ message: "Failed to reject domain request" });
+    }
+  });
+
+  // Activate domain (after manual provisioning in Replit/Cloudflare)
+  app.post("/api/admin/domain-requests/:id/activate", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      const domain = await storage.getCustomDomain(id);
+      if (!domain) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+      
+      if (domain.requestStatus !== "provisioning") {
+        return res.status(400).json({ message: "Domain must be in provisioning status to activate" });
+      }
+      
+      const updated = await storage.activateDomain(id);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to activate domain:", error);
+      res.status(500).json({ message: "Failed to activate domain" });
     }
   });
 
