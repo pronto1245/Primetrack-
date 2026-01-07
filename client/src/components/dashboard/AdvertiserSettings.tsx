@@ -546,8 +546,14 @@ function WhiteLabelTab() {
   const [formData, setFormData] = useState({
     brandName: "",
     logoUrl: "",
+    faviconUrl: "",
     primaryColor: "#3b82f6",
+    secondaryColor: "#64748b",
+    accentColor: "#f59e0b",
     hidePlatformBranding: false,
+    customCss: "",
+    emailLogoUrl: "",
+    emailFooterText: "",
   });
 
   const { data: settings, isLoading } = useQuery<any>({
@@ -559,8 +565,14 @@ function WhiteLabelTab() {
       setFormData({
         brandName: settings.brandName || "",
         logoUrl: settings.logoUrl || "",
+        faviconUrl: settings.faviconUrl || "",
         primaryColor: settings.primaryColor || "#3b82f6",
+        secondaryColor: settings.secondaryColor || "#64748b",
+        accentColor: settings.accentColor || "#f59e0b",
         hidePlatformBranding: settings.hidePlatformBranding || false,
+        customCss: settings.customCss || "",
+        emailLogoUrl: settings.emailLogoUrl || "",
+        emailFooterText: settings.emailFooterText || "",
       });
     }
   }, [settings]);
@@ -620,6 +632,44 @@ function WhiteLabelTab() {
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="secondaryColor">Дополнительный цвет</Label>
+            <div className="flex gap-2">
+              <Input
+                id="secondaryColor"
+                type="color"
+                data-testid="input-secondary-color"
+                value={formData.secondaryColor}
+                onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
+                className="w-16 h-10 p-1"
+              />
+              <Input
+                value={formData.secondaryColor}
+                onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
+                placeholder="#64748b"
+                className="flex-1"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="accentColor">Акцентный цвет</Label>
+            <div className="flex gap-2">
+              <Input
+                id="accentColor"
+                type="color"
+                data-testid="input-accent-color"
+                value={formData.accentColor}
+                onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
+                className="w-16 h-10 p-1"
+              />
+              <Input
+                value={formData.accentColor}
+                onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
+                placeholder="#f59e0b"
+                className="flex-1"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -669,6 +719,64 @@ function WhiteLabelTab() {
               <img src={formData.logoUrl} alt="Logo preview" className="h-16 w-16 object-contain border rounded" />
             </div>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="faviconUrl">Favicon (иконка вкладки)</Label>
+          <Input
+            id="faviconUrl"
+            data-testid="input-favicon-url"
+            value={formData.faviconUrl}
+            onChange={(e) => setFormData({ ...formData, faviconUrl: e.target.value })}
+            placeholder="https://example.com/favicon.ico"
+          />
+          <p className="text-xs text-muted-foreground">
+            URL иконки для вкладки браузера (16x16 или 32x32 px)
+          </p>
+        </div>
+
+        <Separator className="my-4" />
+        <h4 className="font-medium">Email брендинг</h4>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="emailLogoUrl">Логотип для Email</Label>
+            <Input
+              id="emailLogoUrl"
+              data-testid="input-email-logo-url"
+              value={formData.emailLogoUrl}
+              onChange={(e) => setFormData({ ...formData, emailLogoUrl: e.target.value })}
+              placeholder="https://example.com/email-logo.png"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="emailFooterText">Текст футера Email</Label>
+            <Input
+              id="emailFooterText"
+              data-testid="input-email-footer"
+              value={formData.emailFooterText}
+              onChange={(e) => setFormData({ ...formData, emailFooterText: e.target.value })}
+              placeholder="© 2025 Ваша компания"
+            />
+          </div>
+        </div>
+
+        <Separator className="my-4" />
+        <h4 className="font-medium">Расширенные настройки</h4>
+
+        <div className="space-y-2">
+          <Label htmlFor="customCss">Кастомный CSS</Label>
+          <textarea
+            id="customCss"
+            data-testid="input-custom-css"
+            value={formData.customCss}
+            onChange={(e) => setFormData({ ...formData, customCss: e.target.value })}
+            placeholder=".my-class { color: red; }"
+            className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+          />
+          <p className="text-xs text-muted-foreground">
+            CSS-стили применятся к партнёрскому кабинету
+          </p>
         </div>
 
         <div className="flex items-center justify-between p-4 border rounded-lg">

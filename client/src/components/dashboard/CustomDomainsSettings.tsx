@@ -377,21 +377,30 @@ export function CustomDomainsSettings() {
                   Рекомендуется использовать поддомен, например: track.yourdomain.com
                 </p>
               </div>
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg space-y-2">
-                <p className="text-sm font-medium text-emerald-400">
-                  Настройка DNS у регистратора
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-blue-400">
+                  Как подключить домен (NS-делегирование)
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Добавьте CNAME запись в DNS-панели регистратора (Рег.ру, Namecheap, GoDaddy и др.):
-                </p>
-                <code className="block bg-muted px-2 py-1 rounded text-xs">
-                  {formData.domain || "ваш-домен"} → [CNAME target из настроек]
-                </code>
-                <p className="text-xs text-muted-foreground mt-2">
-                  SSL сертификат выдаётся автоматически после подтверждения DNS
-                </p>
-                <p className="text-xs text-green-500 mt-1">
-                  ✓ Если используете Cloudflare — включите Proxy (оранжевое облачко)
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Шаг 1:</strong> Добавьте домен и перейдите к настройке
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Шаг 2:</strong> Измените NS-записи у регистратора на:
+                  </p>
+                  <div className="space-y-1">
+                    <code className="block bg-muted px-2 py-1 rounded text-xs font-mono">angela.ns.cloudflare.com</code>
+                    <code className="block bg-muted px-2 py-1 rounded text-xs font-mono">drake.ns.cloudflare.com</code>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Шаг 3:</strong> Отправьте заявку на проверку администратору
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Шаг 4:</strong> После одобрения домен будет активирован
+                  </p>
+                </div>
+                <p className="text-xs text-amber-500 mt-2">
+                  ⏱ Изменение NS-записей может занять до 24-48 часов
                 </p>
               </div>
             </div>
@@ -577,10 +586,8 @@ export function CustomDomainsSettings() {
                       <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
                         <p className="text-sm font-medium text-blue-400">SSL сертификат:</p>
                         <p className="text-xs text-muted-foreground">
-                          SSL выдаётся автоматически после подтверждения DNS. Подождите несколько минут и нажмите "Проверить SSL".
-                        </p>
-                        <p className="text-xs text-green-500">
-                          ✓ Если используете Cloudflare — включите Proxy (оранжевое облачко)
+                          SSL сертификат выдаётся автоматически после активации домена администратором. 
+                          Подождите несколько минут и нажмите "Проверить SSL".
                         </p>
                       </div>
                     )}
@@ -655,11 +662,15 @@ export function CustomDomainsSettings() {
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
-            <p>Добавьте CNAME запись у регистратора домена</p>
+            <p>Измените NS-записи на Cloudflare (angela/drake.ns.cloudflare.com)</p>
           </div>
           <div className="flex gap-3">
             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</div>
-            <p>Проверьте DNS — SSL выдастся автоматически</p>
+            <p>Отправьте заявку на проверку администратору</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</div>
+            <p>После одобрения домен активируется с SSL-сертификатом</p>
           </div>
         </CardContent>
       </Card>

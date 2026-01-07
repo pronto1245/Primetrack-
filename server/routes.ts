@@ -5451,9 +5451,15 @@ export async function registerRoutes(
   const whitelabelSchema = z.object({
     brandName: z.string().optional(),
     logoUrl: z.string().url().optional().or(z.literal("")),
+    faviconUrl: z.string().url().optional().or(z.literal("")),
     primaryColor: z.string().optional(),
+    secondaryColor: z.string().optional(),
+    accentColor: z.string().optional(),
     customDomain: z.string().optional(),
     hidePlatformBranding: z.boolean().optional(),
+    customCss: z.string().optional(),
+    emailLogoUrl: z.string().url().optional().or(z.literal("")),
+    emailFooterText: z.string().optional(),
   });
 
   // Sentinel value constant for encrypted fields - API returns this instead of real secrets
@@ -5889,14 +5895,23 @@ export async function registerRoutes(
       if (!parseResult.success) {
         return res.status(400).json({ message: "Invalid data", errors: parseResult.error.errors });
       }
-      const { brandName, logoUrl, primaryColor, customDomain, hidePlatformBranding } = parseResult.data;
+      const { 
+        brandName, logoUrl, faviconUrl, primaryColor, secondaryColor, accentColor,
+        customDomain, hidePlatformBranding, customCss, emailLogoUrl, emailFooterText 
+      } = parseResult.data;
       
       const settings = await storage.updateAdvertiserSettings(advertiserId, {
         brandName,
         logoUrl,
+        faviconUrl,
         primaryColor,
+        secondaryColor,
+        accentColor,
         customDomain,
-        hidePlatformBranding
+        hidePlatformBranding,
+        customCss,
+        emailLogoUrl,
+        emailFooterText
       });
       
       if (!settings) {
@@ -6887,67 +6902,6 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to submit domain request:", error);
       res.status(500).json({ message: "Failed to submit domain request" });
-    }
-  });
-
-  // ============================================
-  // WHITELABEL SETTINGS (Advertisers only)
-  // ============================================
-  
-  // Get whitelabel settings
-  app.get("/api/advertiser/whitelabel", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
-    try {
-      const advertiserId = getEffectiveAdvertiserId(req);
-      if (!advertiserId) {
-        return res.status(401).json({ message: "Not authorized as advertiser" });
-      }
-      
-      const settings = await storage.getWhitelabelSettings(advertiserId);
-      res.json(settings || {});
-    } catch (error) {
-      console.error("Failed to get whitelabel settings:", error);
-      res.status(500).json({ message: "Failed to get whitelabel settings" });
-    }
-  });
-
-  // Update whitelabel settings
-  app.put("/api/advertiser/whitelabel", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
-    try {
-      const advertiserId = getEffectiveAdvertiserId(req);
-      if (!advertiserId) {
-        return res.status(401).json({ message: "Not authorized as advertiser" });
-      }
-      
-      const {
-        brandName,
-        logoUrl,
-        faviconUrl,
-        primaryColor,
-        secondaryColor,
-        accentColor,
-        hidePlatformBranding,
-        customCss,
-        emailLogoUrl,
-        emailFooterText,
-      } = req.body;
-      
-      const updated = await storage.updateWhitelabelSettings(advertiserId, {
-        brandName,
-        logoUrl,
-        faviconUrl,
-        primaryColor,
-        secondaryColor,
-        accentColor,
-        hidePlatformBranding,
-        customCss,
-        emailLogoUrl,
-        emailFooterText,
-      });
-      
-      res.json(updated);
-    } catch (error) {
-      console.error("Failed to update whitelabel settings:", error);
-      res.status(500).json({ message: "Failed to update whitelabel settings" });
     }
   });
 
