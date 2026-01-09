@@ -13,8 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Send, Loader2, Trash2,
-  AlertCircle, History, BookOpen, HelpCircle
+  AlertCircle, History, BookOpen, HelpCircle, FileText
 } from "lucide-react";
+import { PublisherInvoices } from "./PublisherInvoices";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -367,6 +368,10 @@ export function PublisherPayouts() {
                 <History className="w-4 h-4 mr-2 text-purple-400" />
                 История
               </TabsTrigger>
+              <TabsTrigger value="invoices" data-testid="tab-invoices" className="px-4 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                <FileText className="w-4 h-4 mr-2 text-green-400" />
+                Инвойсы
+              </TabsTrigger>
               <TabsTrigger value="instructions" data-testid="tab-instructions" className="px-4 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white">
                 <BookOpen className="w-4 h-4 mr-2 text-cyan-400" />
                 Инструкция
@@ -663,6 +668,10 @@ export function PublisherPayouts() {
                   </table>
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="invoices">
+              <PublisherInvoices />
             </TabsContent>
 
             <TabsContent value="instructions" className="space-y-6">

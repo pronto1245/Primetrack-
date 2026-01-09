@@ -1,4 +1,5 @@
-import PdfPrinter from "pdfmake";
+import PdfPrinterModule from "pdfmake";
+const PdfPrinter = (PdfPrinterModule as any).default || PdfPrinterModule;
 import type { TDocumentDefinitions, Content, ContentTable, StyleDictionary } from "pdfmake/interfaces";
 import { db } from "../../db";
 import { publisherInvoices, publisherInvoiceItems, users, offers } from "@shared/schema";

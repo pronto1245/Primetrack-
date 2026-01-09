@@ -198,7 +198,6 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
-      { icon: Wallet, label: "Инвойсы", path: `/dashboard/${role}/invoices`, color: "text-green-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
@@ -388,7 +387,6 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
-      { icon: Wallet, label: "Инвойсы", path: `/dashboard/${role}/invoices`, color: "text-green-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
@@ -529,7 +527,6 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNotifications] = useRoute("/dashboard/:role/notifications");
   const [matchDomainRequests] = useRoute("/dashboard/:role/domain-requests");
   const [matchAnalytics] = useRoute("/dashboard/:role/analytics");
-  const [matchInvoices] = useRoute("/dashboard/:role/invoices");
   
   // Staff access control - redirect to overview if accessing restricted section
   // Wait for staffLoading to complete before checking access
@@ -740,10 +737,6 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showPayouts) {
       return <PublisherPayouts />;
-    }
-
-    if (matchInvoices && role === 'publisher') {
-      return <PublisherInvoices />;
     }
 
     if (matchAnalytics && (role === 'advertiser' || role === 'admin')) {
