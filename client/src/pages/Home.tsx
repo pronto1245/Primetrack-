@@ -400,9 +400,11 @@ export default function Home() {
                     <Zap className="w-5 h-5 text-emerald-500" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Без лишних модулей</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Только офферы, кампании, subID, postback и статистика. Нет CRM-логики и сложных сценариев — только трекинг.
-                  </p>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>В большинстве трекеров много функций, которые выглядят полезно на демо, но в реальном заливе не используются.</p>
+                    <p>В {platformName} мы оставили только то, что действительно нужно каждый день: офферы, кампании, subID, postback, статистику и фильтры.</p>
+                    <p>Нет CRM-логики, сложных ролей и многоуровневых сценариев — только трекинг и контроль трафика.</p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -419,9 +421,11 @@ export default function Home() {
                     <Clock className="w-5 h-5 text-emerald-500" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Быстрый старт</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Создайте оффер и начните лить за 5 минут. Без сложного онбординга и обязательных интеграций.
-                  </p>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Мы сознательно убрали сложный онбординг.</p>
+                    <p>После регистрации вы сразу можете создать оффер, сгенерировать ссылку и начать лить трафик. В среднем на первый запуск уходит не больше 5 минут.</p>
+                    <p>Никаких обязательных интеграций и долгих предварительных настроек.</p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -438,9 +442,10 @@ export default function Home() {
                     <Terminal className="w-5 h-5 text-emerald-500" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Простая логика</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Понятный интерфейс с первого входа. Если работали с трекерами — разберётесь без документации.
-                  </p>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Интерфейс сделан так, чтобы в нём не нужно было разбираться. Все основные действия находятся там, где их ожидаешь увидеть.</p>
+                    <p>Если вы уже работали с трекерами, {platformName} будет понятен с первого входа — без обучения и чтения документации.</p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -456,10 +461,12 @@ export default function Home() {
                   <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <h3 className="text-lg font-bold mb-3">Под арбитраж</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Push, gambling, betting. Postback, subID, CPA и RevShare — всё работает из коробки.
-                  </p>
+                  <h3 className="text-lg font-bold mb-3">Заточено под арбитраж</h3>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>{platformName} разрабатывался под реальные сценарии залива трафика.</p>
+                    <p>Мы ориентируемся на push-источники, gambling и betting-офферы, работу с CPA и RevShare моделями.</p>
+                    <p>Система корректно принимает и передаёт postback, поддерживает работу с subID и даёт полную картину по кампаниям.</p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
