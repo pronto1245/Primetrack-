@@ -387,7 +387,7 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold">Почему это удобно в реальной работе</h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -395,16 +395,14 @@ export default function Home() {
               transition={{ delay: 0, duration: 0.4 }}
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-emerald-500" />
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Без лишних модулей</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>В большинстве трекеров много функций, которые выглядят полезно на демо, но в реальном заливе не используются.</p>
-                    <p>В {platformName} мы оставили только то, что действительно нужно каждый день: офферы, кампании, subID, postback, статистику и фильтры.</p>
-                    <p>Нет CRM-логики, сложных ролей и многоуровневых сценариев — только трекинг и контроль трафика.</p>
-                  </div>
+                  <h3 className="text-lg font-bold mb-3">Без лишних модулей</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Только офферы, кампании, subID, postback и статистика. Нет CRM-логики и сложных сценариев — только трекинг.
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -416,16 +414,14 @@ export default function Home() {
               transition={{ delay: 0.1, duration: 0.4 }}
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-emerald-500" />
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Быстрый старт</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>Мы сознательно убрали сложный онбординг.</p>
-                    <p>После регистрации вы сразу можете создать оффер, сгенерировать ссылку и начать лить трафик. В среднем на первый запуск уходит не больше 5 минут.</p>
-                    <p>Никаких обязательных интеграций и долгих предварительных настроек.</p>
-                  </div>
+                  <h3 className="text-lg font-bold mb-3">Быстрый старт</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Создайте оффер и начните лить за 5 минут. Без сложного онбординга и обязательных интеграций.
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -437,15 +433,14 @@ export default function Home() {
               transition={{ delay: 0.2, duration: 0.4 }}
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Terminal className="w-6 h-6 text-emerald-500" />
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Terminal className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Простая логика</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>Интерфейс сделан так, чтобы в нём не нужно было разбираться. Все основные действия находятся там, где их ожидаешь увидеть.</p>
-                    <p>Если вы уже работали с трекерами, {platformName} будет понятен с первого входа — без обучения и чтения документации.</p>
-                  </div>
+                  <h3 className="text-lg font-bold mb-3">Простая логика</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Понятный интерфейс с первого входа. Если работали с трекерами — разберётесь без документации.
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -457,16 +452,14 @@ export default function Home() {
               transition={{ delay: 0.3, duration: 0.4 }}
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-emerald-500" />
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-4">Заточено под арбитраж</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>{platformName} разрабатывался под реальные сценарии залива трафика.</p>
-                    <p>Мы ориентируемся на push-источники, gambling и betting-офферы, работу с CPA и RevShare моделями.</p>
-                    <p>Система корректно принимает и передаёт postback, поддерживает работу с subID и даёт полную картину по кампаниям.</p>
-                  </div>
+                  <h3 className="text-lg font-bold mb-3">Под арбитраж</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Push, gambling, betting. Postback, subID, CPA и RevShare — всё работает из коробки.
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
