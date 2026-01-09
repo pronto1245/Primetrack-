@@ -50,6 +50,7 @@ export default function Home() {
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedNews, setSelectedNews] = useState<any>(null);
+  const [showMigrationModal, setShowMigrationModal] = useState(false);
   const { toast } = useToast();
 
   const newsItems = [
@@ -543,24 +544,33 @@ export default function Home() {
       {/* Migration Section */}
       <section className="py-24 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            <div className="lg:w-1/2">
+          <motion.div {...fadeInUp} className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
               <Badge variant="secondary" className="mb-4">Миграция</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Переезжайте с других платформ</h2>
-              <p className="text-muted-foreground mb-8">
-                Мы поддерживаем импорт данных из популярных трекеров. 
-                Перенесите офферы, конверсии и настройки за несколько кликов.
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Миграция с других трекеров</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Перенесите офферы, кампании, subID и историю конверсий за 10-15 минут. Без остановки трафика.
               </p>
-              
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                {["Scaleo", "Affilka", "Affise", "Alanbase"].map((platform) => (
-                  <div key={platform} className="flex items-center gap-3 p-3 rounded border border-border bg-card/50">
-                    <Check className="w-5 h-5 text-emerald-500" />
-                    <span className="font-medium">{platform}</span>
-                  </div>
-                ))}
-              </div>
+            </div>
 
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {["Scaleo", "Affilka", "Affise", "Alanbase"].map((platform) => (
+                <div key={platform} className="flex items-center justify-center gap-2 p-3 rounded border border-border bg-card/50 hover:border-emerald-500/30 transition-colors">
+                  <Check className="w-4 h-4 text-emerald-500" />
+                  <span className="font-medium text-sm">{platform}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                variant="outline"
+                onClick={() => setShowMigrationModal(true)}
+                data-testid="button-migration-details"
+              >
+                Подробнее о миграции
+                <ChevronRight className="ml-1 w-4 h-4" />
+              </Button>
               <Button 
                 onClick={() => navigate('/register/advertiser')}
                 className="bg-emerald-600 hover:bg-emerald-500"
@@ -570,43 +580,87 @@ export default function Home() {
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
-
-            <div className="lg:w-1/2">
-              <div className="bg-card border border-border rounded-lg p-8">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded bg-emerald-500/10 flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-emerald-500" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Автоматический импорт</div>
-                      <div className="text-sm text-muted-foreground">CSV, JSON или API интеграция</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded bg-blue-500/10 flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Безопасность данных</div>
-                      <div className="text-sm text-muted-foreground">Шифрование при передаче</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded bg-purple-500/10 flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-purple-500" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Быстрый старт</div>
-                      <div className="text-sm text-muted-foreground">Импорт за 10-15 минут</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* Migration Modal */}
+      <Dialog open={showMigrationModal} onOpenChange={setShowMigrationModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Миграция с других трекеров</DialogTitle>
+          </DialogHeader>
+          <div className="text-muted-foreground leading-relaxed space-y-6 mt-4">
+            <div>
+              <p>
+                Переезд с одного трекера на другой почти всегда выглядит болезненно: нужно заново создавать офферы, переносить кампании, следить, чтобы не сломалась статистика.
+              </p>
+              <p className="mt-2">
+                {platformName} позволяет перенести основные данные из популярных трекеров и продолжить работу без ручного пересоздания структуры.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-2">С каких платформ можно переехать</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {["Scaleo", "Affilka", "Affise", "Alanbase"].map((p) => (
+                  <div key={p} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>{p}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm mt-2">Используете другой трекер? Напишите в поддержку — подскажем формат.</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-2">Что переносится</h4>
+              <ul className="space-y-1">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Офферы и их настройки</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Кампании и источники трафика</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Параметры subID</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Конверсии и их статусы</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-2">Как проходит процесс</h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm">
+                <li>Выбираете трекер, с которого хотите перенести данные</li>
+                <li>Экспортируете данные или подключаете API</li>
+                <li>Загружаете файл или указываете доступы</li>
+                <li>Проверяете сопоставление полей</li>
+                <li>Запускаете импорт</li>
+              </ol>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="p-3 rounded bg-muted/50">
+                <div className="font-medium text-foreground">Способы импорта</div>
+                <div>CSV, JSON, API</div>
+              </div>
+              <div className="p-3 rounded bg-muted/50">
+                <div className="font-medium text-foreground">Время импорта</div>
+                <div>10-15 минут</div>
+              </div>
+            </div>
+
+            <div className="text-sm border-t border-border pt-4">
+              <p>Все данные передаются по зашифрованному соединению. Исходные файлы не сохраняются после импорта.</p>
+            </div>
+
+            <div className="flex justify-center pt-2">
+              <Button 
+                onClick={() => { setShowMigrationModal(false); navigate('/register/advertiser'); }}
+                className="bg-emerald-600 hover:bg-emerald-500"
+              >
+                Начать миграцию
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Testimonials */}
       <section className="py-24 border-t border-border bg-muted/30">
