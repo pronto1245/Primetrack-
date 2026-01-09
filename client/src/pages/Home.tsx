@@ -146,16 +146,23 @@ export default function Home() {
             <div className="lg:w-1/2 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-6">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Партнёрская платформа нового поколения
+                Push / Gambling / Betting
               </div>
               
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-                Управляйте партнёрским трафиком как профи
+                Трекер для арбитража гемблы, беттинга и push-трафика
               </h1>
               
               <p className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed font-light">
-                {platformSettings?.platformDescription || `${platformName} — централизованная SaaS платформа для партнёрского трекинга. Все клики, конверсии и выплаты в одном месте.`}
+                {platformSettings?.platformDescription || `Запускайте офферы, принимайте клики, лиды и депозиты, передавайте postback в партнёрки и сторонние трекеры. Минимальная задержка редиректа, полная статистика по subID.`}
               </p>
+
+              <div className="flex flex-wrap gap-3 mb-6">
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">CPA / RevShare / Hybrid</Badge>
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">Postback</Badge>
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">SubID</Badge>
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">Антидубль</Badge>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
@@ -255,8 +262,95 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Who It's For */}
+      <section className="py-24 bg-background">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Кому подходит</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Для всех участников рынка</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Арбитражникам",
+                icon: TrendingUp,
+                features: [
+                  "Отслеживание кликов, лидов, депозитов",
+                  "Полная статистика по sub1–sub10",
+                  "Быстрое масштабирование связок"
+                ]
+              },
+              {
+                title: "Командам и медиабаерам",
+                icon: Users,
+                features: [
+                  "Несколько аккаунтов",
+                  "Разграничение доступа",
+                  "Общая статистика по источникам"
+                ]
+              },
+              {
+                title: "Партнёрским программам",
+                icon: Globe,
+                features: [
+                  "Учёт трафика и конверсий",
+                  "Свои офферы и postback",
+                  "Антифрод и контроль качества"
+                ]
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+                  <CardContent className="p-8">
+                    <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                      <item.icon className="w-7 h-7 text-emerald-500" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-4">{item.title}</h3>
+                    <ul className="space-y-3">
+                      {item.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-muted-foreground">
+                          <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tracking Link Example */}
+      <section className="py-16 border-t border-border bg-muted/30">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-8">
+            <Badge variant="secondary" className="mb-4">Пример ссылки</Badge>
+            <h3 className="text-xl font-bold mb-2">Генерируйте трекинговые ссылки</h3>
+          </motion.div>
+          <motion.div {...fadeInUp}>
+            <div className="max-w-3xl mx-auto bg-card border border-border rounded-lg p-6">
+              <code className="text-sm md:text-base text-emerald-400 font-mono break-all">
+                https://trk.primetrack.pro/click?offer=24&sub1=fb&sub2=push&sub3=&#123;campaign_id&#125;
+              </code>
+              <p className="text-muted-foreground text-sm mt-4 text-center">
+                Поддержка до 10 SubID параметров для детальной аналитики
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Features Grid */}
-      <section id="features" className="py-24 bg-background">
+      <section id="features" className="py-24 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Возможности</Badge>
@@ -735,12 +829,86 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Why Not Competitors */}
+      <section className="py-24 border-t border-border bg-muted/30">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Преимущества</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Почему не Scaleo / Affise?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Мы делаем трекер для практического залива, а не отчётов для менеджеров
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Zap, title: "Без лишних модулей", desc: "Только то, что нужно для арбитража" },
+              { icon: Clock, title: "Быстрый старт", desc: "Регистрация и первый оффер за 5 минут" },
+              { icon: Terminal, title: "Простая логика", desc: "Интуитивный интерфейс без сложностей" },
+              { icon: TrendingUp, title: "Под арбитраж", desc: "Заточено под залив, а не под корпорации" },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.4 }}
+              >
+                <div className="text-center p-6">
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <item.icon className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <h3 className="font-bold mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Us */}
+      <section className="py-24 border-t border-border bg-background">
+        <div className="container px-4 mx-auto">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.div {...fadeInUp}>
+              <Badge variant="secondary" className="mb-4">О нас</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">{platformName}</h2>
+              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                Независимый трекер, сделанный командой разработчиков и арбитражников. 
+                Мы используем его в реальных кампаниях с push и гемблой.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Проект развивается, функционал обновляется регулярно. Поддержка отвечает по делу, без саппорт-ботов.
+              </p>
+              <div className="flex justify-center gap-6 mt-8">
+                {supportEmail && (
+                  <a href={`mailto:${supportEmail}`} className="flex items-center gap-2 text-muted-foreground hover:text-emerald-500 transition-colors">
+                    <Mail className="w-5 h-5" />
+                    <span>{supportEmail}</span>
+                  </a>
+                )}
+                {supportTelegram && (
+                  <a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-emerald-500 transition-colors">
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Telegram</span>
+                  </a>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 border-t border-border bg-gradient-to-b from-emerald-500/5 to-background">
         <div className="container px-4 mx-auto text-center">
           <motion.div {...fadeInUp}>
             <Sparkles className="w-12 h-12 mx-auto mb-6 text-emerald-500" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Готовы начать?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Запустить трекинг за 5 минут</h2>
+            <p className="text-muted-foreground mb-4 max-w-xl mx-auto">
+              Без карты. Без ограничений на тест. Регистрация за 1 минуту.
+            </p>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
               Присоединяйтесь к сотням рекламодателей, которые уже используют {platformName}
             </p>
