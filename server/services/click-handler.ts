@@ -86,6 +86,10 @@ export class ClickHandler {
       throw new Error("No landing available for this geo");
     }
     
+    // Check for A/B landing variants
+    const variants = await storage.getOfferLandingVariants(params.offerId);
+    const selectedVariant = storage.selectWeightedVariant(variants);
+    
     // Parse User-Agent for device/os/browser/bot detection
     const parsedUA = this.parseUserAgent(params.userAgent);
     
@@ -117,13 +121,21 @@ export class ClickHandler {
       isUnique,
     });
     
-    const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params);
+    // Use A/B variant URL if available, otherwise use landing URL
+    const targetUrl = selectedVariant ? selectedVariant.url : landing.landingUrl;
+    const redirectUrl = this.buildRedirectUrl(targetUrl, clickId, params);
+    
+    // Increment variant clicks if A/B variant is used
+    if (selectedVariant) {
+      await storage.incrementVariantClicks(selectedVariant.id);
+    }
     
     const clickData: InsertClick = {
       clickId,
       offerId: params.offerId,
       publisherId: params.partnerId,
       landingId: landing.id,
+      variantId: selectedVariant?.id || null,
       ip: params.ip,
       userAgent: params.userAgent,
       geo: detectedGeo,

@@ -203,6 +203,7 @@ export const clicks = pgTable("clicks", {
   offerId: varchar("offer_id").notNull().references(() => offers.id),
   publisherId: varchar("publisher_id").notNull().references(() => users.id),
   landingId: varchar("landing_id").references(() => offerLandings.id),
+  variantId: varchar("variant_id"), // A/B landing variant
   
   // Tracking data
   ip: text("ip"),

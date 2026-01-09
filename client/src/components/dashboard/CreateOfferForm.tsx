@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { useUpload } from "@/hooks/use-upload";
 import { CountrySelector } from "./CountrySelector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ABVariantsManager } from "./ABVariantsManager";
 
 const TRAFFIC_SOURCES = ["Facebook", "Google", "TikTok", "UAC", "PPC", "Push", "Native", "Email", "SEO", "Telegram", "Instagram", "YouTube", "Snapchat", "X (Twitter)", "Pinterest", "LinkedIn", "Reddit", "PopUnder", "ClickUnder", "InApp", "SMS", "Viber", "WhatsApp", "ASO"];
 const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"];
@@ -848,6 +849,10 @@ export function CreateOfferForm({ role }: { role: string }) {
             </CardContent>
           </Card>
 
+          {isEditMode && editOfferId && (
+            <ABVariantsManager offerId={editOfferId} />
+          )}
+
           <div className="flex gap-4">
             <Button 
               className="flex-1 bg-muted hover:bg-white/10 text-muted-foreground font-mono"
@@ -862,7 +867,7 @@ export function CreateOfferForm({ role }: { role: string }) {
               data-testid="button-publish-offer"
             >
               <Save className="w-4 h-4 mr-2" />
-              {loading ? "..." : "Опубликовать"}
+              {loading ? "..." : (isEditMode ? "Сохранить" : "Опубликовать")}
             </Button>
           </div>
       </div>
