@@ -266,57 +266,95 @@ export default function Home() {
       {/* Who It's For */}
       <section className="py-24 bg-background">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-6">
             <Badge variant="secondary" className="mb-4">Кому подходит</Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Кому подходит {platformName}</h2>
-            <p className="text-muted-foreground mb-12 leading-relaxed">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Кому подходит {platformName}</h2>
+          </motion.div>
+          <motion.div {...fadeInUp} className="text-center mb-12 max-w-3xl mx-auto">
+            <p className="text-muted-foreground leading-relaxed">
               {platformName} подойдёт всем участникам performance-рынка, но изначально он создавался под тех, кто работает с трафиком каждый день и считает результат.
             </p>
-
-            <div className="space-y-10">
-              <div>
-                <h3 className="text-lg font-bold mb-3">Арбитражникам</h3>
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
-                </p>
-                <p className="text-muted-foreground mb-2">Вы получаете:</p>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />отслеживание кликов, лидов и депозитов</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />детальную статистику по subID (sub1–sub10)</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />быстрый запуск и масштабирование рабочих связок</li>
-                </ul>
-                <p className="text-muted-foreground mt-3">Вся статистика доступна в одном месте, без лишних экранов и отчётов.</p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold mb-3">Командам и медиабаерам</h3>
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  {platformName} удобно использовать в команде, когда с трафиком работает несколько человек.
-                </p>
-                <p className="text-muted-foreground mb-2">Платформа позволяет:</p>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />создавать несколько аккаунтов и проектов</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />разграничивать доступы между участниками</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />смотреть общую статистику по источникам и кампаниям</li>
-                </ul>
-                <p className="text-muted-foreground mt-3">Это упрощает контроль работы команды и даёт прозрачную картину по результатам.</p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold mb-3">Партнёрским программам</h3>
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  {platformName} подходит для учёта и контроля партнёрского трафика.
-                </p>
-                <p className="text-muted-foreground mb-2">Вы можете:</p>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />отслеживать клики, лиды и конверсии</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />работать со своими офферами и postback</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />контролировать качество трафика и выявлять подозрительную активность</li>
-                </ul>
-                <p className="text-muted-foreground mt-3">Система помогает видеть, откуда приходит трафик и как он конвертируется.</p>
-              </div>
-            </div>
           </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0, duration: 0.5 }}
+            >
+              <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                    <TrendingUp className="w-7 h-7 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Арбитражникам</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
+                  </p>
+                  <p className="text-muted-foreground text-sm mb-2">Вы получаете:</p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживание кликов, лидов и депозитов</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />детальную статистику по subID (sub1–sub10)</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />быстрый запуск и масштабирование рабочих связок</li>
+                  </ul>
+                  <p className="text-muted-foreground text-sm mt-4">Вся статистика доступна в одном месте, без лишних экранов и отчётов.</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+            >
+              <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                    <Users className="w-7 h-7 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Командам и медиабаерам</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    {platformName} удобно использовать в команде, когда с трафиком работает несколько человек.
+                  </p>
+                  <p className="text-muted-foreground text-sm mb-2">Платформа позволяет:</p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />создавать несколько аккаунтов и проектов</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />разграничивать доступы между участниками</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />смотреть общую статистику по источникам и кампаниям</li>
+                  </ul>
+                  <p className="text-muted-foreground text-sm mt-4">Это упрощает контроль работы команды и даёт прозрачную картину по результатам.</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                    <Globe className="w-7 h-7 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Партнёрским программам</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    {platformName} подходит для учёта и контроля партнёрского трафика.
+                  </p>
+                  <p className="text-muted-foreground text-sm mb-2">Вы можете:</p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживать клики, лиды и конверсии</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />работать со своими офферами и postback</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />контролировать качество трафика и выявлять подозрительную активность</li>
+                  </ul>
+                  <p className="text-muted-foreground text-sm mt-4">Система помогает видеть, откуда приходит трафик и как он конвертируется.</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
         </div>
       </section>
 
