@@ -266,67 +266,57 @@ export default function Home() {
       {/* Who It's For */}
       <section className="py-24 bg-background">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
+          <motion.div {...fadeInUp} className="max-w-3xl mx-auto">
             <Badge variant="secondary" className="mb-4">Кому подходит</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Для всех участников рынка</h2>
-          </motion.div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Кому подходит {platformName}</h2>
+            <p className="text-muted-foreground mb-12 leading-relaxed">
+              {platformName} подойдёт всем участникам performance-рынка, но изначально он создавался под тех, кто работает с трафиком каждый день и считает результат.
+            </p>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Арбитражникам",
-                icon: TrendingUp,
-                features: [
-                  "Отслеживание кликов, лидов, депозитов",
-                  "Полная статистика по sub1–sub10",
-                  "Быстрое масштабирование связок"
-                ]
-              },
-              {
-                title: "Командам и медиабаерам",
-                icon: Users,
-                features: [
-                  "Несколько аккаунтов",
-                  "Разграничение доступа",
-                  "Общая статистика по источникам"
-                ]
-              },
-              {
-                title: "Партнёрским программам",
-                icon: Globe,
-                features: [
-                  "Учёт трафика и конверсий",
-                  "Свои офферы и postback",
-                  "Антифрод и контроль качества"
-                ]
-              }
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
-                  <CardContent className="p-8">
-                    <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                      <item.icon className="w-7 h-7 text-emerald-500" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-4">{item.title}</h3>
-                    <ul className="space-y-3">
-                      {item.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-3 text-muted-foreground">
-                          <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+            <div className="space-y-10">
+              <div>
+                <h3 className="text-lg font-bold mb-3">Арбитражникам</h3>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
+                </p>
+                <p className="text-muted-foreground mb-2">Вы получаете:</p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />отслеживание кликов, лидов и депозитов</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />детальную статистику по subID (sub1–sub10)</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />быстрый запуск и масштабирование рабочих связок</li>
+                </ul>
+                <p className="text-muted-foreground mt-3">Вся статистика доступна в одном месте, без лишних экранов и отчётов.</p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold mb-3">Командам и медиабаерам</h3>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  {platformName} удобно использовать в команде, когда с трафиком работает несколько человек.
+                </p>
+                <p className="text-muted-foreground mb-2">Платформа позволяет:</p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />создавать несколько аккаунтов и проектов</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />разграничивать доступы между участниками</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />смотреть общую статистику по источникам и кампаниям</li>
+                </ul>
+                <p className="text-muted-foreground mt-3">Это упрощает контроль работы команды и даёт прозрачную картину по результатам.</p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold mb-3">Партнёрским программам</h3>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  {platformName} подходит для учёта и контроля партнёрского трафика.
+                </p>
+                <p className="text-muted-foreground mb-2">Вы можете:</p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />отслеживать клики, лиды и конверсии</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />работать со своими офферами и postback</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />контролировать качество трафика и выявлять подозрительную активность</li>
+                </ul>
+                <p className="text-muted-foreground mt-3">Система помогает видеть, откуда приходит трафик и как он конвертируется.</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
