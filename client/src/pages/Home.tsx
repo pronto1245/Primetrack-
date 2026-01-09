@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Navbar } from "@/components/layout/Navbar";
@@ -12,8 +12,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, Terminal, Cpu, ShieldCheck, Activity, Check, X,
   Zap, Globe, Users, BarChart3, Lock, Clock, Webhook, 
-  CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle
+  CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle,
+  UserPlus, Settings, TrendingUp, Send, Star, Quote, Newspaper,
+  ChevronRight, Sparkles
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import screenshot1 from "@assets/Снимок_09.01.2026_в_21.12_1767983590330.png";
 import screenshot2 from "@assets/Снимок_09.01.2026_в_21.12_1767983590340.png";
 import screenshot3 from "@assets/Снимок_09.01.2026_в_21.11_1767983590341.png";
@@ -40,6 +45,10 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [isYearly, setIsYearly] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [liveClicks, setLiveClicks] = useState(4285);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -47,6 +56,35 @@ export default function Home() {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveClicks((prev) => prev + Math.floor(Math.random() * 15) + 5);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast({ title: "Сообщение отправлено!", description: "Мы свяжемся с вами в ближайшее время." });
+    setContactForm({ name: '', email: '', message: '' });
+    setIsSubmitting(false);
+  };
+
+  const fadeInUp = {
+    initial: { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-50px" },
+    transition: { duration: 0.5 }
+  };
+
+  const staggerContainer = {
+    initial: {},
+    whileInView: { transition: { staggerChildren: 0.1 } },
+    viewport: { once: true }
+  };
   
   const { data: plans = [] } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/subscription/plans"],
@@ -159,10 +197,10 @@ export default function Home() {
                 className="absolute -right-4 top-10 bg-card border border-border p-4 rounded shadow-xl hidden md:block"
               >
                 <div className="flex items-center gap-3 mb-1">
-                  <Activity className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs font-mono text-muted-foreground">Кликов в сек</span>
+                  <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
+                  <span className="text-xs font-mono text-muted-foreground">Кликов сейчас</span>
                 </div>
-                <div className="text-2xl font-mono font-bold text-foreground">4,285</div>
+                <div className="text-2xl font-mono font-bold text-foreground">{liveClicks.toLocaleString()}</div>
               </motion.div>
             </div>
           </div>
@@ -228,25 +266,36 @@ export default function Home() {
       {/* How It Works */}
       <section className="py-24 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
-          <div className="text-center mb-16">
+          <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Как это работает</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Начните за 5 минут</h2>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-4 gap-8">
             {[
-              { step: "01", title: "Регистрация", desc: "Создайте аккаунт рекламодателя бесплатно" },
-              { step: "02", title: "Создайте оффер", desc: "Добавьте оффер с лендингами и настройте выплаты" },
-              { step: "03", title: "Пригласите партнёров", desc: "Отправьте реферальную ссылку издателям" },
-              { step: "04", title: "Получайте конверсии", desc: "Отслеживайте клики, лиды и продажи в реальном времени" },
+              { step: "01", icon: UserPlus, title: "Регистрация", desc: "Создайте аккаунт рекламодателя бесплатно" },
+              { step: "02", icon: Settings, title: "Создайте оффер", desc: "Добавьте оффер с лендингами и настройте выплаты" },
+              { step: "03", icon: Users, title: "Пригласите партнёров", desc: "Отправьте реферальную ссылку издателям" },
+              { step: "04", icon: TrendingUp, title: "Получайте конверсии", desc: "Отслеживайте клики, лиды и продажи в реальном времени" },
             ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <span className="text-2xl font-mono font-bold text-emerald-500">{item.step}</span>
+              <motion.div 
+                key={i} 
+                className="text-center relative"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                {i < 3 && (
+                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] border-t-2 border-dashed border-emerald-500/20" />
+                )}
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group hover:bg-emerald-500/20 transition-colors">
+                  <item.icon className="w-7 h-7 text-emerald-500" />
                 </div>
+                <div className="text-xs font-mono text-emerald-500 mb-2">{item.step}</div>
                 <h3 className="text-lg font-bold mb-2">{item.title}</h3>
                 <p className="text-muted-foreground text-sm">{item.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -446,33 +495,240 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-24 border-t border-border bg-muted/30">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Отзывы</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Что говорят наши клиенты</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Алексей Петров",
+                role: "CEO, MediaBuy Pro",
+                avatar: "aleksey",
+                text: "Перешли с Keitaro на эту платформу и не пожалели. Антифрод реально работает, экономим до 20% бюджета на фроде.",
+                rating: 5
+              },
+              {
+                name: "Мария Иванова", 
+                role: "Affiliate Manager, TrafficLab",
+                avatar: "maria",
+                text: "Удобная панель, быстрые постбеки, отличная поддержка. Команда реально слушает фидбек и быстро внедряет фичи.",
+                rating: 5
+              },
+              {
+                name: "Дмитрий Козлов",
+                role: "Founder, CPA Network",
+                avatar: "dmitry", 
+                text: "White-label функционал на высоте. Подключили свой домен за 10 минут. Партнёры даже не знают, что это не наша разработка.",
+                rating: 5
+              }
+            ].map((testimonial, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+                  <CardContent className="p-6">
+                    <Quote className="w-8 h-8 text-emerald-500/30 mb-4" />
+                    <p className="text-muted-foreground mb-6 leading-relaxed">"{testimonial.text}"</p>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.avatar}`} 
+                        alt={testimonial.name}
+                        className="w-12 h-12 rounded-full bg-muted"
+                      />
+                      <div>
+                        <div className="font-medium">{testimonial.name}</div>
+                        <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 mt-4">
+                      {Array.from({ length: testimonial.rating }).map((_, idx) => (
+                        <Star key={idx} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blog/News */}
+      <section className="py-24 border-t border-border bg-background">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Новости</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Последние обновления</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                date: "15 января 2026",
+                category: "Обновление",
+                title: "Новая система антифрода 2.0",
+                desc: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
+                icon: ShieldCheck
+              },
+              {
+                date: "10 января 2026",
+                category: "Интеграция",
+                title: "Интеграция с Binance Pay",
+                desc: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
+                icon: CreditCard
+              },
+              {
+                date: "5 января 2026",
+                category: "Фича",
+                title: "Telegram бот для уведомлений",
+                desc: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
+                icon: Bell
+              }
+            ].map((post, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
+                        <post.icon className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-emerald-500 font-mono">{post.category}</div>
+                        <div className="text-xs text-muted-foreground">{post.date}</div>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold mb-2 group-hover:text-emerald-400 transition-colors">{post.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{post.desc}</p>
+                    <div className="mt-4 flex items-center text-sm text-emerald-500 font-medium">
+                      Читать далее <ChevronRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Form */}
+      <section id="contact" className="py-24 border-t border-border bg-muted/30">
+        <div className="container px-4 mx-auto max-w-4xl">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Контакты</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Остались вопросы?</h2>
+            <p className="text-muted-foreground">Напишите нам, и мы ответим в течение 24 часов</p>
+          </motion.div>
+
+          <motion.div {...fadeInUp}>
+            <Card className="bg-card border-border">
+              <CardContent className="p-8">
+                <form onSubmit={handleContactSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Ваше имя</label>
+                      <Input
+                        placeholder="Иван Петров"
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        required
+                        data-testid="input-contact-name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Email</label>
+                      <Input
+                        type="email"
+                        placeholder="ivan@example.com"
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        required
+                        data-testid="input-contact-email"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Сообщение</label>
+                    <Textarea
+                      placeholder="Опишите ваш вопрос или запрос..."
+                      rows={5}
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      required
+                      data-testid="input-contact-message"
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Или напишите нам: {supportEmail && <a href={`mailto:${supportEmail}`} className="text-emerald-500 hover:underline">{supportEmail}</a>}
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="bg-emerald-600 hover:bg-emerald-500 min-w-[200px]"
+                      disabled={isSubmitting}
+                      data-testid="button-contact-submit"
+                    >
+                      {isSubmitting ? (
+                        <>Отправка...</>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Отправить сообщение
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 border-t border-border bg-gradient-to-b from-emerald-500/5 to-background">
         <div className="container px-4 mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Готовы начать?</h2>
-          <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Присоединяйтесь к сотням рекламодателей, которые уже используют {platformName}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              className="h-14 px-8 bg-emerald-600 hover:bg-emerald-500"
-              onClick={() => navigate('/register/advertiser')}
-              data-testid="button-cta-register"
-            >
-              Создать аккаунт бесплатно
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              className="h-14 px-8"
-              onClick={() => navigate('/login')}
-              data-testid="button-cta-login"
-            >
-              Войти в аккаунт
-            </Button>
-          </div>
+          <motion.div {...fadeInUp}>
+            <Sparkles className="w-12 h-12 mx-auto mb-6 text-emerald-500" />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Готовы начать?</h2>
+            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+              Присоединяйтесь к сотням рекламодателей, которые уже используют {platformName}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg"
+                className="h-14 px-8 bg-emerald-600 hover:bg-emerald-500"
+                onClick={() => navigate('/register/advertiser')}
+                data-testid="button-cta-register"
+              >
+                Создать аккаунт бесплатно
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="h-14 px-8"
+                onClick={() => navigate('/login')}
+                data-testid="button-cta-login"
+              >
+                Войти в аккаунт
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
 
