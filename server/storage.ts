@@ -284,7 +284,7 @@ export interface IStorage {
   getOfferTotalConversions(offerId: string): Promise<number>;
   incrementOfferCapsStats(offerId: string): Promise<OfferCapsStats>;
   decrementOfferCapsStats(offerId: string, conversionDate?: Date): Promise<void>;
-  checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }>;
+  checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; monthlyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }>;
   
   // Reports
   getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number }>;
@@ -1632,14 +1632,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementOfferCapsStats(offerId: string): Promise<OfferCapsStats> {
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const yearMonth = today.substring(0, 7); // YYYY-MM
     
-    // Atomic UPSERT - only track daily_conversions, total is computed via SUM
+    // Atomic UPSERT - track daily and monthly conversions
     const result = await db.execute(sql`
-      INSERT INTO offer_caps_stats (id, offer_id, date, daily_conversions, total_conversions)
-      VALUES (gen_random_uuid(), ${offerId}, ${today}, 1, 0)
+      INSERT INTO offer_caps_stats (id, offer_id, date, year_month, daily_conversions, monthly_conversions, total_conversions)
+      VALUES (gen_random_uuid(), ${offerId}, ${today}, ${yearMonth}, 1, 1, 0)
       ON CONFLICT (offer_id, date) 
-      DO UPDATE SET daily_conversions = offer_caps_stats.daily_conversions + 1
+      DO UPDATE SET 
+        daily_conversions = offer_caps_stats.daily_conversions + 1,
+        monthly_conversions = offer_caps_stats.monthly_conversions + 1,
+        year_month = ${yearMonth}
       RETURNING *
     `);
     
@@ -1662,14 +1667,25 @@ export class DatabaseStorage implements IStorage {
     `);
   }
 
-  async checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }> {
+  async checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; monthlyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }> {
     const offer = await this.getOffer(offerId);
     if (!offer) {
-      return { dailyCapReached: false, totalCapReached: false, offer: undefined };
+      return { dailyCapReached: false, monthlyCapReached: false, totalCapReached: false, offer: undefined };
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const yearMonth = today.substring(0, 7); // YYYY-MM
+    
     const todayStats = await this.getOfferCapsStats(offerId, today);
+    
+    // Calculate monthly conversions for current month
+    const monthlyResult = await db.execute(sql`
+      SELECT COALESCE(SUM(daily_conversions), 0) as monthly_total 
+      FROM offer_caps_stats 
+      WHERE offer_id = ${offerId} AND year_month = ${yearMonth}
+    `);
+    const monthlyConversions = parseInt((monthlyResult.rows[0] as any)?.monthly_total || '0', 10);
     
     // Calculate total via SQL SUM for accuracy
     const totalResult = await db.execute(sql`
@@ -1682,9 +1698,10 @@ export class DatabaseStorage implements IStorage {
     const dailyConversions = todayStats?.dailyConversions || 0;
     
     const dailyCapReached = offer.dailyCap !== null && dailyConversions >= offer.dailyCap;
+    const monthlyCapReached = offer.monthlyCap !== null && monthlyConversions >= offer.monthlyCap;
     const totalCapReached = offer.totalCap !== null && totalConversions >= offer.totalCap;
 
-    return { dailyCapReached, totalCapReached, offer };
+    return { dailyCapReached, monthlyCapReached, totalCapReached, offer };
   }
 
   // ============================================

@@ -54,9 +54,9 @@ export class ClickHandler {
       throw new Error("Offer is not active");
     }
     
-    // Check caps/limits
+    // Check caps/limits (daily, monthly, total)
     const capsCheck = await storage.checkOfferCaps(params.offerId);
-    if (capsCheck.dailyCapReached || capsCheck.totalCapReached) {
+    if (capsCheck.dailyCapReached || capsCheck.monthlyCapReached || capsCheck.totalCapReached) {
       const capAction = offer.capReachedAction || "block";
       
       if (capAction === "redirect" && offer.capRedirectUrl) {

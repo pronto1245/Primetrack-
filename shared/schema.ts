@@ -141,6 +141,7 @@ export const offers = pgTable("offers", {
   
   // Caps/Limits
   dailyCap: integer("daily_cap"), // Daily conversions limit (null = unlimited)
+  monthlyCap: integer("monthly_cap"), // Monthly conversions limit (null = unlimited)
   totalCap: integer("total_cap"), // Total conversions limit (null = unlimited)
   capReachedAction: text("cap_reached_action").notNull().default("block"), // block, redirect
   capRedirectUrl: text("cap_redirect_url"), // URL to redirect when cap reached
@@ -518,7 +519,9 @@ export const offerCapsStats = pgTable("offer_caps_stats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   offerId: varchar("offer_id").notNull().references(() => offers.id),
   date: text("date").notNull(), // YYYY-MM-DD format for daily tracking
+  yearMonth: text("year_month").notNull().default(""), // YYYY-MM format for monthly tracking
   dailyConversions: integer("daily_conversions").notNull().default(0),
+  monthlyConversions: integer("monthly_conversions").notNull().default(0),
   totalConversions: integer("total_conversions").notNull().default(0),
 }, (table) => ({
   offerDateUnique: sql`CREATE UNIQUE INDEX IF NOT EXISTS offer_caps_stats_offer_date_idx ON offer_caps_stats(offer_id, date)`,
@@ -1633,3 +1636,134 @@ export const insertPublisherPostbackEndpointSchema = createInsertSchema(publishe
 
 export type InsertPublisherPostbackEndpoint = z.infer<typeof insertPublisherPostbackEndpointSchema>;
 export type PublisherPostbackEndpoint = typeof publisherPostbackEndpoints.$inferSelect;
+
+// ============================================
+// A/B TESTING - OFFER LANDING VARIANTS
+// Split testing different landing pages
+// ============================================
+export const offerLandingVariants = pgTable("offer_landing_variants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  name: text("name").notNull(), // "Variant A", "Variant B"
+  url: text("url").notNull(), // Landing page URL
+  weight: integer("weight").notNull().default(50), // Percentage of traffic (0-100)
+  status: text("status").notNull().default("active"), // active, paused
+  clicks: integer("clicks").notNull().default(0),
+  conversions: integer("conversions").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertOfferLandingVariantSchema = createInsertSchema(offerLandingVariants).omit({
+  id: true,
+  clicks: true,
+  conversions: true,
+  createdAt: true,
+});
+
+export type InsertOfferLandingVariant = z.infer<typeof insertOfferLandingVariantSchema>;
+export type OfferLandingVariant = typeof offerLandingVariants.$inferSelect;
+
+// ============================================
+// CONVERSION FUNNEL - PLAYER SESSIONS
+// Track user journey: click → registration → FTD → repeat
+// ============================================
+export const playerSessions = pgTable("player_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clickId: varchar("click_id").references(() => clicks.id),
+  playerId: text("player_id"), // External player ID from advertiser
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  
+  // Funnel stages
+  hasClick: boolean("has_click").notNull().default(true),
+  clickAt: timestamp("click_at").notNull().defaultNow(),
+  
+  hasRegistration: boolean("has_registration").notNull().default(false),
+  registrationAt: timestamp("registration_at"),
+  
+  hasFtd: boolean("has_ftd").notNull().default(false), // First Time Deposit
+  ftdAt: timestamp("ftd_at"),
+  ftdAmount: numeric("ftd_amount", { precision: 10, scale: 2 }),
+  
+  hasRepeatDeposit: boolean("has_repeat_deposit").notNull().default(false),
+  repeatDepositAt: timestamp("repeat_deposit_at"),
+  totalDeposits: numeric("total_deposits", { precision: 10, scale: 2 }).default("0"),
+  depositCount: integer("deposit_count").notNull().default(0),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertPlayerSessionSchema = createInsertSchema(playerSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPlayerSession = z.infer<typeof insertPlayerSessionSchema>;
+export type PlayerSession = typeof playerSessions.$inferSelect;
+
+// ============================================
+// PUBLISHER INVOICES
+// Auto-generated payment documents
+// ============================================
+export const invoiceStatusEnum = pgEnum("invoice_status", ["draft", "issued", "paid", "cancelled"]);
+
+export const publisherInvoices = pgTable("publisher_invoices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shortId: text("short_id").unique(), // INV-0001
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  
+  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  
+  status: invoiceStatusEnum("status").notNull().default("draft"),
+  
+  pdfUrl: text("pdf_url"), // Object storage URL
+  
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  issuedAt: timestamp("issued_at"),
+  paidAt: timestamp("paid_at"),
+});
+
+export const insertPublisherInvoiceSchema = createInsertSchema(publisherInvoices).omit({
+  id: true,
+  shortId: true,
+  createdAt: true,
+  issuedAt: true,
+  paidAt: true,
+});
+
+export type InsertPublisherInvoice = z.infer<typeof insertPublisherInvoiceSchema>;
+export type PublisherInvoice = typeof publisherInvoices.$inferSelect;
+
+// ============================================
+// PUBLISHER INVOICE ITEMS
+// Line items for each invoice
+// ============================================
+export const publisherInvoiceItems = pgTable("publisher_invoice_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  invoiceId: varchar("invoice_id").notNull().references(() => publisherInvoices.id),
+  offerId: varchar("offer_id").references(() => offers.id),
+  
+  offerName: text("offer_name").notNull(),
+  conversions: integer("conversions").notNull(),
+  payoutPerConversion: numeric("payout_per_conversion", { precision: 10, scale: 2 }).notNull(),
+  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPublisherInvoiceItemSchema = createInsertSchema(publisherInvoiceItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPublisherInvoiceItem = z.infer<typeof insertPublisherInvoiceItemSchema>;
+export type PublisherInvoiceItem = typeof publisherInvoiceItems.$inferSelect;
