@@ -1,23 +1,11 @@
-import PdfPrinterModule from "pdfmake";
-const PdfPrinter = (PdfPrinterModule as any).default || PdfPrinterModule;
-import type { TDocumentDefinitions, Content, ContentTable, StyleDictionary } from "pdfmake/interfaces";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const PDFDocument = require("pdfkit");
 import { db } from "../../db";
-import { publisherInvoices, publisherInvoiceItems, users, offers } from "@shared/schema";
+import { publisherInvoices, publisherInvoiceItems, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-
-// Use standard PDF fonts that don't require external files
-const fonts = {
-  Helvetica: {
-    normal: "Helvetica",
-    bold: "Helvetica-Bold",
-    italics: "Helvetica-Oblique",
-    bolditalics: "Helvetica-BoldOblique",
-  },
-};
-
-const printer = new PdfPrinter(fonts);
 
 interface InvoiceData {
   invoiceId: string;
@@ -47,18 +35,7 @@ export class InvoicePdfService {
       throw new Error("Invoice not found");
     }
     
-    const docDefinition = this.buildDocDefinition(invoice);
-    
-    return new Promise((resolve, reject) => {
-      const pdfDoc = printer.createPdfKitDocument(docDefinition);
-      const chunks: Buffer[] = [];
-      
-      pdfDoc.on("data", (chunk) => chunks.push(chunk));
-      pdfDoc.on("end", () => resolve(Buffer.concat(chunks)));
-      pdfDoc.on("error", reject);
-      
-      pdfDoc.end();
-    });
+    return this.buildPdf(invoice);
   }
   
   private async getInvoiceData(invoiceId: string): Promise<InvoiceData | null> {
@@ -93,122 +70,94 @@ export class InvoicePdfService {
     };
   }
   
-  private buildDocDefinition(invoice: InvoiceData): TDocumentDefinitions {
-    const styles: StyleDictionary = {
-      header: { fontSize: 24, bold: true, margin: [0, 0, 0, 20] },
-      subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
-      normal: { fontSize: 10, margin: [0, 2, 0, 2] },
-      tableHeader: { fontSize: 10, bold: true, fillColor: "#f3f4f6" },
-      tableCell: { fontSize: 10 },
-      total: { fontSize: 14, bold: true, margin: [0, 10, 0, 0] },
-      footer: { fontSize: 8, color: "#6b7280" },
-    };
-    
-    const tableBody: any[][] = [
-      [
-        { text: "Оффер", style: "tableHeader" },
-        { text: "Конверсии", style: "tableHeader", alignment: "center" },
-        { text: "Ставка", style: "tableHeader", alignment: "right" },
-        { text: "Сумма", style: "tableHeader", alignment: "right" },
-      ],
-      ...invoice.items.map((item) => [
-        { text: item.offerName, style: "tableCell" },
-        { text: item.conversions.toString(), style: "tableCell", alignment: "center" },
-        { text: `${item.payout} ${invoice.currency}`, style: "tableCell", alignment: "right" },
-        { text: `${item.total} ${invoice.currency}`, style: "tableCell", alignment: "right" },
-      ]),
-    ];
-    
-    const itemsTable: ContentTable = {
-      table: {
-        headerRows: 1,
-        widths: ["*", 80, 80, 100],
-        body: tableBody,
-      },
-      layout: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0,
-        hLineColor: () => "#e5e7eb",
-        paddingLeft: () => 8,
-        paddingRight: () => 8,
-        paddingTop: () => 6,
-        paddingBottom: () => 6,
-      },
-    };
-    
-    const content: Content = [
-      { text: `ИНВОЙС ${invoice.shortId}`, style: "header" },
-      {
-        columns: [
-          {
-            width: "*",
-            stack: [
-              { text: "От кого:", style: "subheader" },
-              { text: invoice.advertiserName, style: "normal" },
-              { text: invoice.advertiserEmail, style: "normal" },
-            ],
-          },
-          {
-            width: "*",
-            stack: [
-              { text: "Кому:", style: "subheader" },
-              { text: invoice.publisherName, style: "normal" },
-              { text: invoice.publisherEmail, style: "normal" },
-            ],
-          },
-          {
-            width: 150,
-            stack: [
-              { text: "Детали:", style: "subheader" },
-              { text: `Дата: ${invoice.issuedAt ? format(invoice.issuedAt, "dd.MM.yyyy", { locale: ru }) : format(new Date(), "dd.MM.yyyy", { locale: ru })}`, style: "normal" },
-              { text: `Период: ${format(invoice.periodStart, "dd.MM.yyyy", { locale: ru })} - ${format(invoice.periodEnd, "dd.MM.yyyy", { locale: ru })}`, style: "normal" },
-            ],
-          },
-        ],
-      },
-      { text: "", margin: [0, 20, 0, 0] },
-      { text: "Детализация:", style: "subheader" },
-      itemsTable,
-      {
-        columns: [
-          { width: "*", text: "" },
-          {
-            width: 200,
-            table: {
-              widths: ["*", "auto"],
-              body: [
-                [
-                  { text: "ИТОГО:", style: "total" },
-                  { text: `${invoice.totalAmount} ${invoice.currency}`, style: "total", alignment: "right" },
-                ],
-              ],
-            },
-            layout: "noBorders",
-          },
-        ],
-        margin: [0, 10, 0, 0],
-      },
-    ];
-    
-    if (invoice.notes) {
-      content.push({ text: "", margin: [0, 20, 0, 0] });
-      content.push({ text: "Примечания:", style: "subheader" });
-      content.push({ text: invoice.notes, style: "normal" });
-    }
-    
-    return {
-      content,
-      styles,
-      defaultStyle: { font: "Helvetica" },
-      pageSize: "A4",
-      pageMargins: [40, 40, 40, 60],
-      footer: (currentPage, pageCount) => ({
-        text: `Страница ${currentPage} из ${pageCount} | Сгенерировано PrimeTrack`,
-        style: "footer",
-        alignment: "center",
-        margin: [0, 20, 0, 0],
-      }),
-    };
+  private buildPdf(invoice: InvoiceData): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ size: "A4", margin: 40 });
+      const chunks: Buffer[] = [];
+      
+      doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+      doc.on("error", reject);
+      
+      // Header
+      doc.fontSize(24).font("Helvetica-Bold")
+        .text(`INVOICE ${invoice.shortId}`, { align: "left" });
+      doc.moveDown(1.5);
+      
+      // From/To section
+      const startY = doc.y;
+      
+      // From
+      doc.fontSize(12).font("Helvetica-Bold").text("From:", 40, startY);
+      doc.fontSize(10).font("Helvetica")
+        .text(invoice.advertiserName, 40, startY + 18)
+        .text(invoice.advertiserEmail, 40, startY + 32);
+      
+      // To
+      doc.fontSize(12).font("Helvetica-Bold").text("To:", 220, startY);
+      doc.fontSize(10).font("Helvetica")
+        .text(invoice.publisherName, 220, startY + 18)
+        .text(invoice.publisherEmail, 220, startY + 32);
+      
+      // Details
+      doc.fontSize(12).font("Helvetica-Bold").text("Details:", 400, startY);
+      const issueDate = invoice.issuedAt ? format(invoice.issuedAt, "dd.MM.yyyy", { locale: ru }) : format(new Date(), "dd.MM.yyyy", { locale: ru });
+      const periodText = `${format(invoice.periodStart, "dd.MM.yyyy", { locale: ru })} - ${format(invoice.periodEnd, "dd.MM.yyyy", { locale: ru })}`;
+      doc.fontSize(10).font("Helvetica")
+        .text(`Date: ${issueDate}`, 400, startY + 18)
+        .text(`Period: ${periodText}`, 400, startY + 32);
+      
+      doc.y = startY + 70;
+      
+      // Items table
+      doc.moveDown(1);
+      doc.fontSize(12).font("Helvetica-Bold").text("Details:");
+      doc.moveDown(0.5);
+      
+      // Table header
+      const tableTop = doc.y;
+      const col1 = 40, col2 = 280, col3 = 360, col4 = 450;
+      
+      doc.rect(40, tableTop, 515, 20).fill("#f3f4f6");
+      doc.fillColor("black").fontSize(10).font("Helvetica-Bold")
+        .text("Offer", col1 + 5, tableTop + 5)
+        .text("Conv.", col2 + 5, tableTop + 5)
+        .text("Rate", col3 + 5, tableTop + 5)
+        .text("Amount", col4 + 5, tableTop + 5);
+      
+      // Table rows
+      let rowY = tableTop + 22;
+      doc.font("Helvetica");
+      
+      for (const item of invoice.items) {
+        doc.text(item.offerName.substring(0, 35), col1 + 5, rowY)
+          .text(item.conversions.toString(), col2 + 5, rowY)
+          .text(`${item.payout} ${invoice.currency}`, col3 + 5, rowY)
+          .text(`${item.total} ${invoice.currency}`, col4 + 5, rowY);
+        
+        doc.moveTo(40, rowY + 15).lineTo(555, rowY + 15).strokeColor("#e5e7eb").stroke();
+        rowY += 20;
+      }
+      
+      // Total
+      doc.moveDown(2);
+      doc.fontSize(14).font("Helvetica-Bold")
+        .text(`TOTAL: ${invoice.totalAmount} ${invoice.currency}`, { align: "right" });
+      
+      // Notes
+      if (invoice.notes) {
+        doc.moveDown(2);
+        doc.fontSize(12).font("Helvetica-Bold").text("Notes:");
+        doc.fontSize(10).font("Helvetica").text(invoice.notes);
+      }
+      
+      // Footer
+      const pageHeight = doc.page.height;
+      doc.fontSize(8).fillColor("#6b7280")
+        .text("Generated by PrimeTrack", 40, pageHeight - 50, { align: "center" });
+      
+      doc.end();
+    });
   }
 }
 
