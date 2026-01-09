@@ -5,13 +5,18 @@ import { publisherInvoices, publisherInvoiceItems, users, offers } from "@shared
 import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Use standard PDF fonts that don't require external files
 const fonts = {
-  Roboto: {
-    normal: "node_modules/pdfmake/fonts/Roboto/Roboto-Regular.ttf",
-    bold: "node_modules/pdfmake/fonts/Roboto/Roboto-Medium.ttf",
-    italics: "node_modules/pdfmake/fonts/Roboto/Roboto-Italic.ttf",
-    bolditalics: "node_modules/pdfmake/fonts/Roboto/Roboto-MediumItalic.ttf",
+  Helvetica: {
+    normal: "Helvetica",
+    bold: "Helvetica-Bold",
+    italics: "Helvetica-Oblique",
+    bolditalics: "Helvetica-BoldOblique",
   },
 };
 
@@ -197,7 +202,7 @@ export class InvoicePdfService {
     return {
       content,
       styles,
-      defaultStyle: { font: "Roboto" },
+      defaultStyle: { font: "Helvetica" },
       pageSize: "A4",
       pageMargins: [40, 40, 40, 60],
       footer: (currentPage, pageCount) => ({
