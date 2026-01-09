@@ -4,7 +4,7 @@ import { initReactI18next } from "react-i18next";
 const resources = {
   en: {
     translation: {
-      brand: "Affiliate Platform",
+      brand: "Primetrack",
       nav: {
         features: "Features",
         pricing: "Pricing",
@@ -241,7 +241,7 @@ const resources = {
   },
   ru: {
     translation: {
-      brand: "Affiliate Platform",
+      brand: "Primetrack",
       nav: {
         features: "Возможности",
         pricing: "Тарифы",

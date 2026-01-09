@@ -545,7 +545,7 @@ export async function registerRoutes(
     try {
       const settings = await storage.getPlatformSettings();
       res.json({
-        platformName: settings?.platformName || "Affiliate Platform",
+        platformName: settings?.platformName || "Primetrack",
         platformDescription: settings?.platformDescription || null,
         platformLogoUrl: settings?.platformLogoUrl || null,
         platformFaviconUrl: settings?.platformFaviconUrl || null,
@@ -555,7 +555,7 @@ export async function registerRoutes(
         copyrightText: settings?.copyrightText || null,
       });
     } catch (error) {
-      res.json({ platformName: "Affiliate Platform" });
+      res.json({ platformName: "Primetrack" });
     }
   });
 
@@ -5981,7 +5981,7 @@ export async function registerRoutes(
       
       if (!settings) {
         settings = await storage.updatePlatformSettings({
-          platformName: "Affiliate Platform"
+          platformName: "Primetrack"
         });
       }
       

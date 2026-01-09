@@ -1027,7 +1027,7 @@ export const platformSettings = pgTable("platform_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   
   // Platform branding
-  platformName: text("platform_name").default("Affiliate Platform"),
+  platformName: text("platform_name").default("Primetrack"),
   platformDescription: text("platform_description"),
   platformLogoUrl: text("platform_logo_url"),
   platformFaviconUrl: text("platform_favicon_url"),
