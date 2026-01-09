@@ -276,7 +276,7 @@ export default function Home() {
               { icon: Globe, title: "Кастомные домены", desc: "Подключайте свои домены с автоматическим SSL от Let's Encrypt", color: "cyan" },
               { icon: CreditCard, title: "Финансы", desc: "Балансы, холды, запросы на выплату и крипто-интеграции", color: "green" },
               { icon: Bell, title: "Уведомления", desc: "In-app уведомления и Telegram бот для важных событий", color: "yellow" },
-              { icon: FileText, title: "Миграция данных", desc: "Импорт из Scaleo, Affilka, Affise, Voluum, Keitaro", color: "pink" },
+              { icon: FileText, title: "Миграция данных", desc: "Импорт из Scaleo, Affilka, Affise, Alanbase", color: "pink" },
             ].map((feature, i) => (
               <Card key={i} className="bg-card/50 border-border hover:border-emerald-500/30 transition-colors group">
                 <CardContent className="p-6">
@@ -343,7 +343,7 @@ export default function Home() {
               </p>
               
               <div className="grid grid-cols-2 gap-4 mb-8">
-                {["Scaleo", "Affilka", "Affise", "Voluum", "Keitaro", "Binom"].map((platform) => (
+                {["Scaleo", "Affilka", "Affise", "Alanbase"].map((platform) => (
                   <div key={platform} className="flex items-center gap-3 p-3 rounded border border-border bg-card/50">
                     <Check className="w-5 h-5 text-emerald-500" />
                     <span className="font-medium">{platform}</span>
@@ -535,23 +535,23 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                name: "Алексей Петров",
-                role: "CEO, MediaBuy Pro",
-                avatar: "aleksey",
-                text: "Перешли с Keitaro на эту платформу и не пожалели. Антифрод реально работает, экономим до 20% бюджета на фроде.",
+                name: "MediaBuy Pro",
+                role: "Рекламное агентство",
+                avatar: "mediabuy",
+                text: "Перешли со Scaleo на эту платформу и не пожалели. Антифрод реально работает, экономим до 20% бюджета на фроде.",
                 rating: 5
               },
               {
-                name: "Мария Иванова", 
-                role: "Affiliate Manager, TrafficLab",
-                avatar: "maria",
+                name: "TrafficLab", 
+                role: "CPA сеть",
+                avatar: "trafficlab",
                 text: "Удобная панель, быстрые постбеки, отличная поддержка. Команда реально слушает фидбек и быстро внедряет фичи.",
                 rating: 5
               },
               {
-                name: "Дмитрий Козлов",
-                role: "Founder, CPA Network",
-                avatar: "dmitry", 
+                name: "LeadGen Network",
+                role: "Партнёрская программа",
+                avatar: "leadgen", 
                 text: "White-label функционал на высоте. Подключили свой домен за 10 минут. Партнёры даже не знают, что это не наша разработка.",
                 rating: 5
               }
