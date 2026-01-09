@@ -15,8 +15,9 @@ import {
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Users, Loader2, Trash2, Edit,
   Send, AlertCircle, CheckSquare, History, Key, Shield, Eye, EyeOff,
-  BookOpen, HelpCircle
+  BookOpen, HelpCircle, TrendingUp, Download, Calendar, BarChart3
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -65,6 +66,13 @@ export function AdvertiserFinance() {
   const [bonusNote, setBonusNote] = useState("");
   const [exchangeKeyForms, setExchangeKeyForms] = useState<Record<string, boolean>>({});
   const [exchangeInputs, setExchangeInputs] = useState<Record<string, { apiKey: string; secretKey: string; passphrase?: string }>>({});
+  const [analyticsInterval, setAnalyticsInterval] = useState<"day" | "week" | "month">("day");
+  const [analyticsDateFrom, setAnalyticsDateFrom] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().split('T')[0];
+  });
+  const [analyticsDateTo, setAnalyticsDateTo] = useState(() => new Date().toISOString().split('T')[0]);
 
   const { data: paymentMethods = [], isLoading: methodsLoading } = useQuery<any[]>({
     queryKey: ["/api/advertiser/payment-methods"],
@@ -85,6 +93,21 @@ export function AdvertiserFinance() {
   const { data: cryptoKeysStatus = {} } = useQuery<Record<string, boolean>>({
     queryKey: ["/api/advertiser/crypto/keys/status"],
   });
+
+  const { data: analytics, isLoading: analyticsLoading, refetch: refetchAnalytics } = useQuery<{
+    summary: { revenue: number; payouts: number; profit: number; roiPercent: number; totalFtd: number; totalRepeatDeposits: number; avgDepositAmount: number };
+    trend: { periodStart: string; revenue: number; payouts: number; profit: number }[];
+    offerBreakdown: { offerId: string; offerName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
+    publisherBreakdown: { publisherId: string; publisherName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
+  }>({
+    queryKey: ["/api/advertiser/finance/analytics", analyticsDateFrom, analyticsDateTo, analyticsInterval],
+    queryFn: () => apiRequest("GET", `/api/advertiser/finance/analytics?dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`).then(r => r.json()),
+  });
+
+  const handleExportAnalytics = (format: string) => {
+    const url = `/api/advertiser/finance/export?format=${format}&dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`;
+    window.open(url, '_blank');
+  };
 
   const saveCryptoKeysMutation = useMutation({
     mutationFn: (data: { exchange: string; apiKey: string; secretKey: string; passphrase?: string }) => 
@@ -338,8 +361,12 @@ export function AdvertiserFinance() {
         </Card>
       </div>
 
-      <Tabs defaultValue="requests" className="space-y-4">
-        <TabsList className="bg-card border border-border">
+      <Tabs defaultValue="analytics" className="space-y-4">
+        <TabsList className="bg-card border border-border flex-wrap">
+          <TabsTrigger value="analytics" data-testid="tab-analytics" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+            <TrendingUp className="h-4 w-4 mr-1 text-green-500" />
+            Аналитика
+          </TabsTrigger>
           <TabsTrigger value="requests" data-testid="tab-requests" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
             <Send className="h-4 w-4 mr-1 text-yellow-500" />
             Запросы на выплату
@@ -368,6 +395,227 @@ export function AdvertiserFinance() {
             Инструкция
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-green-500" />
+                  Финансовая аналитика
+                </CardTitle>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={analyticsDateFrom}
+                      onChange={(e) => setAnalyticsDateFrom(e.target.value)}
+                      className="w-36 bg-input border-border"
+                      data-testid="input-date-from"
+                    />
+                    <span className="text-muted-foreground">—</span>
+                    <Input
+                      type="date"
+                      value={analyticsDateTo}
+                      onChange={(e) => setAnalyticsDateTo(e.target.value)}
+                      className="w-36 bg-input border-border"
+                      data-testid="input-date-to"
+                    />
+                  </div>
+                  <Select value={analyticsInterval} onValueChange={(v) => setAnalyticsInterval(v as any)}>
+                    <SelectTrigger className="w-28 bg-input border-border" data-testid="select-interval">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="day">По дням</SelectItem>
+                      <SelectItem value="week">По неделям</SelectItem>
+                      <SelectItem value="month">По месяцам</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" onClick={() => handleExportAnalytics("csv")} data-testid="btn-export-csv">
+                      <Download className="h-4 w-4 mr-1" />CSV
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleExportAnalytics("xlsx")} data-testid="btn-export-xlsx">
+                      <Download className="h-4 w-4 mr-1" />Excel
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleExportAnalytics("pdf")} data-testid="btn-export-pdf">
+                      <Download className="h-4 w-4 mr-1" />PDF
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : !analytics ? (
+                <p className="text-center text-muted-foreground py-8">Нет данных</p>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                    <Card className="bg-emerald-500/10 border-emerald-500/30">
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Доход</p>
+                        <p className="text-lg font-bold text-emerald-500" data-testid="stat-revenue">${analytics.summary.revenue.toFixed(2)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-red-500/10 border-red-500/30">
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Выплаты</p>
+                        <p className="text-lg font-bold text-red-500" data-testid="stat-payouts">${analytics.summary.payouts.toFixed(2)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className={`${analytics.summary.profit >= 0 ? 'bg-blue-500/10 border-blue-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Прибыль</p>
+                        <p className={`text-lg font-bold ${analytics.summary.profit >= 0 ? 'text-blue-500' : 'text-orange-500'}`} data-testid="stat-profit">
+                          ${analytics.summary.profit.toFixed(2)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card className={`${analytics.summary.roiPercent >= 0 ? 'bg-purple-500/10 border-purple-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">ROI</p>
+                        <p className={`text-lg font-bold ${analytics.summary.roiPercent >= 0 ? 'text-purple-500' : 'text-orange-500'}`} data-testid="stat-roi">
+                          {analytics.summary.roiPercent.toFixed(1)}%
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-cyan-500/10 border-cyan-500/30">
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">FTD</p>
+                        <p className="text-lg font-bold text-cyan-500" data-testid="stat-ftd">{analytics.summary.totalFtd}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-yellow-500/10 border-yellow-500/30">
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Повторные</p>
+                        <p className="text-lg font-bold text-yellow-500" data-testid="stat-repeat">{analytics.summary.totalRepeatDeposits}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-indigo-500/10 border-indigo-500/30">
+                      <CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Ср. депозит</p>
+                        <p className="text-lg font-bold text-indigo-500" data-testid="stat-avg">${analytics.summary.avgDepositAmount.toFixed(2)}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {analytics.trend.length > 0 && (
+                    <Card className="bg-card border-border">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">Динамика доходов и выплат</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={analytics.trend}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                              <XAxis 
+                                dataKey="periodStart" 
+                                stroke="#888" 
+                                fontSize={11}
+                                tickFormatter={(v) => new Date(v).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
+                              />
+                              <YAxis stroke="#888" fontSize={11} tickFormatter={(v) => `$${v}`} />
+                              <Tooltip 
+                                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
+                                labelFormatter={(v) => new Date(v).toLocaleDateString('ru-RU')}
+                                formatter={(v: number) => [`$${v.toFixed(2)}`, '']}
+                              />
+                              <Legend />
+                              <Line type="monotone" dataKey="revenue" name="Доход" stroke="#10b981" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="payouts" name="Выплаты" stroke="#ef4444" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="profit" name="Прибыль" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="bg-card border-border">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          По офферам
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="max-h-64 overflow-auto">
+                        {analytics.offerBreakdown.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">Нет данных</p>
+                        ) : (
+                          <table className="w-full text-sm">
+                            <thead className="text-xs text-muted-foreground">
+                              <tr>
+                                <th className="text-left py-1">Оффер</th>
+                                <th className="text-right">Доход</th>
+                                <th className="text-right">Выплаты</th>
+                                <th className="text-right">ROI</th>
+                                <th className="text-right">FTD</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {analytics.offerBreakdown.map((o) => (
+                                <tr key={o.offerId} className="border-t border-border">
+                                  <td className="py-1.5 text-foreground">{o.offerName}</td>
+                                  <td className="text-right text-emerald-500">${o.revenue.toFixed(0)}</td>
+                                  <td className="text-right text-red-500">${o.payouts.toFixed(0)}</td>
+                                  <td className={`text-right ${o.roiPercent >= 0 ? 'text-purple-500' : 'text-orange-500'}`}>{o.roiPercent.toFixed(0)}%</td>
+                                  <td className="text-right text-muted-foreground">{o.ftdCount}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-card border-border">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          По партнёрам
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="max-h-64 overflow-auto">
+                        {analytics.publisherBreakdown.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">Нет данных</p>
+                        ) : (
+                          <table className="w-full text-sm">
+                            <thead className="text-xs text-muted-foreground">
+                              <tr>
+                                <th className="text-left py-1">Партнёр</th>
+                                <th className="text-right">Доход</th>
+                                <th className="text-right">Выплаты</th>
+                                <th className="text-right">ROI</th>
+                                <th className="text-right">FTD</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {analytics.publisherBreakdown.map((p) => (
+                                <tr key={p.publisherId} className="border-t border-border">
+                                  <td className="py-1.5 text-foreground">{p.publisherName}</td>
+                                  <td className="text-right text-emerald-500">${p.revenue.toFixed(0)}</td>
+                                  <td className="text-right text-red-500">${p.payouts.toFixed(0)}</td>
+                                  <td className={`text-right ${p.roiPercent >= 0 ? 'text-purple-500' : 'text-orange-500'}`}>{p.roiPercent.toFixed(0)}%</td>
+                                  <td className="text-right text-muted-foreground">{p.ftdCount}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="requests" className="space-y-4">
           {requestsLoading ? (

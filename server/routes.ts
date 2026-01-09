@@ -3870,6 +3870,223 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // ADVERTISER FINANCIAL ANALYTICS
+  // ============================================
+
+  app.get("/api/advertiser/finance/analytics", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { advertiserFinanceService } = await import("./services/advertiser-finance-service");
+      const user = await storage.getUser(req.session.userId!);
+      const isAdmin = user?.role === "admin";
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      
+      if (!isAdmin && !effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { dateFrom, dateTo, interval, advertiserId: queryAdvertiserId } = req.query;
+      
+      let targetAdvertiserId = effectiveAdvertiserId;
+      if (isAdmin && queryAdvertiserId) {
+        targetAdvertiserId = queryAdvertiserId as string;
+      }
+      
+      if (!targetAdvertiserId) {
+        return res.status(400).json({ message: "Advertiser ID required" });
+      }
+      
+      const analytics = await advertiserFinanceService.getAnalytics({
+        advertiserId: targetAdvertiserId,
+        dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
+        dateTo: dateTo ? new Date(dateTo as string) : undefined,
+        interval: (interval as "day" | "week" | "month") || "day",
+      });
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching finance analytics:", error);
+      res.status(500).json({ message: "Failed to fetch finance analytics" });
+    }
+  });
+
+  app.get("/api/advertiser/finance/export", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { advertiserFinanceService } = await import("./services/advertiser-finance-service");
+      const user = await storage.getUser(req.session.userId!);
+      const isAdmin = user?.role === "admin";
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      
+      if (!isAdmin && !effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { dateFrom, dateTo, interval, format, advertiserId: queryAdvertiserId } = req.query;
+      
+      let targetAdvertiserId = effectiveAdvertiserId;
+      if (isAdmin && queryAdvertiserId) {
+        targetAdvertiserId = queryAdvertiserId as string;
+      }
+      
+      if (!targetAdvertiserId) {
+        return res.status(400).json({ message: "Advertiser ID required" });
+      }
+      
+      const analytics = await advertiserFinanceService.getAnalytics({
+        advertiserId: targetAdvertiserId,
+        dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
+        dateTo: dateTo ? new Date(dateTo as string) : undefined,
+        interval: (interval as "day" | "week" | "month") || "day",
+      });
+      
+      const exportFormat = (format as string)?.toLowerCase() || "csv";
+      const filename = `finance-analytics-${new Date().toISOString().split('T')[0]}`;
+      
+      if (exportFormat === "csv") {
+        const csvRows = [
+          ["Metric", "Value"],
+          ["Revenue", analytics.summary.revenue.toFixed(2)],
+          ["Payouts", analytics.summary.payouts.toFixed(2)],
+          ["Profit", analytics.summary.profit.toFixed(2)],
+          ["ROI %", analytics.summary.roiPercent.toFixed(2)],
+          ["Total FTD", analytics.summary.totalFtd.toString()],
+          ["Repeat Deposits", analytics.summary.totalRepeatDeposits.toString()],
+          [""],
+          ["Offer Breakdown"],
+          ["Offer", "Revenue", "Payouts", "Profit", "ROI %", "FTD Count"],
+          ...analytics.offerBreakdown.map(o => [
+            o.offerName, o.revenue.toFixed(2), o.payouts.toFixed(2), 
+            o.profit.toFixed(2), o.roiPercent.toFixed(2), o.ftdCount.toString()
+          ]),
+          [""],
+          ["Publisher Breakdown"],
+          ["Publisher", "Revenue", "Payouts", "Profit", "ROI %", "FTD Count"],
+          ...analytics.publisherBreakdown.map(p => [
+            p.publisherName, p.revenue.toFixed(2), p.payouts.toFixed(2),
+            p.profit.toFixed(2), p.roiPercent.toFixed(2), p.ftdCount.toString()
+          ]),
+        ];
+        
+        const csv = csvRows.map(row => row.join(",")).join("\n");
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}.csv"`);
+        return res.send(csv);
+      }
+      
+      if (exportFormat === "xlsx") {
+        const ExcelJS = require("exceljs");
+        const workbook = new ExcelJS.Workbook();
+        
+        const summarySheet = workbook.addWorksheet("Summary");
+        summarySheet.columns = [{ header: "Metric", width: 20 }, { header: "Value", width: 15 }];
+        summarySheet.addRows([
+          ["Revenue", `$${analytics.summary.revenue.toFixed(2)}`],
+          ["Payouts", `$${analytics.summary.payouts.toFixed(2)}`],
+          ["Profit", `$${analytics.summary.profit.toFixed(2)}`],
+          ["ROI", `${analytics.summary.roiPercent.toFixed(2)}%`],
+          ["Total FTD", analytics.summary.totalFtd],
+          ["Repeat Deposits", analytics.summary.totalRepeatDeposits],
+        ]);
+        
+        const offersSheet = workbook.addWorksheet("By Offer");
+        offersSheet.columns = [
+          { header: "Offer", width: 25 },
+          { header: "Revenue", width: 12 },
+          { header: "Payouts", width: 12 },
+          { header: "Profit", width: 12 },
+          { header: "ROI %", width: 10 },
+          { header: "FTD", width: 8 },
+        ];
+        analytics.offerBreakdown.forEach(o => {
+          offersSheet.addRow([o.offerName, o.revenue, o.payouts, o.profit, o.roiPercent, o.ftdCount]);
+        });
+        
+        const pubSheet = workbook.addWorksheet("By Publisher");
+        pubSheet.columns = [
+          { header: "Publisher", width: 25 },
+          { header: "Revenue", width: 12 },
+          { header: "Payouts", width: 12 },
+          { header: "Profit", width: 12 },
+          { header: "ROI %", width: 10 },
+          { header: "FTD", width: 8 },
+        ];
+        analytics.publisherBreakdown.forEach(p => {
+          pubSheet.addRow([p.publisherName, p.revenue, p.payouts, p.profit, p.roiPercent, p.ftdCount]);
+        });
+        
+        const trendSheet = workbook.addWorksheet("Trend");
+        trendSheet.columns = [
+          { header: "Period", width: 15 },
+          { header: "Revenue", width: 12 },
+          { header: "Payouts", width: 12 },
+          { header: "Profit", width: 12 },
+        ];
+        analytics.trend.forEach(t => {
+          trendSheet.addRow([t.periodStart, t.revenue, t.payouts, t.profit]);
+        });
+        
+        const buffer = await workbook.xlsx.writeBuffer();
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}.xlsx"`);
+        return res.send(Buffer.from(buffer));
+      }
+      
+      if (exportFormat === "pdf") {
+        const PDFDocument = require("pdfkit");
+        const doc = new PDFDocument({ margin: 50 });
+        const chunks: Buffer[] = [];
+        
+        doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+        doc.on("end", () => {
+          const pdfBuffer = Buffer.concat(chunks);
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
+          res.send(pdfBuffer);
+        });
+        
+        doc.fontSize(20).text("Financial Analytics Report", { align: "center" });
+        doc.moveDown();
+        doc.fontSize(12).text(`Generated: ${new Date().toLocaleDateString()}`);
+        doc.moveDown();
+        
+        doc.fontSize(14).text("Summary", { underline: true });
+        doc.fontSize(11);
+        doc.text(`Revenue: $${analytics.summary.revenue.toFixed(2)}`);
+        doc.text(`Payouts: $${analytics.summary.payouts.toFixed(2)}`);
+        doc.text(`Profit: $${analytics.summary.profit.toFixed(2)}`);
+        doc.text(`ROI: ${analytics.summary.roiPercent.toFixed(2)}%`);
+        doc.text(`Total FTD: ${analytics.summary.totalFtd}`);
+        doc.text(`Repeat Deposits: ${analytics.summary.totalRepeatDeposits}`);
+        doc.moveDown();
+        
+        if (analytics.offerBreakdown.length > 0) {
+          doc.fontSize(14).text("Top Offers", { underline: true });
+          doc.fontSize(10);
+          analytics.offerBreakdown.slice(0, 10).forEach(o => {
+            doc.text(`${o.offerName}: $${o.revenue.toFixed(2)} revenue, ${o.ftdCount} FTD, ${o.roiPercent.toFixed(1)}% ROI`);
+          });
+          doc.moveDown();
+        }
+        
+        if (analytics.publisherBreakdown.length > 0) {
+          doc.fontSize(14).text("Top Publishers", { underline: true });
+          doc.fontSize(10);
+          analytics.publisherBreakdown.slice(0, 10).forEach(p => {
+            doc.text(`${p.publisherName}: $${p.revenue.toFixed(2)} revenue, ${p.ftdCount} FTD, ${p.roiPercent.toFixed(1)}% ROI`);
+          });
+        }
+        
+        doc.end();
+        return;
+      }
+      
+      res.status(400).json({ message: "Invalid format. Use csv, xlsx, or pdf" });
+    } catch (error) {
+      console.error("Error exporting finance analytics:", error);
+      res.status(500).json({ message: "Failed to export finance analytics" });
+    }
+  });
+
+  // ============================================
   // PUBLISHER DASHBOARD API (NO advertiser_cost, NO antifraud)
   // ============================================
 
