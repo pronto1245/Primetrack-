@@ -519,45 +519,93 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Начните работу за 5 минут</h2>
           </motion.div>
 
-          <div className="max-w-3xl mx-auto space-y-8">
-            <motion.div {...fadeInUp} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-500 font-mono font-bold">01.</span>
-                <h3 className="font-bold">Регистрация</h3>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed pl-8">
-                Создаёте аккаунт в {platformName} и сразу попадаете в рабочий кабинет. Без подтверждения по звонку, без менеджеров и без обязательной привязки карты. Регистрация занимает не больше минуты.
-              </p>
+          <div className="grid md:grid-cols-4 gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div className="text-xs font-mono text-emerald-500 mb-2">01</div>
+                  <h3 className="text-lg font-bold mb-3">Регистрация</h3>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Создаёте аккаунт в {platformName} и сразу попадаете в рабочий кабинет.</p>
+                    <p>Без подтверждения по звонку, без менеджеров и без обязательной привязки карты.</p>
+                    <p>Регистрация занимает не больше минуты.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
 
-            <motion.div {...fadeInUp} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-500 font-mono font-bold">02.</span>
-                <h3 className="font-bold">Создание оффера</h3>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed pl-8">
-                Добавляете оффер, указываете лендинги и модель выплат. Настраиваете postback, параметры subID и другие нужные опции. После сохранения система сразу генерирует трекинговую ссылку.
-              </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div className="text-xs font-mono text-emerald-500 mb-2">02</div>
+                  <h3 className="text-lg font-bold mb-3">Создание оффера</h3>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Добавляете оффер, указываете лендинги и модель выплат.</p>
+                    <p>Настраиваете postback, параметры subID и другие нужные опции.</p>
+                    <p>После сохранения система сразу генерирует трекинговую ссылку.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
 
-            <motion.div {...fadeInUp} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-500 font-mono font-bold">03.</span>
-                <h3 className="font-bold">Привлечение партнёров</h3>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed pl-8">
-                Передаёте партнёрам или медиабаерам готовую ссылку. Каждый клик и конверсия автоматически фиксируются в статистике. Вы видите, откуда пришёл трафик и по каким источникам он работает лучше.
-              </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div className="text-xs font-mono text-emerald-500 mb-2">03</div>
+                  <h3 className="text-lg font-bold mb-3">Привлечение партнёров</h3>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Передаёте партнёрам или медиабаерам готовую ссылку.</p>
+                    <p>Каждый клик и конверсия автоматически фиксируются в статистике.</p>
+                    <p>Вы видите, откуда пришёл трафик и по каким источникам он работает лучше.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
 
-            <motion.div {...fadeInUp} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-500 font-mono font-bold">04.</span>
-                <h3 className="font-bold">Отслеживание результатов</h3>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed pl-8">
-                В реальном времени отслеживаете клики, лиды и продажи. Фильтруете статистику по офферам, кампаниям и subID. Контролируете качество трафика и эффективность источников.
-              </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div className="text-xs font-mono text-emerald-500 mb-2">04</div>
+                  <h3 className="text-lg font-bold mb-3">Отслеживание результатов</h3>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>В реальном времени отслеживаете клики, лиды и продажи.</p>
+                    <p>Фильтруете статистику по офферам, кампаниям и subID.</p>
+                    <p>Контролируете качество трафика и эффективность источников.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
 
