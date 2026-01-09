@@ -508,36 +508,112 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Как это работает</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Начните за 5 минут</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Начните работу за 5 минут</h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-8">
-            {[
-              { step: "01", icon: UserPlus, title: "Регистрация", desc: "Создайте аккаунт рекламодателя бесплатно" },
-              { step: "02", icon: Settings, title: "Создайте оффер", desc: "Добавьте оффер с лендингами и настройте выплаты" },
-              { step: "03", icon: Users, title: "Пригласите партнёров", desc: "Отправьте реферальную ссылку издателям" },
-              { step: "04", icon: TrendingUp, title: "Получайте конверсии", desc: "Отслеживайте клики, лиды и продажи в реальном времени" },
-            ].map((item, i) => (
-              <motion.div 
-                key={i} 
-                className="text-center relative"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                {i < 3 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] border-t-2 border-dashed border-emerald-500/20" />
-                )}
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group hover:bg-emerald-500/20 transition-colors">
-                  <item.icon className="w-7 h-7 text-emerald-500" />
-                </div>
-                <div className="text-xs font-mono text-emerald-500 mb-2">{item.step}</div>
-                <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm">{item.desc}</p>
-              </motion.div>
-            ))}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0, duration: 0.5 }}
+            >
+              <Card className="h-full bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <span className="text-emerald-500 font-mono font-bold">01</span>
+                    </div>
+                    <h3 className="text-lg font-bold">Регистрация</h3>
+                  </div>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Создаёте аккаунт в {platformName} и сразу попадаете в рабочий кабинет.</p>
+                    <p>Без подтверждения по звонку, без менеджеров и без обязательной привязки карты.</p>
+                    <p>Регистрация занимает не больше минуты.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+            >
+              <Card className="h-full bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <span className="text-emerald-500 font-mono font-bold">02</span>
+                    </div>
+                    <h3 className="text-lg font-bold">Создание оффера</h3>
+                  </div>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Добавляете оффер, указываете лендинги и модель выплат.</p>
+                    <p>Настраиваете postback, параметры subID и другие нужные опции.</p>
+                    <p>После сохранения система сразу генерирует трекинговую ссылку.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <Card className="h-full bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <span className="text-emerald-500 font-mono font-bold">03</span>
+                    </div>
+                    <h3 className="text-lg font-bold">Привлечение партнёров</h3>
+                  </div>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>Передаёте партнёрам или медиабаерам готовую ссылку.</p>
+                    <p>Каждый клик и конверсия автоматически фиксируются в статистике.</p>
+                    <p>Вы видите, откуда пришёл трафик и по каким источникам он работает лучше.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <Card className="h-full bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <span className="text-emerald-500 font-mono font-bold">04</span>
+                    </div>
+                    <h3 className="text-lg font-bold">Отслеживание результатов</h3>
+                  </div>
+                  <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
+                    <p>В реальном времени отслеживаете клики, лиды и продажи.</p>
+                    <p>Фильтруете статистику по офферам, кампаниям и subID.</p>
+                    <p>Контролируете качество трафика и эффективность источников.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
+
+          <motion.div 
+            {...fadeInUp} 
+            className="text-center mt-12 max-w-2xl mx-auto"
+          >
+            <p className="text-muted-foreground leading-relaxed">
+              Никаких сложных сценариев и лишних настроек.<br />
+              Вы создаёте оффер, льёте трафик и сразу видите результат.
+            </p>
+          </motion.div>
         </div>
       </section>
 
