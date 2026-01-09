@@ -1,7 +1,9 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices } from "@shared/schema";
+import { db } from "../db";
+import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import crypto from "crypto";
 import session from "express-session";
@@ -3744,6 +3746,48 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update offer caps" });
+    }
+  });
+
+  // ============================================
+  // PUBLISHER INVOICES
+  // ============================================
+
+  app.get("/api/publisher/invoices", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const invoices = await db.select().from(publisherInvoices)
+        .where(eq(publisherInvoices.publisherId, req.session.userId!))
+        .orderBy(desc(publisherInvoices.createdAt));
+      res.json(invoices);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+
+  app.get("/api/invoices/:id/pdf", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { invoicePdfService } = await import("./services/invoice-pdf-service");
+      
+      const [invoice] = await db.select().from(publisherInvoices).where(eq(publisherInvoices.id, req.params.id));
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      if (invoice.publisherId !== req.session.userId && invoice.advertiserId !== req.session.userId) {
+        const user = await storage.getUser(req.session.userId!);
+        if (user?.role !== "admin") {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const pdfBuffer = await invoicePdfService.generateInvoicePdf(req.params.id);
+      
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${invoice.shortId || req.params.id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating invoice PDF:", error);
+      res.status(500).json({ message: "Failed to generate invoice PDF" });
     }
   });
 
