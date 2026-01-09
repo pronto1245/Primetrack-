@@ -35,6 +35,10 @@ export class FunnelAggregationService {
   async getFunnelData(filters: FunnelFilters): Promise<FunnelData> {
     const conditions: any[] = [];
     
+    // CRITICAL: Always filter by advertiserId via offers join for tenant isolation
+    if (filters.advertiserId) {
+      conditions.push(eq(offers.advertiserId, filters.advertiserId));
+    }
     if (filters.offerId) {
       conditions.push(eq(playerSessions.offerId, filters.offerId));
     }
@@ -57,6 +61,7 @@ export class FunnelAggregationService {
       totalRepeatDeposits: sql<number>`sum(case when ${playerSessions.hasRepeatDeposit} = true then 1 else 0 end)::int`,
     })
     .from(playerSessions)
+    .innerJoin(offers, eq(playerSessions.offerId, offers.id))
     .where(whereCondition);
     
     const row = result[0] || { totalClicks: 0, totalRegistrations: 0, totalFtd: 0, totalRepeatDeposits: 0 };
