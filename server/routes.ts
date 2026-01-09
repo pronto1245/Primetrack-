@@ -3748,6 +3748,95 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // A/B LANDING VARIANTS
+  // ============================================
+
+  app.get("/api/offers/:id/variants", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const variants = await storage.getOfferLandingVariants(req.params.id);
+      res.json(variants);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch variants" });
+    }
+  });
+
+  app.post("/api/offers/:id/variants", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
+    try {
+      const offer = await storage.getOffer(req.params.id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const variant = await storage.createOfferLandingVariant({
+        offerId: req.params.id,
+        name: req.body.name,
+        url: req.body.url,
+        weight: req.body.weight || 50,
+        status: req.body.status || "active"
+      });
+      
+      res.status(201).json(variant);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create variant" });
+    }
+  });
+
+  app.put("/api/variants/:id", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
+    try {
+      const variant = await storage.getOfferLandingVariant(req.params.id);
+      if (!variant) {
+        return res.status(404).json({ message: "Variant not found" });
+      }
+      
+      const offer = await storage.getOffer(variant.offerId);
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer?.advertiserId !== effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updated = await storage.updateOfferLandingVariant(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update variant" });
+    }
+  });
+
+  app.delete("/api/variants/:id", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
+    try {
+      const variant = await storage.getOfferLandingVariant(req.params.id);
+      if (!variant) {
+        return res.status(404).json({ message: "Variant not found" });
+      }
+      
+      const offer = await storage.getOffer(variant.offerId);
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer?.advertiserId !== effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteOfferLandingVariant(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete variant" });
+    }
+  });
+
+  // ============================================
   // PUBLISHER DASHBOARD API (NO advertiser_cost, NO antifraud)
   // ============================================
 

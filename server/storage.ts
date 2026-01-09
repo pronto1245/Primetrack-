@@ -36,7 +36,8 @@ import {
   type PasswordResetToken, passwordResetTokens,
   type IncomingPostbackConfig, type InsertIncomingPostbackConfig, incomingPostbackConfigs,
   type PublisherPostbackEndpoint, type InsertPublisherPostbackEndpoint, publisherPostbackEndpoints,
-  type MigrationHistory, type InsertMigrationHistory, migrationHistory
+  type MigrationHistory, type InsertMigrationHistory, migrationHistory,
+  type OfferLandingVariant, type InsertOfferLandingVariant, offerLandingVariants
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -285,6 +286,15 @@ export interface IStorage {
   incrementOfferCapsStats(offerId: string): Promise<OfferCapsStats>;
   decrementOfferCapsStats(offerId: string, conversionDate?: Date): Promise<void>;
   checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; monthlyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }>;
+  
+  // A/B Landing Variants
+  getOfferLandingVariants(offerId: string): Promise<OfferLandingVariant[]>;
+  getOfferLandingVariant(id: string): Promise<OfferLandingVariant | undefined>;
+  createOfferLandingVariant(variant: InsertOfferLandingVariant): Promise<OfferLandingVariant>;
+  updateOfferLandingVariant(id: string, data: Partial<InsertOfferLandingVariant>): Promise<OfferLandingVariant | undefined>;
+  deleteOfferLandingVariant(id: string): Promise<void>;
+  incrementVariantClicks(id: string): Promise<void>;
+  incrementVariantConversions(id: string): Promise<void>;
   
   // Reports
   getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number }>;
@@ -1702,6 +1712,70 @@ export class DatabaseStorage implements IStorage {
     const totalCapReached = offer.totalCap !== null && totalConversions >= offer.totalCap;
 
     return { dailyCapReached, monthlyCapReached, totalCapReached, offer };
+  }
+
+  // ============================================
+  // A/B LANDING VARIANTS
+  // ============================================
+  
+  async getOfferLandingVariants(offerId: string): Promise<OfferLandingVariant[]> {
+    return db.select().from(offerLandingVariants)
+      .where(eq(offerLandingVariants.offerId, offerId))
+      .orderBy(desc(offerLandingVariants.createdAt));
+  }
+
+  async getOfferLandingVariant(id: string): Promise<OfferLandingVariant | undefined> {
+    const [variant] = await db.select().from(offerLandingVariants)
+      .where(eq(offerLandingVariants.id, id));
+    return variant;
+  }
+
+  async createOfferLandingVariant(variant: InsertOfferLandingVariant): Promise<OfferLandingVariant> {
+    const [created] = await db.insert(offerLandingVariants).values(variant).returning();
+    return created;
+  }
+
+  async updateOfferLandingVariant(id: string, data: Partial<InsertOfferLandingVariant>): Promise<OfferLandingVariant | undefined> {
+    const [updated] = await db.update(offerLandingVariants)
+      .set(data)
+      .where(eq(offerLandingVariants.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteOfferLandingVariant(id: string): Promise<void> {
+    await db.delete(offerLandingVariants).where(eq(offerLandingVariants.id, id));
+  }
+
+  async incrementVariantClicks(id: string): Promise<void> {
+    await db.execute(sql`
+      UPDATE offer_landing_variants 
+      SET clicks = clicks + 1 
+      WHERE id = ${id}
+    `);
+  }
+
+  async incrementVariantConversions(id: string): Promise<void> {
+    await db.execute(sql`
+      UPDATE offer_landing_variants 
+      SET conversions = conversions + 1 
+      WHERE id = ${id}
+    `);
+  }
+
+  selectWeightedVariant(variants: OfferLandingVariant[]): OfferLandingVariant | null {
+    const activeVariants = variants.filter(v => v.status === "active");
+    if (activeVariants.length === 0) return null;
+    
+    const totalWeight = activeVariants.reduce((sum, v) => sum + v.weight, 0);
+    if (totalWeight === 0) return activeVariants[0];
+    
+    let random = Math.random() * totalWeight;
+    for (const variant of activeVariants) {
+      random -= variant.weight;
+      if (random <= 0) return variant;
+    }
+    return activeVariants[activeVariants.length - 1];
   }
 
   // ============================================
