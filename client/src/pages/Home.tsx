@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -48,7 +49,35 @@ export default function Home() {
   const [liveClicks, setLiveClicks] = useState(4285);
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<any>(null);
   const { toast } = useToast();
+
+  const newsItems = [
+    {
+      date: "15 января 2026",
+      category: "Обновление",
+      title: "Новая система антифрода 2.0",
+      desc: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
+      fullText: "Мы рады представить обновлённую систему антифрода версии 2.0! Теперь платформа использует алгоритмы машинного обучения для анализа паттернов трафика в реальном времени. Система способна выявлять: бот-трафик и автоматизированные клики, прокси и VPN соединения, подозрительные fingerprints устройств, аномальные паттерны поведения пользователей. По нашим данным, новая система снижает уровень фрода на 35% по сравнению с предыдущей версией.",
+      icon: ShieldCheck
+    },
+    {
+      date: "10 января 2026",
+      category: "Интеграция",
+      title: "Интеграция с Binance Pay",
+      desc: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
+      fullText: "Мы интегрировали Binance Pay для быстрых и безкомиссионных выплат партнёрам! Теперь вы можете: отправлять выплаты в USDT, BTC, ETH и других криптовалютах, экономить на комиссиях за переводы, получать мгновенное подтверждение транзакций, настроить автоматические выплаты по расписанию. Binance Pay присоединяется к нашим интеграциям с Bybit, Kraken, Coinbase, EXMO, MEXC и OKX.",
+      icon: CreditCard
+    },
+    {
+      date: "5 января 2026",
+      category: "Фича",
+      title: "Telegram бот для уведомлений",
+      desc: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
+      fullText: "Представляем нового Telegram бота для уведомлений! Подключите бота к своему аккаунту и получайте мгновенные уведомления о: новых лидах и продажах, запросах на выплату от партнёров, важных системных событиях, подозрительной активности. Настройте фильтры уведомлений под свои нужды — выбирайте какие события отслеживать, а какие игнорировать. Бот поддерживает как персональные, так и групповые чаты.",
+      icon: Bell
+    }
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -571,29 +600,7 @@ export default function Home() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                date: "15 января 2026",
-                category: "Обновление",
-                title: "Новая система антифрода 2.0",
-                desc: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
-                icon: ShieldCheck
-              },
-              {
-                date: "10 января 2026",
-                category: "Интеграция",
-                title: "Интеграция с Binance Pay",
-                desc: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
-                icon: CreditCard
-              },
-              {
-                date: "5 января 2026",
-                category: "Фича",
-                title: "Telegram бот для уведомлений",
-                desc: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
-                icon: Bell
-              }
-            ].map((post, i) => (
+            {newsItems.map((post, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
@@ -601,7 +608,11 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
               >
-                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer">
+                <Card 
+                  className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer"
+                  onClick={() => setSelectedNews(post)}
+                  data-testid={`card-news-${i}`}
+                >
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
@@ -624,6 +635,31 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* News Modal */}
+      <Dialog open={!!selectedNews} onOpenChange={() => setSelectedNews(null)}>
+        <DialogContent className="max-w-2xl">
+          {selectedNews && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
+                    <selectedNews.icon className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category}</div>
+                    <div className="text-xs text-muted-foreground">{selectedNews.date}</div>
+                  </div>
+                </div>
+                <DialogTitle className="text-xl">{selectedNews.title}</DialogTitle>
+              </DialogHeader>
+              <div className="text-muted-foreground leading-relaxed mt-4">
+                {selectedNews.fullText}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Contact Form */}
       <section id="contact" className="py-24 border-t border-border bg-muted/30">
