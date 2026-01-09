@@ -49,3 +49,6 @@ APP_DOMAIN = "https://primetrack.pro"
 
 [userenv.shared]
 PLATFORM_DOMAIN = "primetrack.pro"
+
+[userenv.development]
+APP_DOMAIN = "https://primetrack.pro"

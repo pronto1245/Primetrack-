@@ -19,8 +19,7 @@ function getResendClient() {
   console.log('[email] Resend client initialized with API key from secrets');
   return {
     client: new Resend(apiKey),
-    // Use Resend's test sender for development
-    fromEmail: 'Platform <onboarding@resend.dev>'
+    fromEmail: 'Primetrack <support@primetrack.pro>'
   };
 }
 
