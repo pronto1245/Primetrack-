@@ -3820,6 +3820,10 @@ export async function registerRoutes(
       const { funnelAggregationService } = await import("./services/funnel-aggregation-service");
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       
+      if (!effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       const { dateFrom, dateTo } = req.query;
       
       const data = await funnelAggregationService.getFunnelByOffer(

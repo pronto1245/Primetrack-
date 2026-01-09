@@ -476,12 +476,16 @@ export class ClickHandler {
       
       const readableReasons = reasons.map(r => reasonLabels[r] || r).join(", ");
       
-      await notificationService.createNotification({
-        userId: advertiserId,
+      await storage.createNotification({
+        senderId: advertiserId,
+        senderRole: "system",
+        recipientId: advertiserId,
+        advertiserScopeId: advertiserId,
         type: "antifraud",
         title: "Подозрительный трафик",
-        message: `Обнаружен подозрительный клик: ${readableReasons}`,
-        data: JSON.stringify({ offerId, clickId, reasons }),
+        body: `Обнаружен подозрительный клик: ${readableReasons}`,
+        entityType: "click",
+        entityId: clickId,
       });
     } catch (error) {
       console.error("Failed to send suspicious traffic notification:", error);
