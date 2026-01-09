@@ -175,7 +175,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
             {[
               { label: "Кликов обработано", value: "1.2B+" },
-              { label: "Uptime", value: "99.99%" },
+              { label: "Доступность", value: "99.99%" },
               { label: "Скорость отклика", value: "< 5ms" },
               { label: "Рекламодателей", value: "500+" },
             ].map((stat, i) => (
