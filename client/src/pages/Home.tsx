@@ -329,23 +329,119 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tracking Link Example */}
-      <section className="py-16 border-t border-border bg-muted/30">
+      {/* Why Not Competitors - Philosophy */}
+      <section className="py-24 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-8">
-            <Badge variant="secondary" className="mb-4">Пример ссылки</Badge>
-            <h3 className="text-xl font-bold mb-2">Генерируйте трекинговые ссылки</h3>
-          </motion.div>
-          <motion.div {...fadeInUp}>
-            <div className="max-w-3xl mx-auto bg-card border border-border rounded-lg p-6">
-              <code className="text-sm md:text-base text-emerald-400 font-mono break-all">
-                https://trk.primetrack.pro/click?offer=24&sub1=fb&sub2=push&sub3=&#123;campaign_id&#125;
-              </code>
-              <p className="text-muted-foreground text-sm mt-4 text-center">
-                Поддержка до 10 SubID параметров для детальной аналитики
+          <motion.div {...fadeInUp} className="max-w-3xl mx-auto">
+            <Badge variant="secondary" className="mb-4">Почему не Scaleo / Affise?</Badge>
+            <h2 className="text-2xl md:text-3xl font-bold mb-6">Мы не пытались сделать ещё один корпоративный трекер</h2>
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                Scaleo и Affise — сильные продукты, но они изначально создавались под большие команды, менеджеров и отчётность.
+              </p>
+              <p>
+                {platformName} появился из практики залива трафика. Нам нужен был простой и стабильный трекер, который не мешает работать, не перегружает интерфейс и не требует долгой настройки перед запуском кампании.
+              </p>
+              <p>
+                Если вы льёте push, gambling или betting, вам важны скорость редиректа, чистая статистика и быстрый доступ к данным. Именно под эти задачи и делался {platformName}.
               </p>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Advantages - Detailed */}
+      <section className="py-24 border-t border-border bg-background">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Преимущества</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold">Почему это удобно в реальной работе</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4">Без лишних модулей</h3>
+                  <div className="text-muted-foreground space-y-3 leading-relaxed">
+                    <p>В большинстве трекеров много функций, которые выглядят полезно на демо, но в реальном заливе не используются.</p>
+                    <p>В {platformName} мы оставили только то, что действительно нужно каждый день: офферы, кампании, subID, postback, статистику и фильтры.</p>
+                    <p>Нет CRM-логики, сложных ролей и многоуровневых сценариев — только трекинг и контроль трафика.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4">Быстрый старт</h3>
+                  <div className="text-muted-foreground space-y-3 leading-relaxed">
+                    <p>Мы сознательно убрали сложный онбординг.</p>
+                    <p>После регистрации вы сразу можете создать оффер, сгенерировать ссылку и начать лить трафик. В среднем на первый запуск уходит не больше 5 минут.</p>
+                    <p>Никаких обязательных интеграций и долгих предварительных настроек.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Terminal className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4">Простая логика</h3>
+                  <div className="text-muted-foreground space-y-3 leading-relaxed">
+                    <p>Интерфейс сделан так, чтобы в нём не нужно было разбираться. Все основные действия находятся там, где их ожидаешь увидеть.</p>
+                    <p>Если вы уже работали с трекерами, {platformName} будет понятен с первого входа — без обучения и чтения документации.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+                <CardContent className="p-8">
+                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4">Заточено под арбитраж</h3>
+                  <div className="text-muted-foreground space-y-3 leading-relaxed">
+                    <p>{platformName} разрабатывался под реальные сценарии залива трафика.</p>
+                    <p>Мы ориентируемся на push-источники, gambling и betting-офферы, работу с CPA и RevShare моделями.</p>
+                    <p>Система корректно принимает и передаёт postback, поддерживает работу с subID и даёт полную картину по кампаниям.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -383,6 +479,26 @@ export default function Home() {
               </Card>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Tracking Link Example */}
+      <section className="py-16 border-t border-border bg-muted/30">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-8">
+            <Badge variant="secondary" className="mb-4">Пример ссылки</Badge>
+            <h3 className="text-xl font-bold mb-2">Генерируйте трекинговые ссылки</h3>
+          </motion.div>
+          <motion.div {...fadeInUp}>
+            <div className="max-w-3xl mx-auto bg-card border border-border rounded-lg p-6">
+              <code className="text-sm md:text-base text-emerald-400 font-mono break-all">
+                https://trk.primetrack.pro/click?offer=24&sub1=fb&sub2=push&sub3=&#123;campaign_id&#125;
+              </code>
+              <p className="text-muted-foreground text-sm mt-4 text-center">
+                Поддержка до 10 SubID параметров для детальной аналитики
+              </p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -488,6 +604,73 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 border-t border-border bg-muted/30">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Отзывы</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Что говорят наши клиенты</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "MediaBuy Pro",
+                role: "Рекламное агентство",
+                avatar: "mediabuy",
+                text: "Перешли со Scaleo на эту платформу и не пожалели. Антифрод реально работает, экономим до 20% бюджета на фроде.",
+                rating: 5
+              },
+              {
+                name: "TrafficLab", 
+                role: "CPA сеть",
+                avatar: "trafficlab",
+                text: "Удобная панель, быстрые постбеки, отличная поддержка. Команда реально слушает фидбек и быстро внедряет фичи.",
+                rating: 5
+              },
+              {
+                name: "LeadGen Network",
+                role: "Партнёрская программа",
+                avatar: "leadgen", 
+                text: "White-label функционал на высоте. Подключили свой домен за 10 минут. Партнёры даже не знают, что это не наша разработка.",
+                rating: 5
+              }
+            ].map((testimonial, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+                  <CardContent className="p-6">
+                    <Quote className="w-8 h-8 text-emerald-500/30 mb-4" />
+                    <p className="text-muted-foreground mb-6 leading-relaxed">"{testimonial.text}"</p>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.avatar}`} 
+                        alt={testimonial.name}
+                        className="w-12 h-12 rounded-full bg-muted"
+                      />
+                      <div>
+                        <div className="font-medium">{testimonial.name}</div>
+                        <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 mt-4">
+                      {Array.from({ length: testimonial.rating }).map((_, idx) => (
+                        <Star key={idx} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -618,142 +801,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 border-t border-border bg-muted/30">
+      {/* Honest Clarification */}
+      <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Отзывы</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Что говорят наши клиенты</h2>
+          <motion.div {...fadeInUp} className="max-w-3xl mx-auto text-center">
+            <div className="text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                Если вам нужен корпоративный комбайн с отчётами для менеджеров, сложной иерархией пользователей и десятками дополнительных модулей — Scaleo и Affise будут хорошим выбором.
+              </p>
+              <p>
+                Если вам нужен трекер для практического залива, где важно быстро запуститься и контролировать результат — {platformName} подойдёт лучше.
+              </p>
+            </div>
           </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                name: "MediaBuy Pro",
-                role: "Рекламное агентство",
-                avatar: "mediabuy",
-                text: "Перешли со Scaleo на эту платформу и не пожалели. Антифрод реально работает, экономим до 20% бюджета на фроде.",
-                rating: 5
-              },
-              {
-                name: "TrafficLab", 
-                role: "CPA сеть",
-                avatar: "trafficlab",
-                text: "Удобная панель, быстрые постбеки, отличная поддержка. Команда реально слушает фидбек и быстро внедряет фичи.",
-                rating: 5
-              },
-              {
-                name: "LeadGen Network",
-                role: "Партнёрская программа",
-                avatar: "leadgen", 
-                text: "White-label функционал на высоте. Подключили свой домен за 10 минут. Партнёры даже не знают, что это не наша разработка.",
-                rating: 5
-              }
-            ].map((testimonial, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
-                  <CardContent className="p-6">
-                    <Quote className="w-8 h-8 text-emerald-500/30 mb-4" />
-                    <p className="text-muted-foreground mb-6 leading-relaxed">"{testimonial.text}"</p>
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.avatar}`} 
-                        alt={testimonial.name}
-                        className="w-12 h-12 rounded-full bg-muted"
-                      />
-                      <div>
-                        <div className="font-medium">{testimonial.name}</div>
-                        <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-1 mt-4">
-                      {Array.from({ length: testimonial.rating }).map((_, idx) => (
-                        <Star key={idx} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Blog/News */}
-      <section className="py-24 border-t border-border bg-background">
+      {/* Summary Quote */}
+      <section className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Новости</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Последние обновления</h2>
+          <motion.div {...fadeInUp} className="max-w-3xl mx-auto text-center">
+            <blockquote className="text-xl md:text-2xl font-medium text-foreground leading-relaxed">
+              {platformName} — это инструмент для тех, кто льёт трафик и считает результат,
+              <br className="hidden md:block" />
+              <span className="text-muted-foreground"> а не для тех, кто согласует и оформляет отчёты.</span>
+            </blockquote>
           </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {newsItems.map((post, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                <Card 
-                  className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer"
-                  onClick={() => setSelectedNews(post)}
-                  data-testid={`card-news-${i}`}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
-                        <post.icon className="w-5 h-5 text-emerald-500" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-emerald-500 font-mono">{post.category}</div>
-                        <div className="text-xs text-muted-foreground">{post.date}</div>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold mb-2 group-hover:text-emerald-400 transition-colors">{post.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{post.desc}</p>
-                    <div className="mt-4 flex items-center text-sm text-emerald-500 font-medium">
-                      Читать далее <ChevronRight className="w-4 h-4 ml-1" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
-
-      {/* News Modal */}
-      <Dialog open={!!selectedNews} onOpenChange={() => setSelectedNews(null)}>
-        <DialogContent className="max-w-2xl">
-          {selectedNews && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
-                    <selectedNews.icon className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category}</div>
-                    <div className="text-xs text-muted-foreground">{selectedNews.date}</div>
-                  </div>
-                </div>
-                <DialogTitle className="text-xl">{selectedNews.title}</DialogTitle>
-              </DialogHeader>
-              <div className="text-muted-foreground leading-relaxed mt-4">
-                {selectedNews.fullText}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Contact Form */}
       <section id="contact" className="py-24 border-t border-border bg-muted/30">
@@ -829,151 +904,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Not Competitors - Philosophy */}
-      <section className="py-24 border-t border-border bg-muted/30">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto">
-            <Badge variant="secondary" className="mb-4">Почему не Scaleo / Affise?</Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">Мы не пытались сделать ещё один корпоративный трекер</h2>
-            <div className="space-y-4 text-muted-foreground leading-relaxed">
-              <p>
-                Scaleo и Affise — сильные продукты, но они изначально создавались под большие команды, менеджеров и отчётность.
-              </p>
-              <p>
-                {platformName} появился из практики залива трафика. Нам нужен был простой и стабильный трекер, который не мешает работать, не перегружает интерфейс и не требует долгой настройки перед запуском кампании.
-              </p>
-              <p>
-                Если вы льёте push, gambling или betting, вам важны скорость редиректа, чистая статистика и быстрый доступ к данным. Именно под эти задачи и делался {platformName}.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Advantages - Detailed */}
-      <section className="py-24 border-t border-border bg-background">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Преимущества</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold">Почему это удобно в реальной работе</h2>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0, duration: 0.4 }}
-            >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-emerald-500" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4">Без лишних модулей</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>В большинстве трекеров много функций, которые выглядят полезно на демо, но в реальном заливе не используются.</p>
-                    <p>В {platformName} мы оставили только то, что действительно нужно каждый день: офферы, кампании, subID, postback, статистику и фильтры.</p>
-                    <p>Нет CRM-логики, сложных ролей и многоуровневых сценариев — только трекинг и контроль трафика.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.4 }}
-            >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-emerald-500" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4">Быстрый старт</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>Мы сознательно убрали сложный онбординг.</p>
-                    <p>После регистрации вы сразу можете создать оффер, сгенерировать ссылку и начать лить трафик. В среднем на первый запуск уходит не больше 5 минут.</p>
-                    <p>Никаких обязательных интеграций и долгих предварительных настроек.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.4 }}
-            >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Terminal className="w-6 h-6 text-emerald-500" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4">Простая логика</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>Интерфейс сделан так, чтобы в нём не нужно было разбираться. Все основные действия находятся там, где их ожидаешь увидеть.</p>
-                    <p>Если вы уже работали с трекерами, {platformName} будет понятен с первого входа — без обучения и чтения документации.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-            >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-emerald-500" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4">Заточено под арбитраж</h3>
-                  <div className="text-muted-foreground space-y-3 leading-relaxed">
-                    <p>{platformName} разрабатывался под реальные сценарии залива трафика.</p>
-                    <p>Мы ориентируемся на push-источники, gambling и betting-офферы, работу с CPA и RevShare моделями.</p>
-                    <p>Система корректно принимает и передаёт postback, поддерживает работу с subID и даёт полную картину по кампаниям.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Honest Clarification */}
-      <section className="py-16 border-t border-border bg-muted/30">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto text-center">
-            <div className="text-muted-foreground leading-relaxed space-y-4">
-              <p>
-                Если вам нужен корпоративный комбайн с отчётами для менеджеров, сложной иерархией пользователей и десятками дополнительных модулей — Scaleo и Affise будут хорошим выбором.
-              </p>
-              <p>
-                Если вам нужен трекер для практического залива, где важно быстро запуститься и контролировать результат — {platformName} подойдёт лучше.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Summary Quote */}
-      <section className="py-16 border-t border-border bg-background">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto text-center">
-            <blockquote className="text-xl md:text-2xl font-medium text-foreground leading-relaxed">
-              {platformName} — это инструмент для тех, кто льёт трафик и считает результат,
-              <br className="hidden md:block" />
-              <span className="text-muted-foreground"> а не для тех, кто согласует и оформляет отчёты.</span>
-            </blockquote>
-          </motion.div>
-        </div>
-      </section>
-
       {/* About Us */}
       <section className="py-24 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
@@ -1006,6 +936,76 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Blog/News */}
+      <section className="py-24 border-t border-border bg-background">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Новости</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Последние обновления</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {newsItems.map((post, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <Card 
+                  className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer"
+                  onClick={() => setSelectedNews(post)}
+                  data-testid={`card-news-${i}`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
+                        <post.icon className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-emerald-500 font-mono">{post.category}</div>
+                        <div className="text-xs text-muted-foreground">{post.date}</div>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold mb-2 group-hover:text-emerald-400 transition-colors">{post.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{post.desc}</p>
+                    <div className="mt-4 flex items-center text-sm text-emerald-500 font-medium">
+                      Читать далее <ChevronRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* News Modal */}
+      <Dialog open={!!selectedNews} onOpenChange={() => setSelectedNews(null)}>
+        <DialogContent className="max-w-2xl">
+          {selectedNews && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
+                    <selectedNews.icon className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category}</div>
+                    <div className="text-xs text-muted-foreground">{selectedNews.date}</div>
+                  </div>
+                </div>
+                <DialogTitle className="text-xl">{selectedNews.title}</DialogTitle>
+              </DialogHeader>
+              <div className="text-muted-foreground leading-relaxed mt-4">
+                {selectedNews.fullText}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* CTA Section */}
       <section className="py-24 border-t border-border bg-gradient-to-b from-emerald-500/5 to-background">
