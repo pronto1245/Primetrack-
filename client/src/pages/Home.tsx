@@ -483,26 +483,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tracking Link Example */}
-      <section className="py-16 border-t border-border bg-muted/30">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-8">
-            <Badge variant="secondary" className="mb-4">Пример ссылки</Badge>
-            <h3 className="text-xl font-bold mb-2">Генерируйте трекинговые ссылки</h3>
-          </motion.div>
-          <motion.div {...fadeInUp}>
-            <div className="max-w-3xl mx-auto bg-card border border-border rounded-lg p-6">
-              <code className="text-sm md:text-base text-emerald-400 font-mono break-all">
-                https://trk.primetrack.pro/click?offer=24&sub1=fb&sub2=push&sub3=&#123;campaign_id&#125;
-              </code>
-              <p className="text-muted-foreground text-sm mt-4 text-center">
-                Поддержка до 10 SubID параметров для детальной аналитики
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* How It Works */}
       <section className="py-24 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
