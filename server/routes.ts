@@ -3798,23 +3798,33 @@ export async function registerRoutes(
   app.get("/api/advertiser/funnel", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const { funnelAggregationService } = await import("./services/funnel-aggregation-service");
+      const user = await storage.getUser(req.session.userId!);
+      const isAdmin = user?.role === "admin";
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       
-      if (!effectiveAdvertiserId) {
+      // Admins can access any data, advertisers need effective ID
+      if (!isAdmin && !effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const { offerId, dateFrom, dateTo } = req.query;
+      const { offerId, dateFrom, dateTo, advertiserId: queryAdvertiserId } = req.query;
       
-      // Verify offer ownership if offerId provided
-      if (offerId) {
+      // Determine which advertiser's data to fetch
+      let targetAdvertiserId = effectiveAdvertiserId;
+      if (isAdmin && queryAdvertiserId) {
+        targetAdvertiserId = queryAdvertiserId as string;
+      }
+      
+      // Verify offer ownership if offerId provided (skip for admin)
+      if (offerId && !isAdmin) {
         const offer = await storage.getOffer(offerId as string);
         if (!offer || offer.advertiserId !== effectiveAdvertiserId) {
           return res.status(403).json({ message: "Access denied to this offer" });
         }
       }
       
-      const filters: any = { advertiserId: effectiveAdvertiserId };
+      const filters: any = {};
+      if (targetAdvertiserId) filters.advertiserId = targetAdvertiserId;
       if (offerId) filters.offerId = offerId as string;
       if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
       if (dateTo) filters.dateTo = new Date(dateTo as string);
@@ -3830,16 +3840,25 @@ export async function registerRoutes(
   app.get("/api/advertiser/funnel/by-offer", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const { funnelAggregationService } = await import("./services/funnel-aggregation-service");
+      const user = await storage.getUser(req.session.userId!);
+      const isAdmin = user?.role === "admin";
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       
-      if (!effectiveAdvertiserId) {
+      // Admins can access any data, advertisers need effective ID
+      if (!isAdmin && !effectiveAdvertiserId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const { dateFrom, dateTo } = req.query;
+      const { dateFrom, dateTo, advertiserId: queryAdvertiserId } = req.query;
+      
+      // Determine which advertiser's data to fetch
+      let targetAdvertiserId = effectiveAdvertiserId;
+      if (isAdmin && queryAdvertiserId) {
+        targetAdvertiserId = queryAdvertiserId as string;
+      }
       
       const data = await funnelAggregationService.getFunnelByOffer(
-        effectiveAdvertiserId,
+        targetAdvertiserId || "",
         dateFrom ? new Date(dateFrom as string) : undefined,
         dateTo ? new Date(dateTo as string) : undefined
       );

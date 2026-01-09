@@ -5,10 +5,6 @@ import { publisherInvoices, publisherInvoiceItems, users, offers } from "@shared
 import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Use standard PDF fonts that don't require external files
 const fonts = {
