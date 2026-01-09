@@ -10,7 +10,6 @@ import { useState, useEffect } from "react";
 import { useUpload } from "@/hooks/use-upload";
 import { CountrySelector } from "./CountrySelector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ABVariantsManager } from "./ABVariantsManager";
 
 const TRAFFIC_SOURCES = ["Facebook", "Google", "TikTok", "UAC", "PPC", "Push", "Native", "Email", "SEO", "Telegram", "Instagram", "YouTube", "Snapchat", "X (Twitter)", "Pinterest", "LinkedIn", "Reddit", "PopUnder", "ClickUnder", "InApp", "SMS", "Viber", "WhatsApp", "ASO"];
 const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"];
@@ -848,10 +847,6 @@ export function CreateOfferForm({ role }: { role: string }) {
               </Button>
             </CardContent>
           </Card>
-
-          {isEditMode && editOfferId && (
-            <ABVariantsManager offerId={editOfferId} />
-          )}
 
           <div className="flex gap-4">
             <Button 
