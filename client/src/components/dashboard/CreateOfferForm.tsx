@@ -115,6 +115,11 @@ export function CreateOfferForm({ role }: { role: string }) {
     isTop: false,
     isExclusive: false,
     isPrivate: false,
+    dailyCap: "",
+    monthlyCap: "",
+    totalCap: "",
+    capReachedAction: "block" as "block" | "redirect",
+    capRedirectUrl: "",
   });
 
   const [landings, setLandings] = useState<Landing[]>([
@@ -145,6 +150,11 @@ export function CreateOfferForm({ role }: { role: string }) {
         isTop: offerData.isTop || false,
         isExclusive: offerData.isExclusive || false,
         isPrivate: offerData.isPrivate || false,
+        dailyCap: offerData.dailyCap?.toString() || "",
+        monthlyCap: offerData.monthlyCap?.toString() || "",
+        totalCap: offerData.totalCap?.toString() || "",
+        capReachedAction: offerData.capReachedAction || "block",
+        capRedirectUrl: offerData.capRedirectUrl || "",
       });
       
       if (offerData.landings && offerData.landings.length > 0) {
@@ -506,6 +516,100 @@ export function CreateOfferForm({ role }: { role: string }) {
                 </div>
                 <p className="text-xs text-muted-foreground">Выберите статусы для выделения оффера в списке</p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border">
+            <CardContent className="p-6 space-y-4">
+              <h3 className="text-sm font-bold text-foreground uppercase font-mono mb-4 border-b border-border pb-2 flex items-center gap-2">
+                Лимиты (Caps)
+              </h3>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase">Дневной лимит</Label>
+                  <Input 
+                    data-testid="input-daily-cap"
+                    type="number"
+                    min="0"
+                    className="bg-background border-border text-foreground font-mono focus:border-blue-500" 
+                    placeholder="Без лимита"
+                    value={formData.dailyCap}
+                    onChange={e => setFormData(prev => ({ ...prev, dailyCap: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">Конверсий в день</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase">Месячный лимит</Label>
+                  <Input 
+                    data-testid="input-monthly-cap"
+                    type="number"
+                    min="0"
+                    className="bg-background border-border text-foreground font-mono focus:border-blue-500" 
+                    placeholder="Без лимита"
+                    value={formData.monthlyCap}
+                    onChange={e => setFormData(prev => ({ ...prev, monthlyCap: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">Конверсий в месяц</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase">Общий лимит</Label>
+                  <Input 
+                    data-testid="input-total-cap"
+                    type="number"
+                    min="0"
+                    className="bg-background border-border text-foreground font-mono focus:border-blue-500" 
+                    placeholder="Без лимита"
+                    value={formData.totalCap}
+                    onChange={e => setFormData(prev => ({ ...prev, totalCap: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">Всего конверсий</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs font-mono uppercase">Действие при достижении лимита</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="capAction"
+                      checked={formData.capReachedAction === "block"}
+                      onChange={() => setFormData(prev => ({ ...prev, capReachedAction: "block" }))}
+                      className="w-4 h-4"
+                      data-testid="radio-cap-block"
+                    />
+                    <span className="text-sm text-foreground">Блокировать клики</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="capAction"
+                      checked={formData.capReachedAction === "redirect"}
+                      onChange={() => setFormData(prev => ({ ...prev, capReachedAction: "redirect" }))}
+                      className="w-4 h-4"
+                      data-testid="radio-cap-redirect"
+                    />
+                    <span className="text-sm text-foreground">Редирект на fallback URL</span>
+                  </label>
+                </div>
+              </div>
+
+              {formData.capReachedAction === "redirect" && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-mono uppercase">Fallback URL</Label>
+                  <Input 
+                    data-testid="input-cap-redirect-url"
+                    className="bg-background border-border text-foreground font-mono focus:border-blue-500" 
+                    placeholder="https://fallback-offer.com"
+                    value={formData.capRedirectUrl}
+                    onChange={e => setFormData(prev => ({ ...prev, capRedirectUrl: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">Куда перенаправлять трафик при достижении лимита</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

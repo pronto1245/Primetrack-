@@ -1376,7 +1376,10 @@ export async function registerRoutes(
         partnerPayout: sanitizeNumericToString(rawOfferData.partnerPayout),
         internalCost: sanitizeNumericToString(rawOfferData.internalCost),
         dailyCap: sanitizeInteger(rawOfferData.dailyCap),
+        monthlyCap: sanitizeInteger(rawOfferData.monthlyCap),
         totalCap: sanitizeInteger(rawOfferData.totalCap),
+        capReachedAction: rawOfferData.capReachedAction || "block",
+        capRedirectUrl: rawOfferData.capRedirectUrl || null,
         advertiserId: effectiveAdvertiserId,
         geo: Array.isArray(rawOfferData.geo) ? rawOfferData.geo.filter((g: string) => g && g.trim()) : [],
         trafficSources: Array.isArray(rawOfferData.trafficSources) ? rawOfferData.trafficSources : [],
@@ -1540,7 +1543,10 @@ export async function registerRoutes(
         partnerPayout: sanitizeNumericToString(rawOfferData.partnerPayout),
         internalCost: sanitizeNumericToString(rawOfferData.internalCost),
         dailyCap: sanitizeInteger(rawOfferData.dailyCap),
+        monthlyCap: sanitizeInteger(rawOfferData.monthlyCap),
         totalCap: sanitizeInteger(rawOfferData.totalCap),
+        capReachedAction: rawOfferData.capReachedAction,
+        capRedirectUrl: rawOfferData.capRedirectUrl,
       };
       
       // Обновить оффер
@@ -3688,17 +3694,21 @@ export async function registerRoutes(
       
       const capsCheck = await storage.checkOfferCaps(id);
       const today = new Date().toISOString().split('T')[0];
+      const yearMonth = today.substring(0, 7);
       const todayStats = await storage.getOfferCapsStats(id, today);
       const totalConversions = await storage.getOfferTotalConversions(id);
       
       res.json({
         dailyCap: offer.dailyCap,
+        monthlyCap: offer.monthlyCap,
         totalCap: offer.totalCap,
         capReachedAction: offer.capReachedAction,
         capRedirectUrl: offer.capRedirectUrl,
         dailyConversions: todayStats?.dailyConversions || 0,
+        monthlyConversions: todayStats?.monthlyConversions || 0,
         totalConversions,
         dailyCapReached: capsCheck.dailyCapReached,
+        monthlyCapReached: capsCheck.monthlyCapReached,
         totalCapReached: capsCheck.totalCapReached
       });
     } catch (error) {
@@ -3710,7 +3720,7 @@ export async function registerRoutes(
   app.put("/api/offers/:id/caps", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { dailyCap, totalCap, capReachedAction, capRedirectUrl } = req.body;
+      const { dailyCap, monthlyCap, totalCap, capReachedAction, capRedirectUrl } = req.body;
       
       const offer = await storage.getOffer(id);
       if (!offer) {
@@ -3725,6 +3735,7 @@ export async function registerRoutes(
       
       const updated = await storage.updateOffer(id, {
         dailyCap: dailyCap !== undefined ? dailyCap : offer.dailyCap,
+        monthlyCap: monthlyCap !== undefined ? monthlyCap : offer.monthlyCap,
         totalCap: totalCap !== undefined ? totalCap : offer.totalCap,
         capReachedAction: capReachedAction || offer.capReachedAction,
         capRedirectUrl: capRedirectUrl !== undefined ? capRedirectUrl : offer.capRedirectUrl
