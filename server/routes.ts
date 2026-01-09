@@ -3800,7 +3800,19 @@ export async function registerRoutes(
       const { funnelAggregationService } = await import("./services/funnel-aggregation-service");
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       
+      if (!effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       const { offerId, dateFrom, dateTo } = req.query;
+      
+      // Verify offer ownership if offerId provided
+      if (offerId) {
+        const offer = await storage.getOffer(offerId as string);
+        if (!offer || offer.advertiserId !== effectiveAdvertiserId) {
+          return res.status(403).json({ message: "Access denied to this offer" });
+        }
+      }
       
       const filters: any = { advertiserId: effectiveAdvertiserId };
       if (offerId) filters.offerId = offerId as string;
