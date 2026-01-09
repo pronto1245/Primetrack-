@@ -5424,11 +5424,11 @@ export async function registerRoutes(
 
   // Validation schemas
   const profileUpdateSchema = z.object({
-    email: z.string().email().optional(),
-    phone: z.string().optional(),
-    telegram: z.string().optional(),
-    logoUrl: z.string().url().optional().or(z.literal("")),
-    companyName: z.string().optional(),
+    email: z.string().email().optional().or(z.literal("")),
+    phone: z.string().optional().nullable(),
+    telegram: z.string().optional().nullable(),
+    logoUrl: z.string().optional().nullable().or(z.literal("")),
+    companyName: z.string().optional().nullable(),
   });
 
   const passwordChangeSchema = z.object({
@@ -5552,7 +5552,13 @@ export async function registerRoutes(
         }
       }
       
-      const user = await storage.updateUserProfile(userId, { email, phone, telegram, logoUrl, companyName });
+      const user = await storage.updateUserProfile(userId, { 
+        email: email || undefined, 
+        phone: phone ?? undefined, 
+        telegram: telegram ?? undefined, 
+        logoUrl: logoUrl ?? undefined, 
+        companyName: companyName ?? undefined 
+      });
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
