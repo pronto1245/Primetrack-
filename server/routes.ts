@@ -3748,6 +3748,49 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // CONVERSION FUNNEL
+  // ============================================
+
+  app.get("/api/advertiser/funnel", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { funnelAggregationService } = await import("./services/funnel-aggregation-service");
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      
+      const { offerId, dateFrom, dateTo } = req.query;
+      
+      const filters: any = { advertiserId: effectiveAdvertiserId };
+      if (offerId) filters.offerId = offerId as string;
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      
+      const funnel = await funnelAggregationService.getFunnelData(filters);
+      res.json(funnel);
+    } catch (error) {
+      console.error("Error fetching funnel data:", error);
+      res.status(500).json({ message: "Failed to fetch funnel data" });
+    }
+  });
+
+  app.get("/api/advertiser/funnel/by-offer", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { funnelAggregationService } = await import("./services/funnel-aggregation-service");
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      
+      const { dateFrom, dateTo } = req.query;
+      
+      const data = await funnelAggregationService.getFunnelByOffer(
+        effectiveAdvertiserId,
+        dateFrom ? new Date(dateFrom as string) : undefined,
+        dateTo ? new Date(dateTo as string) : undefined
+      );
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching funnel by offer:", error);
+      res.status(500).json({ message: "Failed to fetch funnel data" });
+    }
+  });
+
+  // ============================================
   // A/B LANDING VARIANTS
   // ============================================
 
