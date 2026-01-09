@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Navbar } from "@/components/layout/Navbar";
@@ -8,13 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, Terminal, Cpu, ShieldCheck, Activity, Check, X,
   Zap, Globe, Users, BarChart3, Lock, Clock, Webhook, 
   CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle
 } from "lucide-react";
-import heroImage from "@assets/generated_images/dark_high-tech_dashboard_ui.png";
+import screenshot1 from "@assets/Снимок_09.01.2026_в_21.12_1767983590330.png";
+import screenshot2 from "@assets/Снимок_09.01.2026_в_21.12_1767983590340.png";
+import screenshot3 from "@assets/Снимок_09.01.2026_в_21.11_1767983590341.png";
+
+const heroImages = [screenshot1, screenshot2, screenshot3];
 
 type SubscriptionPlan = {
   id: string;
@@ -35,6 +39,14 @@ export default function Home() {
   const { t } = useTranslation();
   const [, navigate] = useLocation();
   const [isYearly, setIsYearly] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
   
   const { data: plans = [] } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/subscription/plans"],
@@ -123,11 +135,20 @@ export default function Home() {
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
                   <div className="ml-2 text-[10px] font-mono text-muted-foreground">{platformName} Dashboard</div>
                 </div>
-                <img 
-                  src={heroImage} 
-                  alt={`${platformName} Dashboard`} 
-                  className="w-full h-auto opacity-90 group-hover:opacity-100 transition-opacity"
-                />
+                <div className="relative w-full aspect-[16/9] overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.img 
+                      key={currentImageIndex}
+                      src={heroImages[currentImageIndex]} 
+                      alt={`${platformName} Dashboard`} 
+                      className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </AnimatePresence>
+                </div>
                 <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
               </div>
               
