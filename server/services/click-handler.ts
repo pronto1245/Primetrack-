@@ -3,6 +3,10 @@ import { storage } from "../storage";
 import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 
+// Алиасы click_id для совместимости с разными трекерами
+// Scaleo: clickid, aff_sub | Keitaro: subid, clickid | Binom: clickid | Voluum: cid
+const CLICK_ID_ALIASES = ['click_id', 'clickid', 'cid', 'subid', 'aff_sub'] as const;
+
 interface ClickParams {
   offerId: string;
   partnerId: string;
