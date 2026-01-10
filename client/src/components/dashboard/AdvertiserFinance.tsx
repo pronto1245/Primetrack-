@@ -100,8 +100,7 @@ export function AdvertiserFinance() {
     offerBreakdown: { offerId: string; offerName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
     publisherBreakdown: { publisherId: string; publisherName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
   }>({
-    queryKey: ["/api/advertiser/finance/analytics", analyticsDateFrom, analyticsDateTo, analyticsInterval],
-    queryFn: () => apiRequest("GET", `/api/advertiser/finance/analytics?dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`).then(r => r.json()),
+    queryKey: [`/api/advertiser/finance/analytics?dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`],
   });
 
   const handleExportAnalytics = (format: string) => {
