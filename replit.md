@@ -15,9 +15,9 @@ Preferred communication style: Simple, everyday language (Russian).
 ### Technical Implementations
 - **Authentication:** Email/password (bcrypt), session-based (connect-pg-simple), mandatory TOTP 2FA for active users (QR code setup), admin-initiated 2FA reset.
 - **User Roles:** Admin (full access), Advertiser (offers, partners, finance), Publisher (offers, links, payouts), Advertiser Staff (Manager, Analyst, Support, Finance) with granular permissions.
-- **Mini-Tracker (Click Handler):** Records clicks, generates `click_id`, captures GEO (geoip-lite), IP, User-Agent, fingerprint, and performs 302 redirects. **Universal Click ID Aliases:** При редиректе автоматически добавляются все алиасы click_id (`click_id`, `clickid`, `subid`, `aff_sub`) для совместимости с разными трекерами (Scaleo, Keitaro, Binom). Параметр `cid` НЕ используется — в Scaleo это идентификатор креатива.
+- **Mini-Tracker (Click Handler):** Records clicks, generates `click_id`, captures GEO (geoip-lite), IP, User-Agent, fingerprint, and performs 302 redirects.
 - **Orchestrator (Conversions):** Handles conversion events (click, lead, sale, install, rejected, hold_released), calculates payouts, and triggers postbacks/webhooks.
-- **Universal Postback System:** Single inbound endpoint `/api/postback` with automatic `offer_id` and `publisher_id` detection. **Поддерживаемые параметры click_id:** `click_id`, `clickid`, `subid`, `subid_1`, `tid`, `sub1`, `cid`, `aff_sub`. Status mapping, outbound postbacks with macros. Includes retry logic and logging.
+- **Universal Postback System:** Single inbound endpoint `/api/postback` with automatic `offer_id` and `publisher_id` detection, support for various click ID parameters, status mapping, and outbound postbacks with macros. Includes retry logic and logging.
 - **Webhooks:** CRUD endpoints, event/offer/partner filtering, HMAC-SHA256 signing, retry mechanism, and UI management for Advertisers.
 - **Data Export:** Supports CSV, Excel, PDF formats for reports (clicks, conversions), financials (transactions, payouts), and postback logs. Features role-based access control and UI-synchronized filters.
 - **Anti-Fraud:** Implements fraud scoring, proxy/VPN detection, fingerprint analysis, click-spam checks, duplicate lead detection, automatic suspicious traffic flagging, and Advertiser notifications.

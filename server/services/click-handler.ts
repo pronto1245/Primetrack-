@@ -3,10 +3,6 @@ import { storage } from "../storage";
 import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 
-// Алиасы click_id для совместимости с разными трекерами
-// Scaleo: clickid, aff_sub | Keitaro: subid, clickid | Binom: clickid | Voluum: cid
-const CLICK_ID_ALIASES = ['click_id', 'clickid', 'cid', 'subid', 'aff_sub'] as const;
-
 interface ClickParams {
   offerId: string;
   partnerId: string;
@@ -288,13 +284,7 @@ export class ClickHandler {
   
   private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams): string {
     let urlString = baseUrl;
-    
-    // Заменяем макросы для всех алиасов click_id (для совместимости с разными трекерами)
-    for (const alias of CLICK_ID_ALIASES) {
-      urlString = urlString.replace(new RegExp(`\\{${alias}\\}`, "gi"), clickId);
-    }
-    
-    // Заменяем макросы sub-параметров
+    urlString = urlString.replace(/\{click_id\}/gi, clickId);
     urlString = urlString.replace(/\{sub1\}/gi, params.sub1 || "");
     urlString = urlString.replace(/\{sub2\}/gi, params.sub2 || "");
     urlString = urlString.replace(/\{sub3\}/gi, params.sub3 || "");
@@ -308,12 +298,8 @@ export class ClickHandler {
     
     const url = new URL(urlString);
     
-    // Добавляем все алиасы click_id как query-параметры (если отсутствуют)
-    // Это обеспечивает совместимость с Scaleo (clickid), Keitaro (subid), Binom (clickid), Voluum (cid)
-    for (const alias of CLICK_ID_ALIASES) {
-      if (!url.searchParams.has(alias)) {
-        url.searchParams.set(alias, clickId);
-      }
+    if (!url.searchParams.has("click_id")) {
+      url.searchParams.set("click_id", clickId);
     }
     if (params.sub1 && !url.searchParams.has("sub1")) {
       url.searchParams.set("sub1", params.sub1);
