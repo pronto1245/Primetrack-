@@ -1,4 +1,6 @@
 import { createRequire } from "module";
+import path from "path";
+import { fileURLToPath } from "url";
 const require = createRequire(import.meta.url);
 const PDFDocument = require("pdfkit");
 import { db } from "../../db";
@@ -6,6 +8,10 @@ import { publisherInvoices, publisherInvoiceItems, users } from "@shared/schema"
 import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const FONT_REGULAR = path.join(__dirname, "../assets/fonts/NotoSans-Regular.ttf");
+const FONT_BOLD = path.join(__dirname, "../assets/fonts/NotoSans-Bold.ttf");
 
 interface InvoiceData {
   invoiceId: string;
@@ -75,12 +81,15 @@ export class InvoicePdfService {
       const doc = new PDFDocument({ size: "A4", margin: 40 });
       const chunks: Buffer[] = [];
       
+      doc.registerFont("NotoSans", FONT_REGULAR);
+      doc.registerFont("NotoSans-Bold", FONT_BOLD);
+      
       doc.on("data", (chunk: Buffer) => chunks.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(chunks)));
       doc.on("error", reject);
       
       // Header
-      doc.fontSize(24).font("Helvetica-Bold")
+      doc.fontSize(24).font("NotoSans-Bold")
         .text(`INVOICE ${invoice.shortId}`, { align: "left" });
       doc.moveDown(1.5);
       
@@ -88,22 +97,22 @@ export class InvoicePdfService {
       const startY = doc.y;
       
       // From
-      doc.fontSize(12).font("Helvetica-Bold").text("From:", 40, startY);
-      doc.fontSize(10).font("Helvetica")
+      doc.fontSize(12).font("NotoSans-Bold").text("From:", 40, startY);
+      doc.fontSize(10).font("NotoSans")
         .text(invoice.advertiserName, 40, startY + 18)
         .text(invoice.advertiserEmail, 40, startY + 32);
       
       // To
-      doc.fontSize(12).font("Helvetica-Bold").text("To:", 220, startY);
-      doc.fontSize(10).font("Helvetica")
+      doc.fontSize(12).font("NotoSans-Bold").text("To:", 220, startY);
+      doc.fontSize(10).font("NotoSans")
         .text(invoice.publisherName, 220, startY + 18)
         .text(invoice.publisherEmail, 220, startY + 32);
       
       // Details
-      doc.fontSize(12).font("Helvetica-Bold").text("Details:", 400, startY);
+      doc.fontSize(12).font("NotoSans-Bold").text("Details:", 400, startY);
       const issueDate = invoice.issuedAt ? format(invoice.issuedAt, "dd.MM.yyyy", { locale: ru }) : format(new Date(), "dd.MM.yyyy", { locale: ru });
       const periodText = `${format(invoice.periodStart, "dd.MM.yyyy", { locale: ru })} - ${format(invoice.periodEnd, "dd.MM.yyyy", { locale: ru })}`;
-      doc.fontSize(10).font("Helvetica")
+      doc.fontSize(10).font("NotoSans")
         .text(`Date: ${issueDate}`, 400, startY + 18)
         .text(`Period: ${periodText}`, 400, startY + 32);
       
@@ -111,15 +120,17 @@ export class InvoicePdfService {
       
       // Items table
       doc.moveDown(1);
-      doc.fontSize(12).font("Helvetica-Bold").text("Details:");
+      doc.fontSize(12).font("NotoSans-Bold").text("Details:");
       doc.moveDown(0.5);
       
       // Table header
       const tableTop = doc.y;
       const col1 = 40, col2 = 280, col3 = 360, col4 = 450;
       
+      doc.save();
       doc.rect(40, tableTop, 515, 20).fill("#f3f4f6");
-      doc.fillColor("black").fontSize(10).font("Helvetica-Bold")
+      doc.restore();
+      doc.fillColor("black").fontSize(10).font("NotoSans-Bold")
         .text("Offer", col1 + 5, tableTop + 5)
         .text("Conv.", col2 + 5, tableTop + 5)
         .text("Rate", col3 + 5, tableTop + 5)
@@ -127,10 +138,11 @@ export class InvoicePdfService {
       
       // Table rows
       let rowY = tableTop + 22;
-      doc.font("Helvetica");
+      doc.font("NotoSans");
       
       for (const item of invoice.items) {
-        doc.text(item.offerName.substring(0, 35), col1 + 5, rowY)
+        doc.fillColor("black")
+          .text(item.offerName.substring(0, 35), col1 + 5, rowY)
           .text(item.conversions.toString(), col2 + 5, rowY)
           .text(`${item.payout} ${invoice.currency}`, col3 + 5, rowY)
           .text(`${item.total} ${invoice.currency}`, col4 + 5, rowY);
@@ -141,14 +153,14 @@ export class InvoicePdfService {
       
       // Total
       doc.moveDown(2);
-      doc.fontSize(14).font("Helvetica-Bold")
+      doc.fontSize(14).font("NotoSans-Bold").fillColor("black")
         .text(`TOTAL: ${invoice.totalAmount} ${invoice.currency}`, { align: "right" });
       
       // Notes
       if (invoice.notes) {
         doc.moveDown(2);
-        doc.fontSize(12).font("Helvetica-Bold").text("Notes:");
-        doc.fontSize(10).font("Helvetica").text(invoice.notes);
+        doc.fontSize(12).font("NotoSans-Bold").text("Notes:");
+        doc.fontSize(10).font("NotoSans").text(invoice.notes);
       }
       
       // Footer

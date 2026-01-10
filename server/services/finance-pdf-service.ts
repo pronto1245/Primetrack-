@@ -1,9 +1,15 @@
 import { createRequire } from "module";
+import path from "path";
+import { fileURLToPath } from "url";
 const require = createRequire(import.meta.url);
 const PDFDocument = require("pdfkit");
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import type { FinanceAnalytics } from "./advertiser-finance-service";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const FONT_REGULAR = path.join(__dirname, "../assets/fonts/NotoSans-Regular.ttf");
+const FONT_BOLD = path.join(__dirname, "../assets/fonts/NotoSans-Bold.ttf");
 
 interface FinanceReportOptions {
   analytics: FinanceAnalytics;
@@ -19,6 +25,9 @@ export class FinancePdfService {
       const doc = new PDFDocument({ size: "A4", margin: 40 });
       const chunks: Buffer[] = [];
       
+      doc.registerFont("NotoSans", FONT_REGULAR);
+      doc.registerFont("NotoSans-Bold", FONT_BOLD);
+      
       doc.on("data", (chunk: Buffer) => chunks.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(chunks)));
       doc.on("error", reject);
@@ -28,11 +37,11 @@ export class FinancePdfService {
         ? `${format(dateFrom, "dd.MM.yyyy", { locale: ru })} - ${format(dateTo, "dd.MM.yyyy", { locale: ru })}`
         : "Весь период";
       
-      doc.fontSize(22).font("Helvetica-Bold")
+      doc.fontSize(22).font("NotoSans-Bold")
         .text("Финансовый отчёт", { align: "center" });
       doc.moveDown(0.5);
       
-      doc.fontSize(10).font("Helvetica")
+      doc.fontSize(10).font("NotoSans")
         .fillColor("#666666")
         .text(`Дата формирования: ${format(now, "dd.MM.yyyy HH:mm", { locale: ru })}`, { align: "center" });
       if (advertiserName) {
@@ -64,7 +73,7 @@ export class FinancePdfService {
   }
   
   private drawSummarySection(doc: any, analytics: FinanceAnalytics): void {
-    doc.fontSize(14).font("Helvetica-Bold").text("Сводка");
+    doc.fontSize(14).font("NotoSans-Bold").text("Сводка");
     doc.moveDown(0.5);
     
     const tableTop = doc.y;
@@ -75,7 +84,7 @@ export class FinancePdfService {
     doc.rect(40, tableTop, 515, rowHeight).fill("#1a56db");
     doc.restore();
     
-    doc.fillColor("white").fontSize(10).font("Helvetica-Bold")
+    doc.fillColor("white").fontSize(10).font("NotoSans-Bold")
       .text("Показатель", col1 + 10, tableTop + 6)
       .text("Значение", col2 + 10, tableTop + 6)
       .text("Показатель", col3 + 10, tableTop + 6)
@@ -96,7 +105,7 @@ export class FinancePdfService {
       doc.rect(40, y, 515, rowHeight).fill(bgColor);
       doc.restore();
       
-      doc.fillColor("black").fontSize(10).font("Helvetica")
+      doc.fillColor("black").fontSize(10).font("NotoSans")
         .text(row[0], col1 + 10, y + 6)
         .text(row[1], col2 + 10, y + 6)
         .text(row[2], col3 + 10, y + 6)
@@ -110,7 +119,7 @@ export class FinancePdfService {
   }
   
   private drawOfferTable(doc: any, analytics: FinanceAnalytics): void {
-    doc.fontSize(14).font("Helvetica-Bold").fillColor("black").text("По офферам");
+    doc.fontSize(14).font("NotoSans-Bold").fillColor("black").text("По офферам");
     doc.moveDown(0.5);
     
     const tableTop = doc.y;
@@ -121,7 +130,7 @@ export class FinancePdfService {
     doc.rect(40, tableTop, 515, rowHeight).fill("#1a56db");
     doc.restore();
     
-    doc.fillColor("white").fontSize(9).font("Helvetica-Bold")
+    doc.fillColor("white").fontSize(9).font("NotoSans-Bold")
       .text("Оффер", cols[0] + 5, tableTop + 5)
       .text("Доход", cols[1] + 5, tableTop + 5)
       .text("Выплаты", cols[2] + 5, tableTop + 5)
@@ -138,7 +147,7 @@ export class FinancePdfService {
       doc.rect(40, y, 515, rowHeight).fill(bgColor);
       doc.restore();
       
-      doc.fillColor("black").fontSize(9).font("Helvetica")
+      doc.fillColor("black").fontSize(9).font("NotoSans")
         .text(offer.offerName.substring(0, 25), cols[0] + 5, y + 5)
         .text(`$${offer.revenue.toFixed(2)}`, cols[1] + 5, y + 5)
         .text(`$${offer.payouts.toFixed(2)}`, cols[2] + 5, y + 5)
@@ -154,7 +163,7 @@ export class FinancePdfService {
   }
   
   private drawPublisherTable(doc: any, analytics: FinanceAnalytics): void {
-    doc.fontSize(14).font("Helvetica-Bold").fillColor("black").text("По паблишерам");
+    doc.fontSize(14).font("NotoSans-Bold").fillColor("black").text("По паблишерам");
     doc.moveDown(0.5);
     
     const tableTop = doc.y;
@@ -165,7 +174,7 @@ export class FinancePdfService {
     doc.rect(40, tableTop, 515, rowHeight).fill("#1a56db");
     doc.restore();
     
-    doc.fillColor("white").fontSize(9).font("Helvetica-Bold")
+    doc.fillColor("white").fontSize(9).font("NotoSans-Bold")
       .text("Паблишер", cols[0] + 5, tableTop + 5)
       .text("Доход", cols[1] + 5, tableTop + 5)
       .text("Выплаты", cols[2] + 5, tableTop + 5)
@@ -182,7 +191,7 @@ export class FinancePdfService {
       doc.rect(40, y, 515, rowHeight).fill(bgColor);
       doc.restore();
       
-      doc.fillColor("black").fontSize(9).font("Helvetica")
+      doc.fillColor("black").fontSize(9).font("NotoSans")
         .text(pub.publisherName.substring(0, 25), cols[0] + 5, y + 5)
         .text(`$${pub.revenue.toFixed(2)}`, cols[1] + 5, y + 5)
         .text(`$${pub.payouts.toFixed(2)}`, cols[2] + 5, y + 5)
@@ -202,7 +211,7 @@ export class FinancePdfService {
       doc.addPage();
     }
     
-    doc.fontSize(14).font("Helvetica-Bold").fillColor("black").text("Динамика по периодам");
+    doc.fontSize(14).font("NotoSans-Bold").fillColor("black").text("Динамика по периодам");
     doc.moveDown(0.5);
     
     const tableTop = doc.y;
@@ -213,7 +222,7 @@ export class FinancePdfService {
     doc.rect(40, tableTop, 515, rowHeight).fill("#1a56db");
     doc.restore();
     
-    doc.fillColor("white").fontSize(9).font("Helvetica-Bold")
+    doc.fillColor("white").fontSize(9).font("NotoSans-Bold")
       .text("Дата", cols[0] + 5, tableTop + 4)
       .text("Доход", cols[1] + 5, tableTop + 4)
       .text("Выплаты", cols[2] + 5, tableTop + 4)
@@ -235,7 +244,7 @@ export class FinancePdfService {
       doc.restore();
       
       const dateStr = row.periodStart ? format(new Date(row.periodStart), "dd.MM.yyyy", { locale: ru }) : "-";
-      doc.fillColor("black").fontSize(9).font("Helvetica")
+      doc.fillColor("black").fontSize(9).font("NotoSans")
         .text(dateStr, cols[0] + 5, y + 4)
         .text(`$${row.revenue.toFixed(2)}`, cols[1] + 5, y + 4)
         .text(`$${row.payouts.toFixed(2)}`, cols[2] + 5, y + 4)
