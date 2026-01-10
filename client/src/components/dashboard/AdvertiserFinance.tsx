@@ -94,18 +94,38 @@ export function AdvertiserFinance() {
     queryKey: ["/api/advertiser/crypto/keys/status"],
   });
 
-  const { data: analytics, isLoading: analyticsLoading, refetch: refetchAnalytics } = useQuery<{
+  const { data: analytics, isLoading: analyticsLoading, isError: analyticsError, error: analyticsErrorData, refetch: refetchAnalytics } = useQuery<{
     summary: { revenue: number; payouts: number; profit: number; roiPercent: number; totalFtd: number; totalRepeatDeposits: number; avgDepositAmount: number };
     trend: { periodStart: string; revenue: number; payouts: number; profit: number }[];
     offerBreakdown: { offerId: string; offerName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
     publisherBreakdown: { publisherId: string; publisherName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
   }>({
     queryKey: [`/api/advertiser/finance/analytics?dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`],
+    retry: false,
   });
 
-  const handleExportAnalytics = (format: string) => {
-    const url = `/api/advertiser/finance/export?format=${format}&dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`;
-    window.open(url, '_blank');
+  const handleExportAnalytics = async (format: string) => {
+    try {
+      const url = `/api/advertiser/finance/export?format=${format}&dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`;
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Export failed");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      const ext = format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : "csv";
+      a.download = `finance-analytics-${new Date().toISOString().split('T')[0]}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast({ title: "Экспорт завершён" });
+    } catch (error: any) {
+      toast({ title: "Ошибка экспорта", description: error.message, variant: "destructive" });
+    }
   };
 
   const saveCryptoKeysMutation = useMutation({
@@ -451,8 +471,17 @@ export function AdvertiserFinance() {
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
+              ) : analyticsError ? (
+                <div className="text-center py-8">
+                  <p className="text-destructive mb-2">
+                    {String(analyticsErrorData).includes("401") ? "Сессия истекла. Пожалуйста, перезайдите в систему." : "Ошибка загрузки данных"}
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => refetchAnalytics()}>
+                    Повторить
+                  </Button>
+                </div>
               ) : !analytics ? (
-                <p className="text-center text-muted-foreground py-8">Нет данных</p>
+                <p className="text-center text-muted-foreground py-8">Нет данных за выбранный период</p>
               ) : (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
