@@ -138,77 +138,60 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden border-b border-border">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-emerald-500 opacity-20 blur-[100px]"></div>
+      <section className="relative pt-24 pb-16 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 -z-10 h-[500px] w-[800px] rounded-full bg-emerald-500 opacity-15 blur-[120px]"></div>
 
         <div className="container px-4 mx-auto relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            <div className="lg:w-1/2 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-6">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Push / Gambling / Betting
-              </div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-                Трекер для арбитража гемблы, беттинга и push-трафика
-              </h1>
-              
-              <p className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed font-light">
-                {platformSettings?.platformDescription || `Запускайте офферы, принимайте клики, лиды и депозиты, передавайте postback в партнёрки и сторонние трекеры. Минимальная задержка редиректа, полная статистика по subID.`}
-              </p>
+          <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-8">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              30 дней бесплатно + без карты
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight">
+              Трекер для <span className="bg-gradient-to-r from-emerald-400 to-emerald-200 bg-clip-text text-transparent">арбитража</span> гемблы, беттинга и push-трафика
+            </h1>
+            
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl leading-relaxed">
+              {platformSettings?.platformDescription || `Запускайте офферы, принимайте клики, лиды и депозиты, передавайте postback в партнёрки и сторонние трекеры. Минимальная задержка редиректа, полная статистика по subID.`}
+            </p>
 
-              <div className="flex flex-wrap gap-3 mb-6">
-                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">CPA / RevShare / Hybrid</Badge>
-                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">Postback</Badge>
-                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">SubID</Badge>
-                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">Антидубль</Badge>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
-                  className="h-14 px-8 rounded bg-emerald-600 hover:bg-emerald-500 text-foreground font-medium text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] border border-emerald-500 transition-all"
-                  onClick={() => navigate('/register/advertiser')}
-                  data-testid="button-hero-register"
-                >
-                  Начать бесплатно
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="h-14 px-8 rounded border-border hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-lg"
-                  onClick={() => scrollToSection('pricing')}
-                  data-testid="button-hero-pricing"
-                >
-                  Смотреть тарифы
-                </Button>
-              </div>
-
-              <div className="mt-12 flex flex-wrap items-center gap-6 text-sm text-muted-foreground font-mono">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-500" />
-                  <span>30 дней бесплатно</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-emerald-500" />
-                  <span>Без карты</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Антифрод включён</span>
-                </div>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Button 
+                size="lg" 
+                className="h-12 px-8 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-base shadow-[0_0_30px_rgba(16,185,129,0.4)] border border-emerald-500 transition-all"
+                onClick={() => navigate('/register/advertiser')}
+                data-testid="button-hero-register"
+              >
+                Начать бесплатно
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="h-12 px-8 rounded-lg border-border hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-base"
+                onClick={() => scrollToSection('pricing')}
+                data-testid="button-hero-pricing"
+              >
+                Смотреть тарифы
+              </Button>
             </div>
 
-            <div className="lg:w-1/2 relative">
-              <div className="relative rounded bg-card border border-border shadow-2xl overflow-hidden group">
-                <div className="h-8 bg-secondary border-b border-border flex items-center px-3 gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
-                  <div className="ml-2 text-[10px] font-mono text-muted-foreground">{platformName} Dashboard</div>
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
+              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />CPA / RevShare / Hybrid</span>
+              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Postback</span>
+              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />SubID</span>
+              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Антидубль</span>
+            </div>
+
+            <div className="w-full max-w-6xl mx-auto relative">
+              <div className="relative rounded-xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_60px_rgba(16,185,129,0.15)] overflow-hidden">
+                <div className="h-10 bg-[#111] border-b border-border/50 flex items-center px-4 gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/70" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/70" />
+                  <div className="ml-3 text-xs font-mono text-muted-foreground">dashboard.primetrack.pro</div>
                 </div>
                 <div className="relative w-full aspect-[16/9] overflow-hidden">
                   <AnimatePresence mode="wait">
@@ -216,7 +199,7 @@ export default function Home() {
                       key={currentImageIndex}
                       src={heroImages[currentImageIndex]} 
                       alt={`${platformName} Dashboard`} 
-                      className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100"
+                      className="absolute inset-0 w-full h-full object-cover object-top"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -224,21 +207,17 @@ export default function Home() {
                     />
                   </AnimatePresence>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
               </div>
               
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="absolute -right-4 top-10 bg-card border border-border p-4 rounded shadow-xl hidden md:block"
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
-                  <span className="text-xs font-mono text-muted-foreground">Кликов сейчас</span>
-                </div>
-                <div className="text-2xl font-mono font-bold text-foreground">{liveClicks.toLocaleString()}</div>
-              </motion.div>
+              <div className="flex justify-center gap-2 mt-4">
+                {heroImages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentImageIndex(i)}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === currentImageIndex ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
