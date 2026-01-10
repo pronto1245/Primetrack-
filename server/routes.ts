@@ -3973,8 +3973,7 @@ export async function registerRoutes(
       }
       
       if (exportFormat === "xlsx") {
-        const ExcelJSModule = await import("exceljs");
-        const ExcelJS = (ExcelJSModule as any).default ?? ExcelJSModule;
+        const { default: ExcelJS } = await import("exceljs");
         const workbook = new ExcelJS.Workbook();
         
         const summarySheet = workbook.addWorksheet("Summary");
