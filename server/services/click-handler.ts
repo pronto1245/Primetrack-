@@ -288,7 +288,13 @@ export class ClickHandler {
   
   private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams): string {
     let urlString = baseUrl;
-    urlString = urlString.replace(/\{click_id\}/gi, clickId);
+    
+    // Заменяем макросы для всех алиасов click_id (для совместимости с разными трекерами)
+    for (const alias of CLICK_ID_ALIASES) {
+      urlString = urlString.replace(new RegExp(`\\{${alias}\\}`, "gi"), clickId);
+    }
+    
+    // Заменяем макросы sub-параметров
     urlString = urlString.replace(/\{sub1\}/gi, params.sub1 || "");
     urlString = urlString.replace(/\{sub2\}/gi, params.sub2 || "");
     urlString = urlString.replace(/\{sub3\}/gi, params.sub3 || "");
@@ -302,8 +308,12 @@ export class ClickHandler {
     
     const url = new URL(urlString);
     
-    if (!url.searchParams.has("click_id")) {
-      url.searchParams.set("click_id", clickId);
+    // Добавляем все алиасы click_id как query-параметры (если отсутствуют)
+    // Это обеспечивает совместимость с Scaleo (clickid), Keitaro (subid), Binom (clickid), Voluum (cid)
+    for (const alias of CLICK_ID_ALIASES) {
+      if (!url.searchParams.has(alias)) {
+        url.searchParams.set(alias, clickId);
+      }
     }
     if (params.sub1 && !url.searchParams.has("sub1")) {
       url.searchParams.set("sub1", params.sub1);
