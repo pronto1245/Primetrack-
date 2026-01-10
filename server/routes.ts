@@ -3974,7 +3974,7 @@ export async function registerRoutes(
       
       if (exportFormat === "xlsx") {
         const ExcelJS = await import("exceljs");
-        const workbook = new ExcelJS.default.Workbook();
+        const workbook = new ExcelJS.Workbook();
         
         const summarySheet = workbook.addWorksheet("Summary");
         summarySheet.columns = [{ header: "Metric", width: 20 }, { header: "Value", width: 15 }];

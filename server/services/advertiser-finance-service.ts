@@ -86,8 +86,8 @@ export class AdvertiserFinanceService {
   
   private async getSummary(advertiserId: string, dateFrom?: Date, dateTo?: Date): Promise<FinanceSummary> {
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
-    if (dateFrom) conditions.push(sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt}) >= ${dateFrom}`);
-    if (dateTo) conditions.push(sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt}) <= ${dateTo}`);
+    if (dateFrom) conditions.push(sql`COALESCE(${playerSessions.repeatDepositAt}, ${playerSessions.ftdAt}, ${playerSessions.clickAt}) >= ${dateFrom}`);
+    if (dateTo) conditions.push(sql`COALESCE(${playerSessions.repeatDepositAt}, ${playerSessions.ftdAt}, ${playerSessions.clickAt}) <= ${dateTo}`);
     
     const revenueResult = await db.select({
       totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN ${playerSessions.hasFtd} THEN ${playerSessions.ftdAmount}::numeric ELSE 0 END), 0)`,
@@ -139,7 +139,7 @@ export class AdvertiserFinanceService {
     interval: "day" | "week" | "month" = "day"
   ): Promise<TrendPoint[]> {
     const truncFunc = interval === "month" ? "month" : interval === "week" ? "week" : "day";
-    const activityDate = sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
+    const activityDate = sql`COALESCE(${playerSessions.repeatDepositAt}, ${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
     
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
     if (dateFrom) conditions.push(sql`${activityDate} >= ${dateFrom}`);
@@ -187,7 +187,7 @@ export class AdvertiserFinanceService {
   }
   
   private async getOfferBreakdown(advertiserId: string, dateFrom?: Date, dateTo?: Date): Promise<OfferBreakdown[]> {
-    const activityDate = sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
+    const activityDate = sql`COALESCE(${playerSessions.repeatDepositAt}, ${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
     if (dateFrom) conditions.push(sql`${activityDate} >= ${dateFrom}`);
     if (dateTo) conditions.push(sql`${activityDate} <= ${dateTo}`);
@@ -221,7 +221,7 @@ export class AdvertiserFinanceService {
   }
   
   private async getPublisherBreakdown(advertiserId: string, dateFrom?: Date, dateTo?: Date): Promise<PublisherBreakdown[]> {
-    const activityDate = sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
+    const activityDate = sql`COALESCE(${playerSessions.repeatDepositAt}, ${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
     if (dateFrom) conditions.push(sql`${activityDate} >= ${dateFrom}`);
     if (dateTo) conditions.push(sql`${activityDate} <= ${dateTo}`);
