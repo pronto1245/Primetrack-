@@ -2180,16 +2180,17 @@ export async function registerRoutes(
   // Universal Postback endpoint (public, called by external trackers)
   // Usage: /api/postback?click_id=XXX&status=lead|sale&payout=123.45
   // The click_id contains all information about offer and publisher - no need to specify them
-  // Supports multiple parameter names: click_id/clickid/subid/subid_1/tid/sub1
+  // Supports multiple parameter names: click_id/clickid/subid/subid_1/tid/sub1/cid/aff_sub
   app.get("/api/postback", async (req: Request, res: Response) => {
     try {
       const query = req.query;
       const requestPayload = JSON.stringify(query);
       
       // Try multiple common parameter names for click_id
+      // Совместимость: Scaleo (clickid, aff_sub), Keitaro (subid), Binom (clickid), Voluum (cid)
       const clickId = (
         query.click_id || query.clickid || query.subid || 
-        query.subid_1 || query.tid || query.sub1 || query.cid
+        query.subid_1 || query.tid || query.sub1 || query.cid || query.aff_sub
       ) as string;
       
       if (!clickId) {
@@ -2204,7 +2205,7 @@ export async function registerRoutes(
         });
         return res.status(400).json({ 
           error: "Missing required parameter: click_id",
-          hint: "Supported params: click_id, clickid, subid, subid_1, tid, sub1, cid"
+          hint: "Supported params: click_id, clickid, subid, subid_1, tid, sub1, cid, aff_sub"
         });
       }
 
