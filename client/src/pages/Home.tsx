@@ -185,7 +185,7 @@ export default function Home() {
               <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Антидубль</span>
             </div>
 
-            <div className="w-full max-w-6xl mx-auto relative">
+            <div className="w-full max-w-[1400px] mx-auto relative px-4">
               <div className="relative rounded-xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_60px_rgba(16,185,129,0.15)] overflow-hidden">
                 <div className="h-10 bg-[#111] border-b border-border/50 flex items-center px-4 gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500/70" />
@@ -193,13 +193,13 @@ export default function Home() {
                   <div className="w-3 h-3 rounded-full bg-green-500/70" />
                   <div className="ml-3 text-xs font-mono text-muted-foreground">dashboard.primetrack.pro</div>
                 </div>
-                <div className="relative w-full aspect-[16/9] overflow-hidden">
+                <div className="relative w-full">
                   <AnimatePresence mode="wait">
                     <motion.img 
                       key={currentImageIndex}
                       src={heroImages[currentImageIndex]} 
                       alt={`${platformName} Dashboard`} 
-                      className="absolute inset-0 w-full h-full object-cover object-top"
+                      className="w-full h-auto"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
