@@ -193,17 +193,17 @@ export default function Home() {
                   <div className="w-3 h-3 rounded-full bg-green-500/70" />
                   <div className="ml-3 text-xs font-mono text-muted-foreground">dashboard.primetrack.pro</div>
                 </div>
-                <div className="relative w-full">
-                  <AnimatePresence mode="wait">
+                <div className="relative w-full" style={{ aspectRatio: '1920/1080' }}>
+                  <AnimatePresence initial={false}>
                     <motion.img 
                       key={currentImageIndex}
                       src={heroImages[currentImageIndex]} 
                       alt={`${platformName} Dashboard`} 
-                      className="w-full h-auto"
+                      className="absolute inset-0 w-full h-full object-contain"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ duration: 0.3 }}
                     />
                   </AnimatePresence>
                 </div>
