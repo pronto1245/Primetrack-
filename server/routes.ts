@@ -3973,8 +3973,8 @@ export async function registerRoutes(
       }
       
       if (exportFormat === "xlsx") {
-        const ExcelJS = require("exceljs");
-        const workbook = new ExcelJS.Workbook();
+        const ExcelJS = await import("exceljs");
+        const workbook = new ExcelJS.default.Workbook();
         
         const summarySheet = workbook.addWorksheet("Summary");
         summarySheet.columns = [{ header: "Metric", width: 20 }, { header: "Value", width: 15 }];
@@ -4031,7 +4031,7 @@ export async function registerRoutes(
       }
       
       if (exportFormat === "pdf") {
-        const PDFDocument = require("pdfkit");
+        const { default: PDFDocument } = await import("pdfkit");
         const doc = new PDFDocument({ margin: 50 });
         const chunks: Buffer[] = [];
         
