@@ -1,6 +1,6 @@
 import { db } from "../../db";
 import { playerSessions, offers, payouts, users } from "@shared/schema";
-import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
+import { eq, and, gte, lte, sql } from "drizzle-orm";
 
 interface FinanceSummary {
   revenue: number;
@@ -86,8 +86,8 @@ export class AdvertiserFinanceService {
   
   private async getSummary(advertiserId: string, dateFrom?: Date, dateTo?: Date): Promise<FinanceSummary> {
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
-    if (dateFrom) conditions.push(gte(playerSessions.clickAt, dateFrom));
-    if (dateTo) conditions.push(lte(playerSessions.clickAt, dateTo));
+    if (dateFrom) conditions.push(sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt}) >= ${dateFrom}`);
+    if (dateTo) conditions.push(sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt}) <= ${dateTo}`);
     
     const revenueResult = await db.select({
       totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN ${playerSessions.hasFtd} THEN ${playerSessions.ftdAmount}::numeric ELSE 0 END), 0)`,
@@ -99,7 +99,7 @@ export class AdvertiserFinanceService {
     .innerJoin(offers, eq(playerSessions.offerId, offers.id))
     .where(and(...conditions));
     
-    const payoutConditions: any[] = [eq(offers.advertiserId, advertiserId)];
+    const payoutConditions: any[] = [eq(payouts.advertiserId, advertiserId)];
     if (dateFrom) payoutConditions.push(gte(payouts.createdAt, dateFrom));
     if (dateTo) payoutConditions.push(lte(payouts.createdAt, dateTo));
     payoutConditions.push(sql`${payouts.status} IN ('approved', 'paid', 'completed')`);
@@ -108,7 +108,6 @@ export class AdvertiserFinanceService {
       totalPayouts: sql<string>`COALESCE(SUM(${payouts.amount}::numeric), 0)`,
     })
     .from(payouts)
-    .innerJoin(offers, eq(payouts.offerId, offers.id))
     .where(and(...payoutConditions));
     
     const revenue = parseFloat(revenueResult[0]?.totalRevenue || "0");
@@ -140,23 +139,24 @@ export class AdvertiserFinanceService {
     interval: "day" | "week" | "month" = "day"
   ): Promise<TrendPoint[]> {
     const truncFunc = interval === "month" ? "month" : interval === "week" ? "week" : "day";
+    const activityDate = sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
     
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
-    if (dateFrom) conditions.push(gte(playerSessions.clickAt, dateFrom));
-    if (dateTo) conditions.push(lte(playerSessions.clickAt, dateTo));
+    if (dateFrom) conditions.push(sql`${activityDate} >= ${dateFrom}`);
+    if (dateTo) conditions.push(sql`${activityDate} <= ${dateTo}`);
     
     const revenueByPeriod = await db.select({
-      period: sql<string>`DATE_TRUNC('${sql.raw(truncFunc)}', ${playerSessions.clickAt})::date::text`,
+      period: sql<string>`DATE_TRUNC('${sql.raw(truncFunc)}', ${activityDate})::date::text`,
       ftdRevenue: sql<string>`COALESCE(SUM(CASE WHEN ${playerSessions.hasFtd} THEN ${playerSessions.ftdAmount}::numeric ELSE 0 END), 0)`,
       totalDeposits: sql<string>`COALESCE(SUM(${playerSessions.totalDeposits}::numeric), 0)`,
     })
     .from(playerSessions)
     .innerJoin(offers, eq(playerSessions.offerId, offers.id))
     .where(and(...conditions))
-    .groupBy(sql`DATE_TRUNC('${sql.raw(truncFunc)}', ${playerSessions.clickAt})`)
-    .orderBy(sql`DATE_TRUNC('${sql.raw(truncFunc)}', ${playerSessions.clickAt})`);
+    .groupBy(sql`DATE_TRUNC('${sql.raw(truncFunc)}', ${activityDate})`)
+    .orderBy(sql`DATE_TRUNC('${sql.raw(truncFunc)}', ${activityDate})`);
     
-    const payoutConditions: any[] = [eq(offers.advertiserId, advertiserId)];
+    const payoutConditions: any[] = [eq(payouts.advertiserId, advertiserId)];
     if (dateFrom) payoutConditions.push(gte(payouts.createdAt, dateFrom));
     if (dateTo) payoutConditions.push(lte(payouts.createdAt, dateTo));
     payoutConditions.push(sql`${payouts.status} IN ('approved', 'paid', 'completed')`);
@@ -166,7 +166,6 @@ export class AdvertiserFinanceService {
       payouts: sql<string>`COALESCE(SUM(${payouts.amount}::numeric), 0)`,
     })
     .from(payouts)
-    .innerJoin(offers, eq(payouts.offerId, offers.id))
     .where(and(...payoutConditions))
     .groupBy(sql`DATE_TRUNC('${sql.raw(truncFunc)}', ${payouts.createdAt})`)
     .orderBy(sql`DATE_TRUNC('${sql.raw(truncFunc)}', ${payouts.createdAt})`);
@@ -188,9 +187,10 @@ export class AdvertiserFinanceService {
   }
   
   private async getOfferBreakdown(advertiserId: string, dateFrom?: Date, dateTo?: Date): Promise<OfferBreakdown[]> {
+    const activityDate = sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
-    if (dateFrom) conditions.push(gte(playerSessions.clickAt, dateFrom));
-    if (dateTo) conditions.push(lte(playerSessions.clickAt, dateTo));
+    if (dateFrom) conditions.push(sql`${activityDate} >= ${dateFrom}`);
+    if (dateTo) conditions.push(sql`${activityDate} <= ${dateTo}`);
     
     const revenueByOffer = await db.select({
       offerId: offers.id,
@@ -204,44 +204,27 @@ export class AdvertiserFinanceService {
     .where(and(...conditions))
     .groupBy(offers.id, offers.name);
     
-    const payoutConditions: any[] = [eq(offers.advertiserId, advertiserId)];
-    if (dateFrom) payoutConditions.push(gte(payouts.createdAt, dateFrom));
-    if (dateTo) payoutConditions.push(lte(payouts.createdAt, dateTo));
-    payoutConditions.push(sql`${payouts.status} IN ('approved', 'paid', 'completed')`);
-    
-    const payoutsByOffer = await db.select({
-      offerId: payouts.offerId,
-      payouts: sql<string>`COALESCE(SUM(${payouts.amount}::numeric), 0)`,
-    })
-    .from(payouts)
-    .innerJoin(offers, eq(payouts.offerId, offers.id))
-    .where(and(...payoutConditions))
-    .groupBy(payouts.offerId);
-    
-    const payoutsMap = new Map(payoutsByOffer.map(p => [p.offerId, parseFloat(p.payouts)]));
-    
     return revenueByOffer.map(r => {
       const ftdRevenue = parseFloat(r.ftdRevenue);
       const totalDeposits = parseFloat(r.totalDeposits);
       const revenue = totalDeposits > 0 ? totalDeposits : ftdRevenue;
-      const payout = payoutsMap.get(r.offerId) || 0;
-      const profit = revenue - payout;
       return {
         offerId: r.offerId,
         offerName: r.offerName,
         revenue,
-        payouts: payout,
-        profit,
-        roiPercent: payout > 0 ? (profit / payout) * 100 : 0,
+        payouts: 0,
+        profit: revenue,
+        roiPercent: 0,
         ftdCount: r.ftdCount,
       };
     }).sort((a, b) => b.revenue - a.revenue);
   }
   
   private async getPublisherBreakdown(advertiserId: string, dateFrom?: Date, dateTo?: Date): Promise<PublisherBreakdown[]> {
+    const activityDate = sql`COALESCE(${playerSessions.ftdAt}, ${playerSessions.clickAt})`;
     const conditions: any[] = [eq(offers.advertiserId, advertiserId)];
-    if (dateFrom) conditions.push(gte(playerSessions.clickAt, dateFrom));
-    if (dateTo) conditions.push(lte(playerSessions.clickAt, dateTo));
+    if (dateFrom) conditions.push(sql`${activityDate} >= ${dateFrom}`);
+    if (dateTo) conditions.push(sql`${activityDate} <= ${dateTo}`);
     
     const revenueByPublisher = await db.select({
       publisherId: playerSessions.publisherId,
@@ -264,7 +247,7 @@ export class AdvertiserFinanceService {
       publishers.forEach(p => publisherNames.set(p.id, p.companyName || p.username));
     }
     
-    const payoutConditions: any[] = [eq(offers.advertiserId, advertiserId)];
+    const payoutConditions: any[] = [eq(payouts.advertiserId, advertiserId)];
     if (dateFrom) payoutConditions.push(gte(payouts.createdAt, dateFrom));
     if (dateTo) payoutConditions.push(lte(payouts.createdAt, dateTo));
     payoutConditions.push(sql`${payouts.status} IN ('approved', 'paid', 'completed')`);
@@ -274,7 +257,6 @@ export class AdvertiserFinanceService {
       payouts: sql<string>`COALESCE(SUM(${payouts.amount}::numeric), 0)`,
     })
     .from(payouts)
-    .innerJoin(offers, eq(payouts.offerId, offers.id))
     .where(and(...payoutConditions))
     .groupBy(payouts.publisherId);
     
