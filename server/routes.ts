@@ -3973,7 +3973,8 @@ export async function registerRoutes(
       }
       
       if (exportFormat === "xlsx") {
-        const ExcelJS = await import("exceljs");
+        const ExcelJSModule = await import("exceljs");
+        const ExcelJS = (ExcelJSModule as any).default ?? ExcelJSModule;
         const workbook = new ExcelJS.Workbook();
         
         const summarySheet = workbook.addWorksheet("Summary");
@@ -4031,52 +4032,19 @@ export async function registerRoutes(
       }
       
       if (exportFormat === "pdf") {
-        const { default: PDFDocument } = await import("pdfkit");
-        const doc = new PDFDocument({ margin: 50 });
-        const chunks: Buffer[] = [];
+        const { financePdfService } = await import("./services/finance-pdf-service");
+        const user = await storage.getUser(req.session.userId!);
         
-        doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-        doc.on("end", () => {
-          const pdfBuffer = Buffer.concat(chunks);
-          res.setHeader("Content-Type", "application/pdf");
-          res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
-          res.send(pdfBuffer);
+        const pdfBuffer = await financePdfService.generateReport({
+          analytics,
+          advertiserName: user?.companyName || user?.username || undefined,
+          dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
+          dateTo: dateTo ? new Date(dateTo as string) : undefined,
         });
         
-        doc.fontSize(20).text("Financial Analytics Report", { align: "center" });
-        doc.moveDown();
-        doc.fontSize(12).text(`Generated: ${new Date().toLocaleDateString()}`);
-        doc.moveDown();
-        
-        doc.fontSize(14).text("Summary", { underline: true });
-        doc.fontSize(11);
-        doc.text(`Revenue: $${analytics.summary.revenue.toFixed(2)}`);
-        doc.text(`Payouts: $${analytics.summary.payouts.toFixed(2)}`);
-        doc.text(`Profit: $${analytics.summary.profit.toFixed(2)}`);
-        doc.text(`ROI: ${analytics.summary.roiPercent.toFixed(2)}%`);
-        doc.text(`Total FTD: ${analytics.summary.totalFtd}`);
-        doc.text(`Repeat Deposits: ${analytics.summary.totalRepeatDeposits}`);
-        doc.moveDown();
-        
-        if (analytics.offerBreakdown.length > 0) {
-          doc.fontSize(14).text("Top Offers", { underline: true });
-          doc.fontSize(10);
-          analytics.offerBreakdown.slice(0, 10).forEach(o => {
-            doc.text(`${o.offerName}: $${o.revenue.toFixed(2)} revenue, ${o.ftdCount} FTD, ${o.roiPercent.toFixed(1)}% ROI`);
-          });
-          doc.moveDown();
-        }
-        
-        if (analytics.publisherBreakdown.length > 0) {
-          doc.fontSize(14).text("Top Publishers", { underline: true });
-          doc.fontSize(10);
-          analytics.publisherBreakdown.slice(0, 10).forEach(p => {
-            doc.text(`${p.publisherName}: $${p.revenue.toFixed(2)} revenue, ${p.ftdCount} FTD, ${p.roiPercent.toFixed(1)}% ROI`);
-          });
-        }
-        
-        doc.end();
-        return;
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
+        return res.send(pdfBuffer);
       }
       
       res.status(400).json({ message: "Invalid format. Use csv, xlsx, or pdf" });
