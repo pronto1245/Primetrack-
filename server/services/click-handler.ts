@@ -4,8 +4,9 @@ import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 
 // Алиасы click_id для совместимости с разными трекерами
-// Scaleo: clickid, aff_sub | Keitaro: subid, clickid | Binom: clickid | Voluum: cid
-const CLICK_ID_ALIASES = ['click_id', 'clickid', 'cid', 'subid', 'aff_sub'] as const;
+// Scaleo: clickid, aff_sub | Keitaro: subid, clickid | Binom: clickid
+// НЕ используем cid — в Scaleo это параметр креатива, ломает клики
+const CLICK_ID_ALIASES = ['click_id', 'clickid', 'subid', 'aff_sub'] as const;
 
 interface ClickParams {
   offerId: string;
