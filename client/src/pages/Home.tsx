@@ -1180,26 +1180,31 @@ export default function Home() {
             </div>
             
             <div>
-              <div className="font-medium text-foreground mb-4">Продукт</div>
+              <div className="font-medium text-foreground mb-4">Навигация</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => scrollToSection('features')} className="hover:text-foreground transition-colors">Возможности</button></li>
+                <li><button onClick={() => scrollToSection('features')} className="hover:text-foreground transition-colors">Преимущества</button></li>
                 <li><button onClick={() => scrollToSection('pricing')} className="hover:text-foreground transition-colors">Тарифы</button></li>
-                <li><button onClick={() => navigate('/login')} className="hover:text-foreground transition-colors">Войти</button></li>
+                <li><button onClick={() => scrollToSection('faq')} className="hover:text-foreground transition-colors">FAQ</button></li>
+                <li><button onClick={() => scrollToSection('contact')} className="hover:text-foreground transition-colors">Контакты</button></li>
               </ul>
             </div>
             
             <div>
-              <div className="font-medium text-foreground mb-4">Для кого</div>
+              <div className="font-medium text-foreground mb-4">Возможности</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => navigate('/register/advertiser')} className="hover:text-foreground transition-colors">Рекламодателям</button></li>
-                <li><span className="text-muted-foreground/50">Издателям</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">Отслеживание кликов</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">Postback интеграция</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">Антифрод система</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">Детальная статистика</span></li>
               </ul>
             </div>
             
             <div>
-              <div className="font-medium text-foreground mb-4">Поддержка</div>
+              <div className="font-medium text-foreground mb-4">Аккаунт</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {supportEmail && <li><a href={`mailto:${supportEmail}`} className="hover:text-foreground transition-colors">{supportEmail}</a></li>}
+                <li><button onClick={() => navigate('/register/advertiser')} className="hover:text-foreground transition-colors">Регистрация</button></li>
+                <li><button onClick={() => navigate('/login')} className="hover:text-foreground transition-colors">Вход</button></li>
+                {supportEmail && <li><a href={`mailto:${supportEmail}`} className="hover:text-foreground transition-colors">Поддержка</a></li>}
                 {supportTelegram && <li><a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>}
               </ul>
             </div>
