@@ -674,20 +674,13 @@ export function CreateOfferForm({ role }: { role: string }) {
 
                     <div className="space-y-1">
                       <Label className="text-muted-foreground text-[10px] font-mono uppercase">URL лендинга *</Label>
-                      <div className="flex">
-                        <Input
-                          data-testid={`input-landing-url-${index}`}
-                          className="bg-card border-border text-foreground font-mono h-8 text-sm rounded-r-none border-r-0"
-                          placeholder="https://landing.com/click?o=123"
-                          value={landing.landingUrl}
-                          onChange={e => updateLanding(index, "landingUrl", e.target.value)}
-                        />
-                        <div className="bg-green-500/20 border border-green-500/30 rounded-r-md px-2 flex items-center shrink-0">
-                          <span className="text-green-400 font-mono text-xs whitespace-nowrap">
-                            {landing.landingUrl ? (landing.landingUrl.includes("?") ? "&" : "?") : "?"}{landing.clickIdParam || "click_id"}=uuid
-                          </span>
-                        </div>
-                      </div>
+                      <Input
+                        data-testid={`input-landing-url-${index}`}
+                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
+                        placeholder="https://landing.com/click?o=123"
+                        value={landing.landingUrl}
+                        onChange={e => updateLanding(index, "landingUrl", e.target.value)}
+                      />
                     </div>
 
                     <div className="space-y-1">
@@ -700,6 +693,30 @@ export function CreateOfferForm({ role }: { role: string }) {
                         onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
                       />
                     </div>
+
+                    {landing.landingUrl && (
+                      <div className="space-y-1">
+                        <Label className="text-green-400 text-[10px] font-mono uppercase">Итоговая ссылка (при клике)</Label>
+                        <Input
+                          readOnly
+                          data-testid={`input-landing-final-url-${index}`}
+                          className="bg-green-500/10 border-green-500/30 text-green-400 font-mono h-8 text-sm"
+                          value={(() => {
+                            const param = landing.clickIdParam || "click_id";
+                            try {
+                              const url = new URL(landing.landingUrl);
+                              if (!url.searchParams.has(param)) {
+                                url.searchParams.set(param, "<uuid>");
+                              }
+                              return url.toString();
+                            } catch {
+                              const sep = landing.landingUrl.includes("?") ? "&" : "?";
+                              return `${landing.landingUrl}${sep}${param}=<uuid>`;
+                            }
+                          })()}
+                        />
+                      </div>
+                    )}
 
                     {landing.landingUrl && (
                       <div className="bg-muted/30 rounded-lg p-3 space-y-2 border border-border">
