@@ -92,8 +92,12 @@ function computeDisplayLandingUrl(baseUrl: string, param: string): string {
   if (!baseUrl) return "";
   const cleanUrl = stripAllClickIdPlaceholders(baseUrl);
   if (!cleanUrl) return "";
-  const sep = cleanUrl.includes("?") ? "&" : "?";
-  return `${cleanUrl}${sep}${param}={click_id}`;
+  // Отделяем фрагмент (#) от URL
+  const hashIndex = cleanUrl.indexOf("#");
+  const urlPart = hashIndex === -1 ? cleanUrl : cleanUrl.substring(0, hashIndex);
+  const fragment = hashIndex === -1 ? "" : cleanUrl.substring(hashIndex);
+  const sep = urlPart.includes("?") ? "&" : "?";
+  return `${urlPart}${sep}${param}={click_id}${fragment}`;
 }
 
 function extractBaseLandingUrl(displayUrl: string, param: string): string {
