@@ -52,6 +52,32 @@ const APP_TYPE_COLORS: Record<string, string> = {
   "Desktop": "bg-indigo-500",
 };
 
+function computeDisplayLandingUrl(baseUrl: string, param: string): string {
+  if (!baseUrl) return "";
+  const placeholder = `{${param}}`;
+  const encodedPlaceholder = `%7B${param}%7D`;
+  if (baseUrl.includes(`${param}=${placeholder}`) || baseUrl.includes(`${param}=${encodedPlaceholder}`)) {
+    return baseUrl;
+  }
+  const sep = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${sep}${param}=${placeholder}`;
+}
+
+function extractBaseLandingUrl(displayUrl: string, param: string): string {
+  if (!displayUrl) return "";
+  const placeholder = `{${param}}`;
+  const patterns = [
+    new RegExp(`[?&]${param}=\\{${param}\\}`, 'g'),
+    new RegExp(`[?&]${param}=%7B${param}%7D`, 'gi'),
+  ];
+  let result = displayUrl;
+  for (const pattern of patterns) {
+    result = result.replace(pattern, "");
+  }
+  result = result.replace(/\?&/, "?").replace(/&&/g, "&").replace(/[?&]$/, "");
+  return result;
+}
+
 interface Landing {
   id?: string; // ID для обновления существующих
   geo: string;
@@ -689,17 +715,10 @@ export function CreateOfferForm({ role }: { role: string }) {
                         data-testid={`input-landing-url-${index}`}
                         className="bg-card border-border text-foreground font-mono h-8 text-sm"
                         placeholder="https://landing.com/click?o=123"
-                        value={(() => {
-                          if (!landing.landingUrl) return "";
-                          const param = landing.clickIdParam || "click_id";
-                          const sep = landing.landingUrl.includes("?") ? "&" : "?";
-                          return `${landing.landingUrl}${sep}${param}={${param}}`;
-                        })()}
+                        value={computeDisplayLandingUrl(landing.landingUrl, landing.clickIdParam || "click_id")}
                         onChange={e => {
-                          const val = e.target.value;
                           const param = landing.clickIdParam || "click_id";
-                          const suffix = new RegExp(`[?&]${param}=\\{${param}\\}$`);
-                          const baseUrl = val.replace(suffix, "");
+                          const baseUrl = extractBaseLandingUrl(e.target.value, param);
                           updateLanding(index, "landingUrl", baseUrl);
                         }}
                       />
