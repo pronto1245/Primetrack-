@@ -6594,36 +6594,43 @@ export async function registerRoutes(
   // NOTIFICATIONS API
   // ============================================
 
-  // Get notifications for current user
+  // Get notifications for current user (with tenant isolation for staff)
   app.get("/api/notifications", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
       const limit = parseInt(req.query.limit as string) || 50;
-      const notifications = await storage.getNotifications(userId, limit);
+      const advertiserScopeId = req.session.role === 'advertiser_staff' 
+        ? req.session.staffAdvertiserId 
+        : undefined;
+      const notifications = await storage.getNotifications(userId, limit, advertiserScopeId);
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
   });
 
-  // Get unread notification count
+  // Get unread notification count (with tenant isolation for staff)
   app.get("/api/notifications/unread-count", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
-      const count = await storage.getUnreadNotificationCount(userId);
+      const advertiserScopeId = req.session.role === 'advertiser_staff' 
+        ? req.session.staffAdvertiserId 
+        : undefined;
+      const count = await storage.getUnreadNotificationCount(userId, advertiserScopeId);
       res.json({ count });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch unread count" });
     }
   });
 
-  // Mark notification as read
+  // Mark notification as read (only own notifications)
   app.patch("/api/notifications/:id/read", requireAuth, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const notification = await storage.markNotificationRead(id);
+      const userId = req.session.userId!;
+      const notification = await storage.markNotificationRead(id, userId);
       if (!notification) {
-        return res.status(404).json({ message: "Notification not found" });
+        return res.status(404).json({ message: "Notification not found or not yours" });
       }
       res.json(notification);
     } catch (error) {
@@ -6631,7 +6638,7 @@ export async function registerRoutes(
     }
   });
 
-  // Mark all notifications as read
+  // Mark all notifications as read (only own notifications)
   app.post("/api/notifications/mark-all-read", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId!;
