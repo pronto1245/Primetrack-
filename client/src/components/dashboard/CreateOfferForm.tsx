@@ -52,30 +52,25 @@ const APP_TYPE_COLORS: Record<string, string> = {
   "Desktop": "bg-indigo-500",
 };
 
-const KNOWN_CLICK_ID_PARAMS = ["click_id", "aff_click_id", "subid", "clickid", "cid", "s2sclick_id", "sub_id", "externalid", "external_id"];
-
 function stripAllClickIdPlaceholders(url: string): string {
   if (!url) return "";
   let result = url;
-  for (const p of KNOWN_CLICK_ID_PARAMS) {
-    const patterns = [
-      new RegExp(`[?&]${p}=\\{click_id\\}`, 'gi'),
-      new RegExp(`[?&]${p}=%7Bclick_id%7D`, 'gi'),
-      new RegExp(`[?&]${p}=\\{${p}\\}`, 'gi'),
-      new RegExp(`[?&]${p}=%7B${p}%7D`, 'gi'),
-    ];
-    for (const pattern of patterns) {
-      result = result.replace(pattern, "");
-    }
-  }
-  result = result.replace(/\?&/, "?").replace(/&&/g, "&").replace(/[?&]$/, "");
-  const qIndex = result.indexOf("?");
-  if (qIndex === -1) {
-    const ampIndex = result.indexOf("&");
-    if (ampIndex !== -1) {
-      result = result.substring(0, ampIndex) + "?" + result.substring(ampIndex + 1);
-    }
-  }
+  // Удаляем параметры со значением {click_id}
+  result = result.replace(/([?&])[^=&#]+=\{click_id\}(?=&|#|$)/gi, (match, prefix) => {
+    return prefix === "?" ? "?" : "";
+  });
+  result = result.replace(/([?&])[^=&#]+=%7Bclick_id%7D(?=&|#|$)/gi, (match, prefix) => {
+    return prefix === "?" ? "?" : "";
+  });
+  // Удаляем параметры где значение = {имя_параметра} (напр. aff_click_id={aff_click_id})
+  result = result.replace(/([?&])([^=&#]+)=\{\2\}(?=&|#|$)/gi, (match, prefix) => {
+    return prefix === "?" ? "?" : "";
+  });
+  result = result.replace(/([?&])([^=&#]+)=%7B\2%7D(?=&|#|$)/gi, (match, prefix) => {
+    return prefix === "?" ? "?" : "";
+  });
+  // Нормализуем query string
+  result = result.replace(/\?&/, "?").replace(/&&/g, "&").replace(/\?(?=#|$)/, "");
   return result;
 }
 
