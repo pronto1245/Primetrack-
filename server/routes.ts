@@ -356,6 +356,25 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // CORS middleware for cross-origin requests in production
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction && process.env.CORS_ORIGIN) {
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",").map(o => o.trim());
+      const origin = req.headers.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      }
+      if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+      }
+      next();
+    });
+  }
+
   // Load Worker secret for X-Forwarded-Host validation
   // Priority: env variable > platform_settings
   const envWorkerSecret = process.env.CLOUDFLARE_WORKER_SECRET;
