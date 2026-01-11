@@ -2228,9 +2228,15 @@ export async function registerRoutes(
       const requestPayload = JSON.stringify(query);
       
       // Try multiple common parameter names for click_id
+      // Supports: Keitaro, Binom, Voluum, Scaleo, Affise, Alanbase and custom trackers
       const clickId = (
-        query.click_id || query.clickid || query.subid || 
-        query.subid_1 || query.tid || query.sub1 || query.cid
+        query.click_id || query.clickid || query.aff_click_id ||
+        query.subid || query.sub_id || query.subid_1 ||
+        query.externalid || query.external_id ||
+        query.tid || query.cid ||
+        query.sub1 || query.sub2 || query.sub3 || query.sub4 || query.sub5 ||
+        query.sub6 || query.sub7 || query.sub8 || query.sub9 || query.sub10 ||
+        query.s2s_click || query.transaction_id || query.txid
       ) as string;
       
       if (!clickId) {
@@ -2245,7 +2251,7 @@ export async function registerRoutes(
         });
         return res.status(400).json({ 
           error: "Missing required parameter: click_id",
-          hint: "Supported params: click_id, clickid, subid, subid_1, tid, sub1, cid"
+          hint: "Supported params: click_id, clickid, aff_click_id, subid, sub_id, externalid, tid, cid, sub1-10, s2s_click, transaction_id"
         });
       }
 
