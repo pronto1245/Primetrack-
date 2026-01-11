@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Plus, Trash2, Globe, DollarSign, Tag, Link as LinkIcon, Smartphone, Megaphone, FileText, Upload, Image, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Globe, DollarSign, Tag, Link as LinkIcon, Smartphone, Megaphone, FileText, Upload, Image, Loader2, Copy, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -60,6 +60,7 @@ interface Landing {
   partnerPayout: string;
   internalCost: string;
   currency: string;
+  clickIdParam: string;
 }
 
 export function CreateOfferForm({ role }: { role: string }) {
@@ -123,7 +124,7 @@ export function CreateOfferForm({ role }: { role: string }) {
   });
 
   const [landings, setLandings] = useState<Landing[]>([
-    { geo: "", landingName: "", landingUrl: "", partnerPayout: "", internalCost: "", currency: "USD" }
+    { geo: "", landingName: "", landingUrl: "", partnerPayout: "", internalCost: "", currency: "USD", clickIdParam: "click_id" }
   ]);
 
   // Сбросить isDataLoaded при смене editOfferId
@@ -166,6 +167,7 @@ export function CreateOfferForm({ role }: { role: string }) {
           partnerPayout: l.partnerPayout || "",
           internalCost: l.internalCost || "",
           currency: l.currency || "USD",
+          clickIdParam: l.clickIdParam || "click_id",
         })));
       }
       setIsDataLoaded(true);
@@ -182,7 +184,7 @@ export function CreateOfferForm({ role }: { role: string }) {
   };
 
   const addLanding = () => {
-    setLandings([...landings, { geo: "", landingName: "", landingUrl: "", partnerPayout: "", internalCost: "", currency: "USD" }]);
+    setLandings([...landings, { geo: "", landingName: "", landingUrl: "", partnerPayout: "", internalCost: "", currency: "USD", clickIdParam: "click_id" }]);
   };
 
   const removeLanding = (index: number) => {
@@ -680,6 +682,66 @@ export function CreateOfferForm({ role }: { role: string }) {
                         onChange={e => updateLanding(index, "landingUrl", e.target.value)}
                       />
                     </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">Параметр для передачи click_id</Label>
+                      <Input
+                        data-testid={`input-landing-clickIdParam-${index}`}
+                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
+                        placeholder="click_id"
+                        value={landing.clickIdParam}
+                        onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Название параметра в трекере (click_id, aff_click_id, subid, clickid, cid, s2sclick_id)
+                      </p>
+                    </div>
+
+                    {landing.landingUrl && (
+                      <div className="bg-muted/30 rounded-lg p-3 space-y-2 border border-border">
+                        <Label className="text-muted-foreground text-[10px] font-mono uppercase flex items-center gap-1">
+                          <Copy className="w-3 h-3" /> Postback URL — вставьте в настройки трекера
+                        </Label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground w-16 shrink-0">Lead:</span>
+                            <code className="flex-1 text-[11px] bg-background p-1.5 rounded border border-border font-mono text-foreground truncate">
+                              {`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=lead`}
+                            </code>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              data-testid={`button-copy-postback-lead-${index}`}
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=lead`);
+                              }}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground w-16 shrink-0">Sale/FTD:</span>
+                            <code className="flex-1 text-[11px] bg-background p-1.5 rounded border border-border font-mono text-foreground truncate">
+                              {`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=sale`}
+                            </code>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              data-testid={`button-copy-postback-sale-${index}`}
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=sale`);
+                              }}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div className={`grid gap-3 ${formData.payoutModel === "RevShare" ? "grid-cols-1" : "grid-cols-3"}`}>
                       {formData.payoutModel !== "RevShare" && (

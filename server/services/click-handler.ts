@@ -117,7 +117,8 @@ export class ClickHandler {
       isUnique,
     });
     
-    const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params);
+    const clickIdParam = landing.clickIdParam || "click_id";
+    const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params, clickIdParam);
     
     const clickData: InsertClick = {
       clickId,
@@ -282,9 +283,18 @@ export class ClickHandler {
     return landings[0];
   }
   
-  private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams): string {
+  private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams, clickIdParam: string = "click_id"): string {
     let urlString = baseUrl;
+    
+    // Replace standard {click_id} token
     urlString = urlString.replace(/\{click_id\}/gi, clickId);
+    
+    // Replace custom click_id parameter token (e.g., {aff_click_id}, {subid}, {s2sclick_id})
+    if (clickIdParam !== "click_id") {
+      const customParamRegex = new RegExp(`\\{${clickIdParam}\\}`, "gi");
+      urlString = urlString.replace(customParamRegex, clickId);
+    }
+    
     urlString = urlString.replace(/\{sub1\}/gi, params.sub1 || "");
     urlString = urlString.replace(/\{sub2\}/gi, params.sub2 || "");
     urlString = urlString.replace(/\{sub3\}/gi, params.sub3 || "");
@@ -298,9 +308,8 @@ export class ClickHandler {
     
     const url = new URL(urlString);
     
-    if (!url.searchParams.has("click_id")) {
-      url.searchParams.set("click_id", clickId);
-    }
+    // Always set the click_id parameter with the configured name (overwrite if exists with placeholder)
+    url.searchParams.set(clickIdParam, clickId);
     if (params.sub1 && !url.searchParams.has("sub1")) {
       url.searchParams.set("sub1", params.sub1);
     }
