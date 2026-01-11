@@ -181,6 +181,7 @@ export const offerLandings = pgTable("offer_landings", {
   partnerPayout: numeric("partner_payout", { precision: 10, scale: 2 }).notNull(),
   internalCost: numeric("internal_cost", { precision: 10, scale: 2 }),
   currency: text("currency").notNull().default("USD"),
+  clickIdParam: text("click_id_param").notNull().default("click_id"),
 });
 
 export const insertOfferLandingSchema = createInsertSchema(offerLandings).omit({
