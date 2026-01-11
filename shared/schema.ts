@@ -1769,3 +1769,139 @@ export const insertPublisherInvoiceItemSchema = createInsertSchema(publisherInvo
 
 export type InsertPublisherInvoiceItem = z.infer<typeof insertPublisherInvoiceItemSchema>;
 export type PublisherInvoiceItem = typeof publisherInvoiceItems.$inferSelect;
+
+// ============================================
+// EXCHANGE API KEYS (Encrypted credentials for crypto exchanges)
+// Advertiser stores API keys for automated payouts
+// ============================================
+export const exchangeApiKeys = pgTable("exchange_api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Exchange: binance, bybit, kraken, coinbase, exmo, mexc, okx
+  exchange: text("exchange").notNull(),
+  
+  // Human-readable name
+  name: text("name").notNull(),
+  
+  // Encrypted API credentials
+  apiKeyEncrypted: text("api_key_encrypted").notNull(),
+  apiSecretEncrypted: text("api_secret_encrypted").notNull(),
+  passphraseEncrypted: text("passphrase_encrypted"), // For exchanges that require it (Coinbase, OKX)
+  
+  // Permissions info (for display)
+  permissions: text("permissions").array(), // ['withdraw', 'read']
+  
+  // IP whitelist (optional)
+  ipWhitelist: text("ip_whitelist").array(),
+  
+  // Status
+  isActive: boolean("is_active").notNull().default(true),
+  lastUsedAt: timestamp("last_used_at"),
+  lastError: text("last_error"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertExchangeApiKeySchema = createInsertSchema(exchangeApiKeys).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastUsedAt: true,
+  lastError: true,
+});
+
+export type InsertExchangeApiKey = z.infer<typeof insertExchangeApiKeySchema>;
+export type ExchangeApiKey = typeof exchangeApiKeys.$inferSelect;
+
+// ============================================
+// CRYPTO PAYOUT QUEUE (Retry queue for automated payouts)
+// Tracks payout attempts and retry logic
+// ============================================
+export const cryptoPayoutQueue = pgTable("crypto_payout_queue", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Link to payout request
+  payoutRequestId: varchar("payout_request_id").notNull().references(() => payoutRequests.id),
+  
+  // Exchange and credentials
+  exchangeApiKeyId: varchar("exchange_api_key_id").notNull().references(() => exchangeApiKeys.id),
+  
+  // Payout details
+  toAddress: text("to_address").notNull(),
+  amount: numeric("amount", { precision: 18, scale: 8 }).notNull(),
+  currency: text("currency").notNull(), // USDT, BTC, ETH, etc.
+  network: text("network"), // TRC20, ERC20, BEP20, etc.
+  
+  // Status: pending, processing, dispatched, confirmed, failed, cancelled
+  status: text("status").notNull().default("pending"),
+  
+  // Exchange response
+  exchangeOrderId: text("exchange_order_id"),
+  exchangeTxHash: text("exchange_tx_hash"),
+  exchangeResponse: text("exchange_response"), // JSON response
+  
+  // Retry logic
+  attempts: integer("attempts").notNull().default(0),
+  maxAttempts: integer("max_attempts").notNull().default(3),
+  lastError: text("last_error"),
+  nextRetryAt: timestamp("next_retry_at"),
+  
+  // Idempotency
+  idempotencyKey: text("idempotency_key").notNull().unique(),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  processedAt: timestamp("processed_at"),
+  confirmedAt: timestamp("confirmed_at"),
+});
+
+export const insertCryptoPayoutQueueSchema = createInsertSchema(cryptoPayoutQueue).omit({
+  id: true,
+  createdAt: true,
+  processedAt: true,
+  confirmedAt: true,
+});
+
+export type InsertCryptoPayoutQueue = z.infer<typeof insertCryptoPayoutQueueSchema>;
+export type CryptoPayoutQueue = typeof cryptoPayoutQueue.$inferSelect;
+
+// ============================================
+// CRYPTO PAYOUT LOGS (Audit trail for all payout operations)
+// ============================================
+export const cryptoPayoutLogs = pgTable("crypto_payout_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Links
+  payoutQueueId: varchar("payout_queue_id").references(() => cryptoPayoutQueue.id),
+  payoutRequestId: varchar("payout_request_id").references(() => payoutRequests.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  // Operation type: initiate, status_check, confirm, fail, retry
+  operation: text("operation").notNull(),
+  
+  // Exchange info
+  exchange: text("exchange").notNull(),
+  
+  // Request/Response (masked for security)
+  requestPayload: text("request_payload"), // JSON, secrets masked
+  responsePayload: text("response_payload"), // JSON
+  
+  // Result
+  success: boolean("success").notNull(),
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  
+  // Operator (who approved if manual)
+  operatorId: varchar("operator_id").references(() => users.id),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertCryptoPayoutLogSchema = createInsertSchema(cryptoPayoutLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCryptoPayoutLog = z.infer<typeof insertCryptoPayoutLogSchema>;
+export type CryptoPayoutLog = typeof cryptoPayoutLogs.$inferSelect;
