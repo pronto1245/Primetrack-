@@ -47,7 +47,7 @@ Preferred communication style: Simple, everyday language (Russian).
 - **IP Intelligence:** ipinfo.io
 - **Fingerprinting:** FingerprintJS
 - **Telegram:** For notifications.
-- **Crypto Exchanges:** Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX (for financial transactions, though specific HMAC logic for payouts is pending).
+- **Crypto Exchanges:** Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX (all 7 adapters production-ready with correct HMAC signing, network normalization, and API v3 compliance).
 
 ---
 
