@@ -6030,6 +6030,70 @@ export async function registerRoutes(
     }
   });
 
+  // Feature suggestion - send to support email
+  const featureSuggestionSchema = z.object({
+    title: z.string().min(3, "Title must be at least 3 characters").max(200, "Title too long"),
+    description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description too long"),
+  });
+  
+  app.post("/api/feature-suggestion", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      
+      const parseResult = featureSuggestionSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: parseResult.error.errors[0]?.message || "Invalid data" });
+      }
+      const { title, description } = parseResult.data;
+      
+      if (!process.env.RESEND_API_KEY) {
+        return res.status(503).json({ message: "Email service not configured" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Escape HTML to prevent injection
+      const escapeHtml = (str: string) => str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+      
+      const safeTitle = escapeHtml(title);
+      const safeDescription = escapeHtml(description).replace(/\n/g, '<br/>');
+      const safeUsername = escapeHtml(user.username);
+      const safeEmail = escapeHtml(user.email || '');
+      
+      // Send email using Resend
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      
+      await resend.emails.send({
+        from: "PrimeTrack <onboarding@resend.dev>",
+        to: "support@primetrack.pro",
+        subject: `[Feature Request] ${safeTitle}`,
+        html: `
+          <h2>Новое предложение фичи</h2>
+          <p><strong>От:</strong> ${safeUsername} (${safeEmail})</p>
+          <p><strong>Роль:</strong> ${user.role}</p>
+          <p><strong>Название:</strong> ${safeTitle}</p>
+          <hr/>
+          <p><strong>Описание:</strong></p>
+          <p>${safeDescription}</p>
+        `,
+      });
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Feature suggestion error:", error);
+      res.status(500).json({ message: "Failed to send suggestion" });
+    }
+  });
+
   // Change password (all roles)
   app.patch("/api/user/password", requireAuth, async (req: Request, res: Response) => {
     try {

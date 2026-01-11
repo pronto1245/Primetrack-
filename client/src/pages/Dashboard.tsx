@@ -8,8 +8,9 @@ import {
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar,
   Plus, Search, UserPlus, ChevronDown, Building2,
-  Phone, Send, Globe, Newspaper, Menu, X
+  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb
 } from "lucide-react";
+import { FeatureSuggestionModal } from "@/components/FeatureSuggestionModal";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdvertiserProvider, useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { useStaff, getSectionFromPath } from "@/contexts/StaffContext";
@@ -337,6 +338,7 @@ function ManagerCard() {
 
 function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: () => void }) {
   const { selectedAdvertiser } = useAdvertiserContext();
+  const [featureModalOpen, setFeatureModalOpen] = useState(false);
   const { isStaff, staffLoading, canAccess } = useStaff();
   
   // Fetch unread news count
@@ -438,7 +440,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
 
       {/* Advertiser Card for Publisher */}
       {role === "publisher" && selectedAdvertiser && (
-        <div className="p-3 mb-16">
+        <div className="p-3">
           <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-lg p-3 border border-border" data-testid="advertiser-card">
             <div className="flex items-center gap-3 mb-3">
               {selectedAdvertiser.logoUrl ? (
@@ -490,6 +492,20 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
         </div>
       )}
 
+      {/* Feature Suggestion Button */}
+      {(role === "advertiser" || role === "publisher") && (
+        <div className="px-3 pb-2">
+          <button
+            onClick={() => setFeatureModalOpen(true)}
+            className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-yellow-500 transition-colors w-full px-3 py-2 rounded hover:bg-muted"
+            data-testid="button-suggest-feature"
+          >
+            <Lightbulb className="w-3 h-3 text-yellow-500" />
+            Предложить фичу
+          </button>
+        </div>
+      )}
+
       <div className="p-4 border-t border-border">
         <Link href="/dashboard">
           <button className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full">
@@ -498,6 +514,8 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
           </button>
         </Link>
       </div>
+
+      <FeatureSuggestionModal open={featureModalOpen} onOpenChange={setFeatureModalOpen} />
     </aside>
   )
 }
