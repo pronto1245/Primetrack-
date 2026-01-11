@@ -7435,23 +7435,23 @@ export async function registerRoutes(
   });
 
   // Create roadmap item
+  const createRoadmapSchema = z.object({
+    title: z.string().min(1, "Название обязательно").max(200),
+    description: z.string().min(1, "Описание обязательно").max(1000),
+    quarter: z.string().min(1, "Квартал обязателен").regex(/^Q[1-4]\s+\d{4}$/, "Формат: Q1 2026"),
+    status: z.enum(["planned", "in_progress", "completed"]).optional().default("planned"),
+    priority: z.number().min(0).max(100).optional().default(0),
+    isPublished: z.boolean().optional().default(false),
+  });
+
   app.post("/api/admin/roadmap", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
-      const { title, description, quarter, status, priority, isPublished } = req.body;
-      
-      if (!title || !description || !quarter) {
-        return res.status(400).json({ message: "Заполните название, описание и квартал" });
+      const parsed = createRoadmapSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Ошибка валидации" });
       }
       
-      const item = await storage.createRoadmapItem({
-        title,
-        description,
-        quarter,
-        status: status || "planned",
-        priority: priority || 0,
-        isPublished: isPublished || false,
-      });
-      
+      const item = await storage.createRoadmapItem(parsed.data);
       res.json(item);
     } catch (error) {
       console.error("Failed to create roadmap item:", error);
@@ -7460,19 +7460,24 @@ export async function registerRoutes(
   });
 
   // Update roadmap item
+  const updateRoadmapSchema = z.object({
+    title: z.string().min(1).max(200).optional(),
+    description: z.string().min(1).max(1000).optional(),
+    quarter: z.string().regex(/^Q[1-4]\s+\d{4}$/).optional(),
+    status: z.enum(["planned", "in_progress", "completed"]).optional(),
+    priority: z.number().min(0).max(100).optional(),
+    isPublished: z.boolean().optional(),
+  });
+
   app.put("/api/admin/roadmap/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { title, description, quarter, status, priority, isPublished } = req.body;
+      const parsed = updateRoadmapSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Ошибка валидации" });
+      }
       
-      const item = await storage.updateRoadmapItem(id, {
-        title,
-        description,
-        quarter,
-        status,
-        priority,
-        isPublished,
-      });
+      const item = await storage.updateRoadmapItem(id, parsed.data);
       
       if (!item) {
         return res.status(404).json({ message: "Запись не найдена" });
@@ -7513,16 +7518,21 @@ export async function registerRoutes(
   });
 
   // Update news landing settings
+  const updateNewsLandingSchema = z.object({
+    showOnLanding: z.boolean().optional(),
+    icon: z.string().max(50).nullable().optional(),
+    shortDescription: z.string().max(300).nullable().optional(),
+  });
+
   app.patch("/api/admin/news/:id/landing", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { showOnLanding, icon, shortDescription } = req.body;
+      const parsed = updateNewsLandingSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Ошибка валидации" });
+      }
       
-      const post = await storage.updateNewsPostLandingSettings(id, {
-        showOnLanding,
-        icon,
-        shortDescription,
-      });
+      const post = await storage.updateNewsPostLandingSettings(id, parsed.data);
       
       if (!post) {
         return res.status(404).json({ message: "Новость не найдена" });
