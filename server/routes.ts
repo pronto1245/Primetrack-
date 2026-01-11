@@ -5988,8 +5988,16 @@ export async function registerRoutes(
       }
       const { email, phone, telegram, logoUrl, companyName } = parseResult.data;
       
-      // Check email uniqueness if changing
-      if (email) {
+      // Get current user to compare email
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check email uniqueness only if actually changing
+      const normalizedNewEmail = email?.trim().toLowerCase();
+      const normalizedCurrentEmail = currentUser.email?.trim().toLowerCase();
+      if (normalizedNewEmail && normalizedNewEmail !== normalizedCurrentEmail) {
         const existingUser = await storage.getUserByEmail(email);
         if (existingUser && existingUser.id !== userId) {
           return res.status(400).json({ message: "Email already in use" });
