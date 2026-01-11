@@ -49,16 +49,140 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Telegram:** For notifications.
 - **Crypto Exchanges:** Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX (for financial transactions, though specific HMAC logic for payouts is pending).
 
-## Pending Tasks (2025-01-07)
+---
 
-### Data Migration UI
-- [ ] Update `DataMigrationSettings.tsx` to connect to real API endpoints
-- [ ] Remove Voluum/Keitaro from UI, show only: Scaleo, Affilka, Affise, Alanbase
-- [ ] Add migration history display from `/api/advertiser/migrations`
-- [ ] Add real-time status polling for in-progress migrations
+## ПОЛНЫЙ АУДИТ ПРОЕКТА (2025-01-11)
 
-### Key Implementation Notes
-- ALL advertiser endpoints use `getEffectiveAdvertiserId(req)` for staff support
-- Staff write access for migrations: `requireStaffWriteAccess("settings")`
-- Domain workflow: Add → Configure NS (angela/drake.ns.cloudflare.com) → Submit → Admin approves → Provisions → Admin activates
-- White-label consolidated endpoint: `PATCH /api/advertiser/settings/whitelabel`
+### ПОЛЬЗОВАТЕЛИ И РОЛИ
+
+| Роль | Описание | Статус |
+|------|----------|--------|
+| Admin | Полный доступ: пользователи, настройки платформы, домены, финансы | ✅ Работает |
+| Advertiser | Офферы, партнёры, финансы, настройки, команда | ✅ Работает |
+| Publisher | Офферы, ссылки, выплаты, статистика | ✅ Работает |
+| Advertiser Staff | Manager, Analyst, Support, Finance - гранулярные права | ✅ Работает |
+
+**Аутентификация:**
+- Email/password (bcrypt) ✅
+- Session-based (connect-pg-simple) ✅
+- TOTP 2FA обязательный для активных юзеров ✅
+- Telegram уведомления ✅
+
+### ЧТО ПОЛНОСТЬЮ РАБОТАЕТ
+
+#### Трекинг
+- [x] Mini-Tracker: клики, click_id, GEO (geoip-lite), IP, UA, fingerprint, 302 redirect
+- [x] Универсальный постбек `/api/postback` с автоопределением offer_id/publisher_id
+- [x] Поддержка внешних трекеров (Keitaro, Binom, Voluum, Scaleo)
+- [x] Sub-параметры (sub1-sub10)
+- [x] Входящие/исходящие постбеки с retry логикой
+
+#### Офферы и Лендинги
+- [x] CRUD офферов с geo, категориями, источниками трафика
+- [x] Мульти-лендинги с разными ценами по geo
+- [x] A/B варианты лендингов
+- [x] Капы (daily/monthly/total) с редиректом
+- [x] Приватные/эксклюзивные/топ офферы
+
+#### Конверсии
+- [x] Orchestrator: click, lead, sale, install, rejected, hold_released
+- [x] Расчёт выплат партнёрам
+- [x] Hold период
+- [x] Воронка конверсий (Funnel Aggregation)
+- [x] Player Sessions для gambling
+
+#### Финансы
+- [x] Балансы (available, hold, pending)
+- [x] Запросы на выплату
+- [x] История транзакций
+- [x] PDF счета для партнёров
+- [x] UI в разделе Finance для Advertiser/Publisher/Admin
+
+#### Антифрод
+- [x] Fraud scoring
+- [x] Proxy/VPN detection
+- [x] Fingerprint analysis
+- [x] Click-spam checks
+- [x] Duplicate lead detection
+- [x] Автофлаг подозрительного трафика
+
+#### Вебхуки
+- [x] CRUD endpoints
+- [x] Event/offer/partner фильтрация
+- [x] HMAC-SHA256 подпись
+- [x] Retry mechanism
+- [x] UI управления
+
+#### Кастомные Домены
+- [x] DNS верификация
+- [x] TLS checking
+- [x] Cloudflare Worker Proxy
+- [x] Admin approval workflow
+- [x] UI для advertiser и admin
+
+#### Уведомления
+- [x] In-app (bell icon)
+- [x] Telegram бот
+- [x] Настраиваемые события
+
+#### Экспорт данных
+- [x] CSV, Excel, PDF
+- [x] Клики, конверсии, транзакции
+- [x] Role-based access
+
+### ЧТО ЧАСТИЧНО РАБОТАЕТ / ТРЕБУЕТ ДОРАБОТКИ
+
+#### Крипто-выплаты (КРИТИЧНО)
+**Backend готов:**
+- [x] DB Schema: `exchangeApiKeys`, `cryptoPayoutQueue`, `cryptoPayoutLogs`
+- [x] CryptoPayoutOrchestrator с очередью и retry
+- [x] Binance adapter с HMAC-SHA256
+- [x] Bybit adapter
+- [x] API routes: GET/POST/DELETE `/api/advertiser/crypto/keys`
+
+**ПРОБЛЕМА:** 
+- ⚠️ Storage layer несогласован с API routes (plaintext vs encrypted types mismatch)
+- ⚠️ Kraken, Coinbase, EXMO, MEXC, OKX - бросают "not yet implemented" 
+
+**UI:** Уже есть в AdvertiserFinance.tsx
+
+#### Миграция данных
+- [x] Backend service для Scaleo, Affilka, Affise, Alanbase
+- [x] API endpoints `/api/advertiser/migrations`
+- [ ] UI не подключён к реальным endpoints
+- [ ] Voluum/Keitaro надо убрать из UI
+
+### ЧТО НЕ СДЕЛАНО
+
+1. **Крипто-выплаты:**
+   - [ ] Исправить storage layer (encrypt internally)
+   - [ ] Адаптеры Kraken, Coinbase, EXMO, MEXC, OKX
+
+2. **Миграция:**
+   - [ ] Подключить UI к реальным API
+   - [ ] Real-time polling статуса
+
+3. **Подписки/биллинг:**
+   - [ ] Stripe интеграция (схема есть, логика не полная)
+
+### СТРУКТУРА ФАЙЛОВ
+
+**Frontend:**
+- `client/src/pages/` - страницы (Login, Dashboard, Register, etc.)
+- `client/src/components/dashboard/` - 36 компонентов для ролей
+
+**Backend:**
+- `server/routes.ts` - все API endpoints
+- `server/storage.ts` - Drizzle ORM storage layer
+- `server/services/` - 30+ сервисов (crypto, email, antifraud, etc.)
+
+**Shared:**
+- `shared/schema.ts` - 1908 строк, все таблицы БД
+
+### КЛЮЧЕВЫЕ ПРАВИЛА
+
+1. ALL advertiser endpoints используют `getEffectiveAdvertiserId(req)` для staff support
+2. Staff write access через `requireStaffWriteAccess("module")`
+3. Domain workflow: Add → Configure NS → Submit → Admin approves → Provisions → Admin activates
+4. White-label endpoint: `PATCH /api/advertiser/settings/whitelabel`
+5. Crypto keys хранятся в `exchangeApiKeys` таблице (НЕ в advertiserSettings)
