@@ -708,17 +708,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">Параметр click_id</Label>
-                      <Input
-                        data-testid={`input-landing-clickIdParam-${index}`}
-                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
-                        placeholder="click_id"
-                        value={landing.clickIdParam}
-                        onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-1">
                       <Label className="text-muted-foreground text-[10px] font-mono uppercase">URL лендинга *</Label>
                       <Input
                         data-testid={`input-landing-url-${index}`}
@@ -730,6 +719,17 @@ export function CreateOfferForm({ role }: { role: string }) {
                           const baseUrl = extractBaseLandingUrl(e.target.value, param);
                           updateLanding(index, "landingUrl", baseUrl);
                         }}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">Параметр click_id</Label>
+                      <Input
+                        data-testid={`input-landing-clickIdParam-${index}`}
+                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
+                        placeholder="click_id"
+                        value={landing.clickIdParam}
+                        onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
                       />
                     </div>
 
