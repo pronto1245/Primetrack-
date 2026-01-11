@@ -673,17 +673,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">URL лендинга *</Label>
-                      <Input
-                        data-testid={`input-landing-url-${index}`}
-                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
-                        placeholder="https://landing.com/click?o=123"
-                        value={landing.landingUrl}
-                        onChange={e => updateLanding(index, "landingUrl", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-1">
                       <Label className="text-muted-foreground text-[10px] font-mono uppercase">Параметр click_id</Label>
                       <Input
                         data-testid={`input-landing-clickIdParam-${index}`}
@@ -691,6 +680,28 @@ export function CreateOfferForm({ role }: { role: string }) {
                         placeholder="click_id"
                         value={landing.clickIdParam}
                         onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">URL лендинга *</Label>
+                      <Input
+                        data-testid={`input-landing-url-${index}`}
+                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
+                        placeholder="https://landing.com/click?o=123"
+                        value={(() => {
+                          if (!landing.landingUrl) return "";
+                          const param = landing.clickIdParam || "click_id";
+                          const sep = landing.landingUrl.includes("?") ? "&" : "?";
+                          return `${landing.landingUrl}${sep}${param}={${param}}`;
+                        })()}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const param = landing.clickIdParam || "click_id";
+                          const suffix = new RegExp(`[?&]${param}=\\{${param}\\}$`);
+                          const baseUrl = val.replace(suffix, "");
+                          updateLanding(index, "landingUrl", baseUrl);
+                        }}
                       />
                     </div>
 
