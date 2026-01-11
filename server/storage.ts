@@ -37,7 +37,8 @@ import {
   type IncomingPostbackConfig, type InsertIncomingPostbackConfig, incomingPostbackConfigs,
   type PublisherPostbackEndpoint, type InsertPublisherPostbackEndpoint, publisherPostbackEndpoints,
   type MigrationHistory, type InsertMigrationHistory, migrationHistory,
-  type OfferLandingVariant, type InsertOfferLandingVariant, offerLandingVariants
+  type OfferLandingVariant, type InsertOfferLandingVariant, offerLandingVariants,
+  type ExchangeApiKey, type InsertExchangeApiKey, exchangeApiKeys
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -435,6 +436,29 @@ export interface IStorage {
   createMigration(data: InsertMigrationHistory): Promise<MigrationHistory>;
   updateMigration(id: string, data: Partial<InsertMigrationHistory>): Promise<MigrationHistory | undefined>;
   getMigration(id: string): Promise<MigrationHistory | undefined>;
+  
+  // Exchange API Keys
+  getExchangeApiKeys(advertiserId: string): Promise<ExchangeApiKey[]>;
+  getExchangeApiKey(id: string): Promise<ExchangeApiKey | undefined>;
+  getExchangeApiKeyByExchange(advertiserId: string, exchange: string): Promise<ExchangeApiKey | undefined>;
+  createExchangeApiKey(data: {
+    advertiserId: string;
+    exchange: string;
+    name: string;
+    apiKey: string;
+    apiSecret: string;
+    passphrase?: string | null;
+    isActive?: boolean;
+  }): Promise<ExchangeApiKey>;
+  updateExchangeApiKey(id: string, data: {
+    name?: string;
+    apiKey?: string;
+    apiSecret?: string;
+    passphrase?: string | null;
+    isActive?: boolean;
+  }): Promise<ExchangeApiKey | undefined>;
+  deleteExchangeApiKey(id: string): Promise<void>;
+  getExchangeApiKeysStatus(advertiserId: string): Promise<Record<string, boolean>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3899,6 +3923,92 @@ export class DatabaseStorage implements IStorage {
       .from(migrationHistory)
       .where(eq(migrationHistory.id, id));
     return migration;
+  }
+
+  // Exchange API Keys
+  async getExchangeApiKeys(advertiserId: string): Promise<ExchangeApiKey[]> {
+    return await db
+      .select()
+      .from(exchangeApiKeys)
+      .where(eq(exchangeApiKeys.advertiserId, advertiserId))
+      .orderBy(desc(exchangeApiKeys.createdAt));
+  }
+
+  async getExchangeApiKey(id: string): Promise<ExchangeApiKey | undefined> {
+    const [key] = await db
+      .select()
+      .from(exchangeApiKeys)
+      .where(eq(exchangeApiKeys.id, id));
+    return key;
+  }
+
+  async getExchangeApiKeyByExchange(advertiserId: string, exchange: string): Promise<ExchangeApiKey | undefined> {
+    const [key] = await db
+      .select()
+      .from(exchangeApiKeys)
+      .where(and(
+        eq(exchangeApiKeys.advertiserId, advertiserId),
+        eq(exchangeApiKeys.exchange, exchange)
+      ));
+    return key;
+  }
+
+  async createExchangeApiKey(data: {
+    advertiserId: string;
+    exchange: string;
+    name: string;
+    apiKey: string;
+    apiSecret: string;
+    passphrase?: string | null;
+    isActive?: boolean;
+  }): Promise<ExchangeApiKey> {
+    const [key] = await db.insert(exchangeApiKeys).values({
+      advertiserId: data.advertiserId,
+      exchange: data.exchange,
+      name: data.name,
+      apiKeyEncrypted: encrypt(data.apiKey),
+      apiSecretEncrypted: encrypt(data.apiSecret),
+      passphraseEncrypted: data.passphrase ? encrypt(data.passphrase) : null,
+      isActive: data.isActive ?? true,
+    }).returning();
+    return key;
+  }
+
+  async updateExchangeApiKey(id: string, data: {
+    name?: string;
+    apiKey?: string;
+    apiSecret?: string;
+    passphrase?: string | null;
+    isActive?: boolean;
+  }): Promise<ExchangeApiKey | undefined> {
+    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.apiKey) updateData.apiKeyEncrypted = encrypt(data.apiKey);
+    if (data.apiSecret) updateData.apiSecretEncrypted = encrypt(data.apiSecret);
+    if (data.passphrase !== undefined) {
+      updateData.passphraseEncrypted = data.passphrase ? encrypt(data.passphrase) : null;
+    }
+    const [key] = await db
+      .update(exchangeApiKeys)
+      .set(updateData)
+      .where(eq(exchangeApiKeys.id, id))
+      .returning();
+    return key;
+  }
+
+  async deleteExchangeApiKey(id: string): Promise<void> {
+    await db.delete(exchangeApiKeys).where(eq(exchangeApiKeys.id, id));
+  }
+
+  async getExchangeApiKeysStatus(advertiserId: string): Promise<Record<string, boolean>> {
+    const keys = await this.getExchangeApiKeys(advertiserId);
+    const supportedExchanges = ['binance', 'bybit', 'kraken', 'coinbase', 'exmo', 'mexc', 'okx'];
+    const status: Record<string, boolean> = {};
+    for (const exchange of supportedExchanges) {
+      status[exchange] = keys.some(k => k.exchange === exchange && k.isActive);
+    }
+    return status;
   }
 }
 

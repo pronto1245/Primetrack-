@@ -5382,9 +5382,35 @@ export async function registerRoutes(
   });
 
   // ============================================
-  // ADVERTISER CRYPTO KEYS MANAGEMENT
+  // ADVERTISER CRYPTO KEYS MANAGEMENT (v2 - exchangeApiKeys table)
   // Encrypted storage of per-advertiser exchange API keys
   // ============================================
+
+  // Get all exchange API keys for advertiser (masked, no secrets)
+  app.get("/api/advertiser/crypto/keys", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (!effectiveAdvertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const keys = await storage.getExchangeApiKeys(effectiveAdvertiserId);
+      const maskedKeys = keys.map(k => ({
+        id: k.id,
+        exchange: k.exchange,
+        name: k.name,
+        isActive: k.isActive,
+        lastUsedAt: k.lastUsedAt,
+        lastError: k.lastError,
+        createdAt: k.createdAt,
+        hasApiKey: !!k.apiKeyEncrypted,
+        hasPassphrase: !!k.passphraseEncrypted,
+      }));
+      res.json(maskedKeys);
+    } catch (error: any) {
+      console.error("Get exchange API keys error:", error);
+      res.status(500).json({ message: "Failed to fetch exchange API keys" });
+    }
+  });
 
   // Get crypto keys status (never return actual keys)
   app.get("/api/advertiser/crypto/keys/status", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
@@ -5393,7 +5419,7 @@ export async function registerRoutes(
       if (!effectiveAdvertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const status = await storage.getCryptoKeysStatus(effectiveAdvertiserId);
+      const status = await storage.getExchangeApiKeysStatus(effectiveAdvertiserId);
       res.json(status);
     } catch (error: any) {
       console.error("Get crypto keys status error:", error);
@@ -5401,14 +5427,14 @@ export async function registerRoutes(
     }
   });
 
-  // Save crypto API keys (encrypted)
+  // Create exchange API key (encrypted)
   app.post("/api/advertiser/crypto/keys", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       if (!effectiveAdvertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const { exchange, apiKey, secretKey } = req.body;
+      const { exchange, apiKey, secretKey, passphrase, name } = req.body;
 
       const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
       if (!exchange || !validExchanges.includes(exchange)) {
@@ -5419,34 +5445,32 @@ export async function registerRoutes(
         return res.status(400).json({ message: "API Key and Secret Key are required" });
       }
 
-      const keys: any = {};
-      const { passphrase } = req.body;
-      
-      const keyMappings: Record<string, { apiKey: string; secretKey: string; passphrase?: string }> = {
-        binance: { apiKey: 'binanceApiKey', secretKey: 'binanceSecretKey' },
-        bybit: { apiKey: 'bybitApiKey', secretKey: 'bybitSecretKey' },
-        kraken: { apiKey: 'krakenApiKey', secretKey: 'krakenSecretKey' },
-        coinbase: { apiKey: 'coinbaseApiKey', secretKey: 'coinbaseSecretKey' },
-        exmo: { apiKey: 'exmoApiKey', secretKey: 'exmoSecretKey' },
-        mexc: { apiKey: 'mexcApiKey', secretKey: 'mexcSecretKey' },
-        okx: { apiKey: 'okxApiKey', secretKey: 'okxSecretKey', passphrase: 'okxPassphrase' },
-      };
-      
-      const mapping = keyMappings[exchange];
-      if (mapping) {
-        keys[mapping.apiKey] = apiKey;
-        keys[mapping.secretKey] = secretKey;
-        if (mapping.passphrase && passphrase) {
-          keys[mapping.passphrase] = passphrase;
-        }
+      if ((exchange === 'okx' || exchange === 'coinbase') && !passphrase) {
+        return res.status(400).json({ message: `${exchange.toUpperCase()} requires passphrase` });
       }
 
-      if (exchange === 'okx' && !passphrase) {
-        return res.status(400).json({ message: "OKX requires passphrase" });
+      const existing = await storage.getExchangeApiKeyByExchange(effectiveAdvertiserId, exchange);
+      if (existing) {
+        await storage.updateExchangeApiKey(existing.id, {
+          apiKey,
+          apiSecret: secretKey,
+          passphrase: passphrase || null,
+          name: name || `${exchange} API Key`,
+          isActive: true,
+        });
+      } else {
+        await storage.createExchangeApiKey({
+          advertiserId: effectiveAdvertiserId,
+          exchange,
+          name: name || `${exchange} API Key`,
+          apiKey,
+          apiSecret: secretKey,
+          passphrase: passphrase || null,
+          isActive: true,
+        });
       }
 
-      await storage.saveAdvertiserCryptoKeys(effectiveAdvertiserId, keys);
-      const status = await storage.getCryptoKeysStatus(effectiveAdvertiserId);
+      const status = await storage.getExchangeApiKeysStatus(effectiveAdvertiserId);
       
       res.json({ 
         success: true, 
@@ -5459,42 +5483,29 @@ export async function registerRoutes(
     }
   });
 
-  // Delete crypto API keys
-  app.delete("/api/advertiser/crypto/keys/:exchange", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  // Delete exchange API key by ID
+  app.delete("/api/advertiser/crypto/keys/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       if (!effectiveAdvertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const { exchange } = req.params;
+      const { id } = req.params;
 
-      const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
-      if (!validExchanges.includes(exchange)) {
-        return res.status(400).json({ message: "Invalid exchange" });
+      const key = await storage.getExchangeApiKey(id);
+      if (!key) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+      if (key.advertiserId !== effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
       }
 
-      const keyMappings: Record<string, string[]> = {
-        binance: ['binanceApiKey', 'binanceSecretKey'],
-        bybit: ['bybitApiKey', 'bybitSecretKey'],
-        kraken: ['krakenApiKey', 'krakenSecretKey'],
-        coinbase: ['coinbaseApiKey', 'coinbaseSecretKey'],
-        exmo: ['exmoApiKey', 'exmoSecretKey'],
-        mexc: ['mexcApiKey', 'mexcSecretKey'],
-        okx: ['okxApiKey', 'okxSecretKey', 'okxPassphrase'],
-      };
-
-      const keys: any = {};
-      const fieldsToDelete = keyMappings[exchange] || [];
-      for (const field of fieldsToDelete) {
-        keys[field] = "";
-      }
-
-      await storage.saveAdvertiserCryptoKeys(effectiveAdvertiserId, keys);
-      const status = await storage.getCryptoKeysStatus(effectiveAdvertiserId);
+      await storage.deleteExchangeApiKey(id);
+      const status = await storage.getExchangeApiKeysStatus(effectiveAdvertiserId);
       
       res.json({ 
         success: true, 
-        message: `${exchange} API keys deleted`,
+        message: `${key.exchange} API keys deleted`,
         status 
       });
     } catch (error: any) {
