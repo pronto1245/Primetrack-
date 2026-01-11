@@ -674,17 +674,24 @@ export function CreateOfferForm({ role }: { role: string }) {
 
                     <div className="space-y-1">
                       <Label className="text-muted-foreground text-[10px] font-mono uppercase">URL лендинга *</Label>
-                      <Input
-                        data-testid={`input-landing-url-${index}`}
-                        className="bg-card border-border text-foreground font-mono h-8 text-sm"
-                        placeholder="https://landing.com/?sub1={click_id}"
-                        value={landing.landingUrl}
-                        onChange={e => updateLanding(index, "landingUrl", e.target.value)}
-                      />
+                      <div className="flex">
+                        <Input
+                          data-testid={`input-landing-url-${index}`}
+                          className="bg-card border-border text-foreground font-mono h-8 text-sm rounded-r-none border-r-0"
+                          placeholder="https://landing.com/click?o=123"
+                          value={landing.landingUrl}
+                          onChange={e => updateLanding(index, "landingUrl", e.target.value)}
+                        />
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-r-md px-2 flex items-center shrink-0">
+                          <span className="text-green-400 font-mono text-xs whitespace-nowrap">
+                            {landing.landingUrl ? (landing.landingUrl.includes("?") ? "&" : "?") : "?"}{landing.clickIdParam || "click_id"}=uuid
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">Параметр для передачи click_id</Label>
+                      <Label className="text-muted-foreground text-[10px] font-mono uppercase">Параметр click_id</Label>
                       <Input
                         data-testid={`input-landing-clickIdParam-${index}`}
                         className="bg-card border-border text-foreground font-mono h-8 text-sm"
@@ -692,9 +699,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                         value={landing.clickIdParam}
                         onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
                       />
-                      <p className="text-[10px] text-muted-foreground">
-                        Название параметра в трекере (click_id, aff_click_id, subid, clickid, cid, s2sclick_id)
-                      </p>
                     </div>
 
                     {landing.landingUrl && (
