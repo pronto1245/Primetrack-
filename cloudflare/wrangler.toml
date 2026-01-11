@@ -1,0 +1,28 @@
+# PrimeTrack Cloudflare Worker Configuration
+# 
+# Инструкция по деплою:
+# 1. Установите Wrangler: npm install -g wrangler
+# 2. Авторизуйтесь: wrangler login
+# 3. Обновите значения ниже
+# 4. Деплой: wrangler deploy
+
+name = "primetrack-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Маршруты - замените на ваш домен
+# routes = [
+#   { pattern = "primetrack.pro/*", zone_name = "primetrack.pro" },
+#   { pattern = "www.primetrack.pro/*", zone_name = "primetrack.pro" }
+# ]
+
+# Переменные окружения
+# ВАЖНО: Не храните секреты в этом файле!
+# Используйте: wrangler secret put WORKER_SECRET
+
+[vars]
+# Замените на ваш Replit URL
+ORIGIN_URL = "https://your-repl.replit.app"
+
+# Для production используйте secrets:
+# wrangler secret put WORKER_SECRET

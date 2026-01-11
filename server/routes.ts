@@ -373,14 +373,18 @@ export async function registerRoutes(
       // Support Cloudflare Worker proxy - resolves X-Forwarded-Host, X-Original-Host, or hostname
       const hostname = resolveRequestHost(req);
       
+      // Platform domain from env or default
+      const platformDomain = process.env.PLATFORM_DOMAIN || 'primetrack.pro';
+      const platformDomains = [platformDomain, `www.${platformDomain}`];
+      
       // Skip for localhost, Replit domains, and platform domain
+      // Platform domain is handled as first-party, not as custom domain
       if (!hostname || 
           hostname === 'localhost' || 
           hostname.includes('.replit.dev') || 
           hostname.includes('.replit.app') ||
           hostname.includes('.repl.co') ||
-          hostname === 'primetrack.pro' ||
-          hostname === 'www.primetrack.pro') {
+          platformDomains.includes(hostname)) {
         return next();
       }
       
