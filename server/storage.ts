@@ -3091,6 +3091,12 @@ export class DatabaseStorage implements IStorage {
     return post;
   }
 
+  async getAllNewsPosts(): Promise<NewsPost[]> {
+    return db.select().from(newsPosts)
+      .orderBy(desc(newsPosts.createdAt))
+      .limit(100);
+  }
+
   async getNewsFeed(userId: string, userRole: string, advertiserId?: string): Promise<NewsPost[]> {
     // Get news based on user role and advertiser scope
     if (userRole === 'admin') {

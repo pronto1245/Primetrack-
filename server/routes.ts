@@ -7494,7 +7494,7 @@ export async function registerRoutes(
   // Get all news posts (admin)
   app.get("/api/admin/news", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
-      const posts = await storage.getNewsPosts();
+      const posts = await storage.getAllNewsPosts();
       res.json(posts);
     } catch (error) {
       console.error("Failed to get news posts:", error);

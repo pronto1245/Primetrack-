@@ -11,7 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { 
   User, Lock, Bell, Settings, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Shield, Key, CheckCircle2, Globe,
-  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image, TestTube2, Copy
+  Users, ShieldAlert, CreditCard, Upload, Database, AlertCircle, Image, TestTube2, Copy,
+  Newspaper, Map, Plus, Trash2, Edit, Check, X
 } from "lucide-react";
 import { useUpload } from "@/hooks/use-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -34,7 +35,7 @@ export function AdminSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-7">
           <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Профиль</span>
@@ -50,6 +51,10 @@ export function AdminSettings() {
           <TabsTrigger value="platform" className="flex items-center gap-2" data-testid="tab-platform">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Платформа</span>
+          </TabsTrigger>
+          <TabsTrigger value="content" className="flex items-center gap-2" data-testid="tab-content">
+            <Newspaper className="h-4 w-4" />
+            <span className="hidden sm:inline">Контент</span>
           </TabsTrigger>
           <TabsTrigger value="testing" className="flex items-center gap-2" data-testid="tab-testing">
             <TestTube2 className="h-4 w-4" />
@@ -72,6 +77,9 @@ export function AdminSettings() {
         </TabsContent>
         <TabsContent value="platform">
           <PlatformTab />
+        </TabsContent>
+        <TabsContent value="content">
+          <ContentTab />
         </TabsContent>
         <TabsContent value="testing">
           <E2ETestPanel />
@@ -1644,6 +1652,336 @@ function MigrationTab() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function ContentTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeSection, setActiveSection] = useState<"roadmap" | "news">("roadmap");
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    quarter: "Q1 2026",
+    status: "planned",
+    priority: 0,
+    isPublished: false,
+  });
+
+  const { data: roadmapItems = [], isLoading: loadingRoadmap } = useQuery<any[]>({
+    queryKey: ["/api/admin/roadmap"],
+  });
+
+  const { data: newsPosts = [], isLoading: loadingNews } = useQuery<any[]>({
+    queryKey: ["/api/admin/news"],
+  });
+
+  const createRoadmapMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/roadmap", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roadmap"] });
+      toast({ title: "Запись добавлена" });
+      setShowForm(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateRoadmapMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiRequest("PUT", `/api/admin/roadmap/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roadmap"] });
+      toast({ title: "Запись обновлена" });
+      setEditingItem(null);
+      setShowForm(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteRoadmapMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/roadmap/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roadmap"] });
+      toast({ title: "Запись удалена" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateNewsLandingMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiRequest("PATCH", `/api/admin/news/${id}/landing`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news"] });
+      toast({ title: "Настройки обновлены" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      quarter: "Q1 2026",
+      status: "planned",
+      priority: 0,
+      isPublished: false,
+    });
+  };
+
+  const handleSubmit = () => {
+    if (editingItem) {
+      updateRoadmapMutation.mutate({ id: editingItem.id, data: formData });
+    } else {
+      createRoadmapMutation.mutate(formData);
+    }
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingItem(item);
+    setFormData({
+      title: item.title,
+      description: item.description,
+      quarter: item.quarter,
+      status: item.status,
+      priority: item.priority || 0,
+      isPublished: item.isPublished,
+    });
+    setShowForm(true);
+  };
+
+  const statusLabels: Record<string, string> = {
+    planned: "Запланировано",
+    in_progress: "В работе",
+    completed: "Завершено",
+  };
+
+  const quarters = ["Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026", "Q1 2027", "Q2 2027"];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-4">
+        <Button
+          variant={activeSection === "roadmap" ? "default" : "outline"}
+          onClick={() => setActiveSection("roadmap")}
+          data-testid="button-section-roadmap"
+        >
+          <Map className="h-4 w-4 mr-2" />
+          Roadmap
+        </Button>
+        <Button
+          variant={activeSection === "news" ? "default" : "outline"}
+          onClick={() => setActiveSection("news")}
+          data-testid="button-section-news"
+        >
+          <Newspaper className="h-4 w-4 mr-2" />
+          Новости на лендинге
+        </Button>
+      </div>
+
+      {activeSection === "roadmap" && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Map className="h-5 w-5" />
+                План развития
+              </CardTitle>
+              <CardDescription>Управление планом развития платформы для лендинга</CardDescription>
+            </div>
+            <Button onClick={() => { resetForm(); setEditingItem(null); setShowForm(true); }} data-testid="button-add-roadmap">
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {showForm && (
+              <Card className="border-primary">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Название</Label>
+                      <Input
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        placeholder="Новая функция..."
+                        data-testid="input-roadmap-title"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Квартал</Label>
+                      <Select value={formData.quarter} onValueChange={(v) => setFormData({ ...formData, quarter: v })}>
+                        <SelectTrigger data-testid="select-roadmap-quarter">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {quarters.map((q) => (
+                            <SelectItem key={q} value={q}>{q}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Описание</Label>
+                    <Input
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Подробное описание..."
+                      data-testid="input-roadmap-description"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Статус</Label>
+                      <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                        <SelectTrigger data-testid="select-roadmap-status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="planned">Запланировано</SelectItem>
+                          <SelectItem value="in_progress">В работе</SelectItem>
+                          <SelectItem value="completed">Завершено</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Приоритет</Label>
+                      <Input
+                        type="number"
+                        value={formData.priority}
+                        onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                        data-testid="input-roadmap-priority"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-6">
+                      <Switch
+                        checked={formData.isPublished}
+                        onCheckedChange={(v) => setFormData({ ...formData, isPublished: v })}
+                        data-testid="switch-roadmap-published"
+                      />
+                      <Label>Опубликовать</Label>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSubmit} disabled={!formData.title || !formData.description} data-testid="button-save-roadmap">
+                      <Save className="h-4 w-4 mr-2" />
+                      {editingItem ? "Сохранить" : "Добавить"}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setShowForm(false); setEditingItem(null); }} data-testid="button-cancel-roadmap">
+                      Отмена
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {loadingRoadmap ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : roadmapItems.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Нет записей в плане развития
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {roadmapItems.map((item: any) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`roadmap-item-${item.id}`}>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{item.title}</span>
+                        <span className="text-xs px-2 py-0.5 rounded bg-muted">{item.quarter}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          item.status === "completed" ? "bg-green-500/20 text-green-500" :
+                          item.status === "in_progress" ? "bg-yellow-500/20 text-yellow-500" :
+                          "bg-muted"
+                        }`}>
+                          {statusLabels[item.status] || item.status}
+                        </span>
+                        {item.isPublished && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">Опубликовано</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(item)} data-testid={`button-edit-${item.id}`}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteRoadmapMutation.mutate(item.id)} data-testid={`button-delete-${item.id}`}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {activeSection === "news" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Newspaper className="h-5 w-5" />
+              Новости для лендинга
+            </CardTitle>
+            <CardDescription>Выберите какие новости показывать на публичном лендинге</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingNews ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : newsPosts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Нет новостей. Создайте новость в разделе "Новости" платформы.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {newsPosts.map((post: any) => (
+                  <div key={post.id} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`news-item-${post.id}`}>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{post.title}</span>
+                        {post.showOnLanding && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-500">На лендинге</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{post.shortDescription || post.body?.substring(0, 100)}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={post.showOnLanding || false}
+                          onCheckedChange={(checked) => updateNewsLandingMutation.mutate({
+                            id: post.id,
+                            data: { showOnLanding: checked }
+                          })}
+                          data-testid={`switch-landing-${post.id}`}
+                        />
+                        <Label className="text-sm">На лендинге</Label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
