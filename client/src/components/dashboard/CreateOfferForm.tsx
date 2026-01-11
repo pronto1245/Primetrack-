@@ -694,29 +694,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                       />
                     </div>
 
-                    {landing.landingUrl && (
-                      <div className="space-y-1">
-                        <Label className="text-green-400 text-[10px] font-mono uppercase">Итоговая ссылка (при клике)</Label>
-                        <Input
-                          readOnly
-                          data-testid={`input-landing-final-url-${index}`}
-                          className="bg-green-500/10 border-green-500/30 text-green-400 font-mono h-8 text-sm"
-                          value={(() => {
-                            const param = landing.clickIdParam || "click_id";
-                            try {
-                              const url = new URL(landing.landingUrl);
-                              if (!url.searchParams.has(param)) {
-                                url.searchParams.set(param, "<uuid>");
-                              }
-                              return url.toString();
-                            } catch {
-                              const sep = landing.landingUrl.includes("?") ? "&" : "?";
-                              return `${landing.landingUrl}${sep}${param}=<uuid>`;
-                            }
-                          })()}
-                        />
-                      </div>
-                    )}
 
                     {landing.landingUrl && (
                       <div className="bg-muted/30 rounded-lg p-3 space-y-2 border border-border">
