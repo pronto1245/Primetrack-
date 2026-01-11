@@ -62,6 +62,41 @@ function sanitizeNumericToString(value: any): string | null {
   return parsed.toString();
 }
 
+// Sanitize landing URL - remove any {click_id} placeholders (including encoded/uppercase variants)
+// URLs should be stored clean, click_id is added dynamically by click-handler
+function sanitizeLandingUrl(url: string): string {
+  if (!url) return url;
+  let sanitized = url;
+  
+  // Decode URL first to handle %7B and %7D
+  try {
+    sanitized = decodeURIComponent(sanitized);
+  } catch (e) {
+    // Invalid encoding, continue with original
+  }
+  
+  // Remove all click_id placeholder variants (case-insensitive)
+  // Matches: {click_id}, {CLICK_ID}, {aff_click_id}, {subid}, etc.
+  sanitized = sanitized.replace(/[?&]?[a-zA-Z_]+=%7B[a-zA-Z_]+%7D/gi, ''); // encoded param=value
+  sanitized = sanitized.replace(/[?&]?[a-zA-Z_]+=\{[a-zA-Z_]+\}/gi, ''); // param={value}
+  sanitized = sanitized.replace(/\{click_id\}/gi, ''); // standalone {click_id}
+  sanitized = sanitized.replace(/\{clickid\}/gi, ''); // {clickid}
+  sanitized = sanitized.replace(/\{aff_click_id\}/gi, ''); // {aff_click_id}
+  sanitized = sanitized.replace(/\{subid\}/gi, ''); // {subid}
+  sanitized = sanitized.replace(/\{sub_id\}/gi, ''); // {sub_id}
+  sanitized = sanitized.replace(/\{externalid\}/gi, ''); // {externalid}
+  sanitized = sanitized.replace(/\{tid\}/gi, ''); // {tid}
+  sanitized = sanitized.replace(/\{cid\}/gi, ''); // {cid}
+  
+  // Clean up resulting URL (fix double ? or &, trailing ? or &)
+  sanitized = sanitized.replace(/\?&/g, '?');
+  sanitized = sanitized.replace(/&&+/g, '&');
+  sanitized = sanitized.replace(/\?$/g, '');
+  sanitized = sanitized.replace(/&$/g, '');
+  
+  return sanitized;
+}
+
 // ============================================
 // HELPER: Resolve ID (UUID vs shortId)
 // Detects if the ID is a UUID (contains "-" or length > 10) or shortId (numeric)
@@ -1432,7 +1467,7 @@ export async function registerRoutes(
           const landingData = {
             geo: landing.geo,
             landingName: landing.landingName || null,
-            landingUrl: landing.landingUrl,
+            landingUrl: sanitizeLandingUrl(landing.landingUrl),
             partnerPayout: payout || "0", // Default to "0" if empty
             internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
@@ -1565,7 +1600,7 @@ export async function registerRoutes(
           const sanitizedLanding = {
             geo: landing.geo,
             landingName: landing.landingName || null,
-            landingUrl: landing.landingUrl,
+            landingUrl: sanitizeLandingUrl(landing.landingUrl),
             partnerPayout: payout || "0",
             internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
