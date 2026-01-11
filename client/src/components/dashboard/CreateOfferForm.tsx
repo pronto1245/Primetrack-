@@ -54,9 +54,10 @@ const APP_TYPE_COLORS: Record<string, string> = {
 
 function computeDisplayLandingUrl(baseUrl: string, param: string): string {
   if (!baseUrl) return "";
-  const placeholder = `{${param}}`;
-  const encodedPlaceholder = `%7B${param}%7D`;
-  if (baseUrl.includes(`${param}=${placeholder}`) || baseUrl.includes(`${param}=${encodedPlaceholder}`)) {
+  const placeholder = `{click_id}`;
+  const encodedPlaceholder = `%7Bclick_id%7D`;
+  if (baseUrl.includes(`${param}=${placeholder}`) || baseUrl.includes(`${param}=${encodedPlaceholder}`) ||
+      baseUrl.includes(`${param}={${param}}`) || baseUrl.includes(`${param}=%7B${param}%7D`)) {
     return baseUrl;
   }
   const sep = baseUrl.includes("?") ? "&" : "?";
@@ -66,6 +67,8 @@ function computeDisplayLandingUrl(baseUrl: string, param: string): string {
 function extractBaseLandingUrl(displayUrl: string, param: string): string {
   if (!displayUrl) return "";
   const patterns = [
+    new RegExp(`[?&]${param}=\\{click_id\\}`, 'g'),
+    new RegExp(`[?&]${param}=%7Bclick_id%7D`, 'gi'),
     new RegExp(`[?&]${param}=\\{${param}\\}`, 'g'),
     new RegExp(`[?&]${param}=%7B${param}%7D`, 'gi'),
   ];
