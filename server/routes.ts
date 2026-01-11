@@ -626,7 +626,17 @@ export async function registerRoutes(
   app.get("/api/public/news", async (req: Request, res: Response) => {
     try {
       const news = await storage.getLandingNews();
-      res.json(news);
+      const sanitizedNews = news.map(post => ({
+        id: post.id,
+        title: post.title,
+        category: post.category || 'Новость',
+        shortDescription: post.shortDescription || post.body?.substring(0, 150) || '',
+        body: post.body,
+        icon: post.icon,
+        createdAt: post.createdAt,
+        publishedAt: post.publishedAt,
+      }));
+      res.json(sanitizedNews);
     } catch (error) {
       console.error("Failed to get landing news:", error);
       res.json([]);
