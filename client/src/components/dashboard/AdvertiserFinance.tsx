@@ -15,8 +15,10 @@ import {
   Wallet, Plus, CreditCard, Bitcoin, Building2, ArrowRight, 
   Check, X, Clock, DollarSign, Users, Loader2, Trash2, Edit,
   Send, AlertCircle, CheckSquare, History, Key, Shield, Eye, EyeOff,
-  BookOpen, HelpCircle, TrendingUp, Download, Calendar, BarChart3
+  BookOpen, HelpCircle, TrendingUp, Download, Calendar, BarChart3,
+  ChevronDown, AlertTriangle
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
@@ -1225,10 +1227,63 @@ export function AdvertiserFinance() {
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Добавьте API ключи ваших биржевых аккаунтов для автоматических выплат.
-                Ключи хранятся в зашифрованном виде.
+                Ключи хранятся в зашифрованном виде (AES-256-GCM).
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Как получить API ключи?</span>
+                  <ChevronDown className="w-4 h-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3">
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
+                    <p className="font-medium text-foreground">Инструкция по созданию API ключей:</p>
+                    <div className="grid gap-2">
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-yellow-500 min-w-[80px]">Binance:</span>
+                        <span className="text-muted-foreground">Профиль → API Management → Create API</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-purple-500 min-w-[80px]">Bybit:</span>
+                        <span className="text-muted-foreground">Account → API → Create New Key</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-blue-500 min-w-[80px]">Kraken:</span>
+                        <span className="text-muted-foreground">Settings → API → Generate New Key</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-blue-400 min-w-[80px]">Coinbase:</span>
+                        <span className="text-muted-foreground">Settings → API → New API Key</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-cyan-500 min-w-[80px]">EXMO:</span>
+                        <span className="text-muted-foreground">Настройки → API → Создать ключ</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-teal-500 min-w-[80px]">MEXC:</span>
+                        <span className="text-muted-foreground">Профиль → API → Create API</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-medium text-slate-400 min-w-[80px]">OKX:</span>
+                        <span className="text-muted-foreground">Settings → API → Create V5 API Key (запомните passphrase!)</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                      <p className="text-orange-400 font-medium flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" />
+                        Важно при создании ключей:
+                      </p>
+                      <ul className="mt-2 space-y-1 text-muted-foreground list-disc list-inside">
+                        <li>Включите разрешение на <strong>Withdraw</strong> (вывод средств)</li>
+                        <li>Добавьте IP-адрес сервера в whitelist (рекомендуется)</li>
+                        <li>Для OKX обязательно сохраните <strong>passphrase</strong></li>
+                      </ul>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
               {[
                 { key: "binance", name: "Binance", color: "yellow", statusKey: "hasBinance" },
                 { key: "bybit", name: "Bybit", color: "purple", statusKey: "hasBybit" },
