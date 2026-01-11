@@ -113,8 +113,25 @@ export default function Home() {
     }
   ];
 
-  const displayNews = publicNews.length > 0 ? publicNews : fallbackNews;
-  const displayRoadmap = publicRoadmap.length > 0 ? publicRoadmap : fallbackRoadmap;
+  const normalizedNews = (publicNews || []).map((post: any) => ({
+    id: post.id || `news-${Math.random()}`,
+    title: post.title || 'Без заголовка',
+    category: post.category || 'Новость',
+    shortDescription: post.shortDescription || post.body?.substring(0, 150) || '',
+    body: post.body || '',
+    createdAt: post.createdAt || post.publishedAt || new Date().toISOString(),
+  }));
+  
+  const normalizedRoadmap = (publicRoadmap || []).map((item: any) => ({
+    id: item.id || `roadmap-${Math.random()}`,
+    title: item.title || 'Без заголовка',
+    description: item.description || '',
+    quarter: item.quarter || 'TBD',
+    status: item.status || 'planned',
+  }));
+
+  const displayNews = normalizedNews.length > 0 ? normalizedNews : fallbackNews;
+  const displayRoadmap = normalizedRoadmap.length > 0 ? normalizedRoadmap : fallbackRoadmap;
 
   const categoryIcons: Record<string, any> = {
     "Обновление": ShieldCheck,
