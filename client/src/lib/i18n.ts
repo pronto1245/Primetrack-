@@ -165,7 +165,8 @@ const resources = {
       },
       common: {
         retry: "Retry",
-        copied: "Copied!"
+        copied: "Copied!",
+        loading: "Loading..."
       },
       tracking: {
         generator: "Link Generator",
@@ -422,7 +423,8 @@ const resources = {
       },
       common: {
         retry: "Повторить",
-        copied: "Скопировано!"
+        copied: "Скопировано!",
+        loading: "Загрузка..."
       },
       tracking: {
         generator: "Генератор ссылок",
