@@ -52,22 +52,36 @@ const APP_TYPE_COLORS: Record<string, string> = {
   "Desktop": "bg-indigo-500",
 };
 
+// Известные имена параметров click_id от разных трекеров
+const KNOWN_CLICK_ID_PARAMS = [
+  "click_id", "clickid", "aff_click_id", "aff_clickid", "subid", "sub_id",
+  "externalid", "external_id", "tid", "transaction_id", "cid"
+];
+
 function stripAllClickIdPlaceholders(url: string): string {
   if (!url) return "";
   let result = url;
-  // Удаляем параметры со значением {click_id}
+  // Удаляем параметры со значением {click_id} (любой регистр)
   result = result.replace(/([?&])[^=&#]+=\{click_id\}(?=&|#|$)/gi, (match, prefix) => {
     return prefix === "?" ? "?" : "";
   });
   result = result.replace(/([?&])[^=&#]+=%7Bclick_id%7D(?=&|#|$)/gi, (match, prefix) => {
     return prefix === "?" ? "?" : "";
   });
-  // Удаляем параметры где значение = {имя_параметра} (напр. aff_click_id={aff_click_id})
-  result = result.replace(/([?&])([^=&#]+)=\{\2\}(?=&|#|$)/gi, (match, prefix) => {
-    return prefix === "?" ? "?" : "";
+  // Удаляем только известные click_id параметры где key={KEY}
+  result = result.replace(/([?&])([^=&#]+)=\{([^}]+)\}(?=&|#|$)/gi, (match, prefix, key, value) => {
+    const keyLower = key.toLowerCase();
+    if (KNOWN_CLICK_ID_PARAMS.includes(keyLower) && keyLower === value.toLowerCase()) {
+      return prefix === "?" ? "?" : "";
+    }
+    return match;
   });
-  result = result.replace(/([?&])([^=&#]+)=%7B\2%7D(?=&|#|$)/gi, (match, prefix) => {
-    return prefix === "?" ? "?" : "";
+  result = result.replace(/([?&])([^=&#]+)=%7B([^%]+)%7D(?=&|#|$)/gi, (match, prefix, key, value) => {
+    const keyLower = key.toLowerCase();
+    if (KNOWN_CLICK_ID_PARAMS.includes(keyLower) && keyLower === value.toLowerCase()) {
+      return prefix === "?" ? "?" : "";
+    }
+    return match;
   });
   // Нормализуем query string
   result = result.replace(/\?&/, "?").replace(/&&/g, "&").replace(/\?(?=#|$)/, "");
