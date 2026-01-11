@@ -45,22 +45,17 @@ export default {
       method: request.method,
       headers: headers,
       body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : null,
-      redirect: 'manual', // Не следуем редиректам автоматически
+      redirect: 'manual', // Обрабатываем редиректы вручную для корректной работы
     });
     
     try {
       const response = await fetch(newRequest);
       
-      // Для редиректов (302) от click handler - меняем Location header если нужно
-      if (response.status === 301 || response.status === 302 || response.status === 307 || response.status === 308) {
+      // Для редиректов (301, 302, 307, 308) используем Response.redirect для корректного TLS
+      if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get('Location');
         if (location) {
-          // Возвращаем редирект как есть - click handler уже формирует правильный URL
-          const newHeaders = new Headers(response.headers);
-          return new Response(null, {
-            status: response.status,
-            headers: newHeaders,
-          });
+          return Response.redirect(location, response.status);
         }
       }
       
