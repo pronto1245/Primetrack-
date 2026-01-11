@@ -15,7 +15,8 @@ import {
   Zap, Globe, Users, BarChart3, Lock, Clock, Webhook, 
   CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle,
   UserPlus, Settings, TrendingUp, Send, Star, Quote, Newspaper,
-  ChevronRight, Sparkles
+  ChevronRight, Sparkles, Map, Rocket, Code, Loader2,
+  CheckCircle2, Circle, Play
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,32 +54,76 @@ export default function Home() {
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const { toast } = useToast();
 
-  const newsItems = [
+  const { data: publicNews = [], isLoading: newsLoading } = useQuery<any[]>({
+    queryKey: ["/api/public/news"],
+  });
+
+  const { data: publicRoadmap = [], isLoading: roadmapLoading } = useQuery<any[]>({
+    queryKey: ["/api/public/roadmap"],
+  });
+
+  const fallbackNews = [
     {
-      date: "15 января 2026",
-      category: "Обновление",
+      id: "1",
       title: "Новая система антифрода 2.0",
-      desc: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
-      fullText: "Мы рады представить обновлённую систему антифрода версии 2.0! Теперь платформа использует алгоритмы машинного обучения для анализа паттернов трафика в реальном времени. Система способна выявлять: бот-трафик и автоматизированные клики, прокси и VPN соединения, подозрительные fingerprints устройств, аномальные паттерны поведения пользователей. По нашим данным, новая система снижает уровень фрода на 35% по сравнению с предыдущей версией.",
-      icon: ShieldCheck
+      category: "Обновление",
+      shortDescription: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
+      body: "Мы рады представить обновлённую систему антифрода версии 2.0! Теперь платформа использует алгоритмы машинного обучения для анализа паттернов трафика в реальном времени. Система способна выявлять: бот-трафик и автоматизированные клики, прокси и VPN соединения, подозрительные fingerprints устройств, аномальные паттерны поведения пользователей.",
+      createdAt: "2026-01-15T00:00:00Z"
     },
     {
-      date: "10 января 2026",
-      category: "Интеграция",
+      id: "2",
       title: "Интеграция с Binance Pay",
-      desc: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
-      fullText: "Мы интегрировали Binance Pay для быстрых и безкомиссионных выплат партнёрам! Теперь вы можете: отправлять выплаты в USDT, BTC, ETH и других криптовалютах, экономить на комиссиях за переводы, получать мгновенное подтверждение транзакций, настроить автоматические выплаты по расписанию. Binance Pay присоединяется к нашим интеграциям с Bybit, Kraken, Coinbase, EXMO, MEXC и OKX.",
-      icon: CreditCard
+      category: "Интеграция",
+      shortDescription: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
+      body: "Мы интегрировали Binance Pay для быстрых и безкомиссионных выплат партнёрам! Теперь вы можете: отправлять выплаты в USDT, BTC, ETH и других криптовалютах, экономить на комиссиях за переводы, получать мгновенное подтверждение транзакций.",
+      createdAt: "2026-01-10T00:00:00Z"
     },
     {
-      date: "5 января 2026",
-      category: "Фича",
+      id: "3",
       title: "Telegram бот для уведомлений",
-      desc: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
-      fullText: "Представляем нового Telegram бота для уведомлений! Подключите бота к своему аккаунту и получайте мгновенные уведомления о: новых лидах и продажах, запросах на выплату от партнёров, важных системных событиях, подозрительной активности. Настройте фильтры уведомлений под свои нужды — выбирайте какие события отслеживать, а какие игнорировать. Бот поддерживает как персональные, так и групповые чаты.",
-      icon: Bell
+      category: "Фича",
+      shortDescription: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
+      body: "Представляем нового Telegram бота для уведомлений! Подключите бота к своему аккаунту и получайте мгновенные уведомления о: новых лидах и продажах, запросах на выплату от партнёров, важных системных событиях.",
+      createdAt: "2026-01-05T00:00:00Z"
     }
   ];
+
+  const fallbackRoadmap = [
+    {
+      id: "1",
+      title: "Интеграция AI-антифрода",
+      description: "Машинное обучение для определения фродового трафика в реальном времени",
+      quarter: "Q1 2026",
+      status: "in_progress"
+    },
+    {
+      id: "2",
+      title: "Мобильное приложение",
+      description: "Нативные приложения для iOS и Android с push-уведомлениями",
+      quarter: "Q2 2026",
+      status: "planned"
+    },
+    {
+      id: "3",
+      title: "Расширенная аналитика",
+      description: "Дашборды с детальной статистикой и прогнозами на основе ML",
+      quarter: "Q3 2026",
+      status: "planned"
+    }
+  ];
+
+  const displayNews = publicNews.length > 0 ? publicNews : fallbackNews;
+  const displayRoadmap = publicRoadmap.length > 0 ? publicRoadmap : fallbackRoadmap;
+
+  const categoryIcons: Record<string, any> = {
+    "Обновление": ShieldCheck,
+    "Интеграция": CreditCard,
+    "Фича": Bell,
+    "Новость": Newspaper,
+  };
+
+  const getNewsIcon = (category: string) => categoryIcons[category] || Newspaper;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -1050,50 +1095,131 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Roadmap */}
+      <section className="py-24 border-t border-border bg-background">
+          <div className="container px-4 mx-auto">
+            <motion.div {...fadeInUp} className="text-center mb-16">
+              <Badge variant="secondary" className="mb-4">Развитие</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">План развития</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Следите за нашим прогрессом и узнавайте о новых функциях, которые мы разрабатываем
+              </p>
+            </motion.div>
+
+            <div className="max-w-4xl mx-auto">
+              {roadmapLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {displayRoadmap.map((item: any, i: number) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1, duration: 0.5 }}
+                    >
+                      <Card className="border-border hover:border-emerald-500/30 transition-colors">
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              item.status === 'completed' ? 'bg-green-500/20' :
+                              item.status === 'in_progress' ? 'bg-yellow-500/20' :
+                              'bg-muted'
+                            }`}>
+                              {item.status === 'completed' ? (
+                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                              ) : item.status === 'in_progress' ? (
+                                <Play className="w-5 h-5 text-yellow-500" />
+                              ) : (
+                                <Circle className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="font-bold text-lg">{item.title}</h3>
+                                <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                  {item.quarter}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  item.status === 'completed' ? 'bg-green-500/20 text-green-500' :
+                                  item.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-500' :
+                                  'bg-muted text-muted-foreground'
+                                }`}>
+                                  {item.status === 'completed' ? 'Завершено' :
+                                   item.status === 'in_progress' ? 'В работе' : 'Запланировано'}
+                                </span>
+                              </div>
+                              <p className="text-muted-foreground">{item.description}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
       {/* Blog/News */}
       <section className="py-24 border-t border-border bg-background">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Новости</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Последние обновления</h2>
-          </motion.div>
+          <div className="container px-4 mx-auto">
+            <motion.div {...fadeInUp} className="text-center mb-16">
+              <Badge variant="secondary" className="mb-4">Новости</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Последние обновления</h2>
+            </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {newsItems.map((post, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                <Card 
-                  className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer"
-                  onClick={() => setSelectedNews(post)}
-                  data-testid={`card-news-${i}`}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
-                        <post.icon className="w-5 h-5 text-emerald-500" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-emerald-500 font-mono">{post.category}</div>
-                        <div className="text-xs text-muted-foreground">{post.date}</div>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold mb-2 group-hover:text-emerald-400 transition-colors">{post.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{post.desc}</p>
-                    <div className="mt-4 flex items-center text-sm text-emerald-500 font-medium">
-                      Читать далее <ChevronRight className="w-4 h-4 ml-1" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {newsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-6">
+                {displayNews.map((post: any, i: number) => {
+                  const IconComponent = getNewsIcon(post.category);
+                  return (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1, duration: 0.5 }}
+                    >
+                      <Card 
+                        className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors group cursor-pointer"
+                        onClick={() => setSelectedNews(post)}
+                        data-testid={`card-news-${post.id}`}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
+                              <IconComponent className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <div>
+                              <div className="text-xs text-emerald-500 font-mono">{post.category || 'Новость'}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {post.createdAt ? new Date(post.createdAt).toLocaleDateString('ru-RU') : ''}
+                              </div>
+                            </div>
+                          </div>
+                          <h3 className="text-lg font-bold mb-2 group-hover:text-emerald-400 transition-colors">{post.title}</h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed">{post.shortDescription || post.body?.substring(0, 120) + '...'}</p>
+                          <div className="mt-4 flex items-center text-sm text-emerald-500 font-medium">
+                            Читать далее <ChevronRight className="w-4 h-4 ml-1" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* News Modal */}
       <Dialog open={!!selectedNews} onOpenChange={() => setSelectedNews(null)}>
@@ -1103,17 +1229,22 @@ export default function Home() {
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center">
-                    <selectedNews.icon className="w-5 h-5 text-emerald-500" />
+                    {(() => {
+                      const IconComponent = getNewsIcon(selectedNews.category);
+                      return <IconComponent className="w-5 h-5 text-emerald-500" />;
+                    })()}
                   </div>
                   <div>
-                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category}</div>
-                    <div className="text-xs text-muted-foreground">{selectedNews.date}</div>
+                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category || 'Новость'}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {selectedNews.createdAt ? new Date(selectedNews.createdAt).toLocaleDateString('ru-RU') : ''}
+                    </div>
                   </div>
                 </div>
                 <DialogTitle className="text-xl">{selectedNews.title}</DialogTitle>
               </DialogHeader>
               <div className="text-muted-foreground leading-relaxed mt-4">
-                {selectedNews.fullText}
+                {selectedNews.body}
               </div>
             </>
           )}
