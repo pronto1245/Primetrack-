@@ -38,7 +38,8 @@ import {
   type PublisherPostbackEndpoint, type InsertPublisherPostbackEndpoint, publisherPostbackEndpoints,
   type MigrationHistory, type InsertMigrationHistory, migrationHistory,
   type OfferLandingVariant, type InsertOfferLandingVariant, offerLandingVariants,
-  type ExchangeApiKey, type InsertExchangeApiKey, exchangeApiKeys
+  type ExchangeApiKey, type InsertExchangeApiKey, exchangeApiKeys,
+  type RoadmapItem, type InsertRoadmapItem, roadmapItems
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -4009,6 +4010,78 @@ export class DatabaseStorage implements IStorage {
       status[exchange] = keys.some(k => k.exchange === exchange && k.isActive);
     }
     return status;
+  }
+
+  // ============================================
+  // ROADMAP ITEMS
+  // ============================================
+  async getRoadmapItems(): Promise<RoadmapItem[]> {
+    return await db
+      .select()
+      .from(roadmapItems)
+      .orderBy(roadmapItems.quarter, roadmapItems.priority);
+  }
+
+  async getPublishedRoadmapItems(): Promise<RoadmapItem[]> {
+    return await db
+      .select()
+      .from(roadmapItems)
+      .where(eq(roadmapItems.isPublished, true))
+      .orderBy(roadmapItems.quarter, roadmapItems.priority);
+  }
+
+  async getRoadmapItem(id: string): Promise<RoadmapItem | undefined> {
+    const [item] = await db
+      .select()
+      .from(roadmapItems)
+      .where(eq(roadmapItems.id, id));
+    return item;
+  }
+
+  async createRoadmapItem(data: InsertRoadmapItem): Promise<RoadmapItem> {
+    const [item] = await db.insert(roadmapItems).values(data).returning();
+    return item;
+  }
+
+  async updateRoadmapItem(id: string, data: Partial<InsertRoadmapItem>): Promise<RoadmapItem | undefined> {
+    const [item] = await db
+      .update(roadmapItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(roadmapItems.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteRoadmapItem(id: string): Promise<void> {
+    await db.delete(roadmapItems).where(eq(roadmapItems.id, id));
+  }
+
+  // ============================================
+  // LANDING NEWS (public news for landing page)
+  // ============================================
+  async getLandingNews(): Promise<NewsPost[]> {
+    return await db
+      .select()
+      .from(newsPosts)
+      .where(and(
+        eq(newsPosts.showOnLanding, true),
+        eq(newsPosts.isPublished, true)
+      ))
+      .orderBy(desc(newsPosts.publishedAt))
+      .limit(6);
+  }
+
+  async updateNewsPostLandingSettings(id: string, data: {
+    showOnLanding?: boolean;
+    icon?: string | null;
+    shortDescription?: string | null;
+  }): Promise<NewsPost | undefined> {
+    const [post] = await db
+      .update(newsPosts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(newsPosts.id, id))
+      .returning();
+    return post;
   }
 }
 
