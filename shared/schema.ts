@@ -1210,6 +1210,11 @@ export const newsPosts = pgTable("news_posts", {
   isPinned: boolean("is_pinned").default(false),
   isPublished: boolean("is_published").default(true),
   
+  // Landing page display
+  showOnLanding: boolean("show_on_landing").default(false), // Показывать на публичном лендинге
+  icon: text("icon"), // Имя иконки lucide для лендинга
+  shortDescription: text("short_description"), // Краткое описание для карточки на лендинге
+  
   publishedAt: timestamp("published_at").defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -1905,3 +1910,27 @@ export const insertCryptoPayoutLogSchema = createInsertSchema(cryptoPayoutLogs).
 
 export type InsertCryptoPayoutLog = z.infer<typeof insertCryptoPayoutLogSchema>;
 export type CryptoPayoutLog = typeof cryptoPayoutLogs.$inferSelect;
+
+// ============================================
+// ROADMAP (Планы развития)
+// ============================================
+export const roadmapItems = pgTable("roadmap_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  quarter: text("quarter").notNull(), // Q1 2026, Q2 2026, etc.
+  status: text("status").notNull().default("planned"), // planned, in_progress, completed
+  priority: integer("priority").notNull().default(0), // Порядок сортировки
+  isPublished: boolean("is_published").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertRoadmapItemSchema = createInsertSchema(roadmapItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRoadmapItem = z.infer<typeof insertRoadmapItemSchema>;
+export type RoadmapItem = typeof roadmapItems.$inferSelect;
