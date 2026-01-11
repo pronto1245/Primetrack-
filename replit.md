@@ -130,21 +130,29 @@ Preferred communication style: Simple, everyday language (Russian).
 - [x] Клики, конверсии, транзакции
 - [x] Role-based access
 
-### ЧТО ЧАСТИЧНО РАБОТАЕТ / ТРЕБУЕТ ДОРАБОТКИ
-
-#### Крипто-выплаты (КРИТИЧНО)
-**Backend готов:**
+#### Крипто-выплаты (ГОТОВО)
 - [x] DB Schema: `exchangeApiKeys`, `cryptoPayoutQueue`, `cryptoPayoutLogs`
 - [x] CryptoPayoutOrchestrator с очередью и retry
-- [x] Binance adapter с HMAC-SHA256
-- [x] Bybit adapter
+- [x] Все 7 адаптеров готовы к production:
+  - Binance: HMAC-SHA256
+  - Bybit: HMAC-SHA256 с headers
+  - Kraken: HMAC-SHA512 с base64 secret, monotonic nonce
+  - Coinbase: Advanced Trade API v3, portfolio_uuid, base64 secret
+  - EXMO: HMAC-SHA512 с nonce
+  - MEXC: HMAC-SHA256 с recvWindow
+  - OKX: HMAC-SHA256 base64 + passphrase
 - [x] API routes: GET/POST/DELETE `/api/advertiser/crypto/keys`
+- [x] AES-256-GCM шифрование API ключей
+- [x] UI с инструкцией по получению ключей в AdvertiserFinance.tsx
 
-**ПРОБЛЕМА:** 
-- ⚠️ Storage layer несогласован с API routes (plaintext vs encrypted types mismatch)
-- ⚠️ Kraken, Coinbase, EXMO, MEXC, OKX - бросают "not yet implemented" 
+#### Cloudflare Worker Proxy (ГОТОВО)
+- [x] Worker код: `cloudflare/worker.js`
+- [x] Wrangler конфигурация: `cloudflare/wrangler.toml`
+- [x] Документация: `cloudflare/README.md`
+- [x] Конфигурируемый PLATFORM_DOMAIN через env
+- [x] X-CF-Worker-Auth для безопасной проверки forwarded headers
 
-**UI:** Уже есть в AdvertiserFinance.tsx
+### ЧТО ЧАСТИЧНО РАБОТАЕТ / ТРЕБУЕТ ДОРАБОТКИ
 
 #### Миграция данных
 - [x] Backend service для Scaleo, Affilka, Affise, Alanbase
@@ -154,16 +162,9 @@ Preferred communication style: Simple, everyday language (Russian).
 
 ### ЧТО НЕ СДЕЛАНО
 
-1. **Крипто-выплаты:**
-   - [ ] Исправить storage layer (encrypt internally)
-   - [ ] Адаптеры Kraken, Coinbase, EXMO, MEXC, OKX
-
-2. **Миграция:**
+1. **Миграция:**
    - [ ] Подключить UI к реальным API
    - [ ] Real-time polling статуса
-
-3. **Подписки/биллинг:**
-   - [ ] Stripe интеграция (схема есть, логика не полная)
 
 ### СТРУКТУРА ФАЙЛОВ
 
