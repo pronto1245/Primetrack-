@@ -681,21 +681,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                         value={landing.landingUrl}
                         onChange={e => updateLanding(index, "landingUrl", e.target.value)}
                       />
-                      {landing.landingUrl && (
-                        <div className="mt-1 p-2 bg-green-500/10 border border-green-500/20 rounded">
-                          <p className="text-[10px] text-green-400 font-mono">
-                            Итоговая ссылка редиректа: {(() => {
-                              try {
-                                const url = new URL(landing.landingUrl);
-                                url.searchParams.set(landing.clickIdParam || "click_id", "<uuid>");
-                                return url.toString();
-                              } catch {
-                                return landing.landingUrl + (landing.landingUrl.includes("?") ? "&" : "?") + (landing.clickIdParam || "click_id") + "=<uuid>";
-                              }
-                            })()}
-                          </p>
-                        </div>
-                      )}
                     </div>
 
                     <div className="space-y-1">
