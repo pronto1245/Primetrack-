@@ -64,35 +64,39 @@ function sanitizeNumericToString(value: any): string | null {
 
 // Sanitize landing URL - remove any {click_id} placeholders (including encoded/uppercase variants)
 // URLs should be stored clean, click_id is added dynamically by click-handler
+// IMPORTANT: Don't decode entire URL to preserve valid %20 and other encodings
+// ORDER MATTERS: Remove ENTIRE query params first, then standalone placeholders
 function sanitizeLandingUrl(url: string): string {
   if (!url) return url;
   let sanitized = url;
   
-  // Decode URL first to handle %7B and %7D
-  try {
-    sanitized = decodeURIComponent(sanitized);
-  } catch (e) {
-    // Invalid encoding, continue with original
-  }
+  // STEP 1: Remove ENTIRE query params with encoded placeholders FIRST
+  // Pattern: ?key=%7Bvalue%7D or &key=%7Bvalue%7D
+  // Key pattern includes: letters, digits, underscore, hyphen (e.g., sub1, s2s_click, aff-id)
+  sanitized = sanitized.replace(/[?&][a-zA-Z0-9_-]+=%7B[a-zA-Z0-9_-]+%7D/gi, '');
   
-  // Remove all click_id placeholder variants (case-insensitive)
-  // Matches: {click_id}, {CLICK_ID}, {aff_click_id}, {subid}, etc.
-  sanitized = sanitized.replace(/[?&]?[a-zA-Z_]+=%7B[a-zA-Z_]+%7D/gi, ''); // encoded param=value
-  sanitized = sanitized.replace(/[?&]?[a-zA-Z_]+=\{[a-zA-Z_]+\}/gi, ''); // param={value}
-  sanitized = sanitized.replace(/\{click_id\}/gi, ''); // standalone {click_id}
-  sanitized = sanitized.replace(/\{clickid\}/gi, ''); // {clickid}
-  sanitized = sanitized.replace(/\{aff_click_id\}/gi, ''); // {aff_click_id}
-  sanitized = sanitized.replace(/\{subid\}/gi, ''); // {subid}
-  sanitized = sanitized.replace(/\{sub_id\}/gi, ''); // {sub_id}
-  sanitized = sanitized.replace(/\{externalid\}/gi, ''); // {externalid}
-  sanitized = sanitized.replace(/\{tid\}/gi, ''); // {tid}
-  sanitized = sanitized.replace(/\{cid\}/gi, ''); // {cid}
+  // STEP 2: Remove ENTIRE query params with regular placeholders
+  // Pattern: ?key={value} or &key={value}
+  sanitized = sanitized.replace(/[?&][a-zA-Z0-9_-]+=\{[a-zA-Z0-9_-]+\}/gi, '');
   
-  // Clean up resulting URL (fix double ? or &, trailing ? or &)
-  sanitized = sanitized.replace(/\?&/g, '?');
+  // STEP 3: Remove standalone ENCODED placeholders (rare, but possible in path)
+  sanitized = sanitized.replace(/%7B[a-zA-Z0-9_-]+%7D/gi, '');
+  
+  // STEP 4: Remove standalone regular placeholders (in path or value)
+  sanitized = sanitized.replace(/\{[a-zA-Z0-9_-]+\}/gi, '');
+  
+  // STEP 5: Clean up resulting URL
+  // Fix double ampersands first
   sanitized = sanitized.replace(/&&+/g, '&');
-  sanitized = sanitized.replace(/\?$/g, '');
-  sanitized = sanitized.replace(/&$/g, '');
+  // Fix case where first param was removed: url&param -> url?param
+  // Match: no ? in URL but has &param - replace first & with ?
+  if (!sanitized.includes('?') && sanitized.includes('&')) {
+    sanitized = sanitized.replace('&', '?');
+  }
+  // Fix ?& -> ?
+  sanitized = sanitized.replace(/\?&/g, '?');
+  // Fix trailing ? or &
+  sanitized = sanitized.replace(/[?&]$/g, '');
   
   return sanitized;
 }

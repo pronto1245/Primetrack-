@@ -288,12 +288,13 @@ export class ClickHandler {
     let urlString = baseUrl;
     let clickIdReplaced = false;
     
-    // First, decode any encoded placeholders (%7B = {, %7D = })
-    // This handles %7Bclick_id%7D -> {click_id}
-    try {
-      urlString = decodeURIComponent(urlString);
-    } catch (e) {
-      // URL may have invalid encoding, continue with original
+    // Replace encoded placeholders ONLY (%7B = {, %7D = }) - don't decode entire URL
+    // This preserves valid %20 and other encodings while handling %7Bclick_id%7D
+    urlString = urlString.replace(/%7Bclick_id%7D/gi, clickId);
+    urlString = urlString.replace(/%7Bclickid%7D/gi, clickId);
+    if (/%7B(click_id|clickid)%7D/gi.test(baseUrl)) {
+      clickIdReplaced = true;
+      console.log(`[buildRedirectUrl] Replaced encoded %7Bclick_id%7D placeholder`);
     }
     
     // Replace standard {click_id} token (case-insensitive, handles {CLICK_ID}, {Click_Id}, etc.)
@@ -307,6 +308,14 @@ export class ClickHandler {
     // Escape special regex characters in parameter name
     if (clickIdParam !== "click_id") {
       const escapedParam = clickIdParam.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Check encoded version first
+      const encodedPlaceholder = `%7B${clickIdParam}%7D`;
+      if (urlString.toLowerCase().includes(encodedPlaceholder.toLowerCase())) {
+        urlString = urlString.replace(new RegExp(`%7B${escapedParam}%7D`, "gi"), clickId);
+        clickIdReplaced = true;
+        console.log(`[buildRedirectUrl] Replaced encoded %7B${clickIdParam}%7D placeholder`);
+      }
+      // Check regular version
       const customParamRegex = new RegExp(`\\{${escapedParam}\\}`, "gi");
       if (customParamRegex.test(urlString)) {
         urlString = urlString.replace(new RegExp(`\\{${escapedParam}\\}`, "gi"), clickId);
