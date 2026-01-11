@@ -1400,8 +1400,20 @@ export async function registerRoutes(
   app.get("/api/offers", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
-      if (!advertiserId) {
+      if (!advertiserId && req.session.role !== "admin") {
         return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      // Admin без advertiserId получает все офферы через отдельный endpoint /api/admin/offers
+      // Здесь для совместимости возвращаем пустой массив
+      if (!advertiserId) {
+        const allOffers = await storage.getOffers();
+        const offersWithLandings = await Promise.all(
+          allOffers.map(async (offer) => {
+            const landings = await storage.getOfferLandings(offer.id);
+            return { ...offer, landings };
+          })
+        );
+        return res.json(offersWithLandings);
       }
       const offers = await storage.getOffersByAdvertiser(advertiserId);
       const offersWithLandings = await Promise.all(
@@ -1420,8 +1432,12 @@ export async function registerRoutes(
   app.get("/api/offers/stats", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
-      if (!advertiserId) {
+      if (!advertiserId && req.session.role !== "admin") {
         return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      // Для admin без advertiserId возвращаем пустой объект статистики
+      if (!advertiserId) {
+        return res.json({});
       }
       const stats = await storage.getOfferPerformanceByAdvertiser(advertiserId);
       res.json(stats);
