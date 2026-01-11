@@ -611,6 +611,28 @@ export async function registerRoutes(
     }
   });
 
+  // Public roadmap (for landing page)
+  app.get("/api/public/roadmap", async (req: Request, res: Response) => {
+    try {
+      const items = await storage.getPublishedRoadmapItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Failed to get roadmap:", error);
+      res.json([]);
+    }
+  });
+
+  // Public news (for landing page)
+  app.get("/api/public/news", async (req: Request, res: Response) => {
+    try {
+      const news = await storage.getLandingNews();
+      res.json(news);
+    } catch (error) {
+      console.error("Failed to get landing news:", error);
+      res.json([]);
+    }
+  });
+
   app.get("/api/auth/me", async (req: Request, res: Response) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -7384,6 +7406,122 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to activate domain:", error);
       res.status(500).json({ message: "Failed to activate domain" });
+    }
+  });
+
+  // ============================================
+  // ROADMAP MANAGEMENT (Admin)
+  // ============================================
+  
+  // Get all roadmap items (admin)
+  app.get("/api/admin/roadmap", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const items = await storage.getRoadmapItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Failed to get roadmap items:", error);
+      res.status(500).json({ message: "Ошибка загрузки плана развития" });
+    }
+  });
+
+  // Create roadmap item
+  app.post("/api/admin/roadmap", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { title, description, quarter, status, priority, isPublished } = req.body;
+      
+      if (!title || !description || !quarter) {
+        return res.status(400).json({ message: "Заполните название, описание и квартал" });
+      }
+      
+      const item = await storage.createRoadmapItem({
+        title,
+        description,
+        quarter,
+        status: status || "planned",
+        priority: priority || 0,
+        isPublished: isPublished || false,
+      });
+      
+      res.json(item);
+    } catch (error) {
+      console.error("Failed to create roadmap item:", error);
+      res.status(500).json({ message: "Ошибка создания записи" });
+    }
+  });
+
+  // Update roadmap item
+  app.put("/api/admin/roadmap/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { title, description, quarter, status, priority, isPublished } = req.body;
+      
+      const item = await storage.updateRoadmapItem(id, {
+        title,
+        description,
+        quarter,
+        status,
+        priority,
+        isPublished,
+      });
+      
+      if (!item) {
+        return res.status(404).json({ message: "Запись не найдена" });
+      }
+      
+      res.json(item);
+    } catch (error) {
+      console.error("Failed to update roadmap item:", error);
+      res.status(500).json({ message: "Ошибка обновления записи" });
+    }
+  });
+
+  // Delete roadmap item
+  app.delete("/api/admin/roadmap/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteRoadmapItem(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete roadmap item:", error);
+      res.status(500).json({ message: "Ошибка удаления записи" });
+    }
+  });
+
+  // ============================================
+  // NEWS MANAGEMENT (Admin) - Landing page settings
+  // ============================================
+  
+  // Get all news posts (admin)
+  app.get("/api/admin/news", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const posts = await storage.getNewsPosts();
+      res.json(posts);
+    } catch (error) {
+      console.error("Failed to get news posts:", error);
+      res.status(500).json({ message: "Ошибка загрузки новостей" });
+    }
+  });
+
+  // Update news landing settings
+  app.patch("/api/admin/news/:id/landing", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { showOnLanding, icon, shortDescription } = req.body;
+      
+      const post = await storage.updateNewsPostLandingSettings(id, {
+        showOnLanding,
+        icon,
+        shortDescription,
+      });
+      
+      if (!post) {
+        return res.status(404).json({ message: "Новость не найдена" });
+      }
+      
+      res.json(post);
+    } catch (error) {
+      console.error("Failed to update news landing settings:", error);
+      res.status(500).json({ message: "Ошибка обновления настроек" });
     }
   });
 
