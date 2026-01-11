@@ -724,7 +724,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] text-muted-foreground w-16 shrink-0">Sale/FTD:</span>
                             <code className="flex-1 text-[11px] bg-background p-1.5 rounded border border-border font-mono text-foreground truncate">
-                              {`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=sale`}
+                              {`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=sale&payout={payout}`}
                             </code>
                             <Button
                               type="button"
@@ -733,7 +733,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                               className="h-6 w-6 p-0"
                               data-testid={`button-copy-postback-sale-${index}`}
                               onClick={() => {
-                                navigator.clipboard.writeText(`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=sale`);
+                                navigator.clipboard.writeText(`${window.location.origin}/api/postback?click_id={${landing.clickIdParam || "click_id"}}&status=sale&payout={payout}`);
                               }}
                             >
                               <Copy className="w-3 h-3" />
