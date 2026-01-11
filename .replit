@@ -49,6 +49,7 @@ APP_DOMAIN = "https://primetrack.pro"
 
 [userenv.shared]
 PLATFORM_DOMAIN = "primetrack.pro"
+CLOUDFLARE_WORKER_SECRET = "REPLACE_WITH_YOUR_SECRET"
 
 [userenv.development]
 APP_DOMAIN = "https://primetrack.pro"

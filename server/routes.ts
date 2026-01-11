@@ -356,14 +356,21 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // Load Worker secret for X-Forwarded-Host validation
-  try {
-    const platformSettings = await storage.getPlatformSettings();
-    if (platformSettings?.cloudflareWorkerSecret) {
-      setWorkerSecret(platformSettings.cloudflareWorkerSecret);
-      console.log("[WorkerAuth] Worker secret loaded for X-Forwarded-Host validation");
+  // Priority: env variable > platform_settings
+  const envWorkerSecret = process.env.CLOUDFLARE_WORKER_SECRET;
+  if (envWorkerSecret) {
+    setWorkerSecret(envWorkerSecret);
+    console.log("[WorkerAuth] Worker secret loaded from environment variable");
+  } else {
+    try {
+      const platformSettings = await storage.getPlatformSettings();
+      if (platformSettings?.cloudflareWorkerSecret) {
+        setWorkerSecret(platformSettings.cloudflareWorkerSecret);
+        console.log("[WorkerAuth] Worker secret loaded from platform_settings");
+      }
+    } catch (error) {
+      console.log("[WorkerAuth] No worker secret configured");
     }
-  } catch (error) {
-    console.log("[WorkerAuth] No worker secret configured");
   }
 
   // Custom domain resolution middleware - must be before auth
