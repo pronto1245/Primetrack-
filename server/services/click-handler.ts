@@ -285,14 +285,21 @@ export class ClickHandler {
   
   private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams, clickIdParam: string = "click_id"): string {
     let urlString = baseUrl;
+    let clickIdReplaced = false;
     
     // Replace standard {click_id} token
-    urlString = urlString.replace(/\{click_id\}/gi, clickId);
+    if (/\{click_id\}/gi.test(urlString)) {
+      urlString = urlString.replace(/\{click_id\}/gi, clickId);
+      clickIdReplaced = true;
+    }
     
     // Replace custom click_id parameter token (e.g., {aff_click_id}, {subid}, {s2sclick_id})
     if (clickIdParam !== "click_id") {
       const customParamRegex = new RegExp(`\\{${clickIdParam}\\}`, "gi");
-      urlString = urlString.replace(customParamRegex, clickId);
+      if (customParamRegex.test(urlString)) {
+        urlString = urlString.replace(new RegExp(`\\{${clickIdParam}\\}`, "gi"), clickId);
+        clickIdReplaced = true;
+      }
     }
     
     urlString = urlString.replace(/\{sub1\}/gi, params.sub1 || "");
@@ -306,10 +313,17 @@ export class ClickHandler {
     urlString = urlString.replace(/\{sub9\}/gi, params.sub9 || "");
     urlString = urlString.replace(/\{sub10\}/gi, params.sub10 || "");
     
-    const url = new URL(urlString);
+    // Handle URL with fragment - insert params before #
+    const hashIndex = urlString.indexOf("#");
+    const fragment = hashIndex !== -1 ? urlString.substring(hashIndex) : "";
+    const urlWithoutFragment = hashIndex !== -1 ? urlString.substring(0, hashIndex) : urlString;
     
-    // Always set the click_id parameter with the configured name (overwrite if exists with placeholder)
-    url.searchParams.set(clickIdParam, clickId);
+    const url = new URL(urlWithoutFragment);
+    
+    // Only add click_id parameter if it wasn't already replaced from placeholder
+    if (!clickIdReplaced) {
+      url.searchParams.set(clickIdParam, clickId);
+    }
     if (params.sub1 && !url.searchParams.has("sub1")) {
       url.searchParams.set("sub1", params.sub1);
     }
@@ -341,7 +355,7 @@ export class ClickHandler {
       url.searchParams.set("sub10", params.sub10);
     }
     
-    return url.toString();
+    return url.toString() + fragment;
   }
   
   private performBasicFraudCheck(ip?: string, userAgent?: string): {
