@@ -52,42 +52,43 @@ const APP_TYPE_COLORS: Record<string, string> = {
   "Desktop": "bg-indigo-500",
 };
 
-function computeDisplayLandingUrl(baseUrl: string, param: string): string {
-  if (!baseUrl) return "";
-  const placeholder = `{click_id}`;
-  const encodedPlaceholder = `%7Bclick_id%7D`;
-  if (baseUrl.includes(`${param}=${placeholder}`) || baseUrl.includes(`${param}=${encodedPlaceholder}`) ||
-      baseUrl.includes(`${param}={${param}}`) || baseUrl.includes(`${param}=%7B${param}%7D`)) {
-    return baseUrl;
-  }
-  const sep = baseUrl.includes("?") ? "&" : "?";
-  return `${baseUrl}${sep}${param}=${placeholder}`;
-}
+const KNOWN_CLICK_ID_PARAMS = ["click_id", "aff_click_id", "subid", "clickid", "cid", "s2sclick_id", "sub_id", "externalid", "external_id"];
 
-function extractBaseLandingUrl(displayUrl: string, param: string): string {
-  if (!displayUrl) return "";
-  const patterns = [
-    new RegExp(`[?&]${param}=\\{click_id\\}`, 'g'),
-    new RegExp(`[?&]${param}=%7Bclick_id%7D`, 'gi'),
-    new RegExp(`[?&]${param}=\\{${param}\\}`, 'g'),
-    new RegExp(`[?&]${param}=%7B${param}%7D`, 'gi'),
-  ];
-  let result = displayUrl;
-  for (const pattern of patterns) {
-    result = result.replace(pattern, "");
+function stripAllClickIdPlaceholders(url: string): string {
+  if (!url) return "";
+  let result = url;
+  for (const p of KNOWN_CLICK_ID_PARAMS) {
+    const patterns = [
+      new RegExp(`[?&]${p}=\\{click_id\\}`, 'gi'),
+      new RegExp(`[?&]${p}=%7Bclick_id%7D`, 'gi'),
+      new RegExp(`[?&]${p}=\\{${p}\\}`, 'gi'),
+      new RegExp(`[?&]${p}=%7B${p}%7D`, 'gi'),
+    ];
+    for (const pattern of patterns) {
+      result = result.replace(pattern, "");
+    }
   }
-  // Исправляем случаи: ?& -> ?, && -> &, висящие ? или & в конце
   result = result.replace(/\?&/, "?").replace(/&&/g, "&").replace(/[?&]$/, "");
-  // Если осталось &param=value в начале query string, заменяем первый & на ?
   const qIndex = result.indexOf("?");
   if (qIndex === -1) {
-    // Если ? был удалён, но остался &, заменяем первый & на ?
     const ampIndex = result.indexOf("&");
     if (ampIndex !== -1) {
       result = result.substring(0, ampIndex) + "?" + result.substring(ampIndex + 1);
     }
   }
   return result;
+}
+
+function computeDisplayLandingUrl(baseUrl: string, param: string): string {
+  if (!baseUrl) return "";
+  const cleanUrl = stripAllClickIdPlaceholders(baseUrl);
+  if (!cleanUrl) return "";
+  const sep = cleanUrl.includes("?") ? "&" : "?";
+  return `${cleanUrl}${sep}${param}={click_id}`;
+}
+
+function extractBaseLandingUrl(displayUrl: string, param: string): string {
+  return stripAllClickIdPlaceholders(displayUrl);
 }
 
 interface Landing {
