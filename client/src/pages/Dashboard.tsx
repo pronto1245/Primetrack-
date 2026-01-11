@@ -414,7 +414,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
         <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
       </div>
 
-      <nav className="p-2 space-y-1">
+      <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
         {currentMenu.map((item, i) => {
           const isNewsItem = item.path.includes('/news');
           return (
@@ -433,9 +433,9 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
         })}
       </nav>
 
-      {/* Advertiser Card for Publisher - right after menu */}
+      {/* Advertiser Card for Publisher */}
       {role === "publisher" && selectedAdvertiser && (
-        <div className="p-3">
+        <div className="p-3 mb-36">
           <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-lg p-3 border border-border" data-testid="advertiser-card">
             <div className="flex items-center gap-3 mb-3">
               {selectedAdvertiser.logoUrl ? (
@@ -491,9 +491,6 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
       {role === "advertiser" && (
         <ManagerCard />
       )}
-
-      {/* Spacer to push footer to bottom */}
-      <div className="flex-1" />
 
       {/* Feature Suggestion Button */}
       {(role === "advertiser" || role === "publisher") && (
