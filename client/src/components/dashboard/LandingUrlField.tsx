@@ -7,9 +7,9 @@ interface LandingUrlFieldProps {
   testId?: string;
 }
 
-export function LandingUrlField({ value, clickIdParam, onChange, testId }: LandingUrlFieldProps) {
+export function LandingUrlField({ value = "", clickIdParam = "click_id", onChange, testId }: LandingUrlFieldProps) {
   const param = clickIdParam || "click_id";
-  const separator = value.includes("?") ? "&" : "?";
+  const separator = (value || "").includes("?") ? "&" : "?";
   const suffix = value ? `${separator}${param}=<uuid>` : "";
   
   return (
@@ -19,7 +19,7 @@ export function LandingUrlField({ value, clickIdParam, onChange, testId }: Landi
         type="text"
         className="bg-card border-border text-foreground font-mono h-8 text-sm pr-40"
         placeholder="https://landing.com/click?o=123"
-        value={value}
+        value={value || ""}
         onChange={e => onChange(e.target.value)}
       />
       {value && (
