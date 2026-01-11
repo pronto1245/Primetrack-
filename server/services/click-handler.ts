@@ -284,6 +284,7 @@ export class ClickHandler {
   }
   
   private buildRedirectUrl(baseUrl: string, clickId: string, params: ClickParams, clickIdParam: string = "click_id"): string {
+    console.log(`[buildRedirectUrl] INPUT: baseUrl=${baseUrl}, clickId=${clickId}, clickIdParam=${clickIdParam}`);
     let urlString = baseUrl;
     let clickIdReplaced = false;
     
@@ -291,6 +292,7 @@ export class ClickHandler {
     if (/\{click_id\}/gi.test(urlString)) {
       urlString = urlString.replace(/\{click_id\}/gi, clickId);
       clickIdReplaced = true;
+      console.log(`[buildRedirectUrl] Replaced {click_id} placeholder`);
     }
     
     // Replace custom click_id parameter token (e.g., {aff_click_id}, {subid}, {s2sclick_id})
@@ -355,7 +357,9 @@ export class ClickHandler {
       url.searchParams.set("sub10", params.sub10);
     }
     
-    return url.toString() + fragment;
+    const finalUrl = url.toString() + fragment;
+    console.log(`[buildRedirectUrl] OUTPUT: ${finalUrl}, clickIdReplaced=${clickIdReplaced}`);
+    return finalUrl;
   }
   
   private performBasicFraudCheck(ip?: string, userAgent?: string): {
