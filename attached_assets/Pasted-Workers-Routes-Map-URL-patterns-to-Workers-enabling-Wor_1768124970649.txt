@@ -1,0 +1,112 @@
+Workers Routes
+Map URL patterns to Workers, enabling Workers to be executed based on the route of an incoming request.
+
+
+HTTP Routes
+Modify a site’s HTTP requests and responses, make parallel requests, or generate responses from the edge. Invoke your Workers over HTTP by routing requests triggered on URL patterns. Uses FetchEvent.
+Using routes
+
+The Worker fprimetrack-proxy was assigned to the route primetrack.pro/*.
+Search Routes
+Worker
+Show all
+Route	Worker	
+primetrack.pro/*
+
+fprimetrack-proxy	Edit
+www.primetrack.pro/*
+
+fprimetrack-proxy	Edit
+
+
+1 to 2 of 2 routes
+
+Workers KV
+Store application data in the Cloudflare network and access your key-value pairs from Workers. You can read and write key-value pairs in your namespaces via the API and bind them as resources inside Workers. See documentation
+
+Traffic sequence
+The simplified journey of a request as it proxies through your Cloudflare configuration
+Simulate a request with Trace
+HTTP Request
+DDoS protection
+
+Prevent distributed denial-of-service (DDoS)
+
+URL Normalization
+
+Make incoming request URLs consistent
+
+Redirect Rules
+
+Redirect visitors to another page
+
+URL Rewrites
+
+Rewrite the URL path and query string
+
+Page Rules
+
+Apply legacy rules to your traffic
+
+Configuration Rules
+
+Control Cloudflare features granularly
+
+Origin Rules
+
+Change the destination origin server
+
+IP Access Rules
+
+Allow or block by IP, country, or ASN
+
+Web Application Firewall
+
+Mitigate attack traffic.
+
+Bots
+
+Mitigate bot traffic
+
+Rate Limiting
+
+Define rate limits for requests
+
+Bulk Redirects
+
+Define a large number of URL redirects at the account level.
+
+Modify Request Header
+
+Transform HTTP headers
+
+Cache Rules
+
+Customize cache settings
+
+Cloud Connector
+
+Route traffic to public clouds
+
+Workers
+
+Build full-stack applications
+
+Modify Response Header
+
+Transform HTTP response headers
+
+Compression Rules
+
+Compress responses
+
+End user
+
+Support
+System status
+Careers
+Terms of Use
+Report Security Issues
+Privacy Policy
+A blue and white pill with a checkmark and an x, representing privacy choicesCookie Preferences
+© 2026 Cloudflare, Inc.
