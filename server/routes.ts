@@ -225,8 +225,9 @@ async function setupAuth(app: Express) {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: isProduction,
-        sameSite: "lax",
+        sameSite: isProduction ? "none" as const : "lax" as const,
         path: "/",
+        domain: process.env.SESSION_COOKIE_DOMAIN || undefined,
       },
     })
   );
@@ -5997,7 +5998,7 @@ export async function registerRoutes(
       // Check email uniqueness only if actually changing
       const normalizedNewEmail = email?.trim().toLowerCase();
       const normalizedCurrentEmail = currentUser.email?.trim().toLowerCase();
-      if (normalizedNewEmail && normalizedNewEmail !== normalizedCurrentEmail) {
+      if (normalizedNewEmail && normalizedNewEmail !== normalizedCurrentEmail && email) {
         const existingUser = await storage.getUserByEmail(email);
         if (existingUser && existingUser.id !== userId) {
           return res.status(400).json({ message: "Email already in use" });
