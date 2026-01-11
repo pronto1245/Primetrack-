@@ -5483,16 +5483,27 @@ export async function registerRoutes(
     }
   });
 
-  // Delete exchange API key by ID
-  app.delete("/api/advertiser/crypto/keys/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+  // Delete exchange API key by ID or exchange name
+  app.delete("/api/advertiser/crypto/keys/:idOrExchange", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       if (!effectiveAdvertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const { id } = req.params;
+      const { idOrExchange } = req.params;
 
-      const key = await storage.getExchangeApiKey(id);
+      // Check if it's a UUID (id) or exchange name
+      const validExchanges = ["binance", "bybit", "kraken", "coinbase", "exmo", "mexc", "okx"];
+      let key;
+      
+      if (validExchanges.includes(idOrExchange.toLowerCase())) {
+        // Find by exchange name
+        key = await storage.getExchangeApiKeyByExchange(effectiveAdvertiserId, idOrExchange.toLowerCase());
+      } else {
+        // Find by ID
+        key = await storage.getExchangeApiKey(idOrExchange);
+      }
+
       if (!key) {
         return res.status(404).json({ message: "API key not found" });
       }
@@ -5500,7 +5511,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
 
-      await storage.deleteExchangeApiKey(id);
+      await storage.deleteExchangeApiKey(key.id);
       const status = await storage.getExchangeApiKeysStatus(effectiveAdvertiserId);
       
       res.json({ 
