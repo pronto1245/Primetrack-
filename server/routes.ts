@@ -1436,6 +1436,7 @@ export async function registerRoutes(
             partnerPayout: payout || "0", // Default to "0" if empty
             internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
+            clickIdParam: landing.clickIdParam || "click_id",
             offerId: offer.id,
           };
           const createdLanding = await storage.createOfferLanding(landingData);
@@ -1568,6 +1569,7 @@ export async function registerRoutes(
             partnerPayout: payout || "0",
             internalCost: sanitizeNumericToString(landing.internalCost),
             currency: landing.currency || "USD",
+            clickIdParam: landing.clickIdParam || "click_id",
           };
           
           if (landing.id && existingLandingIds.has(landing.id)) {
