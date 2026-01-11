@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 
 interface LandingUrlFieldProps {
   value: string;
@@ -8,45 +8,25 @@ interface LandingUrlFieldProps {
 }
 
 export function LandingUrlField({ value, clickIdParam, onChange, testId }: LandingUrlFieldProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [inputWidth, setInputWidth] = useState(0);
-  
   const param = clickIdParam || "click_id";
   const separator = value.includes("?") ? "&" : "?";
   const suffix = value ? `${separator}${param}=<uuid>` : "";
   
-  useEffect(() => {
-    if (inputRef.current) {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        const style = window.getComputedStyle(inputRef.current);
-        ctx.font = style.font;
-        const textWidth = ctx.measureText(value).width;
-        setInputWidth(textWidth + 8);
-      }
-    }
-  }, [value]);
-
   return (
     <div className="relative w-full">
-      <div className="flex items-center bg-card border border-border rounded-md h-8 overflow-hidden">
-        <input
-          ref={inputRef}
-          data-testid={testId}
-          type="text"
-          className="bg-transparent text-foreground font-mono text-sm h-full px-2 outline-none flex-shrink-0"
-          style={{ width: Math.max(inputWidth, 200) }}
-          placeholder="https://landing.com/click?o=123"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-        />
-        {value && (
-          <span className="text-green-400 font-mono text-sm whitespace-nowrap pr-2">
-            {suffix}
-          </span>
-        )}
-      </div>
+      <Input
+        data-testid={testId}
+        type="text"
+        className="bg-card border-border text-foreground font-mono h-8 text-sm pr-40"
+        placeholder="https://landing.com/click?o=123"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      />
+      {value && (
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-green-400 font-mono text-xs whitespace-nowrap pointer-events-none bg-card pl-1">
+          {suffix}
+        </span>
+      )}
     </div>
   );
 }
