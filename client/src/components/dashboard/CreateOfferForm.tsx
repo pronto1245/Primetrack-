@@ -732,7 +732,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                         onChange={e => updateLanding(index, "clickIdParam", e.target.value)}
                       />
                       <p className="text-[10px] text-muted-foreground">
-                        Укажите параметр click_id который принимает рекламодатель. По умолчанию: click_id
+                        Укажите параметр click_id который принимает рекламодатель. По умолчанию у нас стоит: click_id
                       </p>
                     </div>
 
