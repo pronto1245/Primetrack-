@@ -6093,7 +6093,7 @@ export async function registerRoutes(
       const resend = new Resend(process.env.RESEND_API_KEY);
       
       await resend.emails.send({
-        from: "PrimeTrack <onboarding@resend.dev>",
+        from: "PrimeTrack <noreply@primetrack.pro>",
         to: "support@primetrack.pro",
         subject: `[Feature Request] ${safeTitle}`,
         html: `
