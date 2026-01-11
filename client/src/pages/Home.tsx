@@ -976,35 +976,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Honest Clarification */}
-      <section className="py-16 border-t border-border bg-muted/30">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto text-center">
-            <div className="text-muted-foreground leading-relaxed space-y-4">
-              <p>
-                Если вам нужен корпоративный комбайн с отчётами для менеджеров, сложной иерархией пользователей и десятками дополнительных модулей — Scaleo и Affise будут хорошим выбором.
-              </p>
-              <p>
-                Если вам нужен трекер для практического залива, где важно быстро запуститься и контролировать результат — {platformName} подойдёт лучше.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Summary Quote */}
-      <section className="py-16 border-t border-border bg-background">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto text-center">
-            <blockquote className="text-xl md:text-2xl font-medium text-foreground leading-relaxed">
-              {platformName} — это инструмент для тех, кто льёт трафик и считает результат,
-              <br className="hidden md:block" />
-              <span className="text-muted-foreground"> а не для тех, кто согласует и оформляет отчёты.</span>
-            </blockquote>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Contact Form */}
       <section id="contact" className="py-24 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto max-w-4xl">
@@ -1087,11 +1058,11 @@ export default function Home() {
               <Badge variant="secondary" className="mb-4">О нас</Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{platformName}</h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Независимый трекер, сделанный командой разработчиков и арбитражников. 
-                Мы используем его в реальных кампаниях с push и гемблой.
+                Трекер для арбитражников от арбитражников. Сами льём push и гемблу — знаем что нужно на практике. 
+                Никаких лишних модулей и корпоративной мишуры. Запустился, настроил постбеки, работаешь.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Проект развивается, функционал обновляется регулярно. Поддержка отвечает по делу, без саппорт-ботов.
+                Регулярно обновляем, поддержка живая — отвечаем по делу, не боты.
               </p>
               <div className="flex justify-center gap-6 mt-8">
                 {supportEmail && (
