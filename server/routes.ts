@@ -1403,10 +1403,9 @@ export async function registerRoutes(
       if (!advertiserId && req.session.role !== "admin") {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      // Admin без advertiserId получает все офферы через отдельный endpoint /api/admin/offers
-      // Здесь для совместимости возвращаем пустой массив
+      // Admin без advertiserId получает все активные офферы
       if (!advertiserId) {
-        const allOffers = await storage.getOffers();
+        const allOffers = await storage.getActiveOffers();
         const offersWithLandings = await Promise.all(
           allOffers.map(async (offer) => {
             const landings = await storage.getOfferLandings(offer.id);
@@ -1435,9 +1434,9 @@ export async function registerRoutes(
       if (!advertiserId && req.session.role !== "admin") {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      // Для admin без advertiserId возвращаем пустой объект статистики
+      // Для admin без advertiserId возвращаем пустой массив статистики
       if (!advertiserId) {
-        return res.json({});
+        return res.json([]);
       }
       const stats = await storage.getOfferPerformanceByAdvertiser(advertiserId);
       res.json(stats);
