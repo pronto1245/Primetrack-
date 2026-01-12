@@ -40,7 +40,7 @@ interface SplitTest {
 interface OfferWithLandings {
   id: string;
   name: string;
-  landings: { id: string; name: string | null; geo: string }[];
+  landings: { id: string; landingName: string | null; geo: string }[];
 }
 
 interface ItemFormData {
@@ -48,6 +48,15 @@ interface ItemFormData {
   landingId: string | null;
   weight: number;
 }
+
+const getFlagEmoji = (countryCode: string): string => {
+  if (!countryCode || countryCode.length !== 2) return '';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
 
 export function PublisherSplitTests({ role }: { role: string }) {
   const { t } = useTranslation();
@@ -324,10 +333,9 @@ export function PublisherSplitTests({ role }: { role: string }) {
                         <span className="font-medium">{item.weight}%</span>
                         <span className="text-muted-foreground">→</span>
                         <span>{item.offerName}</span>
-                        {(item.landingName || item.landingGeo) && (
-                          <span className="text-muted-foreground">
-                            ({item.landingName ? `${item.landingName} - ${item.landingGeo || ''}` : item.landingGeo})
-                          </span>
+                        {item.landingGeo && <span className="ml-1">{getFlagEmoji(item.landingGeo)}</span>}
+                        {item.landingName && (
+                          <span className="text-muted-foreground ml-2">→ {item.landingName}</span>
                         )}
                       </div>
                     ))}
@@ -450,7 +458,7 @@ export function PublisherSplitTests({ role }: { role: string }) {
                             ?.find(o => o.id === item.offerId)
                             ?.landings?.map((landing) => (
                               <SelectItem key={landing.id} value={landing.id}>
-                                {landing.name ? `${landing.name} (${landing.geo})` : landing.geo}
+                                {landing.landingName || `Лендинг ${landing.geo}`}
                               </SelectItem>
                             ))}
                         </SelectContent>

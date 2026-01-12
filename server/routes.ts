@@ -2035,13 +2035,12 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Selected offer not found or inactive" });
       }
 
-      // Determine landing ID - use item's landingId or default landing
+      // Determine landing ID - use item's landingId or first available landing
       let landingId = selectedItem.landingId;
       if (!landingId) {
         const landings = await storage.getOfferLandings(offer.id);
-        const activeLanding = landings.find(l => l.isActive);
-        if (activeLanding) {
-          landingId = activeLanding.id;
+        if (landings.length > 0) {
+          landingId = landings[0].id;
         }
       }
 
@@ -4481,7 +4480,7 @@ export async function registerRoutes(
           let landingGeo = null;
           if (item.landingId) {
             const landing = await storage.getOfferLanding(item.landingId);
-            landingName = landing?.name || null;
+            landingName = landing?.landingName || null;
             landingGeo = landing?.geo || null;
           }
           return {
@@ -4519,7 +4518,7 @@ export async function registerRoutes(
         let landingGeo = null;
         if (item.landingId) {
           const landing = await storage.getOfferLanding(item.landingId);
-          landingName = landing?.name || null;
+          landingName = landing?.landingName || null;
           landingGeo = landing?.geo || null;
         }
         return {

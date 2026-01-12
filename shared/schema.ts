@@ -2009,6 +2009,7 @@ export const splitTests = pgTable("split_tests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   publisherId: varchar("publisher_id").notNull().references(() => users.id),
   name: text("name").notNull(),
+  description: text("description"),
   shortCode: varchar("short_code", { length: 32 }).notNull().unique(),
   status: text("status").notNull().default("active"), // active, paused, deleted
   createdAt: timestamp("created_at").notNull().defaultNow(),
