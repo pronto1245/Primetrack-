@@ -6341,38 +6341,8 @@ export async function registerRoutes(
   // Webhook for Telegram bot (public endpoint)
   app.post("/api/telegram/webhook", async (req: Request, res: Response) => {
     try {
-      const { message } = req.body;
-      if (!message?.text || !message?.chat?.id) {
-        return res.sendStatus(200);
-      }
-
-      const chatId = message.chat.id.toString();
-      const text = message.text.trim();
-
-      if (text.startsWith("/link ")) {
-        const code = text.replace("/link ", "").trim().toUpperCase();
-        const { telegramService } = await import("./services/telegram-service");
-        const result = await telegramService.linkAccount(code, chatId);
-
-        if (result.success) {
-          await telegramService.sendMessage({
-            chatId,
-            text: "✅ <b>Аккаунт успешно привязан!</b>\n\nТеперь вы будете получать уведомления о лидах, продажах и выплатах."
-          });
-        } else {
-          await telegramService.sendMessage({
-            chatId,
-            text: `❌ <b>Ошибка:</b> ${result.error}`
-          });
-        }
-      } else if (text === "/start") {
-        const { telegramService } = await import("./services/telegram-service");
-        await telegramService.sendMessage({
-          chatId,
-          text: "👋 <b>Добро пожаловать!</b>\n\nДля привязки аккаунта:\n1. Зайдите в Настройки → Telegram\n2. Нажмите «Получить код»\n3. Отправьте сюда команду /link КОД"
-        });
-      }
-
+      const { telegramSupportService } = await import("./services/telegram-support-service");
+      await telegramSupportService.handleUpdate(req.body);
       res.sendStatus(200);
     } catch (error) {
       console.error("[Telegram Webhook] Error:", error);

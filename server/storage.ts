@@ -162,6 +162,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUsersByRole(role: string): Promise<User[]>;
   getUserByReferralCode(referralCode: string): Promise<User | undefined>;
+  getUserByTelegramChatId(telegramChatId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserReferralCode(userId: string, referralCode: string): Promise<User | undefined>;
   updateUserProfile(userId: string, data: { email?: string; phone?: string; telegram?: string; logoUrl?: string; companyName?: string }): Promise<User | undefined>;
@@ -508,6 +509,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.referralCode, referralCode));
+    return user;
+  }
+
+  async getUserByTelegramChatId(telegramChatId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.telegramChatId, telegramChatId));
     return user;
   }
 
