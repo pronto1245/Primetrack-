@@ -49,6 +49,11 @@ class TelegramSupportService {
   private pendingReplies: Map<string, string> = new Map();
 
   private async getBotToken(): Promise<string | null> {
+    // Use dedicated support bot token from environment
+    if (process.env.TELEGRAM_SUPPORT_BOT_TOKEN) {
+      return process.env.TELEGRAM_SUPPORT_BOT_TOKEN;
+    }
+    // Fallback to platform settings
     const platformSettings = await storage.getPlatformSettings();
     if (platformSettings?.defaultTelegramBotToken) {
       try {
