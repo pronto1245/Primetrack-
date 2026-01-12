@@ -10,6 +10,12 @@ interface TelegramMessage {
 
 class TelegramService {
   private async getBotToken(advertiserId?: string): Promise<string | null> {
+    // First priority: TELEGRAM_NOTIFY_BOT_TOKEN env var for notifications
+    if (process.env.TELEGRAM_NOTIFY_BOT_TOKEN) {
+      return process.env.TELEGRAM_NOTIFY_BOT_TOKEN;
+    }
+    
+    // Second priority: advertiser-specific bot token
     if (advertiserId) {
       const settings = await storage.getAdvertiserSettings(advertiserId);
       if (settings?.telegramBotToken) {
@@ -21,6 +27,7 @@ class TelegramService {
       }
     }
     
+    // Fallback: platform default token (but this is typically support bot)
     const platformSettings = await storage.getPlatformSettings();
     if (platformSettings?.defaultTelegramBotToken) {
       try {
