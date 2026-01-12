@@ -169,8 +169,7 @@ const resources = {
         copied: "Copied!",
         cancel: "Cancel",
         save: "Save",
-        copy: "Copy",
-        close: "Close"
+        copy: "Copy"
       },
       tracking: {
         generator: "Link Generator",
@@ -216,12 +215,7 @@ const resources = {
         updated: "Split test updated successfully",
         deleted: "Split test deleted successfully",
         linkCopied: "Tracking link copied to clipboard",
-        trackingLink: "Tracking Link",
-        configureLink: "Configure",
-        configureLinkTitle: "Configure Tracking Link",
-        subParamsDescription: "Fill in the fields you need — they will be added to the link",
-        generatedLink: "Generated link with your sub-parameters",
-        copyLink: "Copy Link"
+        trackingLink: "Tracking Link"
       },
       reports: {
         filters: "Filters",
@@ -463,8 +457,7 @@ const resources = {
         copied: "Скопировано!",
         cancel: "Отмена",
         save: "Сохранить",
-        copy: "Копировать",
-        close: "Закрыть"
+        copy: "Копировать"
       },
       tracking: {
         generator: "Генератор ссылок",
@@ -510,12 +503,7 @@ const resources = {
         updated: "Сплит-тест успешно обновлён",
         deleted: "Сплит-тест успешно удалён",
         linkCopied: "Ссылка скопирована в буфер обмена",
-        trackingLink: "Tracking ссылка",
-        configureLink: "Настроить",
-        configureLinkTitle: "Настройка ссылки",
-        subParamsDescription: "Заполните нужные поля — они будут добавлены к ссылке",
-        generatedLink: "Готовая ссылка с вашими sub-параметрами",
-        copyLink: "Копировать ссылку"
+        trackingLink: "Tracking ссылка"
       },
       reports: {
         filters: "Фильтры",
