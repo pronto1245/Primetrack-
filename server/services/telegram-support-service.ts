@@ -153,6 +153,13 @@ class TelegramSupportService {
     const firstName = message.from.first_name;
     const lastName = message.from.last_name || "";
 
+    // Debug command to get chat ID
+    if (text === "/myid") {
+      await this.sendMessage(botToken, chatId, `Ваш Chat ID: <code>${chatId}</code>`);
+      console.log("[TelegramSupport] /myid requested, chatId:", chatId);
+      return;
+    }
+
     if (text.startsWith("/start")) {
       const existingUser = await storage.getUserByTelegramChatId(chatId);
       if (existingUser) {
