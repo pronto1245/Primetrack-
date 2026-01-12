@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Plus, Trash2, Copy, Pencil, ExternalLink, Loader2, GitBranch, Percent, Package } from "lucide-react";
+import { Plus, Trash2, Copy, Pencil, ExternalLink, Loader2, GitBranch, Percent, Package, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -71,6 +71,14 @@ export function PublisherSplitTests({ role }: { role: string }) {
     { offerId: "", landingId: null, weight: 50 },
     { offerId: "", landingId: null, weight: 50 },
   ]);
+  
+  // State для модального окна настройки ссылки
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [linkModalTest, setLinkModalTest] = useState<SplitTest | null>(null);
+  const [subParams, setSubParams] = useState<Record<string, string>>({
+    sub1: "", sub2: "", sub3: "", sub4: "", sub5: "",
+    sub6: "", sub7: "", sub8: "", sub9: "", sub10: "",
+  });
 
   const { data: splitTests, isLoading } = useQuery<SplitTest[]>({
     queryKey: ["/api/publisher/split-tests"],
@@ -265,6 +273,27 @@ export function PublisherSplitTests({ role }: { role: string }) {
     toast.success(t("splitTests.linkCopied"));
   };
 
+  const openLinkModal = (test: SplitTest) => {
+    setLinkModalTest(test);
+    setSubParams({ sub1: "", sub2: "", sub3: "", sub4: "", sub5: "", sub6: "", sub7: "", sub8: "", sub9: "", sub10: "" });
+    setLinkModalOpen(true);
+  };
+
+  const getGeneratedLink = () => {
+    if (!linkModalTest) return "";
+    const baseUrl = `${window.location.origin}/t/s/${linkModalTest.shortCode}`;
+    const params = Object.entries(subParams)
+      .filter(([_, value]) => value.trim() !== "")
+      .map(([key, value]) => `${key}=${encodeURIComponent(value.trim())}`)
+      .join("&");
+    return params ? `${baseUrl}?${params}` : baseUrl;
+  };
+
+  const copyGeneratedLink = () => {
+    navigator.clipboard.writeText(getGeneratedLink());
+    toast.success(t("splitTests.linkCopied"));
+  };
+
   const toggleStatus = (test: SplitTest) => {
     const newStatus = test.status === 'active' ? 'paused' : 'active';
     updateMutation.mutate({
@@ -360,16 +389,27 @@ export function PublisherSplitTests({ role }: { role: string }) {
                         <p className="text-xs text-muted-foreground mb-1">{t("splitTests.trackingLink")}</p>
                         <code className="text-sm font-mono break-all block">{window.location.origin}/t/s/{test.shortCode}</code>
                       </div>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => copyTrackingLink(test.shortCode)}
-                        className="ml-3 shrink-0"
-                        data-testid={`button-copy-link-${test.id}`}
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        {t("common.copy")}
-                      </Button>
+                      <div className="flex gap-2 ml-3 shrink-0">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openLinkModal(test)}
+                          data-testid={`button-configure-link-${test.id}`}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          {t("splitTests.configureLink")}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => copyTrackingLink(test.shortCode)}
+                          data-testid={`button-copy-link-${test.id}`}
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          {t("common.copy")}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -549,6 +589,47 @@ export function PublisherSplitTests({ role }: { role: string }) {
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
               {editingTest ? t("common.save") : t("splitTests.create")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Модальное окно настройки ссылки с sub-параметрами */}
+      <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{t("splitTests.configureLinkTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">{t("splitTests.subParamsDescription")}</p>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                <div key={num} className="flex items-center gap-2">
+                  <Label className="w-10 text-xs text-muted-foreground">sub{num}</Label>
+                  <Input
+                    value={subParams[`sub${num}`] || ""}
+                    onChange={(e) => setSubParams(prev => ({ ...prev, [`sub${num}`]: e.target.value }))}
+                    placeholder={`sub${num}`}
+                    className="flex-1"
+                    data-testid={`input-sub${num}`}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
+              <p className="text-xs text-muted-foreground mb-2">{t("splitTests.generatedLink")}</p>
+              <code className="text-sm font-mono break-all block" data-testid="text-generated-link">{getGeneratedLink()}</code>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkModalOpen(false)} data-testid="button-close-link-modal">
+              {t("common.close")}
+            </Button>
+            <Button onClick={copyGeneratedLink} data-testid="button-copy-generated-link">
+              <Copy className="h-4 w-4 mr-2" />
+              {t("splitTests.copyLink")}
             </Button>
           </DialogFooter>
         </DialogContent>
