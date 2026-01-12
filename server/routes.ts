@@ -616,6 +616,10 @@ export async function registerRoutes(
   app.get("/api/public/platform-settings", async (req: Request, res: Response) => {
     try {
       const settings = await storage.getPlatformSettings();
+      
+      // Default support bot for landing page (separate from notifications bot)
+      const DEFAULT_SUPPORT_BOT = "primetrack_support_bot";
+      
       res.json({
         platformName: settings?.platformName || "Primetrack",
         platformDescription: settings?.platformDescription || null,
@@ -623,11 +627,12 @@ export async function registerRoutes(
         platformFaviconUrl: settings?.platformFaviconUrl || null,
         supportEmail: settings?.supportEmail || null,
         supportPhone: settings?.supportPhone || null,
-        supportTelegram: settings?.supportTelegram || null,
+        // Always return support bot for landing page, never null
+        supportTelegram: settings?.supportTelegram || DEFAULT_SUPPORT_BOT,
         copyrightText: settings?.copyrightText || null,
       });
     } catch (error) {
-      res.json({ platformName: "Primetrack" });
+      res.json({ platformName: "Primetrack", supportTelegram: "primetrack_support_bot" });
     }
   });
 
