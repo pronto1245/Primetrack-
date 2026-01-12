@@ -619,6 +619,17 @@ export async function registerRoutes(
       
       // Default support bot for landing page (separate from notifications bot)
       const DEFAULT_SUPPORT_BOT = "primetrack_support_bot";
+      // Notifications bot should NEVER be used for support on landing page
+      const NOTIFICATIONS_BOT = "primetrack_notify_bot";
+      
+      // Get support telegram, but reject if it's the notifications bot
+      let supportTelegram = settings?.supportTelegram || DEFAULT_SUPPORT_BOT;
+      // Normalize and check - if it's the notifications bot, use support bot instead
+      const normalizedHandle = supportTelegram.replace(/^@/, "").toLowerCase();
+      if (normalizedHandle === NOTIFICATIONS_BOT.toLowerCase()) {
+        console.warn("[platform-settings] supportTelegram was set to notifications bot, forcing to support bot");
+        supportTelegram = DEFAULT_SUPPORT_BOT;
+      }
       
       res.json({
         platformName: settings?.platformName || "Primetrack",
@@ -627,8 +638,8 @@ export async function registerRoutes(
         platformFaviconUrl: settings?.platformFaviconUrl || null,
         supportEmail: settings?.supportEmail || null,
         supportPhone: settings?.supportPhone || null,
-        // Always return support bot for landing page, never null
-        supportTelegram: settings?.supportTelegram || DEFAULT_SUPPORT_BOT,
+        // Always return support bot for landing page, never notifications bot
+        supportTelegram: supportTelegram,
         copyrightText: settings?.copyrightText || null,
       });
     } catch (error) {
