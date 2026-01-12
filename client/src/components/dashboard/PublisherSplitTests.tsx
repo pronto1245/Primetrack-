@@ -416,7 +416,7 @@ export function PublisherSplitTests({ role }: { role: string }) {
                         <SelectTrigger data-testid={`select-offer-${index}`}>
                           <SelectValue placeholder={t("splitTests.selectOffer")} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-60 overflow-y-auto">
                           {approvedOffers?.map((offer) => (
                             <SelectItem key={offer.id} value={offer.id}>
                               {offer.name}
@@ -434,13 +434,13 @@ export function PublisherSplitTests({ role }: { role: string }) {
                         <SelectTrigger data-testid={`select-landing-${index}`}>
                           <SelectValue placeholder={t("splitTests.defaultLanding")} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-60 overflow-y-auto">
                           <SelectItem value="default">{t("splitTests.defaultLanding")}</SelectItem>
                           {approvedOffers
                             ?.find(o => o.id === item.offerId)
                             ?.landings?.map((landing) => (
                               <SelectItem key={landing.id} value={landing.id}>
-                                {landing.name || landing.geo}
+                                {landing.name ? `${landing.name} (${landing.geo})` : landing.geo}
                               </SelectItem>
                             ))}
                         </SelectContent>
