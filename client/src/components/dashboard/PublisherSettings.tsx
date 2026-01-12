@@ -553,12 +553,12 @@ function NotificationsTab() {
         <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <h4 className="font-medium mb-2">Как настроить:</h4>
           <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-            <li>Напишите любое сообщение боту <a href="https://t.me/primetrack_support_bot" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">@primetrack_support_bot</a> в Telegram</li>
+            <li>Напишите любое сообщение боту <a href="https://t.me/primetrack_notify_bot" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">@primetrack_notify_bot</a> в Telegram</li>
             <li>Узнайте свой Chat ID через @userinfobot</li>
             <li>Укажите Chat ID ниже и сохраните</li>
           </ol>
           <p className="text-xs text-muted-foreground mt-2">
-            По умолчанию используется бот <a href="https://t.me/primetrack_support_bot" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@primetrack_support_bot</a> платформы.
+            По умолчанию используется бот <a href="https://t.me/primetrack_notify_bot" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@primetrack_notify_bot</a> платформы.
           </p>
         </div>
 
