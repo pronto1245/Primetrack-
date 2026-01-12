@@ -188,7 +188,7 @@ export default function Home() {
 
   const platformName = platformSettings?.platformName || t("brand");
   const supportEmail = platformSettings?.supportEmail || "support@example.com";
-  const supportTelegram = platformSettings?.supportTelegram || "";
+  const supportTelegram = platformSettings?.supportTelegram || "primetrack_support_bot";
   const copyrightText = platformSettings?.copyrightText || `© ${new Date().getFullYear()} ${platformName}. Все права защищены.`;
 
   const scrollToSection = (id: string) => {
