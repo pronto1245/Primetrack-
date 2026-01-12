@@ -130,7 +130,8 @@ const resources = {
           campaigns: "Campaigns",
           payouts: "Payouts",
           partners: "Partners",
-          requests: "Requests"
+          requests: "Requests",
+          splitTests: "Split Tests"
         },
         offers: {
           all: "All Offers"
@@ -185,6 +186,32 @@ const resources = {
         statusPending: "Pending",
         exportConversions: "Export Conversions",
         exportClicks: "Export Clicks"
+      },
+      splitTests: {
+        title: "Split Tests",
+        description: "Create A/B tests to distribute traffic between multiple offers",
+        create: "Create Split Test",
+        createFirst: "Create Your First Split Test",
+        edit: "Edit Split Test",
+        noTests: "No Split Tests",
+        noTestsDescription: "Create your first split test to distribute traffic between multiple offers with custom weights.",
+        name: "Name",
+        namePlaceholder: "e.g. Gambling GEO Mix",
+        nameRequired: "Name is required",
+        descriptionLabel: "Description",
+        descriptionPlaceholder: "Optional description",
+        items: "Offers and Weights",
+        selectOffer: "Select offer",
+        defaultLanding: "Default landing",
+        addItem: "Add Offer",
+        totalWeight: "Total weight",
+        weightsMustEqual100: "Weights must total 100% (current: {{total}}%)",
+        minItemsRequired: "At least 2 offers are required",
+        selectAllOffers: "Please select an offer for each item",
+        created: "Split test created successfully",
+        updated: "Split test updated successfully",
+        deleted: "Split test deleted successfully",
+        linkCopied: "Tracking link copied to clipboard"
       },
       reports: {
         filters: "Filters",
@@ -367,7 +394,8 @@ const resources = {
           campaigns: "Кампании",
           payouts: "Выплаты",
           partners: "Партнёры",
-          requests: "Заявки"
+          requests: "Заявки",
+          splitTests: "Сплит-тесты"
         },
         offers: {
           all: "Все офферы",
@@ -442,6 +470,32 @@ const resources = {
         statusPending: "На рассмотрении",
         exportConversions: "Экспорт конверсий",
         exportClicks: "Экспорт кликов"
+      },
+      splitTests: {
+        title: "Сплит-тесты",
+        description: "Создайте A/B тесты для распределения трафика между офферами",
+        create: "Создать сплит-тест",
+        createFirst: "Создать первый сплит-тест",
+        edit: "Редактировать сплит-тест",
+        noTests: "Нет сплит-тестов",
+        noTestsDescription: "Создайте первый сплит-тест для распределения трафика между офферами с настраиваемыми весами.",
+        name: "Название",
+        namePlaceholder: "например, Гемблинг ГЕО Микс",
+        nameRequired: "Название обязательно",
+        descriptionLabel: "Описание",
+        descriptionPlaceholder: "Необязательное описание",
+        items: "Офферы и веса",
+        selectOffer: "Выберите оффер",
+        defaultLanding: "Лендинг по умолчанию",
+        addItem: "Добавить оффер",
+        totalWeight: "Общий вес",
+        weightsMustEqual100: "Веса должны составлять 100% (сейчас: {{total}}%)",
+        minItemsRequired: "Требуется минимум 2 оффера",
+        selectAllOffers: "Выберите оффер для каждого элемента",
+        created: "Сплит-тест успешно создан",
+        updated: "Сплит-тест успешно обновлён",
+        deleted: "Сплит-тест успешно удалён",
+        linkCopied: "Ссылка скопирована в буфер обмена"
       },
       reports: {
         filters: "Фильтры",

@@ -8,7 +8,7 @@ import {
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar,
   Plus, Search, UserPlus, ChevronDown, Building2,
-  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb
+  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb, GitBranch
 } from "lucide-react";
 import { FeatureSuggestionModal } from "@/components/FeatureSuggestionModal";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -50,6 +50,7 @@ import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
 import NewsComposer from "@/pages/NewsComposer";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { PublisherInvoices } from "@/components/dashboard/PublisherInvoices";
+import { PublisherSplitTests } from "@/components/dashboard/PublisherSplitTests";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
@@ -197,6 +198,7 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
     publisher: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
+      { icon: GitBranch, label: t('dashboard.menu.splitTests'), path: `/dashboard/${role}/split-tests`, color: "text-teal-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
@@ -387,6 +389,7 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
     publisher: [
       { icon: LayoutDashboard, label: t('dashboard.menu.overview'), path: `/dashboard/${role}`, color: "text-blue-400" },
       { icon: LinkIcon, label: t('dashboard.menu.links'), path: `/dashboard/${role}/links`, color: "text-cyan-400" },
+      { icon: GitBranch, label: t('dashboard.menu.splitTests'), path: `/dashboard/${role}/split-tests`, color: "text-teal-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
@@ -545,6 +548,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNotifications] = useRoute("/dashboard/:role/notifications");
   const [matchDomainRequests] = useRoute("/dashboard/:role/domain-requests");
   const [matchAnalytics] = useRoute("/dashboard/:role/analytics");
+  const [matchSplitTests] = useRoute("/dashboard/:role/split-tests");
   
   // Staff access control - redirect to overview if accessing restricted section
   // Wait for staffLoading to complete before checking access
@@ -678,6 +682,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const showRequests = matchRequests && role === 'advertiser';
   const showFinance = matchFinance && (role === 'advertiser' || role === 'admin');
   const showPayouts = matchPayouts && role === 'publisher';
+  const showSplitTests = matchSplitTests && role === 'publisher';
   const showPostbacks = matchPostbacks;
   const showAntifraud = matchAntifraud && (role === 'admin' || role === 'advertiser');
   const showSettings = matchSettings;
@@ -755,6 +760,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showPayouts) {
       return <PublisherPayouts />;
+    }
+
+    if (showSplitTests) {
+      return <PublisherSplitTests role={role} />;
     }
 
     if (matchAnalytics && (role === 'advertiser' || role === 'admin')) {
