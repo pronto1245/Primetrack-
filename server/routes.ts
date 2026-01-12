@@ -4343,6 +4343,208 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // PUBLISHER SPLIT TESTS (A/B тестирование)
+  // ============================================
+  
+  // Get all split tests for publisher
+  app.get("/api/publisher/split-tests", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const tests = await storage.getSplitTestsByPublisher(req.session.userId!);
+      
+      // Enrich with items
+      const enrichedTests = await Promise.all(tests.map(async (test) => {
+        const items = await storage.getSplitTestItems(test.id);
+        // Get offer names for items
+        const enrichedItems = await Promise.all(items.map(async (item) => {
+          const offer = await storage.getOffer(item.offerId);
+          let landingName = null;
+          if (item.landingId) {
+            const landing = await storage.getOfferLanding(item.landingId);
+            landingName = landing?.name || null;
+          }
+          return {
+            ...item,
+            offerName: offer?.name || 'Unknown',
+            landingName,
+          };
+        }));
+        return {
+          ...test,
+          items: enrichedItems,
+          itemCount: items.length,
+        };
+      }));
+      
+      res.json(enrichedTests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch split tests" });
+    }
+  });
+
+  // Get single split test
+  app.get("/api/publisher/split-tests/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const test = await storage.getSplitTest(req.params.id);
+      if (!test || test.publisherId !== req.session.userId!) {
+        return res.status(404).json({ message: "Split test not found" });
+      }
+      
+      const items = await storage.getSplitTestItems(test.id);
+      const enrichedItems = await Promise.all(items.map(async (item) => {
+        const offer = await storage.getOffer(item.offerId);
+        let landingName = null;
+        if (item.landingId) {
+          const landing = await storage.getOfferLanding(item.landingId);
+          landingName = landing?.name || null;
+        }
+        return {
+          ...item,
+          offerName: offer?.name || 'Unknown',
+          landingName,
+        };
+      }));
+      
+      res.json({ ...test, items: enrichedItems });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch split test" });
+    }
+  });
+
+  // Create split test
+  app.post("/api/publisher/split-tests", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { name, description, items } = req.body;
+      
+      if (!name || !items || !Array.isArray(items) || items.length < 2) {
+        return res.status(400).json({ message: "Name and at least 2 items are required" });
+      }
+      
+      // Validate that all offers exist and publisher has access
+      for (const item of items) {
+        const offer = await storage.getOffer(item.offerId);
+        if (!offer) {
+          return res.status(400).json({ message: `Offer ${item.offerId} not found` });
+        }
+        // Check publisher access
+        const access = await storage.getPublisherOfferAccess(req.session.userId!, item.offerId);
+        if (!access) {
+          return res.status(400).json({ message: `No access to offer ${offer.name}` });
+        }
+        // Validate landing if specified
+        if (item.landingId) {
+          const landing = await storage.getOfferLanding(item.landingId);
+          if (!landing || landing.offerId !== item.offerId) {
+            return res.status(400).json({ message: `Landing not found for offer ${offer.name}` });
+          }
+        }
+      }
+      
+      // Validate weights sum to 100
+      const totalWeight = items.reduce((sum: number, item: any) => sum + (item.weight || 0), 0);
+      if (totalWeight !== 100) {
+        return res.status(400).json({ message: "Weights must sum to 100%" });
+      }
+      
+      // Generate short code
+      const shortCode = Math.random().toString(36).substring(2, 10);
+      
+      // Create split test
+      const test = await storage.createSplitTest({
+        publisherId: req.session.userId!,
+        name,
+        description: description || null,
+        shortCode,
+        status: 'active',
+      });
+      
+      // Create items
+      for (const item of items) {
+        await storage.createSplitTestItem({
+          splitTestId: test.id,
+          offerId: item.offerId,
+          landingId: item.landingId || null,
+          weight: item.weight,
+        });
+      }
+      
+      res.status(201).json(test);
+    } catch (error) {
+      console.error("Error creating split test:", error);
+      res.status(500).json({ message: "Failed to create split test" });
+    }
+  });
+
+  // Update split test
+  app.put("/api/publisher/split-tests/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const test = await storage.getSplitTest(req.params.id);
+      if (!test || test.publisherId !== req.session.userId!) {
+        return res.status(404).json({ message: "Split test not found" });
+      }
+      
+      const { name, description, status, items } = req.body;
+      
+      // Update test
+      const updated = await storage.updateSplitTest(test.id, {
+        name: name || test.name,
+        description: description !== undefined ? description : test.description,
+        status: status || test.status,
+      });
+      
+      // If items provided, update them
+      if (items && Array.isArray(items)) {
+        // Validate weights sum to 100
+        const totalWeight = items.reduce((sum: number, item: any) => sum + (item.weight || 0), 0);
+        if (totalWeight !== 100) {
+          return res.status(400).json({ message: "Weights must sum to 100%" });
+        }
+        
+        // Validate offers access
+        for (const item of items) {
+          const offer = await storage.getOffer(item.offerId);
+          if (!offer) {
+            return res.status(400).json({ message: `Offer ${item.offerId} not found` });
+          }
+          const access = await storage.getPublisherOfferAccess(req.session.userId!, item.offerId);
+          if (!access) {
+            return res.status(400).json({ message: `No access to offer ${offer.name}` });
+          }
+        }
+        
+        // Delete old items and create new
+        await storage.deleteSplitTestItems(test.id);
+        for (const item of items) {
+          await storage.createSplitTestItem({
+            splitTestId: test.id,
+            offerId: item.offerId,
+            landingId: item.landingId || null,
+            weight: item.weight,
+          });
+        }
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update split test" });
+    }
+  });
+
+  // Delete split test (soft delete)
+  app.delete("/api/publisher/split-tests/:id", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const test = await storage.getSplitTest(req.params.id);
+      if (!test || test.publisherId !== req.session.userId!) {
+        return res.status(404).json({ message: "Split test not found" });
+      }
+      
+      await storage.deleteSplitTest(test.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete split test" });
+    }
+  });
+
+  // ============================================
   // ADMIN ROUTES
   // ============================================
 
