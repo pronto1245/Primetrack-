@@ -2001,3 +2001,45 @@ export const insertSupportMessageSchema = createInsertSchema(supportMessages).om
 
 export type InsertSupportMessage = z.infer<typeof insertSupportMessageSchema>;
 export type SupportMessage = typeof supportMessages.$inferSelect;
+
+// ============================================
+// SPLIT TESTS (A/B тестирование для партнёров)
+// ============================================
+export const splitTests = pgTable("split_tests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  publisherId: varchar("publisher_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  shortCode: varchar("short_code", { length: 32 }).notNull().unique(),
+  status: text("status").notNull().default("active"), // active, paused, deleted
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertSplitTestSchema = createInsertSchema(splitTests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSplitTest = z.infer<typeof insertSplitTestSchema>;
+export type SplitTest = typeof splitTests.$inferSelect;
+
+// ============================================
+// SPLIT TEST ITEMS (Офферы/лендинги в тесте)
+// ============================================
+export const splitTestItems = pgTable("split_test_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  splitTestId: varchar("split_test_id").notNull().references(() => splitTests.id),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  landingId: varchar("landing_id").references(() => offerLandings.id),
+  weight: integer("weight").notNull().default(50), // Вес в процентах 1-100
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertSplitTestItemSchema = createInsertSchema(splitTestItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSplitTestItem = z.infer<typeof insertSplitTestItemSchema>;
+export type SplitTestItem = typeof splitTestItems.$inferSelect;
