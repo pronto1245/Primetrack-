@@ -124,11 +124,14 @@ class TelegramSupportService {
   }
 
   async handleUpdate(update: TelegramUpdate): Promise<void> {
+    console.log("[TelegramSupport] Received update:", JSON.stringify(update, null, 2));
+    
     const botToken = await this.getBotToken();
     if (!botToken) {
       console.log("[TelegramSupport] No bot token configured");
       return;
     }
+    console.log("[TelegramSupport] Bot token found");
 
     if (update.callback_query) {
       await this.handleCallbackQuery(botToken, update.callback_query);
@@ -183,6 +186,8 @@ class TelegramSupportService {
     }
 
     const adminChatId = await this.getAdminChatId();
+    console.log("[TelegramSupport] adminChatId:", adminChatId, "userChatId:", chatId);
+    
     if (adminChatId && chatId === adminChatId) {
       const pendingConversationId = this.pendingReplies.get(chatId);
       if (pendingConversationId) {
