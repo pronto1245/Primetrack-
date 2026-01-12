@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Plus, Trash2, Copy, Pencil, ExternalLink, Loader2, GitBranch, Percent } from "lucide-react";
+import { Plus, Trash2, Copy, Pencil, ExternalLink, Loader2, GitBranch, Percent, Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ interface SplitTest {
 interface OfferWithLandings {
   id: string;
   name: string;
+  logoUrl: string | null;
   landings: { id: string; offerId: string; landingName: string | null; geo: string }[];
 }
 
@@ -437,7 +438,18 @@ export function PublisherSplitTests({ role }: { role: string }) {
                         <SelectContent className="max-h-60 overflow-y-auto">
                           {approvedOffers?.map((offer) => (
                             <SelectItem key={offer.id} value={offer.id}>
-                              {offer.name}
+                              <div className="flex items-center gap-2">
+                                {offer.logoUrl ? (
+                                  <img 
+                                    src={offer.logoUrl} 
+                                    alt={offer.name}
+                                    className="w-5 h-5 rounded object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <Package className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                )}
+                                <span className="truncate">{offer.name}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>

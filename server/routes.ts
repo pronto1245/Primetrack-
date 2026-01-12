@@ -3049,6 +3049,7 @@ export async function registerRoutes(
           return { 
             id: offer.id,
             name: offer.name,
+            logoUrl: offer.logoUrl,
             category: offer.category,
             payoutModel: offer.payoutModel,
             landings: landings.map(l => ({
