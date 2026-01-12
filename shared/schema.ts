@@ -1934,3 +1934,70 @@ export const insertRoadmapItemSchema = createInsertSchema(roadmapItems).omit({
 
 export type InsertRoadmapItem = z.infer<typeof insertRoadmapItemSchema>;
 export type RoadmapItem = typeof roadmapItems.$inferSelect;
+
+// ============================================
+// SUPPORT CONVERSATIONS (Telegram поддержка)
+// ============================================
+export const supportConversations = pgTable("support_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  telegramChatId: text("telegram_chat_id").notNull(),
+  telegramUsername: text("telegram_username"),
+  telegramFirstName: text("telegram_first_name"),
+  telegramLastName: text("telegram_last_name"),
+  
+  // Связь с пользователем если залогинен
+  userId: varchar("user_id").references(() => users.id),
+  
+  // Источник: landing, dashboard
+  origin: text("origin").notNull().default("landing"),
+  
+  // Статус: open, closed
+  status: text("status").notNull().default("open"),
+  
+  // Последнее сообщение для превью
+  lastMessage: text("last_message"),
+  lastMessageAt: timestamp("last_message_at"),
+  
+  // Кто ответственный (для будущего расширения)
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertSupportConversationSchema = createInsertSchema(supportConversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSupportConversation = z.infer<typeof insertSupportConversationSchema>;
+export type SupportConversation = typeof supportConversations.$inferSelect;
+
+// ============================================
+// SUPPORT MESSAGES (Сообщения в переписках)
+// ============================================
+export const supportMessages = pgTable("support_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => supportConversations.id),
+  
+  // От кого: user (пользователь), admin (поддержка)
+  senderType: text("sender_type").notNull(), // user, admin
+  senderId: varchar("sender_id"), // userId админа если admin
+  
+  // Контент
+  content: text("content").notNull(),
+  
+  // Telegram message_id для отслеживания
+  telegramMessageId: integer("telegram_message_id"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertSupportMessageSchema = createInsertSchema(supportMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSupportMessage = z.infer<typeof insertSupportMessageSchema>;
+export type SupportMessage = typeof supportMessages.$inferSelect;
