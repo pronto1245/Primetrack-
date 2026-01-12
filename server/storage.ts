@@ -39,7 +39,9 @@ import {
   type MigrationHistory, type InsertMigrationHistory, migrationHistory,
   type OfferLandingVariant, type InsertOfferLandingVariant, offerLandingVariants,
   type ExchangeApiKey, type InsertExchangeApiKey, exchangeApiKeys,
-  type RoadmapItem, type InsertRoadmapItem, roadmapItems
+  type RoadmapItem, type InsertRoadmapItem, roadmapItems,
+  type SupportConversation, type InsertSupportConversation, supportConversations,
+  type SupportMessage, type InsertSupportMessage, supportMessages
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -460,6 +462,17 @@ export interface IStorage {
   }): Promise<ExchangeApiKey | undefined>;
   deleteExchangeApiKey(id: string): Promise<void>;
   getExchangeApiKeysStatus(advertiserId: string): Promise<Record<string, boolean>>;
+  
+  // Support Conversations (Telegram поддержка)
+  getSupportConversationByTelegramChatId(telegramChatId: string): Promise<SupportConversation | undefined>;
+  getSupportConversation(id: string): Promise<SupportConversation | undefined>;
+  getSupportConversations(status?: string): Promise<SupportConversation[]>;
+  createSupportConversation(data: InsertSupportConversation): Promise<SupportConversation>;
+  updateSupportConversation(id: string, data: Partial<InsertSupportConversation>): Promise<SupportConversation | undefined>;
+  
+  // Support Messages
+  getSupportMessages(conversationId: string): Promise<SupportMessage[]>;
+  createSupportMessage(data: InsertSupportMessage): Promise<SupportMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4112,6 +4125,69 @@ export class DatabaseStorage implements IStorage {
       .where(eq(newsPosts.id, id))
       .returning();
     return post;
+  }
+
+  // ============================================
+  // SUPPORT CONVERSATIONS (Telegram поддержка)
+  // ============================================
+  async getSupportConversationByTelegramChatId(telegramChatId: string): Promise<SupportConversation | undefined> {
+    const [conv] = await db
+      .select()
+      .from(supportConversations)
+      .where(eq(supportConversations.telegramChatId, telegramChatId));
+    return conv;
+  }
+
+  async getSupportConversation(id: string): Promise<SupportConversation | undefined> {
+    const [conv] = await db
+      .select()
+      .from(supportConversations)
+      .where(eq(supportConversations.id, id));
+    return conv;
+  }
+
+  async getSupportConversations(status?: string): Promise<SupportConversation[]> {
+    if (status) {
+      return await db
+        .select()
+        .from(supportConversations)
+        .where(eq(supportConversations.status, status))
+        .orderBy(desc(supportConversations.lastMessageAt));
+    }
+    return await db
+      .select()
+      .from(supportConversations)
+      .orderBy(desc(supportConversations.lastMessageAt));
+  }
+
+  async createSupportConversation(data: InsertSupportConversation): Promise<SupportConversation> {
+    const [conv] = await db.insert(supportConversations).values(data).returning();
+    return conv;
+  }
+
+  async updateSupportConversation(id: string, data: Partial<InsertSupportConversation>): Promise<SupportConversation | undefined> {
+    const [conv] = await db
+      .update(supportConversations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(supportConversations.id, id))
+      .returning();
+    return conv;
+  }
+
+  // ============================================
+  // SUPPORT MESSAGES
+  // ============================================
+  async getSupportMessages(conversationId: string): Promise<SupportMessage[]> {
+    return await db
+      .select()
+      .from(supportMessages)
+      .where(eq(supportMessages.conversationId, conversationId))
+      .orderBy(supportMessages.createdAt);
+  }
+
+  async createSupportMessage(data: InsertSupportMessage): Promise<SupportMessage> {
+    const [msg] = await db.insert(supportMessages).values(data).returning();
+    return msg;
   }
 }
 
