@@ -4613,6 +4613,11 @@ export async function registerRoutes(
       
       // If items provided, update them
       if (items && Array.isArray(items)) {
+        // Validate minimum 2 items
+        if (items.length < 2) {
+          return res.status(400).json({ message: "At least 2 items are required" });
+        }
+        
         // Validate weights sum to 100
         const totalWeight = items.reduce((sum: number, item: any) => sum + (item.weight || 0), 0);
         if (totalWeight !== 100) {
