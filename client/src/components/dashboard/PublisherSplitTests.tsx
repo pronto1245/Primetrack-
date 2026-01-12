@@ -20,6 +20,7 @@ interface SplitTestItem {
   landingId: string | null;
   weight: number;
   offerName: string;
+  offerLogoUrl: string | null;
   landingName: string | null;
   landingGeo: string | null;
 }
@@ -330,13 +331,25 @@ export function PublisherSplitTests({ role }: { role: string }) {
                   <div className="space-y-2 mb-4">
                     {test.items.map((item, idx) => (
                       <div key={item.id} className="flex items-center gap-2 text-sm">
-                        <Percent className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{item.weight}%</span>
+                        <span className="font-medium w-12">{item.weight}%</span>
                         <span className="text-muted-foreground">→</span>
-                        <span>{item.offerName}</span>
-                        {item.landingGeo && <span className="ml-1">{getFlagEmoji(item.landingGeo)}</span>}
+                        {item.offerLogoUrl ? (
+                          <img 
+                            src={item.offerLogoUrl} 
+                            alt={item.offerName}
+                            className="w-5 h-5 rounded object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <Package className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{item.offerName}</span>
                         {item.landingName && (
-                          <span className="text-muted-foreground ml-2">→ {item.landingName}</span>
+                          <span className="text-muted-foreground">– {item.landingName}</span>
+                        )}
+                        {item.landingGeo && (
+                          <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {getFlagEmoji(item.landingGeo)} {item.landingGeo}
+                          </span>
                         )}
                       </div>
                     ))}
@@ -436,22 +449,30 @@ export function PublisherSplitTests({ role }: { role: string }) {
                           <SelectValue placeholder={t("splitTests.selectOffer")} />
                         </SelectTrigger>
                         <SelectContent className="max-h-60 overflow-y-auto">
-                          {approvedOffers?.map((offer) => (
-                            <SelectItem key={offer.id} value={offer.id}>
-                              <div className="flex items-center gap-2">
-                                {offer.logoUrl ? (
-                                  <img 
-                                    src={offer.logoUrl} 
-                                    alt={offer.name}
-                                    className="w-5 h-5 rounded object-cover flex-shrink-0"
-                                  />
-                                ) : (
-                                  <Package className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                )}
-                                <span className="truncate">{offer.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {approvedOffers?.map((offer) => {
+                            const uniqueGeos = Array.from(new Set((offer.landings ?? []).map(l => l.geo?.toUpperCase()).filter(Boolean)));
+                            return (
+                              <SelectItem key={offer.id} value={offer.id}>
+                                <div className="flex items-center gap-2">
+                                  {offer.logoUrl ? (
+                                    <img 
+                                      src={offer.logoUrl} 
+                                      alt={offer.name}
+                                      className="w-5 h-5 rounded object-cover flex-shrink-0"
+                                    />
+                                  ) : (
+                                    <Package className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                  )}
+                                  <span className="truncate">{offer.name}</span>
+                                  {uniqueGeos.length > 0 && (
+                                    <span className="text-muted-foreground text-xs ml-1">
+                                      {uniqueGeos.map(geo => `${getFlagEmoji(geo)} ${geo}`).join(', ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>

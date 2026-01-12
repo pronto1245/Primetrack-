@@ -4482,11 +4482,12 @@ export async function registerRoutes(
           if (item.landingId) {
             const landing = await storage.getOfferLanding(item.landingId);
             landingName = landing?.landingName || null;
-            landingGeo = landing?.geo || null;
+            landingGeo = landing?.geo?.toUpperCase() || null;
           }
           return {
             ...item,
             offerName: offer?.name || 'Unknown',
+            offerLogoUrl: offer?.logoUrl || null,
             landingName,
             landingGeo,
           };
@@ -4520,11 +4521,12 @@ export async function registerRoutes(
         if (item.landingId) {
           const landing = await storage.getOfferLanding(item.landingId);
           landingName = landing?.landingName || null;
-          landingGeo = landing?.geo || null;
+          landingGeo = landing?.geo?.toUpperCase() || null;
         }
         return {
           ...item,
           offerName: offer?.name || 'Unknown',
+          offerLogoUrl: offer?.logoUrl || null,
           landingGeo,
           landingName,
         };
