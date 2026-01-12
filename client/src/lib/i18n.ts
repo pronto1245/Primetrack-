@@ -168,7 +168,8 @@ const resources = {
         retry: "Retry",
         copied: "Copied!",
         cancel: "Cancel",
-        save: "Save"
+        save: "Save",
+        copy: "Copy"
       },
       tracking: {
         generator: "Link Generator",
@@ -213,7 +214,8 @@ const resources = {
         created: "Split test created successfully",
         updated: "Split test updated successfully",
         deleted: "Split test deleted successfully",
-        linkCopied: "Tracking link copied to clipboard"
+        linkCopied: "Tracking link copied to clipboard",
+        trackingLink: "Tracking Link"
       },
       reports: {
         filters: "Filters",
@@ -454,7 +456,8 @@ const resources = {
         retry: "Повторить",
         copied: "Скопировано!",
         cancel: "Отмена",
-        save: "Сохранить"
+        save: "Сохранить",
+        copy: "Копировать"
       },
       tracking: {
         generator: "Генератор ссылок",
@@ -499,7 +502,8 @@ const resources = {
         created: "Сплит-тест успешно создан",
         updated: "Сплит-тест успешно обновлён",
         deleted: "Сплит-тест успешно удалён",
-        linkCopied: "Ссылка скопирована в буфер обмена"
+        linkCopied: "Ссылка скопирована в буфер обмена",
+        trackingLink: "Tracking ссылка"
       },
       reports: {
         filters: "Фильтры",

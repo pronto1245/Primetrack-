@@ -329,16 +329,23 @@ export function PublisherSplitTests({ role }: { role: string }) {
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <code className="bg-muted px-2 py-1 rounded">/t/s/{test.shortCode}</code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyTrackingLink(test.shortCode)}
-                      data-testid={`button-copy-link-${test.id}`}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">{t("splitTests.trackingLink")}</p>
+                        <code className="text-sm font-mono break-all block">{window.location.origin}/t/s/{test.shortCode}</code>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => copyTrackingLink(test.shortCode)}
+                        className="ml-3 shrink-0"
+                        data-testid={`button-copy-link-${test.id}`}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        {t("common.copy")}
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
