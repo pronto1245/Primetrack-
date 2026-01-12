@@ -189,6 +189,8 @@ export default function Home() {
   const platformName = platformSettings?.platformName || t("brand");
   const supportEmail = platformSettings?.supportEmail || "support@example.com";
   const supportTelegram = platformSettings?.supportTelegram || "primetrack_support_bot";
+  // Normalized handle without @ for URL construction
+  const supportTelegramHandle = supportTelegram.replace(/^@/, "");
   const copyrightText = platformSettings?.copyrightText || `© ${new Date().getFullYear()} ${platformName}. Все права защищены.`;
 
   const scrollToSection = (id: string) => {
@@ -1071,8 +1073,8 @@ export default function Home() {
                     <span>{supportEmail}</span>
                   </a>
                 )}
-                {supportTelegram && (
-                  <a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-emerald-500 transition-colors">
+                {supportTelegramHandle && (
+                  <a href={`https://t.me/${supportTelegramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-emerald-500 transition-colors">
                     <MessageCircle className="w-5 h-5" />
                     <span>Telegram</span>
                   </a>
@@ -1290,8 +1292,8 @@ export default function Home() {
                     <Mail className="w-5 h-5" />
                   </a>
                 )}
-                {supportTelegram && (
-                  <a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                {supportTelegramHandle && (
+                  <a href={`https://t.me/${supportTelegramHandle}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
                     <MessageCircle className="w-5 h-5" />
                   </a>
                 )}
@@ -1324,7 +1326,7 @@ export default function Home() {
                 <li><button onClick={() => navigate('/register/advertiser')} className="hover:text-foreground transition-colors">Регистрация</button></li>
                 <li><button onClick={() => navigate('/login')} className="hover:text-foreground transition-colors">Вход</button></li>
                 {supportEmail && <li><a href={`mailto:${supportEmail}`} className="hover:text-foreground transition-colors">Поддержка</a></li>}
-                {supportTelegram && <li><a href={`https://t.me/${supportTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>}
+                {supportTelegramHandle && <li><a href={`https://t.me/${supportTelegramHandle}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>}
               </ul>
             </div>
           </div>
