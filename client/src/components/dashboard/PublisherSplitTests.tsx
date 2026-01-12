@@ -392,7 +392,7 @@ export function PublisherSplitTests({ role }: { role: string }) {
                       <div className="flex gap-2 ml-3 shrink-0">
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="accent"
                           size="sm"
                           onClick={() => openLinkModal(test)}
                           data-testid={`button-configure-link-${test.id}`}

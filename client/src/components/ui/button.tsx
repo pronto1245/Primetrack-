@@ -20,6 +20,9 @@ const buttonVariants = cva(
           // Inherits the current text color. Uses shadow-xs. no shadow on active
           // No hover state
           " border [border-color:var(--button-outline)] shadow-xs active:shadow-none ",
+        accent:
+          // Emerald accent button matching project design system
+          "border border-emerald-500 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 shadow-xs active:shadow-none",
         secondary:
           // @replit border, no hover, no shadow, secondary border.
           "border bg-secondary text-secondary-foreground border border-secondary-border ",
