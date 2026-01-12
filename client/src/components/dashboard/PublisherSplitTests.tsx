@@ -391,9 +391,10 @@ export function PublisherSplitTests({ role }: { role: string }) {
                       </div>
                       <div className="flex gap-2 ml-3 shrink-0">
                         <Button
+                          type="button"
+                          variant="outline"
                           size="sm"
                           onClick={() => openLinkModal(test)}
-                          className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                           data-testid={`button-configure-link-${test.id}`}
                         >
                           <Settings className="h-4 w-4 mr-2" />
