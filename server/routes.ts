@@ -4479,11 +4479,20 @@ export async function registerRoutes(
           const offer = await storage.getOffer(item.offerId);
           let landingName = null;
           let landingGeo = null;
+          
           if (item.landingId) {
             const landing = await storage.getOfferLanding(item.landingId);
             landingName = landing?.landingName || null;
             landingGeo = landing?.geo?.toUpperCase() || null;
+          } else if (offer) {
+            // Если landingId не указан, берём первый лендинг оффера
+            const landings = await storage.getOfferLandings(offer.id);
+            if (landings.length > 0) {
+              landingName = landings[0].landingName || null;
+              landingGeo = landings[0].geo?.toUpperCase() || null;
+            }
           }
+          
           return {
             ...item,
             offerName: offer?.name || 'Unknown',
@@ -4518,11 +4527,20 @@ export async function registerRoutes(
         const offer = await storage.getOffer(item.offerId);
         let landingName = null;
         let landingGeo = null;
+        
         if (item.landingId) {
           const landing = await storage.getOfferLanding(item.landingId);
           landingName = landing?.landingName || null;
           landingGeo = landing?.geo?.toUpperCase() || null;
+        } else if (offer) {
+          // Если landingId не указан, берём первый лендинг оффера
+          const landings = await storage.getOfferLandings(offer.id);
+          if (landings.length > 0) {
+            landingName = landings[0].landingName || null;
+            landingGeo = landings[0].geo?.toUpperCase() || null;
+          }
         }
+        
         return {
           ...item,
           offerName: offer?.name || 'Unknown',
