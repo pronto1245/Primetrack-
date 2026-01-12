@@ -41,7 +41,9 @@ import {
   type ExchangeApiKey, type InsertExchangeApiKey, exchangeApiKeys,
   type RoadmapItem, type InsertRoadmapItem, roadmapItems,
   type SupportConversation, type InsertSupportConversation, supportConversations,
-  type SupportMessage, type InsertSupportMessage, supportMessages
+  type SupportMessage, type InsertSupportMessage, supportMessages,
+  type SplitTest, type InsertSplitTest, splitTests,
+  type SplitTestItem, type InsertSplitTestItem, splitTestItems
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -474,6 +476,21 @@ export interface IStorage {
   // Support Messages
   getSupportMessages(conversationId: string): Promise<SupportMessage[]>;
   createSupportMessage(data: InsertSupportMessage): Promise<SupportMessage>;
+  
+  // Split Tests (A/B тестирование для партнёров)
+  getSplitTestsByPublisher(publisherId: string): Promise<SplitTest[]>;
+  getSplitTest(id: string): Promise<SplitTest | undefined>;
+  getSplitTestByShortCode(shortCode: string): Promise<SplitTest | undefined>;
+  createSplitTest(data: InsertSplitTest): Promise<SplitTest>;
+  updateSplitTest(id: string, data: Partial<InsertSplitTest>): Promise<SplitTest | undefined>;
+  deleteSplitTest(id: string): Promise<void>;
+  
+  // Split Test Items
+  getSplitTestItems(splitTestId: string): Promise<SplitTestItem[]>;
+  createSplitTestItem(data: InsertSplitTestItem): Promise<SplitTestItem>;
+  updateSplitTestItem(id: string, data: Partial<InsertSplitTestItem>): Promise<SplitTestItem | undefined>;
+  deleteSplitTestItem(id: string): Promise<void>;
+  deleteSplitTestItems(splitTestId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4194,6 +4211,89 @@ export class DatabaseStorage implements IStorage {
   async createSupportMessage(data: InsertSupportMessage): Promise<SupportMessage> {
     const [msg] = await db.insert(supportMessages).values(data).returning();
     return msg;
+  }
+
+  // ============================================
+  // SPLIT TESTS (A/B тестирование для партнёров)
+  // ============================================
+  async getSplitTestsByPublisher(publisherId: string): Promise<SplitTest[]> {
+    return await db
+      .select()
+      .from(splitTests)
+      .where(and(
+        eq(splitTests.publisherId, publisherId),
+        sql`${splitTests.status} != 'deleted'`
+      ))
+      .orderBy(desc(splitTests.createdAt));
+  }
+
+  async getSplitTest(id: string): Promise<SplitTest | undefined> {
+    const [test] = await db
+      .select()
+      .from(splitTests)
+      .where(eq(splitTests.id, id));
+    return test;
+  }
+
+  async getSplitTestByShortCode(shortCode: string): Promise<SplitTest | undefined> {
+    const [test] = await db
+      .select()
+      .from(splitTests)
+      .where(eq(splitTests.shortCode, shortCode));
+    return test;
+  }
+
+  async createSplitTest(data: InsertSplitTest): Promise<SplitTest> {
+    const [test] = await db.insert(splitTests).values(data).returning();
+    return test;
+  }
+
+  async updateSplitTest(id: string, data: Partial<InsertSplitTest>): Promise<SplitTest | undefined> {
+    const [test] = await db
+      .update(splitTests)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(splitTests.id, id))
+      .returning();
+    return test;
+  }
+
+  async deleteSplitTest(id: string): Promise<void> {
+    await db
+      .update(splitTests)
+      .set({ status: 'deleted', updatedAt: new Date() })
+      .where(eq(splitTests.id, id));
+  }
+
+  // ============================================
+  // SPLIT TEST ITEMS
+  // ============================================
+  async getSplitTestItems(splitTestId: string): Promise<SplitTestItem[]> {
+    return await db
+      .select()
+      .from(splitTestItems)
+      .where(eq(splitTestItems.splitTestId, splitTestId));
+  }
+
+  async createSplitTestItem(data: InsertSplitTestItem): Promise<SplitTestItem> {
+    const [item] = await db.insert(splitTestItems).values(data).returning();
+    return item;
+  }
+
+  async updateSplitTestItem(id: string, data: Partial<InsertSplitTestItem>): Promise<SplitTestItem | undefined> {
+    const [item] = await db
+      .update(splitTestItems)
+      .set(data)
+      .where(eq(splitTestItems.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteSplitTestItem(id: string): Promise<void> {
+    await db.delete(splitTestItems).where(eq(splitTestItems.id, id));
+  }
+
+  async deleteSplitTestItems(splitTestId: string): Promise<void> {
+    await db.delete(splitTestItems).where(eq(splitTestItems.splitTestId, splitTestId));
   }
 }
 
