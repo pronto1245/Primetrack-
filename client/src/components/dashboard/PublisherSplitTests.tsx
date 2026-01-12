@@ -40,7 +40,7 @@ interface SplitTest {
 interface OfferWithLandings {
   id: string;
   name: string;
-  landings: { id: string; landingName: string | null; geo: string }[];
+  landings: { id: string; offerId: string; landingName: string | null; geo: string }[];
 }
 
 interface ItemFormData {
@@ -456,7 +456,9 @@ export function PublisherSplitTests({ role }: { role: string }) {
                           <SelectItem value="default">{t("splitTests.defaultLanding")}</SelectItem>
                           {approvedOffers
                             ?.find(o => o.id === item.offerId)
-                            ?.landings?.map((landing) => (
+                            ?.landings
+                            ?.filter(l => l.offerId === item.offerId)
+                            ?.map((landing) => (
                               <SelectItem key={landing.id} value={landing.id}>
                                 {landing.landingName || `Лендинг ${landing.geo}`}
                               </SelectItem>
