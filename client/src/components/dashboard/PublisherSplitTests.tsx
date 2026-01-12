@@ -21,6 +21,7 @@ interface SplitTestItem {
   weight: number;
   offerName: string;
   landingName: string | null;
+  landingGeo: string | null;
 }
 
 interface SplitTest {
@@ -323,8 +324,10 @@ export function PublisherSplitTests({ role }: { role: string }) {
                         <span className="font-medium">{item.weight}%</span>
                         <span className="text-muted-foreground">→</span>
                         <span>{item.offerName}</span>
-                        {item.landingName && (
-                          <span className="text-muted-foreground">({item.landingName})</span>
+                        {(item.landingName || item.landingGeo) && (
+                          <span className="text-muted-foreground">
+                            ({item.landingName ? `${item.landingName} - ${item.landingGeo || ''}` : item.landingGeo})
+                          </span>
                         )}
                       </div>
                     ))}

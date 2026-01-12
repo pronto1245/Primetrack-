@@ -4478,14 +4478,17 @@ export async function registerRoutes(
         const enrichedItems = await Promise.all(items.map(async (item) => {
           const offer = await storage.getOffer(item.offerId);
           let landingName = null;
+          let landingGeo = null;
           if (item.landingId) {
             const landing = await storage.getOfferLanding(item.landingId);
             landingName = landing?.name || null;
+            landingGeo = landing?.geo || null;
           }
           return {
             ...item,
             offerName: offer?.name || 'Unknown',
             landingName,
+            landingGeo,
           };
         }));
         return {
@@ -4513,13 +4516,16 @@ export async function registerRoutes(
       const enrichedItems = await Promise.all(items.map(async (item) => {
         const offer = await storage.getOffer(item.offerId);
         let landingName = null;
+        let landingGeo = null;
         if (item.landingId) {
           const landing = await storage.getOfferLanding(item.landingId);
           landingName = landing?.name || null;
+          landingGeo = landing?.geo || null;
         }
         return {
           ...item,
           offerName: offer?.name || 'Unknown',
+          landingGeo,
           landingName,
         };
       }));
