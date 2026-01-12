@@ -1996,6 +1996,126 @@ export async function registerRoutes(
   // MINI-TRACKER ENDPOINTS
   // ============================================
 
+  // Split test redirect handler (public, no auth required)
+  // Format: /t/s/:shortCode?sub1=...&sub2=...
+  // Selects a random offer based on weights and redirects through click handler
+  app.get("/t/s/:shortCode", async (req: Request, res: Response) => {
+    try {
+      const { shortCode } = req.params;
+      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+
+      // Get split test by short code
+      const splitTest = await storage.getSplitTestByShortCode(shortCode);
+      if (!splitTest || splitTest.status !== 'active') {
+        return res.status(404).json({ error: "Split test not found or inactive" });
+      }
+
+      // Get split test items
+      const items = await storage.getSplitTestItems(splitTest.id);
+      if (items.length === 0) {
+        return res.status(404).json({ error: "No items in split test" });
+      }
+
+      // Select item based on weighted random
+      const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+      let random = Math.random() * totalWeight;
+      let selectedItem = items[0];
+      
+      for (const item of items) {
+        random -= item.weight;
+        if (random <= 0) {
+          selectedItem = item;
+          break;
+        }
+      }
+
+      // Get offer and landing
+      const offer = await storage.getOffer(selectedItem.offerId);
+      if (!offer || offer.status !== 'active') {
+        return res.status(404).json({ error: "Selected offer not found or inactive" });
+      }
+
+      // Determine landing ID - use item's landingId or default landing
+      let landingId = selectedItem.landingId;
+      if (!landingId) {
+        const landings = await storage.getOfferLandings(offer.id);
+        const activeLanding = landings.find(l => l.isActive);
+        if (activeLanding) {
+          landingId = activeLanding.id;
+        }
+      }
+
+      if (!landingId) {
+        return res.status(404).json({ error: "No active landing for selected offer" });
+      }
+
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
+                 req.socket.remoteAddress || 
+                 "unknown";
+      const userAgent = req.headers["user-agent"] || "";
+      const referer = req.headers["referer"] || "";
+      
+      let geoCode = (req.headers["cf-ipcountry"] as string) ||
+                    (req.headers["x-country-code"] as string);
+      
+      if (!geoCode && ip && ip !== "unknown") {
+        const geoData = geoip.lookup(ip);
+        if (geoData?.country) {
+          geoCode = geoData.country;
+        }
+      }
+      
+      if (!geoCode) {
+        geoCode = "XX";
+      }
+
+      console.log(`[SplitTest] Processing click: splitTest=${shortCode}, selectedOffer=${offer.id}, landing=${landingId}, publisher=${splitTest.publisherId}`);
+
+      const result = await clickHandler.processClick({
+        offerId: offer.id,
+        landingId,
+        partnerId: splitTest.publisherId,
+        sub1: sub1 as string,
+        sub2: sub2 as string,
+        sub3: sub3 as string,
+        sub4: sub4 as string,
+        sub5: sub5 as string,
+        sub6: sub6 as string,
+        sub7: sub7 as string,
+        sub8: sub8 as string,
+        sub9: sub9 as string,
+        sub10: sub10 as string,
+        ip,
+        userAgent,
+        referer,
+        geo: geoCode,
+        visitorId: visitor_id as string,
+        fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+      });
+
+      if (result.isBlocked) {
+        if (result.capReached) {
+          return res.status(410).json({ 
+            error: "Offer cap reached", 
+            reason: "cap_exceeded"
+          });
+        }
+        return res.status(403).json({ 
+          error: "Traffic blocked", 
+          reason: "fraud_detected",
+          fraudScore: result.fraudScore 
+        });
+      }
+
+      res.redirect(302, result.redirectUrl);
+    } catch (error: any) {
+      console.error("Split test click handler error:", error);
+      res.status(400).json({ 
+        error: error.message || "Failed to process split test click" 
+      });
+    }
+  });
+
   // Path-based click tracking (public, no auth required)
   // Format: /click/:offerId/:landingId?partner_id=XXX&sub1=...
   // Supports both UUID and shortId (e.g. /click/1/1?partner_id=1 or /click/uuid/uuid?partner_id=uuid)
