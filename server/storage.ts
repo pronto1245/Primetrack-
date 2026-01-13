@@ -2584,9 +2584,12 @@ export class DatabaseStorage implements IStorage {
       if (conv.conversionType === "sale") grouped[key].sales++;
       // Use actual payout from conversion for display (correctly calculated in orchestrator based on payout model)
       grouped[key].payout += parseFloat(conv.publisherPayout || '0');
-      // Use partnerPayout from offer for EPC calculation
+      // Use partnerPayout from offer for EPC calculation - only for payable conversions
       const partnerPayout = offerPayoutMap.get(conv.offerId) || 0;
-      grouped[key].epcEarnings += partnerPayout;
+      const payoutModel = offerModelMap.get(conv.offerId) || 'CPA';
+      if (isPayableForEpc(conv.conversionType, payoutModel)) {
+        grouped[key].epcEarnings += partnerPayout;
+      }
       if (role !== "publisher") {
         grouped[key].cost += parseFloat(conv.advertiserCost || '0');
       }
