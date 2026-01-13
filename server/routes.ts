@@ -493,7 +493,10 @@ export async function registerRoutes(
               console.error("[session] Failed to save session:", err);
               reject(err);
             } else {
+              const setCookie = res.getHeaders()["set-cookie"];
               console.log("[session] Session saved for user:", user.username);
+              console.log("[session] Set-Cookie header:", setCookie);
+              console.log("[session] Session ID:", req.sessionID);
               resolve();
             }
           });
