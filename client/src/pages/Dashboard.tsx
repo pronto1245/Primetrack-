@@ -447,7 +447,7 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
 
       {/* Advertiser Card for Publisher */}
       {role === "publisher" && selectedAdvertiser && (
-        <div className="p-3 mb-36">
+        <div className="p-3 mt-8 mb-36">
           <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-lg p-3 border border-border" data-testid="advertiser-card">
             <div className="flex items-center gap-3 mb-3">
               {selectedAdvertiser.logoUrl ? (
