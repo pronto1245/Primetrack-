@@ -496,14 +496,33 @@ export async function registerRoutes(
           });
         }
 
-        // Set session data
+        // Set session data and save explicitly
         req.session.userId = user.id;
         req.session.role = user.role;
         delete req.session.isStaff;
         delete req.session.staffRole;
         delete req.session.staffAdvertiserId;
         
-        console.log("[session] Session created for user:", user.username, "sessionID:", req.sessionID);
+        // Force session save and manually set cookie
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("[session] Save error:", err);
+              reject(err);
+            } else {
+              console.log("[session] Session saved for user:", user.username, "sessionID:", req.sessionID);
+              resolve();
+            }
+          });
+        });
+        
+        // Manually set cookie header if not set by express-session
+        const existingCookie = res.getHeader("set-cookie");
+        if (!existingCookie) {
+          const cookieValue = `sid=${req.sessionID}; Path=/; HttpOnly; Max-Age=86400; SameSite=None; Secure`;
+          res.setHeader("Set-Cookie", cookieValue);
+          console.log("[session] Manually set cookie:", cookieValue);
+        }
 
         const needsSetup2FA = !user.twoFactorEnabled && !user.twoFactorSetupCompleted;
 
