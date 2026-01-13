@@ -4971,7 +4971,13 @@ export async function registerRoutes(
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        // CR/AR/EPC are aggregate metrics - only calculated in summary, not per row
+        // Per-row metrics
+        // CR = conversions / clicks * 100 (for single click: 0% or 100% based on conversion)
+        const cr = conversionCount > 0 ? (conversionCount / 1) * 100 : 0;
+        // AR = approved / total conversions * 100
+        const ar = conversionCount > 0 ? (approvedCount / conversionCount) * 100 : 0;
+        // EPC = payout / clicks (for single click = payout)
+        const epc = payout;
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
@@ -4987,6 +4993,9 @@ export async function registerRoutes(
             leads,
             sales,
             payout,
+            cr,
+            ar,
+            epc,
           };
         }
         
@@ -5004,6 +5013,9 @@ export async function registerRoutes(
           advertiserCost: cost,
           margin,
           roi,
+          cr,
+          ar,
+          epc,
         };
       });
 
