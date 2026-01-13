@@ -83,18 +83,18 @@ export class Orchestrator {
       publisherId: click.publisherId,
       conversionType: event.status,
       advertiserCost: advertiserCost.toString(),
-      publisherPayout: isFraudulent ? "0" : publisherPayout.toString(), // No payout for fraud
+      publisherPayout: publisherPayout.toString(), // Full payout - no cuts, fraud info in click.antifraudAction
       transactionSum: event.sum?.toString(),
       currency: offer.currency,
       status: conversionStatus,
-      holdUntil: isFraudulent ? undefined : holdUntil,
+      holdUntil,
       externalId: event.externalId,
     };
     
     const conversion = await storage.createConversion(conversionData);
     
-    // Notify advertiser about auto-rejected fraud conversion
-    if (isFraudulent) {
+    // Notify advertiser about suspected fraud conversion
+    if (isFraudulent || shouldHoldForFraud) {
       try {
         await storage.createNotification({
           senderId: offer.advertiserId,
@@ -102,13 +102,13 @@ export class Orchestrator {
           recipientId: offer.advertiserId,
           advertiserScopeId: offer.advertiserId,
           type: "antifraud",
-          title: "Конверсия отклонена (антифрод)",
-          body: `Конверсия автоматически отклонена из-за фродового клика. Причина: ${antifraudAction}. Click ID: ${click.clickId}`,
+          title: "⚠️ Подозрение на фрод",
+          body: `Конверсия помечена антифрод-системой. Причина: ${antifraudAction}. Click ID: ${click.clickId}. Выплата не изменена.`,
           entityType: "conversion",
           entityId: conversion.id,
         });
       } catch (err) {
-        console.error("[Orchestrator] Failed to send fraud rejection notification:", err);
+        console.error("[Orchestrator] Failed to send fraud notification:", err);
       }
     }
     
@@ -119,8 +119,10 @@ export class Orchestrator {
       console.error(`[Orchestrator] Postback send failed for conversion ${conversion.id}:`, error);
     });
 
-    // Send webhook notification to advertiser
+    // Send webhook notification to advertiser (with fraud flag if applicable)
     const webhookEventType = event.status as "lead" | "sale" | "install";
+    const fraudFlag = isFraudulent ? { suspectedFraud: true, fraudReason: antifraudAction } : {};
+    
     if (webhookEventType === "lead") {
       webhookService.notifyLead(offer.advertiserId, conversion.id, click.offerId, click.publisherId, {
         clickId: click.clickId,
@@ -128,6 +130,7 @@ export class Orchestrator {
         revenue: advertiserCost,
         country: click.geo || undefined,
         subId: click.sub1 || undefined,
+        ...fraudFlag,
       }).catch(console.error);
     } else if (webhookEventType === "sale") {
       webhookService.notifySale(offer.advertiserId, conversion.id, click.offerId, click.publisherId, {
@@ -137,6 +140,7 @@ export class Orchestrator {
         revenue: advertiserCost,
         currency: offer.currency || undefined,
         orderId: event.externalId,
+        ...fraudFlag,
       }).catch(console.error);
     } else if (webhookEventType === "install") {
       webhookService.triggerEvent(offer.advertiserId, "install", {
@@ -146,19 +150,22 @@ export class Orchestrator {
         clickId: click.clickId,
         payout: publisherPayout,
         revenue: advertiserCost,
+        ...fraudFlag,
       }, click.offerId, click.publisherId).catch(console.error);
     }
 
     // Send Telegram notifications (async, non-blocking)
     const offerName = offer.name || "Оффер";
     const geo = click.geo || undefined;
+    const fraudWarning = isFraudulent ? " ⚠️" : "";
+    const fraudNote = isFraudulent ? { "⚠️ Антифрод": antifraudAction } : {};
     
     if (webhookEventType === "lead") {
       // Notify publisher about new lead
       telegramService.notifyNewLead(
         click.publisherId,
         offer.advertiserId,
-        offerName,
+        offerName + fraudWarning,
         publisherPayout,
         geo
       ).catch(err => console.error("[Orchestrator] Telegram lead notification failed:", err));
@@ -167,12 +174,13 @@ export class Orchestrator {
       telegramService.notifyUser(
         offer.advertiserId,
         "lead",
-        "Новый лид!",
+        isFraudulent ? "Новый лид! ⚠️ Подозрение на фрод" : "Новый лид!",
         {
           Оффер: offerName,
           Партнёр: click.publisherId.slice(0, 8),
           Стоимость: `$${advertiserCost.toFixed(2)}`,
           ГЕО: geo || "—",
+          ...fraudNote,
         }
       ).catch(err => console.error("[Orchestrator] Telegram advertiser lead notification failed:", err));
     } else if (webhookEventType === "sale") {
@@ -180,7 +188,7 @@ export class Orchestrator {
       telegramService.notifyNewSale(
         click.publisherId,
         offer.advertiserId,
-        offerName,
+        offerName + fraudWarning,
         event.sum || 0,
         publisherPayout,
         geo
@@ -190,13 +198,14 @@ export class Orchestrator {
       telegramService.notifyUser(
         offer.advertiserId,
         "sale",
-        "Новая продажа!",
+        isFraudulent ? "Новая продажа! ⚠️ Подозрение на фрод" : "Новая продажа!",
         {
           Оффер: offerName,
           Партнёр: click.publisherId.slice(0, 8),
           Сумма: event.sum ? `$${event.sum.toFixed(2)}` : "—",
           Стоимость: `$${advertiserCost.toFixed(2)}`,
           ГЕО: geo || "—",
+          ...fraudNote,
         }
       ).catch(err => console.error("[Orchestrator] Telegram advertiser sale notification failed:", err));
     }
