@@ -1523,35 +1523,6 @@ export class DatabaseStorage implements IStorage {
     if (filters.offerIds?.length) {
       allClicks = allClicks.filter(c => filters.offerIds!.includes(c.offerId));
     }
-    
-    // Get all unique offer IDs from clicks for payout map
-    const clickOfferIds = Array.from(new Set(allClicks.map(c => c.offerId)));
-    
-    // Get offers with partnerPayout for EPC calculation
-    const clickOffers = clickOfferIds.length > 0 
-      ? await db.select({ id: offers.id, partnerPayout: offers.partnerPayout })
-          .from(offers).where(inArray(offers.id, clickOfferIds))
-      : [];
-    
-    // Get landing payouts as fallback when offer.partnerPayout is NULL
-    const landingPayouts = clickOfferIds.length > 0 
-      ? await db.select({ offerId: offerLandings.offerId, partnerPayout: offerLandings.partnerPayout })
-          .from(offerLandings).where(inArray(offerLandings.offerId, clickOfferIds))
-      : [];
-    
-    // Build landing payout map (first landing per offer)
-    const landingPayoutMap = new Map<string, number>();
-    for (const lp of landingPayouts) {
-      if (!landingPayoutMap.has(lp.offerId)) {
-        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
-      }
-    }
-    
-    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout
-    const offerPayoutMap = new Map(clickOffers.map(o => {
-      const offerPayout = parseFloat(o.partnerPayout || '0');
-      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
-    }));
     if (filters.dateFrom) {
       allClicks = allClicks.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
     }
@@ -1585,6 +1556,38 @@ export class DatabaseStorage implements IStorage {
     if (filters.status?.length) {
       allConversions = allConversions.filter(c => filters.status!.includes(c.status));
     }
+
+    // Get all unique offer IDs from BOTH clicks AND conversions for payout map
+    const allOfferIds = Array.from(new Set([
+      ...allClicks.map(c => c.offerId),
+      ...allConversions.map(c => c.offerId)
+    ]));
+    
+    // Get offers with partnerPayout for EPC calculation
+    const pubOffers = allOfferIds.length > 0 
+      ? await db.select({ id: offers.id, partnerPayout: offers.partnerPayout })
+          .from(offers).where(inArray(offers.id, allOfferIds))
+      : [];
+    
+    // Get landing payouts as fallback when offer.partnerPayout is NULL
+    const pubLandingPayouts = allOfferIds.length > 0 
+      ? await db.select({ offerId: offerLandings.offerId, partnerPayout: offerLandings.partnerPayout })
+          .from(offerLandings).where(inArray(offerLandings.offerId, allOfferIds))
+      : [];
+    
+    // Build landing payout map (first landing per offer)
+    const landingPayoutMap = new Map<string, number>();
+    for (const lp of pubLandingPayouts) {
+      if (!landingPayoutMap.has(lp.offerId)) {
+        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
+      }
+    }
+    
+    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout
+    const offerPayoutMap = new Map(pubOffers.map(o => {
+      const offerPayout = parseFloat(o.partnerPayout || '0');
+      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
+    }));
 
     // Calculate totals
     const totalClicks = allClicks.length;
@@ -4155,7 +4158,6 @@ export class DatabaseStorage implements IStorage {
         approvedConversions: convData.approved,
         totalEarnings
       });
-      console.log(`[ADV-METRICS] offerId=${offerId.slice(0,8)} clicks=${clickCount} conv=${convData.count} payout=${partnerPayout} earnings=${totalEarnings} -> CR=${metrics.cr}% AR=${metrics.ar}% EPC=$${metrics.epc}`);
       return { 
         offerId, 
         clicks: clickCount, 
