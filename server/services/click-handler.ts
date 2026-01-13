@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { storage } from "../storage";
 import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
+import { antiFraudService, type FraudSignals } from "./antifraud-service";
 
 interface ClickParams {
   offerId: string;
@@ -117,6 +118,27 @@ export class ClickHandler {
       isUnique,
     });
     
+    // Run full antifraud evaluation with rules and velocity checks
+    const fraudSignals: FraudSignals = {
+      ip: params.ip,
+      userAgent: params.userAgent,
+      country: detectedGeo,
+      fingerprint: params.visitorId,
+      isProxy: fraudCheck.isProxy,
+      isVpn: fraudCheck.isVpn,
+      isBot: parsedUA.isBot,
+      isDatacenter: fraudCheck.isDatacenter,
+      fraudScore: fraudCheck.score,
+      signals: suspiciousAnalysis.reasons,
+    };
+    
+    const antifraudResult = await antiFraudService.evaluateClick(
+      params.offerId,
+      offer.advertiserId,
+      params.partnerId,
+      fraudSignals
+    );
+    
     const clickIdParam = landing.clickIdParam || "click_id";
     const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params, clickIdParam);
     
@@ -152,8 +174,12 @@ export class ClickHandler {
       isVpn: fraudCheck.isVpn,
       isTor: fraudCheck.isTor,
       isDatacenter: fraudCheck.isDatacenter,
-      isSuspicious: suspiciousAnalysis.isSuspicious,
+      isSuspicious: suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow",
       suspiciousReasons: suspiciousAnalysis.reasons.length > 0 ? JSON.stringify(suspiciousAnalysis.reasons) : null,
+      antifraudAction: antifraudResult.action,
+      matchedRuleIds: antifraudResult.matchedRules.length > 0 
+        ? JSON.stringify(antifraudResult.matchedRules.map(r => r.id)) 
+        : null,
       isp: ipIntel?.isp,
       asn: ipIntel?.asn,
       visitorId: params.visitorId,
@@ -163,16 +189,44 @@ export class ClickHandler {
     
     const savedClick = await storage.createClick(clickData);
     
+    // Create antifraud log entry
+    if (antifraudResult.action !== "allow" || antifraudResult.matchedRules.length > 0) {
+      try {
+        await storage.createAntifraudLog({
+          advertiserId: offer.advertiserId,
+          offerId: params.offerId,
+          publisherId: params.partnerId,
+          clickId: savedClick.id,
+          action: antifraudResult.action,
+          fraudScore: antifraudResult.fraudScore,
+          isProxy: fraudSignals.isProxy,
+          isVpn: fraudSignals.isVpn,
+          isBot: fraudSignals.isBot,
+          isDatacenter: fraudSignals.isDatacenter,
+          matchedRuleIds: antifraudResult.matchedRules.map(r => r.id),
+          signals: JSON.stringify(fraudSignals.signals),
+          ip: params.ip,
+          userAgent: params.userAgent,
+          country: detectedGeo,
+        });
+      } catch (logError) {
+        console.error("Failed to create antifraud log:", logError);
+      }
+    }
+    
     // Send notification for suspicious traffic
-    if (suspiciousAnalysis.isSuspicious) {
+    if (suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow") {
       this.notifySuspiciousTraffic(offer.advertiserId, params.offerId, clickId, suspiciousAnalysis.reasons);
     }
     
+    // Determine if click should be blocked
+    const isBlocked = antifraudResult.action === "block" || fraudCheck.score >= 80;
+    
     return {
       clickId,
-      redirectUrl,
-      fraudScore: fraudCheck.score,
-      isBlocked: fraudCheck.score >= 80,
+      redirectUrl: isBlocked ? "" : redirectUrl,
+      fraudScore: antifraudResult.fraudScore,
+      isBlocked,
     };
   }
   

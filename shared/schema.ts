@@ -249,6 +249,10 @@ export const clicks = pgTable("clicks", {
   isSuspicious: boolean("is_suspicious").default(false),
   suspiciousReasons: text("suspicious_reasons"), // JSON array of reasons
   
+  // Antifraud decision (from AntiFraudService.evaluateClick)
+  antifraudAction: text("antifraud_action").default("allow"), // allow, block, hold, flag, reject
+  matchedRuleIds: text("matched_rule_ids"), // JSON array of matched rule IDs
+  
   // Enhanced GEO from IP Intelligence (ipinfo.io)
   region: text("region"), // State/Province
   isp: text("isp"), // Internet Service Provider
