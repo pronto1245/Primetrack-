@@ -482,6 +482,11 @@ export async function registerRoutes(
           });
         }
 
+        // Debug: log request security info
+        console.log("[session] req.secure:", req.secure);
+        console.log("[session] x-forwarded-proto:", req.headers["x-forwarded-proto"]);
+        console.log("[session] cookie.secure:", req.session.cookie.secure);
+        
         // Regenerate session to get new session ID and Set-Cookie header
         await new Promise<void>((resolve, reject) => {
           req.session.regenerate((err) => {
@@ -499,6 +504,7 @@ export async function registerRoutes(
                   const setCookie = res.getHeaders()["set-cookie"];
                   console.log("[session] Session created for user:", user.username);
                   console.log("[session] Set-Cookie:", setCookie);
+                  console.log("[session] After regenerate cookie.secure:", req.session.cookie.secure);
                   resolve();
                 }
               });
