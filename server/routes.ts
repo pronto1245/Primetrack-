@@ -475,6 +475,12 @@ export async function registerRoutes(
         // Check if 2FA is enabled - don't create full session yet
         if (user.twoFactorEnabled) {
           req.session.pending2FAUserId = user.id;
+          
+          // Set cookie security based on request protocol BEFORE save
+          const isSecure2FA = req.secure || req.headers["x-forwarded-proto"]?.toString().includes("https");
+          req.session.cookie.secure = isSecure2FA;
+          req.session.cookie.sameSite = isSecure2FA ? "none" : "lax";
+          
           await new Promise<void>((resolve, reject) => {
             req.session.save((err) => {
               if (err) reject(err);
@@ -493,13 +499,18 @@ export async function registerRoutes(
         delete req.session.staffRole;
         delete req.session.staffAdvertiserId;
 
+        // Set cookie security based on request protocol BEFORE save
+        const isSecure = req.secure || req.headers["x-forwarded-proto"]?.toString().includes("https");
+        req.session.cookie.secure = isSecure;
+        req.session.cookie.sameSite = isSecure ? "none" : "lax";
+
         await new Promise<void>((resolve, reject) => {
           req.session.save((err) => {
             if (err) {
               console.error("[session] Failed to save session:", err);
               reject(err);
             } else {
-              console.log("[session] Session saved successfully for user:", user.username);
+              console.log("[session] Session saved successfully for user:", user.username, "secure:", isSecure);
               resolve();
             }
           });
@@ -536,13 +547,18 @@ export async function registerRoutes(
       req.session.staffRole = staff.staffRole;
       req.session.staffAdvertiserId = staff.advertiserId;
 
+      // Set cookie security based on request protocol BEFORE save
+      const isSecureStaff = req.secure || req.headers["x-forwarded-proto"]?.toString().includes("https");
+      req.session.cookie.secure = isSecureStaff;
+      req.session.cookie.sameSite = isSecureStaff ? "none" : "lax";
+
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
             console.error("[session] Failed to save staff session:", err);
             reject(err);
           } else {
-            console.log("[session] Staff session saved for:", staff.email, "role:", staff.staffRole);
+            console.log("[session] Staff session saved for:", staff.email, "role:", staff.staffRole, "secure:", isSecureStaff);
             resolve();
           }
         });
@@ -592,13 +608,18 @@ export async function registerRoutes(
       req.session.userId = user.id;
       req.session.role = user.role;
 
+      // Set cookie security based on request protocol BEFORE save
+      const isSecure2FA = req.secure || req.headers["x-forwarded-proto"]?.toString().includes("https");
+      req.session.cookie.secure = isSecure2FA;
+      req.session.cookie.sameSite = isSecure2FA ? "none" : "lax";
+
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
             console.error("[session] Failed to save session:", err);
             reject(err);
           } else {
-            console.log("[session] 2FA verified, session saved for user:", user.username);
+            console.log("[session] 2FA verified, session saved for user:", user.username, "secure:", isSecure2FA);
             resolve();
           }
         });
