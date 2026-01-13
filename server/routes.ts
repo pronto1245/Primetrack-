@@ -4961,6 +4961,7 @@ export async function registerRoutes(
       result.clicks = result.clicks.map((click: any) => {
         const clickConversions = allConversions.conversions.filter((conv: any) => conv.clickId === click.id);
         const conversionCount = clickConversions.length;
+        const approvedCount = clickConversions.filter((conv: any) => conv.status === 'approved').length;
         const hasConversion = conversionCount > 0;
         // Count leads and sales by conversion type
         const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
@@ -4972,6 +4973,10 @@ export async function registerRoutes(
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
         // CR for a single click: 0% or 100% (or more if multiple conversions)
         const cr = hasConversion ? (conversionCount * 100) : 0;
+        // AR = approved / total conversions × 100
+        const ar = conversionCount > 0 ? (approvedCount / conversionCount * 100) : 0;
+        // EPC = payout / 1 click
+        const epc = payout;
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
@@ -4983,10 +4988,13 @@ export async function registerRoutes(
             hasConversion,
             clicks: 1,
             conversions: conversionCount,
+            approvedConversions: approvedCount,
             leads,
             sales,
             payout,
             cr,
+            ar,
+            epc,
           };
         }
         
@@ -4997,6 +5005,7 @@ export async function registerRoutes(
           hasConversion,
           clicks: 1,
           conversions: conversionCount,
+          approvedConversions: approvedCount,
           leads,
           sales,
           payout,
@@ -5004,6 +5013,8 @@ export async function registerRoutes(
           margin,
           roi,
           cr,
+          ar,
+          epc,
         };
       });
 
@@ -5012,15 +5023,18 @@ export async function registerRoutes(
         clicks: acc.clicks + 1,
         uniqueClicks: acc.uniqueClicks + (click.isUnique ? 1 : 0),
         conversions: acc.conversions + (click.conversions || 0),
+        approvedConversions: acc.approvedConversions + (click.approvedConversions || 0),
         leads: acc.leads + (click.leads || 0),
         sales: acc.sales + (click.sales || 0),
         payout: acc.payout + (click.payout || 0),
         advertiserCost: acc.advertiserCost + (click.advertiserCost || 0),
-      }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
+      }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
 
       summary.margin = summary.advertiserCost - summary.payout;
       summary.roi = summary.advertiserCost > 0 ? ((summary.margin / summary.advertiserCost) * 100) : 0;
       summary.cr = summary.clicks > 0 ? ((summary.conversions / summary.clicks) * 100) : 0;
+      summary.ar = summary.conversions > 0 ? ((summary.approvedConversions / summary.conversions) * 100) : 0;
+      summary.epc = summary.clicks > 0 ? (summary.payout / summary.clicks) : 0;
 
       res.json({ ...result, summary });
     } catch (error: any) {

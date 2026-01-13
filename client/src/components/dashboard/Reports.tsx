@@ -365,6 +365,8 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
   let margin: number;
   let roi: number;
   let cr: number;
+  let ar: number;
+  let epc: number;
   
   if (useClicksSummary && data?.summary) {
     // Use pre-calculated summary from /api/reports/clicks
@@ -372,6 +374,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
       clicks: data.summary.clicks || 0,
       uniqueClicks: data.summary.uniqueClicks || 0,
       conversions: data.summary.conversions || 0,
+      approvedConversions: data.summary.approvedConversions || 0,
       leads: data.summary.leads || 0,
       sales: data.summary.sales || 0,
       payout: data.summary.payout || 0,
@@ -380,6 +383,8 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
     margin = data.summary.margin || 0;
     roi = data.summary.roi || 0;
     cr = data.summary.cr || 0;
+    ar = data.summary.ar || (totals.conversions > 0 ? (totals.approvedConversions / totals.conversions) * 100 : 0);
+    epc = data.summary.epc || (totals.clicks > 0 ? totals.payout / totals.clicks : 0);
   } else {
     // Calculate from rows (grouped data) - groupedData uses 'data' not 'rows'
     const rows = data?.data || data?.rows || [];
@@ -387,15 +392,18 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
       clicks: acc.clicks + (row.clicks || 0),
       uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
       conversions: acc.conversions + (row.conversions || 0),
+      approvedConversions: acc.approvedConversions + (row.approvedConversions || 0),
       leads: acc.leads + (row.leads || 0),
       sales: acc.sales + (row.sales || 0),
       payout: acc.payout + (row.payout || 0),
       cost: acc.cost + (row.cost || 0),
-    }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+    }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
     
     margin = totals.cost - totals.payout;
     roi = totals.cost > 0 ? ((margin / totals.cost) * 100) : 0;
     cr = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
+    ar = totals.conversions > 0 ? ((totals.approvedConversions / totals.conversions) * 100) : 0;
+    epc = totals.clicks > 0 ? (totals.payout / totals.clicks) : 0;
   }
 
   if (loading) {
@@ -423,7 +431,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-emerald-400 mb-1">{t('stats.conversions') || 'Conv'}</div>
           <div className="text-xl font-bold text-emerald-400">{totals.conversions}</div>
-          <div className="text-[10px] text-yellow-400">CR: {cr.toFixed(2)}%</div>
+          <div className="text-[10px] text-yellow-400">CR: {cr.toFixed(2)}% | AR: {ar.toFixed(2)}% | EPC: ${epc.toFixed(2)}</div>
         </CardContent>
       </Card>
       <Card className="bg-green-500/5 border-green-500/30 hover:border-green-500/50 transition-colors">
@@ -496,13 +504,16 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
     clicks: summary.clicks || 0,
     uniqueClicks: summary.uniqueClicks || 0,
     conversions: summary.conversions || 0,
+    approvedConversions: summary.approvedConversions || 0,
     leads: summary.leads || 0,
     sales: summary.sales || 0,
     payout: summary.payout || 0,
     cost: summary.advertiserCost || 0,
-  } : { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 };
+  } : { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 };
   
   const cr = summary?.cr || (totals.clicks > 0 ? (totals.conversions / totals.clicks * 100) : 0);
+  const ar = summary?.ar || (totals.conversions > 0 ? (totals.approvedConversions / totals.conversions * 100) : 0);
+  const epc = summary?.epc || (totals.clicks > 0 ? (totals.payout / totals.clicks) : 0);
   const margin = summary?.margin || (totals.cost - totals.payout);
   const roi = summary?.roi || (totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0);
 
@@ -530,6 +541,8 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.sales') || 'Sales'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.conv') || 'Conv'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
+                <th className="px-4 py-3 font-medium text-right">AR%</th>
+                <th className="px-4 py-3 font-medium text-right">EPC</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
                 {isAdvertiser && (
                   <>
@@ -613,6 +626,12 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     <td className="px-4 py-3 text-right text-cyan-400">
                       {click.cr !== undefined ? `${click.cr.toFixed(0)}%` : '-'}
                     </td>
+                    <td className="px-4 py-3 text-right text-pink-400">
+                      {click.ar !== undefined ? `${click.ar.toFixed(0)}%` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-teal-400">
+                      {click.epc !== undefined ? `$${click.epc.toFixed(2)}` : '-'}
+                    </td>
                     <td className="px-4 py-3 text-right text-emerald-400">
                       {click.payout !== undefined ? `$${click.payout.toFixed(2)}` : '-'}
                     </td>
@@ -654,6 +673,8 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <td className="px-4 py-3 text-right text-orange-400">{totals.sales}</td>
                 <td className="px-4 py-3 text-right text-emerald-400 font-bold">{totals.conversions}</td>
                 <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>
+                <td className="px-4 py-3 text-right text-pink-400">{ar.toFixed(2)}%</td>
+                <td className="px-4 py-3 text-right text-teal-400">${epc.toFixed(2)}</td>
                 <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                 {isAdvertiser && (
                   <>
@@ -890,15 +911,18 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
     clicks: acc.clicks + (row.clicks || 0),
     uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
     conversions: acc.conversions + (row.conversions || 0),
+    approvedConversions: acc.approvedConversions + (row.approvedConversions || 0),
     leads: acc.leads + (row.leads || 0),
     sales: acc.sales + (row.sales || 0),
     payout: acc.payout + (row.payout || 0),
     cost: acc.cost + (row.cost || 0),
-  }), { clicks: 0, uniqueClicks: 0, conversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+  }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
 
   const totalMargin = totals.cost - totals.payout;
   const totalROI = totals.cost > 0 ? ((totalMargin / totals.cost) * 100) : 0;
   const totalCR = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
+  const totalAR = totals.conversions > 0 ? ((totals.approvedConversions / totals.conversions) * 100) : 0;
+  const totalEPC = totals.clicks > 0 ? (totals.payout / totals.clicks) : 0;
 
   return (
     <Card className="bg-card border-border">
@@ -914,6 +938,8 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.sales') || 'Sales'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.conv') || 'Conv'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
+                <th className="px-4 py-3 font-medium text-right">AR%</th>
+                <th className="px-4 py-3 font-medium text-right">EPC</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
                 {isAdvertiser && (
                   <>
@@ -927,7 +953,7 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
             <tbody className="divide-y divide-white/5">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdvertiser ? 11 : 8} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={isAdvertiser ? 13 : 10} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -938,6 +964,8 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                   const margin = cost - payout;
                   const roi = cost > 0 ? ((margin / cost) * 100) : 0;
                   const cr = row.clicks > 0 ? ((row.conversions / row.clicks) * 100) : 0;
+                  const ar = row.conversions > 0 ? (((row.approvedConversions || 0) / row.conversions) * 100) : 0;
+                  const epc = row.clicks > 0 ? (payout / row.clicks) : 0;
                   
                   return (
                     <tr key={i} className="hover:bg-muted transition-colors">
@@ -948,6 +976,8 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                       <td className="px-4 py-3 text-right text-purple-400">{row.sales || 0}</td>
                       <td className="px-4 py-3 text-right text-foreground font-bold">{row.conversions || 0}</td>
                       <td className="px-4 py-3 text-right text-yellow-400">{cr.toFixed(2)}%</td>
+                      <td className="px-4 py-3 text-right text-pink-400">{ar.toFixed(2)}%</td>
+                      <td className="px-4 py-3 text-right text-teal-400">${epc.toFixed(2)}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">${payout.toFixed(2)}</td>
                       {isAdvertiser && (
                         <>
@@ -975,6 +1005,8 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                   <td className="px-4 py-3 text-right text-purple-400">{totals.sales}</td>
                   <td className="px-4 py-3 text-right text-foreground">{totals.conversions}</td>
                   <td className="px-4 py-3 text-right text-yellow-400">{totalCR.toFixed(2)}%</td>
+                  <td className="px-4 py-3 text-right text-pink-400">{totalAR.toFixed(2)}%</td>
+                  <td className="px-4 py-3 text-right text-teal-400">${totalEPC.toFixed(2)}</td>
                   <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                   {isAdvertiser && (
                     <>

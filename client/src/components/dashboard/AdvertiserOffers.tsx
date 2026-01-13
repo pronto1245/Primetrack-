@@ -117,7 +117,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
     },
   });
 
-  const { data: offerStats } = useQuery<{ offerId: string; clicks: number; conversions: number; cr: number }[]>({
+  const { data: offerStats } = useQuery<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]>({
     queryKey: ["/api/offers/stats"],
     queryFn: async () => {
       const res = await fetch("/api/offers/stats", { credentials: "include" });
@@ -127,8 +127,8 @@ export function AdvertiserOffers({ role }: { role: string }) {
   });
 
   const statsMap = useMemo(() => {
-    if (!offerStats) return new Map<string, { clicks: number; conversions: number; cr: number }>();
-    return new Map(offerStats.map(s => [s.offerId, { clicks: s.clicks, conversions: s.conversions, cr: s.cr }]));
+    if (!offerStats) return new Map<string, { clicks: number; conversions: number; cr: number; ar: number; epc: number }>();
+    return new Map(offerStats.map(s => [s.offerId, { clicks: s.clicks, conversions: s.conversions, cr: s.cr, ar: s.ar || 0, epc: s.epc || 0 }]));
   }, [offerStats]);
 
   const categories = useMemo(() => {
@@ -373,6 +373,8 @@ export function AdvertiserOffers({ role }: { role: string }) {
                   <th className="px-4 py-3 font-medium w-[200px]">{t('dashboard.offers.name')}</th>
                   <th className="px-4 py-3 font-medium w-[100px]">{t('dashboard.offers.category')}</th>
                   <th className="px-4 py-3 font-medium w-[70px]">CR%</th>
+                  <th className="px-4 py-3 font-medium w-[70px]">AR%</th>
+                  <th className="px-4 py-3 font-medium w-[70px]">EPC</th>
                   <th className="px-4 py-3 font-medium w-[120px]">Partner Payout</th>
                   <th className="px-4 py-3 font-medium w-[120px]">{t('dashboard.offers.geo')}</th>
                   <th className="px-4 py-3 font-medium w-[110px]">Internal Cost</th>
@@ -430,6 +432,20 @@ export function AdvertiserOffers({ role }: { role: string }) {
                         const stats = statsMap.get(offer.id);
                         if (!stats || stats.clicks === 0) return "—";
                         return `${stats.cr}%`;
+                      })()}
+                    </td>
+                    <td className="px-4 py-3 text-pink-400 font-medium" data-testid={`text-ar-${offer.id}`}>
+                      {(() => {
+                        const stats = statsMap.get(offer.id);
+                        if (!stats || stats.conversions === 0) return "—";
+                        return `${stats.ar?.toFixed(1) || 0}%`;
+                      })()}
+                    </td>
+                    <td className="px-4 py-3 text-teal-400 font-medium" data-testid={`text-epc-${offer.id}`}>
+                      {(() => {
+                        const stats = statsMap.get(offer.id);
+                        if (!stats || stats.clicks === 0) return "—";
+                        return `$${stats.epc?.toFixed(2) || '0.00'}`;
                       })()}
                     </td>
                     <td className="px-4 py-3 text-emerald-400 font-bold" data-testid={`text-payout-${offer.id}`}>

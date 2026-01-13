@@ -65,11 +65,13 @@ export interface AdvertiserStatsResult {
   totalLeads: number;
   totalSales: number;
   totalConversions: number;
+  approvedConversions: number;
   advertiserCost: number;
   publisherPayout: number;
   margin: number;
   roi: number;
   cr: number;
+  ar: number;
   epc: number;
   byOffer: Array<{
     offerId: string;
@@ -77,10 +79,14 @@ export interface AdvertiserStatsResult {
     clicks: number;
     leads: number;
     sales: number;
+    conversions: number;
+    approvedConversions: number;
     advertiserCost: number;
     publisherPayout: number;
     margin: number;
     cr: number;
+    ar: number;
+    epc: number;
   }>;
   byPublisher: Array<{
     publisherId: string;
@@ -120,10 +126,12 @@ export interface PublisherStatsResult {
   totalLeads: number;
   totalSales: number;
   totalConversions: number;
+  approvedConversions: number;
   totalPayout: number;
   holdPayout: number;
   approvedPayout: number;
   cr: number;
+  ar: number;
   epc: number;
   byOffer: Array<{
     offerId: string;
@@ -131,10 +139,14 @@ export interface PublisherStatsResult {
     clicks: number;
     leads: number;
     sales: number;
+    conversions: number;
+    approvedConversions: number;
     payout: number;
     holdPayout: number;
     approvedPayout: number;
     cr: number;
+    ar: number;
+    epc: number;
     status: string;
   }>;
   byDate: Array<{
@@ -412,8 +424,8 @@ export interface IStorage {
   deletePublisherPostbackEndpoint(id: string): Promise<void>;
   
   // Offer Performance Stats
-  getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]>;
-  getOfferPerformanceByPublisher(publisherId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]>;
+  getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]>;
+  getOfferPerformanceByPublisher(publisherId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]>;
   
   // Custom Domains - Admin request workflow
   getAllDomainRequests(): Promise<(CustomDomain & { advertiser: User })[]>;
@@ -1151,8 +1163,8 @@ export class DatabaseStorage implements IStorage {
     
     if (offerIds.length === 0) {
       return {
-        totalClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0,
-        advertiserCost: 0, publisherPayout: 0, margin: 0, roi: 0, cr: 0, epc: 0,
+        totalClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0, approvedConversions: 0,
+        advertiserCost: 0, publisherPayout: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0,
         byOffer: [], byPublisher: [], byDate: [], byGeo: []
       };
     }
@@ -1211,11 +1223,13 @@ export class DatabaseStorage implements IStorage {
     const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
     const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
     const totalConversions = allConversions.length;
+    const approvedConversions = allConversions.filter(c => c.status === 'approved').length;
     const advertiserCost = allConversions.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
     const publisherPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const margin = advertiserCost - publisherPayout;
     const roi = publisherPayout > 0 ? ((margin / publisherPayout) * 100) : 0;
     const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+    const ar = totalConversions > 0 ? (approvedConversions / totalConversions) * 100 : 0;
     const epc = totalClicks > 0 ? advertiserCost / totalClicks : 0;
 
     // Group by offer
@@ -1223,6 +1237,7 @@ export class DatabaseStorage implements IStorage {
       const offer = advertiserOffers.find(o => o.id === offerId)!;
       const offerClicks = allClicks.filter(c => c.offerId === offerId);
       const offerConvs = allConversions.filter(c => c.offerId === offerId);
+      const offerApprovedConvs = offerConvs.filter(c => c.status === 'approved').length;
       const offerAdvCost = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
       const offerPubPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
       return {
@@ -1231,10 +1246,14 @@ export class DatabaseStorage implements IStorage {
         clicks: offerClicks.length,
         leads: offerConvs.filter(c => c.conversionType === 'lead').length,
         sales: offerConvs.filter(c => c.conversionType === 'sale').length,
+        conversions: offerConvs.length,
+        approvedConversions: offerApprovedConvs,
         advertiserCost: offerAdvCost,
         publisherPayout: offerPubPayout,
         margin: offerAdvCost - offerPubPayout,
-        cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0
+        cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0,
+        ar: offerConvs.length > 0 ? (offerApprovedConvs / offerConvs.length) * 100 : 0,
+        epc: offerClicks.length > 0 ? offerAdvCost / offerClicks.length : 0
       };
     }));
 
@@ -1303,8 +1322,8 @@ export class DatabaseStorage implements IStorage {
       .sort((a, b) => b.clicks - a.clicks);
 
     return {
-      totalClicks, totalLeads, totalSales, totalConversions,
-      advertiserCost, publisherPayout, margin, roi, cr, epc,
+      totalClicks, totalLeads, totalSales, totalConversions, approvedConversions,
+      advertiserCost, publisherPayout, margin, roi, cr, ar, epc,
       byOffer, byPublisher, byDate, byGeo
     };
   }
@@ -1470,12 +1489,14 @@ export class DatabaseStorage implements IStorage {
     const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
     const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
     const totalConversions = allConversions.length;
+    const approvedConversions = allConversions.filter(c => c.status === 'approved').length;
     const totalPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const holdPayout = allConversions.filter(c => c.status === 'hold' || c.status === 'pending')
       .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const approvedPayout = allConversions.filter(c => c.status === 'approved')
       .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+    const ar = totalConversions > 0 ? (approvedConversions / totalConversions) * 100 : 0;
     const epc = totalClicks > 0 ? totalPayout / totalClicks : 0;
 
     // Group by offer
@@ -1484,6 +1505,7 @@ export class DatabaseStorage implements IStorage {
       const offer = await this.getOffer(offerId);
       const offerClicks = allClicks.filter(c => c.offerId === offerId);
       const offerConvs = allConversions.filter(c => c.offerId === offerId);
+      const offerApprovedConvs = offerConvs.filter(c => c.status === 'approved').length;
       const offerPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
       const offerHoldPayout = offerConvs.filter(c => c.status === 'hold' || c.status === 'pending')
         .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
@@ -1495,10 +1517,14 @@ export class DatabaseStorage implements IStorage {
         clicks: offerClicks.length,
         leads: offerConvs.filter(c => c.conversionType === 'lead').length,
         sales: offerConvs.filter(c => c.conversionType === 'sale').length,
+        conversions: offerConvs.length,
+        approvedConversions: offerApprovedConvs,
         payout: offerPayout,
         holdPayout: offerHoldPayout,
         approvedPayout: offerApprovedPayout,
         cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0,
+        ar: offerConvs.length > 0 ? (offerApprovedConvs / offerConvs.length) * 100 : 0,
+        epc: offerClicks.length > 0 ? offerPayout / offerClicks.length : 0,
         status: offer?.status || 'unknown'
       };
     }));
@@ -1554,8 +1580,8 @@ export class DatabaseStorage implements IStorage {
       .map(([status, stats]) => ({ status, ...stats }));
 
     return {
-      totalClicks, totalLeads, totalSales, totalConversions,
-      totalPayout, holdPayout, approvedPayout, cr, epc,
+      totalClicks, totalLeads, totalSales, totalConversions, approvedConversions,
+      totalPayout, holdPayout, approvedPayout, cr, ar, epc,
       byOffer, byDate, byGeo, byStatus
     };
   }
@@ -2207,9 +2233,12 @@ export class DatabaseStorage implements IStorage {
       leads: number; 
       sales: number; 
       conversions: number;
+      approvedConversions: number;
       payout: number;
       cost: number;
       cr: number;
+      ar: number;
+      epc: number;
     }> = {};
     
     for (const click of allClicks) {
@@ -2256,7 +2285,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, cr: 0 };
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
       }
       grouped[key].clicks++;
       if (click.isUnique) grouped[key].uniqueClicks++;
@@ -2308,10 +2337,11 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, cr: 0 };
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
       }
       
       grouped[key].conversions++;
+      if (conv.status === "approved") grouped[key].approvedConversions++;
       if (conv.conversionType === "lead") grouped[key].leads++;
       if (conv.conversionType === "sale") grouped[key].sales++;
       grouped[key].payout += parseFloat(conv.publisherPayout);
@@ -2320,10 +2350,14 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Calculate CR
+    // Calculate CR, AR, EPC
     for (const key in grouped) {
       if (grouped[key].clicks > 0) {
         grouped[key].cr = (grouped[key].conversions / grouped[key].clicks) * 100;
+        grouped[key].epc = grouped[key].payout / grouped[key].clicks;
+      }
+      if (grouped[key].conversions > 0) {
+        grouped[key].ar = (grouped[key].approvedConversions / grouped[key].conversions) * 100;
       }
     }
     
@@ -3902,7 +3936,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]> {
+  async getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]> {
     const advertiserOffers = await db.select({ id: offers.id })
       .from(offers)
       .where(eq(offers.advertiserId, advertiserId));
@@ -3922,27 +3956,38 @@ export class DatabaseStorage implements IStorage {
       .where(inArray(clicks.offerId, offerIds))
       .groupBy(clicks.offerId);
     
-    const conversionCounts = await db
+    const conversionData = await db
       .select({
         offerId: conversions.offerId,
-        count: sql<number>`count(*)::int`
+        count: sql<number>`count(*)::int`,
+        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+        totalPayout: sql<number>`COALESCE(sum(${conversions.payout}), 0)::float`
       })
       .from(conversions)
       .where(inArray(conversions.offerId, offerIds))
       .groupBy(conversions.offerId);
     
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
-    const convMap = new Map(conversionCounts.map(c => [c.offerId, c.count]));
+    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount, payout: c.totalPayout }]));
     
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
-      const convCount = convMap.get(offerId) || 0;
-      const cr = clickCount > 0 ? (convCount / clickCount) * 100 : 0;
-      return { offerId, clicks: clickCount, conversions: convCount, cr: Math.round(cr * 10) / 10 };
+      const convData = convMap.get(offerId) || { count: 0, approved: 0, payout: 0 };
+      const cr = clickCount > 0 ? (convData.count / clickCount) * 100 : 0;
+      const ar = convData.count > 0 ? (convData.approved / convData.count) * 100 : 0;
+      const epc = clickCount > 0 ? convData.payout / clickCount : 0;
+      return { 
+        offerId, 
+        clicks: clickCount, 
+        conversions: convData.count, 
+        cr: Math.round(cr * 10) / 10,
+        ar: Math.round(ar * 10) / 10,
+        epc: Math.round(epc * 100) / 100
+      };
     });
   }
 
-  async getOfferPerformanceByPublisher(publisherId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number }[]> {
+  async getOfferPerformanceByPublisher(publisherId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]> {
     const clickCounts = await db
       .select({
         offerId: clicks.offerId,
@@ -3958,10 +4003,12 @@ export class DatabaseStorage implements IStorage {
     
     const offerIds = clickCounts.map(c => c.offerId);
     
-    const conversionCounts = await db
+    const conversionData = await db
       .select({
         offerId: conversions.offerId,
-        count: sql<number>`count(*)::int`
+        count: sql<number>`count(*)::int`,
+        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+        totalPayout: sql<number>`COALESCE(sum(${conversions.payout}), 0)::float`
       })
       .from(conversions)
       .where(and(
@@ -3971,13 +4018,22 @@ export class DatabaseStorage implements IStorage {
       .groupBy(conversions.offerId);
     
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
-    const convMap = new Map(conversionCounts.map(c => [c.offerId, c.count]));
+    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount, payout: c.totalPayout }]));
     
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
-      const convCount = convMap.get(offerId) || 0;
-      const cr = clickCount > 0 ? (convCount / clickCount) * 100 : 0;
-      return { offerId, clicks: clickCount, conversions: convCount, cr: Math.round(cr * 10) / 10 };
+      const convData = convMap.get(offerId) || { count: 0, approved: 0, payout: 0 };
+      const cr = clickCount > 0 ? (convData.count / clickCount) * 100 : 0;
+      const ar = convData.count > 0 ? (convData.approved / convData.count) * 100 : 0;
+      const epc = clickCount > 0 ? convData.payout / clickCount : 0;
+      return { 
+        offerId, 
+        clicks: clickCount, 
+        conversions: convData.count, 
+        cr: Math.round(cr * 10) / 10,
+        ar: Math.round(ar * 10) / 10,
+        epc: Math.round(epc * 100) / 100
+      };
     });
   }
 

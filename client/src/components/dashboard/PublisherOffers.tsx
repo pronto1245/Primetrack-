@@ -67,7 +67,7 @@ export function PublisherOffers({ role }: { role: string }) {
     },
   });
 
-  const { data: stats } = useQuery<{ offerId: string; clicks: number; conversions: number; cr: number }[]>({
+  const { data: stats } = useQuery<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]>({
     queryKey: ["/api/publisher/offers/stats"],
     queryFn: async () => {
       const res = await fetch("/api/publisher/offers/stats", { credentials: "include" });
@@ -77,9 +77,9 @@ export function PublisherOffers({ role }: { role: string }) {
   });
 
   const statsMap = useMemo(() => {
-    const map = new Map<string, { clicks: number; conversions: number; cr: number }>();
+    const map = new Map<string, { clicks: number; conversions: number; cr: number; ar: number; epc: number }>();
     if (stats) {
-      stats.forEach(s => map.set(s.offerId, { clicks: s.clicks, conversions: s.conversions, cr: s.cr }));
+      stats.forEach(s => map.set(s.offerId, { clicks: s.clicks, conversions: s.conversions, cr: s.cr, ar: s.ar || 0, epc: s.epc || 0 }));
     }
     return map;
   }, [stats]);
@@ -315,14 +315,16 @@ export function PublisherOffers({ role }: { role: string }) {
           </div>
         ) : (
           <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
-            <table className="w-full text-left text-xs font-mono table-fixed" style={{ minWidth: "900px" }}>
+            <table className="w-full text-left text-xs font-mono table-fixed" style={{ minWidth: "1100px" }}>
               <colgroup>
                 <col style={{ width: "100px" }} />
-                <col style={{ width: "200px" }} />
-                <col style={{ width: "100px" }} />
+                <col style={{ width: "180px" }} />
+                <col style={{ width: "90px" }} />
+                <col style={{ width: "60px" }} />
+                <col style={{ width: "60px" }} />
                 <col style={{ width: "70px" }} />
-                <col style={{ width: "120px" }} />
-                <col style={{ width: "100px" }} />
+                <col style={{ width: "110px" }} />
+                <col style={{ width: "90px" }} />
                 <col style={{ width: "70px" }} />
                 <col style={{ width: "80px" }} />
                 <col style={{ width: "80px" }} />
@@ -333,6 +335,8 @@ export function PublisherOffers({ role }: { role: string }) {
                   <th className="px-3 py-3 font-medium">{t('dashboard.offers.name')}</th>
                   <th className="px-3 py-3 font-medium">{t('dashboard.offers.category')}</th>
                   <th className="px-3 py-3 font-medium">CR%</th>
+                  <th className="px-3 py-3 font-medium">AR%</th>
+                  <th className="px-3 py-3 font-medium">EPC</th>
                   <th className="px-3 py-3 font-medium">{t('dashboard.offers.geo')}</th>
                   <th className="px-3 py-3 font-medium">Payout</th>
                   <th className="px-3 py-3 font-medium">Model</th>
@@ -390,6 +394,12 @@ export function PublisherOffers({ role }: { role: string }) {
                     <td className="px-3 py-3 text-muted-foreground truncate">{offer.category}</td>
                     <td className="px-3 py-3 text-cyan-400 font-medium">
                       {stat ? `${stat.cr.toFixed(1)}%` : "—"}
+                    </td>
+                    <td className="px-3 py-3 text-pink-400 font-medium">
+                      {stat && stat.conversions > 0 ? `${stat.ar?.toFixed(1) || 0}%` : "—"}
+                    </td>
+                    <td className="px-3 py-3 text-teal-400 font-medium">
+                      {stat && stat.clicks > 0 ? `$${stat.epc?.toFixed(2) || '0.00'}` : "—"}
                     </td>
                     <td className="px-3 py-3 text-muted-foreground">
                       <span className="flex items-center gap-1 flex-wrap">
