@@ -4971,12 +4971,7 @@ export async function registerRoutes(
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        // CR for a single click: 0% or 100% (or more if multiple conversions)
-        const cr = hasConversion ? (conversionCount * 100) : 0;
-        // AR = approved / total conversions × 100
-        const ar = conversionCount > 0 ? (approvedCount / conversionCount * 100) : 0;
-        // EPC is an aggregate metric (payout / clicks), not meaningful for single click rows
-        // Will be calculated properly in summary and grouped reports
+        // CR/AR/EPC are aggregate metrics - only calculated in summary, not per row
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
@@ -4992,8 +4987,6 @@ export async function registerRoutes(
             leads,
             sales,
             payout,
-            cr,
-            ar,
           };
         }
         
@@ -5011,8 +5004,6 @@ export async function registerRoutes(
           advertiserCost: cost,
           margin,
           roi,
-          cr,
-          ar,
         };
       });
 

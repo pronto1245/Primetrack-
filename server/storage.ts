@@ -3961,7 +3961,7 @@ export class DatabaseStorage implements IStorage {
         offerId: conversions.offerId,
         count: sql<number>`count(*)::int`,
         approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
-        totalPayout: sql<number>`COALESCE(sum(${conversions.payout}), 0)::float`
+        totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`
       })
       .from(conversions)
       .where(inArray(conversions.offerId, offerIds))
@@ -4008,7 +4008,7 @@ export class DatabaseStorage implements IStorage {
         offerId: conversions.offerId,
         count: sql<number>`count(*)::int`,
         approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
-        totalPayout: sql<number>`COALESCE(sum(${conversions.payout}), 0)::float`
+        totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`
       })
       .from(conversions)
       .where(and(
