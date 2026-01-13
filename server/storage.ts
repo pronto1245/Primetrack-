@@ -54,19 +54,23 @@ import { encrypt, decrypt, hasSecret } from "./services/encryption";
 /**
  * Centralized metrics calculation helper
  * Ensures consistent CR/AR/EPC calculations across all reports and stats
+ * 
+ * FORMULAS:
+ * - CR% = (conversions / clicks) × 100
+ * - AR% = (approvedConversions / conversions) × 100
+ * - EPC = (conversions × partnerPayout) / clicks = totalEarnings / clicks
  */
 export function calculateMetrics(data: {
   clicks: number;
   conversions: number;
   approvedConversions: number;
-  payout: number;
+  totalEarnings: number; // = conversions × partnerPayout (pre-calculated)
 }): { cr: number; ar: number; epc: number } {
-  const { clicks, conversions, approvedConversions, payout } = data;
+  const { clicks, conversions, approvedConversions, totalEarnings } = data;
   
   // CR (Conversion Rate) = conversions / clicks * 100
-  // For single click: 0% if no conversion, 100% if has conversion (capped)
   const cr = clicks > 0 
-    ? Math.min(100, Math.round((conversions / clicks) * 100 * 100) / 100)
+    ? Math.round((conversions / clicks) * 100 * 100) / 100
     : 0;
   
   // AR (Approval Rate) = approved conversions / total conversions * 100
@@ -74,9 +78,10 @@ export function calculateMetrics(data: {
     ? Math.round((approvedConversions / conversions) * 100 * 100) / 100
     : 0;
   
-  // EPC (Earnings Per Click) = total payout / total clicks
+  // EPC (Earnings Per Click) = totalEarnings / clicks
+  // where totalEarnings = conversions × partnerPayout
   const epc = clicks > 0 
-    ? Math.round((payout / clicks) * 100) / 100
+    ? Math.round((totalEarnings / clicks) * 100) / 100
     : 0;
   
   return { cr, ar, epc };
@@ -2257,6 +2262,13 @@ export class DatabaseStorage implements IStorage {
       ? await db.select().from(conversions).where(convWhere)
       : await db.select().from(conversions);
     
+    // Get all offers with partnerPayout for EPC calculation
+    const allOffers = await db.select({
+      id: offers.id,
+      partnerPayout: offers.partnerPayout
+    }).from(offers);
+    const offerPayoutMap = new Map(allOffers.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
+    
     // Group data
     const grouped: Record<string, { 
       clicks: number; 
@@ -2375,7 +2387,9 @@ export class DatabaseStorage implements IStorage {
       if (conv.status === "approved") grouped[key].approvedConversions++;
       if (conv.conversionType === "lead") grouped[key].leads++;
       if (conv.conversionType === "sale") grouped[key].sales++;
-      grouped[key].payout += parseFloat(conv.publisherPayout);
+      // Use partnerPayout from offer for EPC calculation
+      const partnerPayout = offerPayoutMap.get(conv.offerId) || 0;
+      grouped[key].payout += partnerPayout;
       if (role !== "publisher") {
         grouped[key].cost += parseFloat(conv.advertiserCost);
       }
@@ -2383,11 +2397,12 @@ export class DatabaseStorage implements IStorage {
     
     // Calculate CR, AR, EPC using centralized helper
     for (const key in grouped) {
+      // totalEarnings = sum of (partnerPayout for each conversion)
       const metrics = calculateMetrics({
         clicks: grouped[key].clicks,
         conversions: grouped[key].conversions,
         approvedConversions: grouped[key].approvedConversions,
-        payout: grouped[key].payout
+        totalEarnings: grouped[key].payout // payout is now sum of partnerPayout per conversion
       });
       grouped[key].cr = metrics.cr;
       grouped[key].ar = metrics.ar;
@@ -3970,7 +3985,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOfferPerformanceByAdvertiser(advertiserId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]> {
-    const advertiserOffers = await db.select({ id: offers.id })
+    // Get offers with their partnerPayout
+    const advertiserOffers = await db.select({ 
+      id: offers.id,
+      partnerPayout: offers.partnerPayout
+    })
       .from(offers)
       .where(eq(offers.advertiserId, advertiserId));
     
@@ -3979,6 +3998,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     const offerIds = advertiserOffers.map(o => o.id);
+    const payoutMap = new Map(advertiserOffers.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
     
     const clickCounts = await db
       .select({
@@ -3993,24 +4013,26 @@ export class DatabaseStorage implements IStorage {
       .select({
         offerId: conversions.offerId,
         count: sql<number>`count(*)::int`,
-        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
-        totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`
+        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`
       })
       .from(conversions)
       .where(inArray(conversions.offerId, offerIds))
       .groupBy(conversions.offerId);
     
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
-    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount, payout: c.totalPayout }]));
+    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount }]));
     
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
-      const convData = convMap.get(offerId) || { count: 0, approved: 0, payout: 0 };
+      const convData = convMap.get(offerId) || { count: 0, approved: 0 };
+      const partnerPayout = payoutMap.get(offerId) || 0;
+      // EPC = (conversions × partnerPayout) / clicks
+      const totalEarnings = convData.count * partnerPayout;
       const metrics = calculateMetrics({
         clicks: clickCount,
         conversions: convData.count,
         approvedConversions: convData.approved,
-        payout: convData.payout
+        totalEarnings
       });
       return { 
         offerId, 
@@ -4037,12 +4059,21 @@ export class DatabaseStorage implements IStorage {
     
     const offerIds = clickCounts.map(c => c.offerId);
     
+    // Get partnerPayout for each offer
+    const offerPayouts = await db.select({
+      id: offers.id,
+      partnerPayout: offers.partnerPayout
+    })
+      .from(offers)
+      .where(inArray(offers.id, offerIds));
+    
+    const payoutMap = new Map(offerPayouts.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
+    
     const conversionData = await db
       .select({
         offerId: conversions.offerId,
         count: sql<number>`count(*)::int`,
-        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
-        totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`
+        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`
       })
       .from(conversions)
       .where(and(
@@ -4052,16 +4083,19 @@ export class DatabaseStorage implements IStorage {
       .groupBy(conversions.offerId);
     
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
-    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount, payout: c.totalPayout }]));
+    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount }]));
     
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
-      const convData = convMap.get(offerId) || { count: 0, approved: 0, payout: 0 };
+      const convData = convMap.get(offerId) || { count: 0, approved: 0 };
+      const partnerPayout = payoutMap.get(offerId) || 0;
+      // EPC = (conversions × partnerPayout) / clicks
+      const totalEarnings = convData.count * partnerPayout;
       const metrics = calculateMetrics({
         clicks: clickCount,
         conversions: convData.count,
         approvedConversions: convData.approved,
-        payout: convData.payout
+        totalEarnings
       });
       return { 
         offerId, 

@@ -4952,10 +4952,11 @@ export async function registerRoutes(
         ...(role === "advertiser" ? { offerIds: filters.offerIds } : {})
       }, undefined, 1, 10000);
       
-      // Get offers for names
+      // Get offers for names and partnerPayout
       const offerIds = Array.from(new Set(result.clicks.map((c: any) => c.offerId)));
       const offersData = await Promise.all(offerIds.map(id => storage.getOffer(id)));
       const offerMap = new Map(offersData.filter(Boolean).map(o => [o!.id, o!.name]));
+      const offerPayoutMap = new Map(offersData.filter(Boolean).map(o => [o!.id, parseFloat(o!.partnerPayout || '0')]));
       
       // Enrich clicks with conversion data
       result.clicks = result.clicks.map((click: any) => {
@@ -4966,16 +4967,20 @@ export async function registerRoutes(
         // Count leads and sales by conversion type
         const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
         const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
-        // Use publisherPayout field from conversions table
-        const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
+        // Use partnerPayout from offer for EPC calculation
+        const offerPayout = offerPayoutMap.get(click.offerId) || 0;
+        // totalEarnings = conversions × partnerPayout (from offer settings)
+        const payout = conversionCount * offerPayout;
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        // Per-row metrics using centralized calculation
-        // For single click: CR = 0% or 100%, AR = approved/total, EPC = payout/1
-        const cr = conversionCount > 0 ? 100 : 0; // Single click: has conversion = 100%
+        // Per-row metrics
+        // CR = conversions/clicks * 100 (for single click: 0% or 100%)
+        const cr = conversionCount > 0 ? 100 : 0;
+        // AR = approved/total conversions * 100
         const ar = conversionCount > 0 ? Math.round((approvedCount / conversionCount) * 100 * 100) / 100 : 0;
-        const epc = Math.round(payout * 100) / 100; // For single click, EPC = payout
+        // EPC = totalEarnings / clicks = payout / 1 for single click
+        const epc = Math.round(payout * 100) / 100;
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
