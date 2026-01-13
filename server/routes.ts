@@ -227,7 +227,6 @@ async function setupAuth(app: Express) {
         secure: isProduction,
         sameSite: isProduction ? "none" as const : "lax" as const,
         path: "/",
-        domain: process.env.SESSION_COOKIE_DOMAIN || undefined,
       },
     })
   );
