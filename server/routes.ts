@@ -4986,10 +4986,11 @@ export async function registerRoutes(
         // Count leads and sales by conversion type
         const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
         const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
+        // Use actual payout from conversions for display (CPA lead=$0, CPA sale=full payout)
+        const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
         // Use partnerPayout from offer for EPC calculation
         const offerPayout = offerPayoutMap.get(click.offerId) || 0;
-        // totalEarnings = conversions × partnerPayout (from offer settings)
-        const payout = conversionCount * offerPayout;
+        const epcEarnings = conversionCount * offerPayout;
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
@@ -4998,8 +4999,8 @@ export async function registerRoutes(
         const cr = conversionCount > 0 ? 100 : 0;
         // AR = approved/total conversions * 100
         const ar = conversionCount > 0 ? Math.round((approvedCount / conversionCount) * 100 * 100) / 100 : 0;
-        // EPC = totalEarnings / clicks = payout / 1 for single click
-        const epc = Math.round(payout * 100) / 100;
+        // EPC = epcEarnings / clicks (uses configured partnerPayout, not actual payouts)
+        const epc = Math.round(epcEarnings * 100) / 100;
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
