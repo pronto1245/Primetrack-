@@ -2556,11 +2556,10 @@ export class DatabaseStorage implements IStorage {
       if (conv.status === "approved") grouped[key].approvedConversions++;
       if (conv.conversionType === "lead") grouped[key].leads++;
       if (conv.conversionType === "sale") grouped[key].sales++;
-      // Use partnerPayout from offer for EPC calculation
-      const partnerPayout = offerPayoutMap.get(conv.offerId) || 0;
-      grouped[key].payout += partnerPayout;
+      // Use actual payout from conversion (already correctly calculated in orchestrator based on payout model)
+      grouped[key].payout += parseFloat(conv.publisherPayout || '0');
       if (role !== "publisher") {
-        grouped[key].cost += parseFloat(conv.advertiserCost);
+        grouped[key].cost += parseFloat(conv.advertiserCost || '0');
       }
     }
     
