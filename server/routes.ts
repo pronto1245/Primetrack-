@@ -646,6 +646,41 @@ export async function registerRoutes(
     });
   });
 
+  // Session check endpoint - returns current user if authenticated
+  app.get("/api/auth/session", async (req: Request, res: Response) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // Check if this is a staff session
+    if (req.session.isStaff && req.session.staffAdvertiserId) {
+      const staff = await storage.getAdvertiserStaffById(req.session.userId);
+      if (!staff) {
+        return res.status(401).json({ message: "Staff not found" });
+      }
+      return res.json({
+        id: staff.id,
+        username: staff.email,
+        role: "advertiser",
+        email: staff.email,
+        isStaff: true,
+        staffRole: staff.staffRole,
+      });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email,
+    });
+  });
+
   // Public platform settings (no auth required) - for landing page branding
   app.get("/api/public/platform-settings", async (req: Request, res: Response) => {
     try {
