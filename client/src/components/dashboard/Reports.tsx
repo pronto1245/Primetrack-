@@ -625,6 +625,9 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     <td className="px-4 py-3 text-right text-purple-400">{click.leads || 0}</td>
                     <td className="px-4 py-3 text-right text-orange-400">{click.sales || 0}</td>
                     <td className="px-4 py-3 text-right text-emerald-400 font-bold">{click.conversions || 0}</td>
+                    <td className="px-4 py-3 text-right text-emerald-400">
+                      {click.payout !== undefined ? `$${click.payout.toFixed(2)}` : '-'}
+                    </td>
                     <td className="px-4 py-3 text-right text-cyan-400">
                       {click.cr !== undefined ? `${click.cr.toFixed(0)}%` : '-'}
                     </td>
@@ -633,9 +636,6 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                     </td>
                     <td className="px-4 py-3 text-right text-teal-400">
                       {click.epc !== undefined ? `$${click.epc.toFixed(2)}` : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-right text-emerald-400">
-                      {click.payout !== undefined ? `$${click.payout.toFixed(2)}` : '-'}
                     </td>
                     {isAdvertiser && (
                       <>
@@ -674,10 +674,10 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <td className="px-4 py-3 text-right text-purple-400">{totals.leads}</td>
                 <td className="px-4 py-3 text-right text-orange-400">{totals.sales}</td>
                 <td className="px-4 py-3 text-right text-emerald-400 font-bold">{totals.conversions}</td>
+                <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                 <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>
                 <td className="px-4 py-3 text-right text-pink-400">{ar.toFixed(2)}%</td>
                 <td className="px-4 py-3 text-right text-teal-400">${epc.toFixed(2)}</td>
-                <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                 {isAdvertiser && (
                   <>
                     <td className="px-4 py-3 text-right text-red-400">${totals.cost.toFixed(2)}</td>
