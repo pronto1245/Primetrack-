@@ -181,9 +181,6 @@ const PgSessionStore = pgSession(session);
 
 async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === "production";
-  // Replit always uses HTTPS proxy, so we need secure cookies even in development
-  const isReplit = !!process.env.REPL_ID;
-  const useSecureCookies = isProduction || isReplit;
   
   // Trust proxy for Replit deployment (reverse proxy)
   app.set("trust proxy", 1);
@@ -216,8 +213,7 @@ async function setupAuth(app: Express) {
     });
   }
   
-  console.log(`[session] Cookie settings: secure=${useSecureCookies}, sameSite=${useSecureCookies ? "none" : "lax"}`);
-  
+  // Initialize session with default cookie settings
   app.use(
     session({
       name: "sid",
@@ -229,12 +225,25 @@ async function setupAuth(app: Express) {
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: useSecureCookies,
-        sameSite: useSecureCookies ? "none" as const : "lax" as const,
+        secure: false,
+        sameSite: "lax" as const,
         path: "/",
       },
     })
   );
+  
+  // Dynamic cookie security based on request protocol
+  // This middleware adjusts cookie settings per-request for HTTPS vs HTTP
+  app.use((req, res, next) => {
+    if (req.session && req.session.cookie) {
+      const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+      req.session.cookie.secure = isSecure;
+      req.session.cookie.sameSite = isSecure ? "none" : "lax";
+    }
+    next();
+  });
+  
+  console.log("[session] Dynamic cookie security enabled (per-request HTTPS detection)");
 }
 
 async function seedUsers() {
