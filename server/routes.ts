@@ -228,6 +228,7 @@ async function setupAuth(app: Express) {
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
       resave: true,
       saveUninitialized: true,
+      rolling: true,
       store,
       proxy: true,
       cookie: {
@@ -239,6 +240,19 @@ async function setupAuth(app: Express) {
       },
     })
   );
+  
+  // Debug middleware to log Set-Cookie header
+  app.use((req, res, next) => {
+    const originalSend = res.send;
+    res.send = function(body: any) {
+      const setCookie = res.getHeaders()["set-cookie"];
+      if (req.path.includes("/api/auth/login")) {
+        console.log("[session] Login response Set-Cookie:", setCookie);
+      }
+      return originalSend.call(res, body);
+    };
+    next();
+  });
 }
 
 async function seedUsers() {
