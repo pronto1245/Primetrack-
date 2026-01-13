@@ -183,8 +183,9 @@ async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === "production";
   const isReplit = !!process.env.REPL_ID;
   
-  // Trust proxy for Replit deployment (reverse proxy)
-  app.set("trust proxy", 1);
+  // Trust proxy for Replit deployment (multiple reverse proxies)
+  // Replit uses multiple proxy hops, so we need to trust all of them
+  app.set("trust proxy", true);
   
   // Always use PostgreSQL session store if DATABASE_URL is available
   let store;
