@@ -87,6 +87,28 @@ export function calculateMetrics(data: {
   return { cr, ar, epc };
 }
 
+/**
+ * Determines if a conversion is payable for EPC calculation based on payout model
+ * 
+ * LOGIC:
+ * - CPA: only sales are payable (leads are free)
+ * - CPL: only leads are payable (sales are free)
+ * - RevShare/Hybrid/other: all conversions are payable
+ */
+export function isPayableForEpc(conversionType: string, payoutModel: string): boolean {
+  const model = (payoutModel || '').toUpperCase();
+  const type = (conversionType || '').toLowerCase();
+  
+  if (model === 'CPA') {
+    return type === 'sale';
+  }
+  if (model === 'CPL') {
+    return type === 'lead';
+  }
+  // RevShare, Hybrid, or unknown - count all conversions
+  return true;
+}
+
 export interface AdvertiserStatsFilters {
   dateFrom?: Date;
   dateTo?: Date;
@@ -2413,10 +2435,11 @@ export class DatabaseStorage implements IStorage {
       ? await db.select().from(conversions).where(convWhere)
       : await db.select().from(conversions);
     
-    // Get all offers with partnerPayout for EPC calculation
+    // Get all offers with partnerPayout and payoutModel for EPC calculation
     const allOffers = await db.select({
       id: offers.id,
-      partnerPayout: offers.partnerPayout
+      partnerPayout: offers.partnerPayout,
+      payoutModel: offers.payoutModel
     }).from(offers);
     
     // Get landing payouts as fallback when offer.partnerPayout is NULL
@@ -2437,6 +2460,9 @@ export class DatabaseStorage implements IStorage {
       const offerPayout = parseFloat(o.partnerPayout || '0');
       return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
     }));
+    
+    // Build offer payout model map for EPC calculation
+    const offerModelMap = new Map(allOffers.map(o => [o.id, o.payoutModel || 'CPA']));
     
     // Group data
     const grouped: Record<string, { 
