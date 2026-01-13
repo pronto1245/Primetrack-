@@ -2267,7 +2267,25 @@ export class DatabaseStorage implements IStorage {
       id: offers.id,
       partnerPayout: offers.partnerPayout
     }).from(offers);
-    const offerPayoutMap = new Map(allOffers.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
+    
+    // Get landing payouts as fallback when offer.partnerPayout is NULL
+    const allLandingPayouts = await db.select({
+      offerId: offerLandings.offerId,
+      partnerPayout: offerLandings.partnerPayout
+    }).from(offerLandings);
+    
+    // Build landing payout map (first landing per offer)
+    const landingPayoutMap = new Map<string, number>();
+    for (const lp of allLandingPayouts) {
+      if (!landingPayoutMap.has(lp.offerId)) {
+        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
+      }
+    }
+    
+    const offerPayoutMap = new Map(allOffers.map(o => {
+      const offerPayout = parseFloat(o.partnerPayout || '0');
+      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
+    }));
     
     // Group data
     const grouped: Record<string, { 
@@ -3998,7 +4016,27 @@ export class DatabaseStorage implements IStorage {
     }
     
     const offerIds = advertiserOffers.map(o => o.id);
-    const payoutMap = new Map(advertiserOffers.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
+    
+    // Get landing payouts as fallback when offer.partnerPayout is NULL
+    const landingPayouts = await db.select({
+      offerId: offerLandings.offerId,
+      partnerPayout: offerLandings.partnerPayout
+    })
+      .from(offerLandings)
+      .where(inArray(offerLandings.offerId, offerIds));
+    
+    // Build payout map: use offer.partnerPayout or fallback to first landing's payout
+    const landingPayoutMap = new Map<string, number>();
+    for (const lp of landingPayouts) {
+      if (!landingPayoutMap.has(lp.offerId)) {
+        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
+      }
+    }
+    
+    const payoutMap = new Map(advertiserOffers.map(o => {
+      const offerPayout = parseFloat(o.partnerPayout || '0');
+      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
+    }));
     
     const clickCounts = await db
       .select({
@@ -4067,7 +4105,26 @@ export class DatabaseStorage implements IStorage {
       .from(offers)
       .where(inArray(offers.id, offerIds));
     
-    const payoutMap = new Map(offerPayouts.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
+    // Get landing payouts as fallback when offer.partnerPayout is NULL
+    const landingPayouts = await db.select({
+      offerId: offerLandings.offerId,
+      partnerPayout: offerLandings.partnerPayout
+    })
+      .from(offerLandings)
+      .where(inArray(offerLandings.offerId, offerIds));
+    
+    // Build landing payout map (first landing per offer)
+    const landingPayoutMap = new Map<string, number>();
+    for (const lp of landingPayouts) {
+      if (!landingPayoutMap.has(lp.offerId)) {
+        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
+      }
+    }
+    
+    const payoutMap = new Map(offerPayouts.map(o => {
+      const offerPayout = parseFloat(o.partnerPayout || '0');
+      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
+    }));
     
     const conversionData = await db
       .select({

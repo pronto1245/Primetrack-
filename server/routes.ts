@@ -4956,7 +4956,20 @@ export async function registerRoutes(
       const offerIds = Array.from(new Set(result.clicks.map((c: any) => c.offerId)));
       const offersData = await Promise.all(offerIds.map(id => storage.getOffer(id)));
       const offerMap = new Map(offersData.filter(Boolean).map(o => [o!.id, o!.name]));
-      const offerPayoutMap = new Map(offersData.filter(Boolean).map(o => [o!.id, parseFloat(o!.partnerPayout || '0')]));
+      
+      // Get landing payouts as fallback when offer.partnerPayout is NULL
+      const landingsData = await Promise.all(offerIds.map(id => storage.getOfferLandings(id)));
+      const landingPayoutMap = new Map<string, number>();
+      landingsData.flat().forEach(l => {
+        if (l && !landingPayoutMap.has(l.offerId)) {
+          landingPayoutMap.set(l.offerId, parseFloat(l.partnerPayout || '0'));
+        }
+      });
+      
+      const offerPayoutMap = new Map(offersData.filter(Boolean).map(o => {
+        const offerPayout = parseFloat(o!.partnerPayout || '0');
+        return [o!.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o!.id) || 0)];
+      }));
       
       // Enrich clicks with conversion data
       result.clicks = result.clicks.map((click: any) => {
