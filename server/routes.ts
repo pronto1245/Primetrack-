@@ -4988,6 +4988,10 @@ export async function registerRoutes(
         const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
         // Use actual payout from conversions for display (CPA lead=$0, CPA sale=full payout)
         const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
+        // Debug: log payout calculation
+        if (clickConversions.length > 0 && leads > 0) {
+          console.log(`[DEBUG PAYOUT] clickId=${click.id}, leads=${leads}, sales=${sales}, payout=${payout}, conversions=`, clickConversions.map((c: any) => ({ type: c.conversionType, publisherPayout: c.publisherPayout })));
+        }
         // Use partnerPayout from offer for EPC calculation
         const offerPayout = offerPayoutMap.get(click.offerId) || 0;
         const epcEarnings = conversionCount * offerPayout;
