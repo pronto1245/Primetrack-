@@ -3873,7 +3873,12 @@ export async function registerRoutes(
         const cost = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        const cr = hasConversion ? 100 : 0;
+        // Payable = has payout > 0, CR = has payable conversion
+        const payableConversions = clickConversions.filter(conv => parseFloat(conv.publisherPayout || '0') > 0);
+        const approvedPayable = payableConversions.filter(conv => conv.status === 'approved');
+        const cr = payableConversions.length > 0 ? 100 : 0;
+        const ar = payableConversions.length > 0 ? Math.round((approvedPayable.length / payableConversions.length) * 100) : 0;
+        const epc = payout; // EPC for single click = its payout
         
         // Check if this is unique IP for the offer
         if (!uniqueIpsByOffer.has(c.offerId)) {
@@ -3906,6 +3911,8 @@ export async function registerRoutes(
           margin,
           roi,
           cr,
+          ar,
+          epc,
         };
       }));
       
@@ -4403,7 +4410,12 @@ export async function registerRoutes(
         const clickConversions = allConversions.filter(conv => conv.clickId === c.id);
         const hasConversion = clickConversions.length > 0;
         const payout = clickConversions.reduce((sum, conv) => sum + conv.payout, 0);
-        const cr = hasConversion ? 100 : 0;
+        // Payable = has payout > 0, CR = has payable conversion
+        const payableConversions = clickConversions.filter(conv => conv.payout > 0);
+        const approvedPayable = payableConversions.filter(conv => conv.status === 'approved');
+        const cr = payableConversions.length > 0 ? 100 : 0;
+        const ar = payableConversions.length > 0 ? Math.round((approvedPayable.length / payableConversions.length) * 100) : 0;
+        const epc = payout; // EPC for single click = its payout
         
         // Check if unique IP (approximate - based on order in results)
         if (!uniqueIpsByOffer.has(c.offerId)) {
@@ -4419,6 +4431,8 @@ export async function registerRoutes(
           hasConversion,
           payout,
           cr,
+          ar,
+          epc,
         };
       });
       
@@ -4994,13 +5008,15 @@ export async function registerRoutes(
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        // Per-row metrics
-        // CR = conversions/clicks * 100 (for single click: 0% or 100%)
-        const cr = conversionCount > 0 ? 100 : 0;
-        // AR = approved/total conversions * 100
-        const ar = conversionCount > 0 ? Math.round((approvedCount / conversionCount) * 100 * 100) / 100 : 0;
-        // EPC = epcEarnings / clicks (uses configured partnerPayout, not actual payouts)
-        const epc = Math.round(epcEarnings * 100) / 100;
+        // Per-row metrics using PAYABLE conversions (publisherPayout > 0)
+        const payableConversions = clickConversions.filter((conv: any) => parseFloat(conv.publisherPayout || '0') > 0);
+        const approvedPayable = payableConversions.filter((conv: any) => conv.status === 'approved');
+        // CR = has payable conversion ? 100 : 0
+        const cr = payableConversions.length > 0 ? 100 : 0;
+        // AR = approved payable / total payable * 100
+        const ar = payableConversions.length > 0 ? Math.round((approvedPayable.length / payableConversions.length) * 100 * 100) / 100 : 0;
+        // EPC = actual payout for this click
+        const epc = Math.round(payout * 100) / 100;
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
@@ -5016,6 +5032,8 @@ export async function registerRoutes(
             leads,
             sales,
             payout,
+            payableConversions: payableConversions.length,
+            approvedPayableConversions: approvedPayable.length,
             cr,
             ar,
             epc,
@@ -5030,6 +5048,8 @@ export async function registerRoutes(
           clicks: 1,
           conversions: conversionCount,
           approvedConversions: approvedCount,
+          payableConversions: payableConversions.length,
+          approvedPayableConversions: approvedPayable.length,
           leads,
           sales,
           payout,
@@ -5048,21 +5068,25 @@ export async function registerRoutes(
         uniqueClicks: acc.uniqueClicks + (click.isUnique ? 1 : 0),
         conversions: acc.conversions + (click.conversions || 0),
         approvedConversions: acc.approvedConversions + (click.approvedConversions || 0),
+        payableConversions: acc.payableConversions + (click.payableConversions || 0),
+        approvedPayableConversions: acc.approvedPayableConversions + (click.approvedPayableConversions || 0),
         leads: acc.leads + (click.leads || 0),
         sales: acc.sales + (click.sales || 0),
         payout: acc.payout + (click.payout || 0),
         advertiserCost: acc.advertiserCost + (click.advertiserCost || 0),
-      }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
+      }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
 
       summary.margin = summary.advertiserCost - summary.payout;
       summary.roi = summary.advertiserCost > 0 ? ((summary.margin / summary.advertiserCost) * 100) : 0;
-      // Use consistent metric calculations
+      // CR = payable conversions / clicks * 100
       summary.cr = summary.clicks > 0 
-        ? Math.round((summary.conversions / summary.clicks) * 100 * 100) / 100
+        ? Math.round((summary.payableConversions / summary.clicks) * 100 * 100) / 100
         : 0;
-      summary.ar = summary.conversions > 0 
-        ? Math.round((summary.approvedConversions / summary.conversions) * 100 * 100) / 100
+      // AR = approved payable / payable * 100
+      summary.ar = summary.payableConversions > 0 
+        ? Math.round((summary.approvedPayableConversions / summary.payableConversions) * 100 * 100) / 100
         : 0;
+      // EPC = total payout / clicks
       summary.epc = summary.clicks > 0 
         ? Math.round((summary.payout / summary.clicks) * 100) / 100
         : 0;
