@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -14,6 +14,7 @@ export interface User {
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -67,17 +68,32 @@ export function useAuth() {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
+    // Prevent double-clicks
+    if (loggingOut) return;
+    setLoggingOut(true);
+    
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      const res = await fetch("/api/auth/logout", { 
+        method: "POST", 
+        credentials: "include" 
+      });
+      
+      if (!res.ok) {
+        console.error("Logout failed with status:", res.status);
+      }
     } catch (error) {
       console.error("Logout request failed:", error);
     }
-    // Clear state after server logout completes
+    
+    // Clear state and cache AFTER server logout completes
     setUser(null);
-    queryClient.clear();
+    // Remove all queries to prevent stale session refetch
+    queryClient.removeQueries();
+    // Navigate to login
     setLocation("/login");
-  };
+    setLoggingOut(false);
+  }, [loggingOut, queryClient, setLocation]);
 
-  return { user, loading, login, logout, checkAuth };
+  return { user, loading, loggingOut, login, logout, checkAuth };
 }

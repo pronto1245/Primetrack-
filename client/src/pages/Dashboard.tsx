@@ -56,10 +56,12 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { logout, loggingOut } = useAuth();
   
   // Match multiple route patterns
   const [matchBase, paramsBase] = useRoute("/dashboard/:role");
@@ -89,7 +91,7 @@ export default function Dashboard() {
         
         <div className="flex flex-1 overflow-hidden">
           {/* Desktop Sidebar */}
-          <Sidebar role={role} t={t} onNavigate={() => setMobileMenuOpen(false)} />
+          <Sidebar role={role} t={t} onNavigate={() => setMobileMenuOpen(false)} onLogout={logout} loggingOut={loggingOut} />
           
           <MainContent role={role} t={t} />
         </div>
@@ -97,7 +99,7 @@ export default function Dashboard() {
         {/* Mobile Sidebar (Sheet) - moved outside flex container */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetContent side="left" className="w-72 p-0 bg-card border-border">
-            <MobileSidebar role={role} t={t} onNavigate={() => setMobileMenuOpen(false)} />
+            <MobileSidebar role={role} t={t} onNavigate={() => setMobileMenuOpen(false)} onLogout={logout} loggingOut={loggingOut} />
           </SheetContent>
         </Sheet>
       </div>
@@ -144,7 +146,7 @@ function MobileHeader({ role, mobileMenuOpen, setMobileMenuOpen, t }: {
   );
 }
 
-function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate: () => void }) {
+function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, t: any, onNavigate: () => void, onLogout: () => void, loggingOut: boolean }) {
   const { selectedAdvertiser } = useAdvertiserContext();
   const [, setLocation] = useLocation();
   const { isStaff, staffLoading, canAccess } = useStaff();
@@ -152,6 +154,11 @@ function MobileSidebar({ role, t, onNavigate }: { role: string, t: any, onNaviga
   const handleNavClick = (path: string) => {
     setLocation(path);
     onNavigate();
+  };
+  
+  const handleLogout = () => {
+    onNavigate();
+    onLogout();
   };
   
   const { data: unreadNewsData } = useQuery<{ count: number }>({
