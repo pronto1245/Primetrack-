@@ -2549,15 +2549,18 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, epcEarnings: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
       }
       
       grouped[key].conversions++;
       if (conv.status === "approved") grouped[key].approvedConversions++;
       if (conv.conversionType === "lead") grouped[key].leads++;
       if (conv.conversionType === "sale") grouped[key].sales++;
-      // Use actual payout from conversion (already correctly calculated in orchestrator based on payout model)
+      // Use actual payout from conversion for display (correctly calculated in orchestrator based on payout model)
       grouped[key].payout += parseFloat(conv.publisherPayout || '0');
+      // Use partnerPayout from offer for EPC calculation
+      const partnerPayout = offerPayoutMap.get(conv.offerId) || 0;
+      grouped[key].epcEarnings += partnerPayout;
       if (role !== "publisher") {
         grouped[key].cost += parseFloat(conv.advertiserCost || '0');
       }
@@ -2565,12 +2568,12 @@ export class DatabaseStorage implements IStorage {
     
     // Calculate CR, AR, EPC using centralized helper
     for (const key in grouped) {
-      // totalEarnings = sum of (partnerPayout for each conversion)
+      // EPC uses configured partnerPayout from offer, not actual payouts
       const metrics = calculateMetrics({
         clicks: grouped[key].clicks,
         conversions: grouped[key].conversions,
         approvedConversions: grouped[key].approvedConversions,
-        totalEarnings: grouped[key].payout // payout is now sum of partnerPayout per conversion
+        totalEarnings: grouped[key].epcEarnings
       });
       grouped[key].cr = metrics.cr;
       grouped[key].ar = metrics.ar;
