@@ -1231,14 +1231,11 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout
+    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout (for display only)
     const offerPayoutMap = new Map(advertiserOffers.map(o => {
       const offerPayout = parseFloat(o.partnerPayout || '0');
       return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
     }));
-    
-    // Build offer payout model map for EPC calculation
-    const offerModelMap = new Map(advertiserOffers.map(o => [o.id, o.payoutModel || 'CPA']));
 
     // Filter offer IDs if specified
     const targetOfferIds = filters.offerIds?.length 
@@ -1579,34 +1576,7 @@ export class DatabaseStorage implements IStorage {
       ...allConversions.map(c => c.offerId)
     ]));
     
-    // Get offers with partnerPayout and payoutModel for EPC calculation
-    const pubOffers = allOfferIds.length > 0 
-      ? await db.select({ id: offers.id, partnerPayout: offers.partnerPayout, payoutModel: offers.payoutModel })
-          .from(offers).where(inArray(offers.id, allOfferIds))
-      : [];
-    
-    // Get landing payouts as fallback when offer.partnerPayout is NULL
-    const pubLandingPayouts = allOfferIds.length > 0 
-      ? await db.select({ offerId: offerLandings.offerId, partnerPayout: offerLandings.partnerPayout })
-          .from(offerLandings).where(inArray(offerLandings.offerId, allOfferIds))
-      : [];
-    
-    // Build landing payout map (first landing per offer)
-    const landingPayoutMap = new Map<string, number>();
-    for (const lp of pubLandingPayouts) {
-      if (!landingPayoutMap.has(lp.offerId)) {
-        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
-      }
-    }
-    
-    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout
-    const offerPayoutMap = new Map(pubOffers.map(o => {
-      const offerPayout = parseFloat(o.partnerPayout || '0');
-      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
-    }));
-    
-    // Build offer payout model map for EPC calculation
-    const offerModelMap = new Map(pubOffers.map(o => [o.id, o.payoutModel || 'CPA']));
+    // Note: Metrics now use actual publisherPayout from conversions, no need for offer payout maps
 
     // Calculate totals
     const totalClicks = allClicks.length;
@@ -2433,34 +2403,7 @@ export class DatabaseStorage implements IStorage {
       ? await db.select().from(conversions).where(convWhere)
       : await db.select().from(conversions);
     
-    // Get all offers with partnerPayout and payoutModel for EPC calculation
-    const allOffers = await db.select({
-      id: offers.id,
-      partnerPayout: offers.partnerPayout,
-      payoutModel: offers.payoutModel
-    }).from(offers);
-    
-    // Get landing payouts as fallback when offer.partnerPayout is NULL
-    const allLandingPayouts = await db.select({
-      offerId: offerLandings.offerId,
-      partnerPayout: offerLandings.partnerPayout
-    }).from(offerLandings);
-    
-    // Build landing payout map (first landing per offer)
-    const landingPayoutMap = new Map<string, number>();
-    for (const lp of allLandingPayouts) {
-      if (!landingPayoutMap.has(lp.offerId)) {
-        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
-      }
-    }
-    
-    const offerPayoutMap = new Map(allOffers.map(o => {
-      const offerPayout = parseFloat(o.partnerPayout || '0');
-      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
-    }));
-    
-    // Build offer payout model map for EPC calculation
-    const offerModelMap = new Map(allOffers.map(o => [o.id, o.payoutModel || 'CPA']));
+    // Note: Metrics now use actual publisherPayout from conversions directly
     
     // Group data
     const grouped: Record<string, { 
@@ -2471,6 +2414,8 @@ export class DatabaseStorage implements IStorage {
       conversions: number;
       approvedConversions: number;
       payout: number;
+      payableConversions: number;
+      approvedPayableConversions: number;
       cost: number;
       cr: number;
       ar: number;
@@ -4230,26 +4175,32 @@ export class DatabaseStorage implements IStorage {
       .select({
         offerId: conversions.offerId,
         count: sql<number>`count(*)::int`,
-        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`
+        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+        totalPayout: sql<number>`COALESCE(SUM(CAST(${conversions.publisherPayout} AS NUMERIC)), 0)::float`,
+        payableCount: sql<number>`count(*) FILTER (WHERE CAST(${conversions.publisherPayout} AS NUMERIC) > 0)::int`,
+        approvedPayableCount: sql<number>`count(*) FILTER (WHERE CAST(${conversions.publisherPayout} AS NUMERIC) > 0 AND ${conversions.status} = 'approved')::int`
       })
       .from(conversions)
       .where(inArray(conversions.offerId, offerIds))
       .groupBy(conversions.offerId);
     
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
-    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount }]));
+    const convMap = new Map(conversionData.map(c => [c.offerId, { 
+      count: c.count, 
+      approved: c.approvedCount,
+      totalPayout: c.totalPayout,
+      payable: c.payableCount,
+      approvedPayable: c.approvedPayableCount
+    }]));
     
     const results = offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
-      const convData = convMap.get(offerId) || { count: 0, approved: 0 };
-      const partnerPayout = payoutMap.get(offerId) || 0;
-      // EPC = (conversions × partnerPayout) / clicks
-      const totalEarnings = convData.count * partnerPayout;
+      const convData = convMap.get(offerId) || { count: 0, approved: 0, totalPayout: 0, payable: 0, approvedPayable: 0 };
       const metrics = calculateMetrics({
         clicks: clickCount,
-        conversions: convData.count,
-        approvedConversions: convData.approved,
-        totalEarnings
+        payableConversions: convData.payable,
+        approvedPayableConversions: convData.approvedPayable,
+        totalPayout: convData.totalPayout
       });
       return { 
         offerId, 
@@ -4310,7 +4261,10 @@ export class DatabaseStorage implements IStorage {
       .select({
         offerId: conversions.offerId,
         count: sql<number>`count(*)::int`,
-        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`
+        approvedCount: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+        totalPayout: sql<number>`COALESCE(SUM(CAST(${conversions.publisherPayout} AS NUMERIC)), 0)::float`,
+        payableCount: sql<number>`count(*) FILTER (WHERE CAST(${conversions.publisherPayout} AS NUMERIC) > 0)::int`,
+        approvedPayableCount: sql<number>`count(*) FILTER (WHERE CAST(${conversions.publisherPayout} AS NUMERIC) > 0 AND ${conversions.status} = 'approved')::int`
       })
       .from(conversions)
       .where(and(
@@ -4320,19 +4274,22 @@ export class DatabaseStorage implements IStorage {
       .groupBy(conversions.offerId);
     
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
-    const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount }]));
+    const convMap = new Map(conversionData.map(c => [c.offerId, { 
+      count: c.count, 
+      approved: c.approvedCount,
+      totalPayout: c.totalPayout,
+      payable: c.payableCount,
+      approvedPayable: c.approvedPayableCount
+    }]));
     
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
-      const convData = convMap.get(offerId) || { count: 0, approved: 0 };
-      const partnerPayout = payoutMap.get(offerId) || 0;
-      // EPC = (conversions × partnerPayout) / clicks
-      const totalEarnings = convData.count * partnerPayout;
+      const convData = convMap.get(offerId) || { count: 0, approved: 0, totalPayout: 0, payable: 0, approvedPayable: 0 };
       const metrics = calculateMetrics({
         clicks: clickCount,
-        conversions: convData.count,
-        approvedConversions: convData.approved,
-        totalEarnings
+        payableConversions: convData.payable,
+        approvedPayableConversions: convData.approvedPayable,
+        totalPayout: convData.totalPayout
       });
       return { 
         offerId, 

@@ -542,10 +542,10 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.leads') || 'Leads'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.sales') || 'Sales'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.conv') || 'Conv'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
                 <th className="px-4 py-3 font-medium text-right">AR%</th>
                 <th className="px-4 py-3 font-medium text-right">EPC</th>
-                <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
                 {isAdvertiser && (
                   <>
                     <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
@@ -940,10 +940,10 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.leads') || 'Leads'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.sales') || 'Sales'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.conv') || 'Conv'}</th>
+                <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
                 <th className="px-4 py-3 font-medium text-right">CR%</th>
                 <th className="px-4 py-3 font-medium text-right">AR%</th>
                 <th className="px-4 py-3 font-medium text-right">EPC</th>
-                <th className="px-4 py-3 font-medium text-right">{t('reports.table.payout') || 'Payout'}</th>
                 {isAdvertiser && (
                   <>
                     <th className="px-4 py-3 font-medium text-right">{t('reports.table.cost') || 'Cost'}</th>
@@ -978,10 +978,10 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                       <td className="px-4 py-3 text-right text-emerald-400">{row.leads || 0}</td>
                       <td className="px-4 py-3 text-right text-purple-400">{row.sales || 0}</td>
                       <td className="px-4 py-3 text-right text-foreground font-bold">{row.conversions || 0}</td>
+                      <td className="px-4 py-3 text-right text-emerald-400 font-bold">${payout.toFixed(2)}</td>
                       <td className="px-4 py-3 text-right text-yellow-400">{cr.toFixed(2)}%</td>
                       <td className="px-4 py-3 text-right text-pink-400">{ar.toFixed(2)}%</td>
                       <td className="px-4 py-3 text-right text-teal-400">${epc.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right text-emerald-400 font-bold">${payout.toFixed(2)}</td>
                       {isAdvertiser && (
                         <>
                           <td className="px-4 py-3 text-right text-blue-400 font-bold">${cost.toFixed(2)}</td>
@@ -1007,10 +1007,10 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                   <td className="px-4 py-3 text-right text-emerald-400">{totals.leads}</td>
                   <td className="px-4 py-3 text-right text-purple-400">{totals.sales}</td>
                   <td className="px-4 py-3 text-right text-foreground">{totals.conversions}</td>
+                  <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                   <td className="px-4 py-3 text-right text-yellow-400">{totalCR.toFixed(2)}%</td>
                   <td className="px-4 py-3 text-right text-pink-400">{totalAR.toFixed(2)}%</td>
                   <td className="px-4 py-3 text-right text-teal-400">${totalEPC.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
                   {isAdvertiser && (
                     <>
                       <td className="px-4 py-3 text-right text-blue-400">${totals.cost.toFixed(2)}</td>
