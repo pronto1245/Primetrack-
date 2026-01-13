@@ -581,10 +581,21 @@ export async function registerRoutes(
   });
 
   app.post("/api/auth/logout", (req: Request, res: Response) => {
+    const isReplit = !!process.env.REPL_ID;
+    const isProduction = process.env.NODE_ENV === "production";
+    const useSecureCookies = isProduction || isReplit;
+    
     req.session.destroy((err) => {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
       }
+      // Clear the session cookie with same settings as when it was set
+      res.clearCookie("sid", {
+        path: "/",
+        httpOnly: true,
+        secure: useSecureCookies,
+        sameSite: useSecureCookies ? "none" as const : "lax" as const,
+      });
       res.json({ message: "Logged out" });
     });
   });

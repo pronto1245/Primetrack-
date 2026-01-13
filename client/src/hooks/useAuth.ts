@@ -68,9 +68,14 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    }
+    // Clear state after server logout completes
     setUser(null);
     queryClient.clear();
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setLocation("/login");
   };
 
