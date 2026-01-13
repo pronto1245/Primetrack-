@@ -55,23 +55,23 @@ import { encrypt, decrypt, hasSecret } from "./services/encryption";
  * Centralized metrics calculation helper
  * Ensures consistent CR/AR/EPC calculations across all reports and stats
  * 
- * FORMULAS (using PAYABLE conversions based on payout model):
+ * SIMPLIFIED LOGIC - based on publisherPayout field:
+ * - Payable conversion = publisherPayout > 0
  * - CR% = (payableConversions / clicks) × 100
  * - AR% = (approvedPayableConversions / payableConversions) × 100
- * - EPC = totalEarnings / clicks (where totalEarnings = payableConversions × partnerPayout)
+ * - EPC = totalPayout / clicks (sum of actual publisherPayout)
  * 
- * PAYABLE CONVERSIONS:
- * - CPA: only sales are payable (leads don't count)
- * - CPL: only leads are payable (sales don't count)
- * - RevShare/Hybrid: all conversions are payable
+ * This works because orchestrator already sets correct payouts:
+ * - CPA: lead=$0, sale=partnerPayout
+ * - CPL: lead=partnerPayout, sale=$0
  */
 export function calculateMetrics(data: {
   clicks: number;
-  payableConversions: number;       // conversions that count for this payout model
-  approvedPayableConversions: number; // approved conversions that count for this payout model
-  totalEarnings: number;            // = payableConversions × partnerPayout (pre-calculated)
+  payableConversions: number;        // conversions with publisherPayout > 0
+  approvedPayableConversions: number; // approved conversions with publisherPayout > 0
+  totalPayout: number;               // sum of publisherPayout (actual earnings)
 }): { cr: number; ar: number; epc: number } {
-  const { clicks, payableConversions, approvedPayableConversions, totalEarnings } = data;
+  const { clicks, payableConversions, approvedPayableConversions, totalPayout } = data;
   
   // CR (Conversion Rate) = payable conversions / clicks * 100
   const cr = clicks > 0 
@@ -83,35 +83,20 @@ export function calculateMetrics(data: {
     ? Math.round((approvedPayableConversions / payableConversions) * 100 * 100) / 100
     : 0;
   
-  // EPC (Earnings Per Click) = totalEarnings / clicks
-  // where totalEarnings = payableConversions × partnerPayout
+  // EPC (Earnings Per Click) = totalPayout / clicks
   const epc = clicks > 0 
-    ? Math.round((totalEarnings / clicks) * 100) / 100
+    ? Math.round((totalPayout / clicks) * 100) / 100
     : 0;
   
   return { cr, ar, epc };
 }
 
 /**
- * Determines if a conversion is payable for EPC calculation based on payout model
- * 
- * LOGIC:
- * - CPA: only sales are payable (leads are free)
- * - CPL: only leads are payable (sales are free)
- * - RevShare/Hybrid/other: all conversions are payable
+ * Check if conversion is payable based on publisherPayout field
+ * Simple and reliable - orchestrator already calculated correct payout
  */
-export function isPayableForEpc(conversionType: string, payoutModel: string): boolean {
-  const model = (payoutModel || '').toUpperCase();
-  const type = (conversionType || '').toLowerCase();
-  
-  if (model === 'CPA') {
-    return type === 'sale';
-  }
-  if (model === 'CPL') {
-    return type === 'lead';
-  }
-  // RevShare, Hybrid, or unknown - count all conversions
-  return true;
+export function isPayableConversion(publisherPayout: string | number): boolean {
+  return parseFloat(String(publisherPayout || '0')) > 0;
 }
 
 export interface AdvertiserStatsFilters {
