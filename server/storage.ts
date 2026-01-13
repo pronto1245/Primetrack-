@@ -55,31 +55,36 @@ import { encrypt, decrypt, hasSecret } from "./services/encryption";
  * Centralized metrics calculation helper
  * Ensures consistent CR/AR/EPC calculations across all reports and stats
  * 
- * FORMULAS:
- * - CR% = (conversions / clicks) × 100
- * - AR% = (approvedConversions / conversions) × 100
- * - EPC = (conversions × partnerPayout) / clicks = totalEarnings / clicks
+ * FORMULAS (using PAYABLE conversions based on payout model):
+ * - CR% = (payableConversions / clicks) × 100
+ * - AR% = (approvedPayableConversions / payableConversions) × 100
+ * - EPC = totalEarnings / clicks (where totalEarnings = payableConversions × partnerPayout)
+ * 
+ * PAYABLE CONVERSIONS:
+ * - CPA: only sales are payable (leads don't count)
+ * - CPL: only leads are payable (sales don't count)
+ * - RevShare/Hybrid: all conversions are payable
  */
 export function calculateMetrics(data: {
   clicks: number;
-  conversions: number;
-  approvedConversions: number;
-  totalEarnings: number; // = conversions × partnerPayout (pre-calculated)
+  payableConversions: number;       // conversions that count for this payout model
+  approvedPayableConversions: number; // approved conversions that count for this payout model
+  totalEarnings: number;            // = payableConversions × partnerPayout (pre-calculated)
 }): { cr: number; ar: number; epc: number } {
-  const { clicks, conversions, approvedConversions, totalEarnings } = data;
+  const { clicks, payableConversions, approvedPayableConversions, totalEarnings } = data;
   
-  // CR (Conversion Rate) = conversions / clicks * 100
+  // CR (Conversion Rate) = payable conversions / clicks * 100
   const cr = clicks > 0 
-    ? Math.round((conversions / clicks) * 100 * 100) / 100
+    ? Math.round((payableConversions / clicks) * 100 * 100) / 100
     : 0;
   
-  // AR (Approval Rate) = approved conversions / total conversions * 100
-  const ar = conversions > 0 
-    ? Math.round((approvedConversions / conversions) * 100 * 100) / 100
+  // AR (Approval Rate) = approved payable conversions / payable conversions * 100
+  const ar = payableConversions > 0 
+    ? Math.round((approvedPayableConversions / payableConversions) * 100 * 100) / 100
     : 0;
   
   // EPC (Earnings Per Click) = totalEarnings / clicks
-  // where totalEarnings = conversions × partnerPayout
+  // where totalEarnings = payableConversions × partnerPayout
   const epc = clicks > 0 
     ? Math.round((totalEarnings / clicks) * 100) / 100
     : 0;
@@ -1246,6 +1251,9 @@ export class DatabaseStorage implements IStorage {
       const offerPayout = parseFloat(o.partnerPayout || '0');
       return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
     }));
+    
+    // Build offer payout model map for EPC calculation
+    const offerModelMap = new Map(advertiserOffers.map(o => [o.id, o.payoutModel || 'CPA']));
 
     // Filter offer IDs if specified
     const targetOfferIds = filters.offerIds?.length 
@@ -1306,8 +1314,14 @@ export class DatabaseStorage implements IStorage {
     const publisherPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const margin = advertiserCost - publisherPayout;
     const roi = publisherPayout > 0 ? ((margin / publisherPayout) * 100) : 0;
-    // EPC = (conversions × partnerPayout) / clicks - use configured offer payout, not actual payouts
-    const totalEarnings = allConversions.reduce((sum, c) => sum + (offerPayoutMap.get(c.offerId) || 0), 0);
+    // EPC = (payable conversions × partnerPayout) / clicks - only count conversions that are payable per payout model
+    const totalEarnings = allConversions.reduce((sum, c) => {
+      const payoutModel = offerModelMap.get(c.offerId) || 'CPA';
+      if (isPayableForEpc(c.conversionType, payoutModel)) {
+        return sum + (offerPayoutMap.get(c.offerId) || 0);
+      }
+      return sum;
+    }, 0);
     const metrics = calculateMetrics({
       clicks: totalClicks,
       conversions: totalConversions,
@@ -1326,9 +1340,10 @@ export class DatabaseStorage implements IStorage {
       const offerApprovedConvs = offerConvs.filter(c => c.status === 'approved').length;
       const offerAdvCost = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
       const offerPubPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
-      // EPC = (conversions × partnerPayout) / clicks - use configured offer payout
+      // EPC = (payable conversions × partnerPayout) / clicks - only count payable conversions per payout model
       const partnerPayout = offerPayoutMap.get(offerId) || 0;
-      const offerEarnings = offerConvs.length * partnerPayout;
+      const payoutModel = offerModelMap.get(offerId) || 'CPA';
+      const offerEarnings = offerConvs.filter(c => isPayableForEpc(c.conversionType, payoutModel)).length * partnerPayout;
       const offerMetrics = calculateMetrics({
         clicks: offerClicks.length,
         conversions: offerConvs.length,
@@ -1585,9 +1600,9 @@ export class DatabaseStorage implements IStorage {
       ...allConversions.map(c => c.offerId)
     ]));
     
-    // Get offers with partnerPayout for EPC calculation
+    // Get offers with partnerPayout and payoutModel for EPC calculation
     const pubOffers = allOfferIds.length > 0 
-      ? await db.select({ id: offers.id, partnerPayout: offers.partnerPayout })
+      ? await db.select({ id: offers.id, partnerPayout: offers.partnerPayout, payoutModel: offers.payoutModel })
           .from(offers).where(inArray(offers.id, allOfferIds))
       : [];
     
@@ -1610,6 +1625,9 @@ export class DatabaseStorage implements IStorage {
       const offerPayout = parseFloat(o.partnerPayout || '0');
       return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
     }));
+    
+    // Build offer payout model map for EPC calculation
+    const offerModelMap = new Map(pubOffers.map(o => [o.id, o.payoutModel || 'CPA']));
 
     // Calculate totals
     const totalClicks = allClicks.length;
