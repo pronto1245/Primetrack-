@@ -2154,9 +2154,31 @@ export class DatabaseStorage implements IStorage {
   async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: any[]; total: number; page: number; limit: number }> {
     const conditions: any[] = [];
     
+    // Handle free text search - filter by offer name
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchingOffers = await db.select({ id: offers.id }).from(offers)
+        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
+      const matchingOfferIds = matchingOffers.map(o => o.id);
+      if (matchingOfferIds.length === 0) {
+        return { clicks: [], total: 0, page, limit };
+      }
+      // Combine with existing offerIds filter if any
+      if (filters.offerIds?.length) {
+        const intersection = filters.offerIds.filter((id: string) => matchingOfferIds.includes(id));
+        if (intersection.length === 0) {
+          return { clicks: [], total: 0, page, limit };
+        }
+        conditions.push(inArray(clicks.offerId, intersection));
+      } else {
+        conditions.push(inArray(clicks.offerId, matchingOfferIds));
+      }
+    } else if (filters.offerIds?.length) {
+      conditions.push(inArray(clicks.offerId, filters.offerIds));
+    }
+    
     if (filters.publisherId) conditions.push(eq(clicks.publisherId, filters.publisherId));
     if (filters.offerId) conditions.push(eq(clicks.offerId, filters.offerId));
-    if (filters.offerIds?.length) conditions.push(inArray(clicks.offerId, filters.offerIds));
     
     // Handle dateMode: "click" = filter by click date, "conversion" = filter by conversion date
     const dateMode = filters.dateMode || "click";
@@ -2228,9 +2250,31 @@ export class DatabaseStorage implements IStorage {
   async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: any[]; total: number; page: number; limit: number }> {
     const conditions: any[] = [];
     
+    // Handle free text search - filter by offer name
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchingOffers = await db.select({ id: offers.id }).from(offers)
+        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
+      const matchingOfferIds = matchingOffers.map(o => o.id);
+      if (matchingOfferIds.length === 0) {
+        return { conversions: [], total: 0, page, limit };
+      }
+      // Combine with existing offerIds filter if any
+      if (filters.offerIds?.length) {
+        const intersection = filters.offerIds.filter((id: string) => matchingOfferIds.includes(id));
+        if (intersection.length === 0) {
+          return { conversions: [], total: 0, page, limit };
+        }
+        conditions.push(inArray(conversions.offerId, intersection));
+      } else {
+        conditions.push(inArray(conversions.offerId, matchingOfferIds));
+      }
+    } else if (filters.offerIds?.length) {
+      conditions.push(inArray(conversions.offerId, filters.offerIds));
+    }
+    
     if (filters.publisherId) conditions.push(eq(conversions.publisherId, filters.publisherId));
     if (filters.offerId) conditions.push(eq(conversions.offerId, filters.offerId));
-    if (filters.offerIds?.length) conditions.push(inArray(conversions.offerId, filters.offerIds));
     if (filters.dateFrom) conditions.push(gte(conversions.createdAt, filters.dateFrom));
     if (filters.dateTo) conditions.push(lte(conversions.createdAt, filters.dateTo));
     if (filters.status) conditions.push(eq(conversions.status, filters.status));
@@ -2316,6 +2360,27 @@ export class DatabaseStorage implements IStorage {
     const clickConditions: any[] = [];
     const convConditions: any[] = [];
     
+    // Handle free text search - filter by offer name
+    let effectiveOfferIds = filters.offerIds || [];
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchingOffers = await db.select({ id: offers.id }).from(offers)
+        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
+      const matchingOfferIds = matchingOffers.map(o => o.id);
+      if (matchingOfferIds.length === 0) {
+        return { data: [], totals: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
+      }
+      // Combine with existing offerIds filter if any
+      if (effectiveOfferIds.length > 0) {
+        effectiveOfferIds = effectiveOfferIds.filter((id: string) => matchingOfferIds.includes(id));
+        if (effectiveOfferIds.length === 0) {
+          return { data: [], totals: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
+        }
+      } else {
+        effectiveOfferIds = matchingOfferIds;
+      }
+    }
+    
     if (filters.publisherId) {
       clickConditions.push(eq(clicks.publisherId, filters.publisherId));
       convConditions.push(eq(conversions.publisherId, filters.publisherId));
@@ -2324,9 +2389,9 @@ export class DatabaseStorage implements IStorage {
       clickConditions.push(eq(clicks.offerId, filters.offerId));
       convConditions.push(eq(conversions.offerId, filters.offerId));
     }
-    if (filters.offerIds?.length) {
-      clickConditions.push(inArray(clicks.offerId, filters.offerIds));
-      convConditions.push(inArray(conversions.offerId, filters.offerIds));
+    if (effectiveOfferIds.length > 0) {
+      clickConditions.push(inArray(clicks.offerId, effectiveOfferIds));
+      convConditions.push(inArray(conversions.offerId, effectiveOfferIds));
     }
     if (filters.dateFrom) {
       clickConditions.push(gte(clicks.createdAt, filters.dateFrom));

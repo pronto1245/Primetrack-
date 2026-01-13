@@ -4888,6 +4888,7 @@ export async function registerRoutes(
         sub3,
         sub4,
         sub5,
+        search, // free text search by offer name
         groupBy, // date, geo, publisher, offer, device, os, browser, sub1-5
         dateMode = "click", // "click" = filter by click date, "conversion" = filter by conversion date
         page = "1",
@@ -4895,6 +4896,11 @@ export async function registerRoutes(
       } = req.query;
 
       const filters: any = {};
+      
+      // Handle free text search - filter offers by name
+      if (search && typeof search === 'string' && search.trim()) {
+        filters.search = search.trim();
+      }
       
       // Role-based access control
       if (role === "publisher") {
@@ -5081,12 +5087,18 @@ export async function registerRoutes(
         dateTo,
         status,
         conversionType,
+        search, // free text search by offer name
         groupBy,
         page = "1",
         limit = "50"
       } = req.query;
 
       const filters: any = {};
+      
+      // Handle free text search - filter offers by name
+      if (search && typeof search === 'string' && search.trim()) {
+        filters.search = search.trim();
+      }
       
       if (role === "publisher") {
         filters.publisherId = userId;
@@ -5155,10 +5167,16 @@ export async function registerRoutes(
         advertiserId,
         dateFrom,
         dateTo,
+        search, // free text search by offer name
         groupBy = "date" // date, geo, publisher, offer, device, os, browser, sub1-5
       } = req.query;
 
       const filters: any = {};
+      
+      // Handle free text search - filter offers by name
+      if (search && typeof search === 'string' && search.trim()) {
+        filters.search = search.trim();
+      }
       
       if (role === "publisher") {
         filters.publisherId = userId;
