@@ -121,7 +121,8 @@ export class Orchestrator {
 
     // Send webhook notification to advertiser (with fraud flag if applicable)
     const webhookEventType = event.status as "lead" | "sale" | "install";
-    const fraudFlag = isFraudulent ? { suspectedFraud: true, fraudReason: antifraudAction } : {};
+    const isSuspicious = isFraudulent || shouldHoldForFraud;
+    const fraudFlag = isSuspicious ? { suspectedFraud: true, fraudReason: antifraudAction } : {};
     
     if (webhookEventType === "lead") {
       webhookService.notifyLead(offer.advertiserId, conversion.id, click.offerId, click.publisherId, {
@@ -157,8 +158,8 @@ export class Orchestrator {
     // Send Telegram notifications (async, non-blocking)
     const offerName = offer.name || "Оффер";
     const geo = click.geo || undefined;
-    const fraudWarning = isFraudulent ? " ⚠️" : "";
-    const fraudNote = isFraudulent ? { "⚠️ Антифрод": antifraudAction } : {};
+    const fraudWarning = isSuspicious ? " ⚠️" : "";
+    const fraudNote = isSuspicious ? { "⚠️ Антифрод": antifraudAction } : {};
     
     if (webhookEventType === "lead") {
       // Notify publisher about new lead
@@ -174,7 +175,7 @@ export class Orchestrator {
       telegramService.notifyUser(
         offer.advertiserId,
         "lead",
-        isFraudulent ? "Новый лид! ⚠️ Подозрение на фрод" : "Новый лид!",
+        isSuspicious ? "Новый лид! ⚠️ Подозрение на фрод" : "Новый лид!",
         {
           Оффер: offerName,
           Партнёр: click.publisherId.slice(0, 8),
@@ -198,7 +199,7 @@ export class Orchestrator {
       telegramService.notifyUser(
         offer.advertiserId,
         "sale",
-        isFraudulent ? "Новая продажа! ⚠️ Подозрение на фрод" : "Новая продажа!",
+        isSuspicious ? "Новая продажа! ⚠️ Подозрение на фрод" : "Новая продажа!",
         {
           Оффер: offerName,
           Партнёр: click.publisherId.slice(0, 8),

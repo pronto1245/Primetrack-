@@ -136,10 +136,6 @@ export class PostbackSender {
         } else if (conversion.conversionType === "sale" && publisherPostbackSettings.salePostbackUrl) {
           legacyUrl = publisherPostbackSettings.salePostbackUrl;
           legacyMethod = publisherPostbackSettings.salePostbackMethod || "GET";
-        } else if (publisherPostbackSettings.postbackUrl) {
-          // Fallback to global postback URL
-          legacyUrl = publisherPostbackSettings.postbackUrl;
-          legacyMethod = publisherPostbackSettings.postbackMethod || "GET";
         }
         
         if (legacyUrl) {
@@ -193,7 +189,23 @@ export class PostbackSender {
     target: PostbackTarget,
     retryCount = 0
   ): Promise<void> {
-    const postbackUrl = this.buildPostbackUrl(target.url, conversion, click, offer);
+    let postbackUrl = this.buildPostbackUrl(target.url, conversion, click, offer);
+    
+    // Append fraud params automatically if not already present
+    const antifraudAction = (click as any).antifraudAction || "allow";
+    const isSuspicious = antifraudAction !== "allow";
+    try {
+      const urlObj = new URL(postbackUrl);
+      if (!urlObj.searchParams.has("suspected_fraud")) {
+        urlObj.searchParams.set("suspected_fraud", isSuspicious ? "1" : "0");
+        if (isSuspicious) {
+          urlObj.searchParams.set("fraud_reason", antifraudAction);
+        }
+        postbackUrl = urlObj.toString();
+      }
+    } catch {
+      // URL might not be valid, keep as-is
+    }
 
     let responseCode: number | undefined;
     let responseBody: string | undefined;
@@ -362,6 +374,14 @@ export class PostbackSender {
     if (click.sub5) url.searchParams.set("sub5", click.sub5);
     if (click.geo) url.searchParams.set("geo", click.geo);
     
+    // Add antifraud flags
+    const antifraudAction = (click as any).antifraudAction || "allow";
+    const isSuspicious = antifraudAction !== "allow";
+    url.searchParams.set("suspected_fraud", isSuspicious ? "1" : "0");
+    if (isSuspicious) {
+      url.searchParams.set("fraud_reason", antifraudAction);
+    }
+    
     return url.toString();
   }
 
@@ -371,6 +391,10 @@ export class PostbackSender {
     click: Click,
     offer: Offer
   ): string {
+    // Check if click has antifraud flags
+    const antifraudAction = (click as any).antifraudAction || "allow";
+    const isSuspicious = antifraudAction !== "allow";
+    
     const placeholders: Record<string, string> = {
       "{click_id}": click.clickId,
       "{conversion_id}": conversion.id,
@@ -390,6 +414,8 @@ export class PostbackSender {
       "{geo}": click.geo || "",
       "{ip}": click.ip || "",
       "{currency}": conversion.currency,
+      "{suspected_fraud}": isSuspicious ? "1" : "0",
+      "{fraud_reason}": isSuspicious ? antifraudAction : "",
     };
 
     let url = template;
