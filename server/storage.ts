@@ -1299,19 +1299,14 @@ export class DatabaseStorage implements IStorage {
     const publisherPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const margin = advertiserCost - publisherPayout;
     const roi = publisherPayout > 0 ? ((margin / publisherPayout) * 100) : 0;
-    // EPC = (payable conversions × partnerPayout) / clicks - only count conversions that are payable per payout model
-    const totalEarnings = allConversions.reduce((sum, c) => {
-      const payoutModel = offerModelMap.get(c.offerId) || 'CPA';
-      if (isPayableForEpc(c.conversionType, payoutModel)) {
-        return sum + (offerPayoutMap.get(c.offerId) || 0);
-      }
-      return sum;
-    }, 0);
+    // Simplified: payable = publisherPayout > 0
+    const payableConversions = allConversions.filter(c => isPayableConversion(c.publisherPayout)).length;
+    const approvedPayableConversions = allConversions.filter(c => isPayableConversion(c.publisherPayout) && c.status === 'approved').length;
     const metrics = calculateMetrics({
       clicks: totalClicks,
-      conversions: totalConversions,
-      approvedConversions,
-      totalEarnings
+      payableConversions,
+      approvedPayableConversions,
+      totalPayout: publisherPayout
     });
     const cr = metrics.cr;
     const ar = metrics.ar;
@@ -1325,15 +1320,14 @@ export class DatabaseStorage implements IStorage {
       const offerApprovedConvs = offerConvs.filter(c => c.status === 'approved').length;
       const offerAdvCost = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
       const offerPubPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
-      // EPC = (payable conversions × partnerPayout) / clicks - only count payable conversions per payout model
-      const partnerPayout = offerPayoutMap.get(offerId) || 0;
-      const payoutModel = offerModelMap.get(offerId) || 'CPA';
-      const offerEarnings = offerConvs.filter(c => isPayableForEpc(c.conversionType, payoutModel)).length * partnerPayout;
+      // Simplified: payable = publisherPayout > 0
+      const offerPayable = offerConvs.filter(c => isPayableConversion(c.publisherPayout)).length;
+      const offerApprovedPayable = offerConvs.filter(c => isPayableConversion(c.publisherPayout) && c.status === 'approved').length;
       const offerMetrics = calculateMetrics({
         clicks: offerClicks.length,
-        conversions: offerConvs.length,
-        approvedConversions: offerApprovedConvs,
-        totalEarnings: offerEarnings
+        payableConversions: offerPayable,
+        approvedPayableConversions: offerApprovedPayable,
+        totalPayout: offerPubPayout
       });
       return {
         offerId,
@@ -1625,13 +1619,14 @@ export class DatabaseStorage implements IStorage {
       .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const approvedPayout = allConversions.filter(c => c.status === 'approved')
       .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
-    // EPC = (conversions × partnerPayout) / clicks - use configured offer payout
-    const totalEarnings = allConversions.reduce((sum, c) => sum + (offerPayoutMap.get(c.offerId) || 0), 0);
+    // Simplified: payable = publisherPayout > 0
+    const payableConversions = allConversions.filter(c => isPayableConversion(c.publisherPayout)).length;
+    const approvedPayableConversions = allConversions.filter(c => isPayableConversion(c.publisherPayout) && c.status === 'approved').length;
     const metrics = calculateMetrics({
       clicks: totalClicks,
-      conversions: totalConversions,
-      approvedConversions,
-      totalEarnings
+      payableConversions,
+      approvedPayableConversions,
+      totalPayout
     });
     const cr = metrics.cr;
     const ar = metrics.ar;
@@ -1649,14 +1644,14 @@ export class DatabaseStorage implements IStorage {
         .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
       const offerApprovedPayout = offerConvs.filter(c => c.status === 'approved')
         .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
-      // EPC = (conversions × partnerPayout) / clicks - use configured offer payout
-      const partnerPayout = offerPayoutMap.get(offerId) || 0;
-      const offerEarnings = offerConvs.length * partnerPayout;
+      // Simplified: payable = publisherPayout > 0
+      const offerPayable = offerConvs.filter(c => isPayableConversion(c.publisherPayout)).length;
+      const offerApprovedPayable = offerConvs.filter(c => isPayableConversion(c.publisherPayout) && c.status === 'approved').length;
       const offerMetrics = calculateMetrics({
         clicks: offerClicks.length,
-        conversions: offerConvs.length,
-        approvedConversions: offerApprovedConvs,
-        totalEarnings: offerEarnings
+        payableConversions: offerPayable,
+        approvedPayableConversions: offerApprovedPayable,
+        totalPayout: offerPayout
       });
       return {
         offerId,
@@ -2578,20 +2573,20 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, epcEarnings: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, payableConversions: 0, approvedPayableConversions: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
       }
       
       grouped[key].conversions++;
       if (conv.status === "approved") grouped[key].approvedConversions++;
       if (conv.conversionType === "lead") grouped[key].leads++;
       if (conv.conversionType === "sale") grouped[key].sales++;
-      // Use actual payout from conversion for display (correctly calculated in orchestrator based on payout model)
-      grouped[key].payout += parseFloat(conv.publisherPayout || '0');
-      // Use partnerPayout from offer for EPC calculation - only for payable conversions
-      const partnerPayout = offerPayoutMap.get(conv.offerId) || 0;
-      const payoutModel = offerModelMap.get(conv.offerId) || 'CPA';
-      if (isPayableForEpc(conv.conversionType, payoutModel)) {
-        grouped[key].epcEarnings += partnerPayout;
+      // Use actual payout from conversion for display and metrics
+      const convPayout = parseFloat(conv.publisherPayout || '0');
+      grouped[key].payout += convPayout;
+      // Simplified: payable = publisherPayout > 0
+      if (convPayout > 0) {
+        grouped[key].payableConversions++;
+        if (conv.status === "approved") grouped[key].approvedPayableConversions++;
       }
       if (role !== "publisher") {
         grouped[key].cost += parseFloat(conv.advertiserCost || '0');
@@ -2600,12 +2595,11 @@ export class DatabaseStorage implements IStorage {
     
     // Calculate CR, AR, EPC using centralized helper
     for (const key in grouped) {
-      // EPC uses configured partnerPayout from offer, not actual payouts
       const metrics = calculateMetrics({
         clicks: grouped[key].clicks,
-        conversions: grouped[key].conversions,
-        approvedConversions: grouped[key].approvedConversions,
-        totalEarnings: grouped[key].epcEarnings
+        payableConversions: grouped[key].payableConversions,
+        approvedPayableConversions: grouped[key].approvedPayableConversions,
+        totalPayout: grouped[key].payout
       });
       grouped[key].cr = metrics.cr;
       grouped[key].ar = metrics.ar;
