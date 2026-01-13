@@ -2466,7 +2466,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
+        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, payableConversions: 0, approvedPayableConversions: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
       }
       grouped[key].clicks++;
       if (click.isUnique) grouped[key].uniqueClicks++;
