@@ -226,8 +226,8 @@ async function setupAuth(app: Express) {
     session({
       name: "sid",
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
-      resave: false,
-      saveUninitialized: false,
+      resave: true,
+      saveUninitialized: true,
       store,
       proxy: true,
       cookie: {
@@ -482,35 +482,14 @@ export async function registerRoutes(
           });
         }
 
-        // Debug: log request security info
-        console.log("[session] req.secure:", req.secure);
-        console.log("[session] x-forwarded-proto:", req.headers["x-forwarded-proto"]);
-        console.log("[session] cookie.secure:", req.session.cookie.secure);
+        // Set session data
+        req.session.userId = user.id;
+        req.session.role = user.role;
+        delete req.session.isStaff;
+        delete req.session.staffRole;
+        delete req.session.staffAdvertiserId;
         
-        // Regenerate session to get new session ID and Set-Cookie header
-        await new Promise<void>((resolve, reject) => {
-          req.session.regenerate((err) => {
-            if (err) {
-              console.error("[session] Failed to regenerate session:", err);
-              reject(err);
-            } else {
-              req.session.userId = user.id;
-              req.session.role = user.role;
-              req.session.save((saveErr) => {
-                if (saveErr) {
-                  console.error("[session] Failed to save session:", saveErr);
-                  reject(saveErr);
-                } else {
-                  const setCookie = res.getHeaders()["set-cookie"];
-                  console.log("[session] Session created for user:", user.username);
-                  console.log("[session] Set-Cookie:", setCookie);
-                  console.log("[session] After regenerate cookie.secure:", req.session.cookie.secure);
-                  resolve();
-                }
-              });
-            }
-          });
-        });
+        console.log("[session] Session created for user:", user.username, "sessionID:", req.sessionID);
 
         const needsSetup2FA = !user.twoFactorEnabled && !user.twoFactorSetupCompleted;
 
@@ -536,30 +515,14 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Regenerate session for staff login
-      await new Promise<void>((resolve, reject) => {
-        req.session.regenerate((err) => {
-          if (err) {
-            console.error("[session] Failed to regenerate staff session:", err);
-            reject(err);
-          } else {
-            req.session.userId = staff.id;
-            req.session.role = "advertiser";
-            req.session.isStaff = true;
-            req.session.staffRole = staff.staffRole;
-            req.session.staffAdvertiserId = staff.advertiserId;
-            req.session.save((saveErr) => {
-              if (saveErr) {
-                console.error("[session] Failed to save staff session:", saveErr);
-                reject(saveErr);
-              } else {
-                console.log("[session] Staff session created for:", staff.email);
-                resolve();
-              }
-            });
-          }
-        });
-      });
+      // Set staff session data
+      req.session.userId = staff.id;
+      req.session.role = "advertiser";
+      req.session.isStaff = true;
+      req.session.staffRole = staff.staffRole;
+      req.session.staffAdvertiserId = staff.advertiserId;
+      
+      console.log("[session] Staff session created for:", staff.email);
 
       res.json({ 
         id: staff.id, 
@@ -600,27 +563,12 @@ export async function registerRoutes(
         return res.status(401).json({ message: "User not found" });
       }
 
-      // Regenerate session after 2FA verification
-      await new Promise<void>((resolve, reject) => {
-        req.session.regenerate((err) => {
-          if (err) {
-            console.error("[session] Failed to regenerate session after 2FA:", err);
-            reject(err);
-          } else {
-            req.session.userId = user.id;
-            req.session.role = user.role;
-            req.session.save((saveErr) => {
-              if (saveErr) {
-                console.error("[session] Failed to save session after 2FA:", saveErr);
-                reject(saveErr);
-              } else {
-                console.log("[session] 2FA verified, session created for:", user.username);
-                resolve();
-              }
-            });
-          }
-        });
-      });
+      // Set session after 2FA verification
+      delete req.session.pending2FAUserId;
+      req.session.userId = user.id;
+      req.session.role = user.role;
+      
+      console.log("[session] 2FA verified, session created for:", user.username);
 
       res.json({ 
         id: user.id, 
