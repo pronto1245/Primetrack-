@@ -1205,6 +1205,26 @@ export class DatabaseStorage implements IStorage {
       };
     }
 
+    // Get landing payouts as fallback when offer.partnerPayout is NULL
+    const allLandingPayouts = await db.select({
+      offerId: offerLandings.offerId,
+      partnerPayout: offerLandings.partnerPayout
+    }).from(offerLandings).where(inArray(offerLandings.offerId, offerIds));
+    
+    // Build landing payout map (first landing per offer)
+    const landingPayoutMap = new Map<string, number>();
+    for (const lp of allLandingPayouts) {
+      if (!landingPayoutMap.has(lp.offerId)) {
+        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
+      }
+    }
+    
+    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout
+    const offerPayoutMap = new Map(advertiserOffers.map(o => {
+      const offerPayout = parseFloat(o.partnerPayout || '0');
+      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
+    }));
+
     // Filter offer IDs if specified
     const targetOfferIds = filters.offerIds?.length 
       ? offerIds.filter(id => filters.offerIds!.includes(id))
@@ -1264,9 +1284,17 @@ export class DatabaseStorage implements IStorage {
     const publisherPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const margin = advertiserCost - publisherPayout;
     const roi = publisherPayout > 0 ? ((margin / publisherPayout) * 100) : 0;
-    const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
-    const ar = totalConversions > 0 ? (approvedConversions / totalConversions) * 100 : 0;
-    const epc = totalClicks > 0 ? advertiserCost / totalClicks : 0;
+    // EPC = (conversions × partnerPayout) / clicks - use configured offer payout, not actual payouts
+    const totalEarnings = allConversions.reduce((sum, c) => sum + (offerPayoutMap.get(c.offerId) || 0), 0);
+    const metrics = calculateMetrics({
+      clicks: totalClicks,
+      conversions: totalConversions,
+      approvedConversions,
+      totalEarnings
+    });
+    const cr = metrics.cr;
+    const ar = metrics.ar;
+    const epc = metrics.epc;
 
     // Group by offer
     const byOffer = await Promise.all(targetOfferIds.map(async (offerId) => {
@@ -1276,6 +1304,15 @@ export class DatabaseStorage implements IStorage {
       const offerApprovedConvs = offerConvs.filter(c => c.status === 'approved').length;
       const offerAdvCost = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost), 0);
       const offerPubPayout = offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+      // EPC = (conversions × partnerPayout) / clicks - use configured offer payout
+      const partnerPayout = offerPayoutMap.get(offerId) || 0;
+      const offerEarnings = offerConvs.length * partnerPayout;
+      const offerMetrics = calculateMetrics({
+        clicks: offerClicks.length,
+        conversions: offerConvs.length,
+        approvedConversions: offerApprovedConvs,
+        totalEarnings: offerEarnings
+      });
       return {
         offerId,
         offerName: offer.name,
@@ -1287,9 +1324,9 @@ export class DatabaseStorage implements IStorage {
         advertiserCost: offerAdvCost,
         publisherPayout: offerPubPayout,
         margin: offerAdvCost - offerPubPayout,
-        cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0,
-        ar: offerConvs.length > 0 ? (offerApprovedConvs / offerConvs.length) * 100 : 0,
-        epc: offerClicks.length > 0 ? offerAdvCost / offerClicks.length : 0
+        cr: offerMetrics.cr,
+        ar: offerMetrics.ar,
+        epc: offerMetrics.epc
       };
     }));
 
@@ -1486,6 +1523,35 @@ export class DatabaseStorage implements IStorage {
     if (filters.offerIds?.length) {
       allClicks = allClicks.filter(c => filters.offerIds!.includes(c.offerId));
     }
+    
+    // Get all unique offer IDs from clicks for payout map
+    const clickOfferIds = Array.from(new Set(allClicks.map(c => c.offerId)));
+    
+    // Get offers with partnerPayout for EPC calculation
+    const clickOffers = clickOfferIds.length > 0 
+      ? await db.select({ id: offers.id, partnerPayout: offers.partnerPayout })
+          .from(offers).where(inArray(offers.id, clickOfferIds))
+      : [];
+    
+    // Get landing payouts as fallback when offer.partnerPayout is NULL
+    const landingPayouts = clickOfferIds.length > 0 
+      ? await db.select({ offerId: offerLandings.offerId, partnerPayout: offerLandings.partnerPayout })
+          .from(offerLandings).where(inArray(offerLandings.offerId, clickOfferIds))
+      : [];
+    
+    // Build landing payout map (first landing per offer)
+    const landingPayoutMap = new Map<string, number>();
+    for (const lp of landingPayouts) {
+      if (!landingPayoutMap.has(lp.offerId)) {
+        landingPayoutMap.set(lp.offerId, parseFloat(lp.partnerPayout || '0'));
+      }
+    }
+    
+    // Build offer payout map: use offer.partnerPayout or fallback to first landing's payout
+    const offerPayoutMap = new Map(clickOffers.map(o => {
+      const offerPayout = parseFloat(o.partnerPayout || '0');
+      return [o.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o.id) || 0)];
+    }));
     if (filters.dateFrom) {
       allClicks = allClicks.filter(c => new Date(c.createdAt) >= filters.dateFrom!);
     }
@@ -1531,9 +1597,17 @@ export class DatabaseStorage implements IStorage {
       .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
     const approvedPayout = allConversions.filter(c => c.status === 'approved')
       .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
-    const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
-    const ar = totalConversions > 0 ? (approvedConversions / totalConversions) * 100 : 0;
-    const epc = totalClicks > 0 ? totalPayout / totalClicks : 0;
+    // EPC = (conversions × partnerPayout) / clicks - use configured offer payout
+    const totalEarnings = allConversions.reduce((sum, c) => sum + (offerPayoutMap.get(c.offerId) || 0), 0);
+    const metrics = calculateMetrics({
+      clicks: totalClicks,
+      conversions: totalConversions,
+      approvedConversions,
+      totalEarnings
+    });
+    const cr = metrics.cr;
+    const ar = metrics.ar;
+    const epc = metrics.epc;
 
     // Group by offer
     const offerIds = Array.from(new Set(allClicks.map(c => c.offerId)));
@@ -1547,6 +1621,15 @@ export class DatabaseStorage implements IStorage {
         .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
       const offerApprovedPayout = offerConvs.filter(c => c.status === 'approved')
         .reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+      // EPC = (conversions × partnerPayout) / clicks - use configured offer payout
+      const partnerPayout = offerPayoutMap.get(offerId) || 0;
+      const offerEarnings = offerConvs.length * partnerPayout;
+      const offerMetrics = calculateMetrics({
+        clicks: offerClicks.length,
+        conversions: offerConvs.length,
+        approvedConversions: offerApprovedConvs,
+        totalEarnings: offerEarnings
+      });
       return {
         offerId,
         offerName: offer?.name || 'Unknown',
@@ -1558,9 +1641,9 @@ export class DatabaseStorage implements IStorage {
         payout: offerPayout,
         holdPayout: offerHoldPayout,
         approvedPayout: offerApprovedPayout,
-        cr: offerClicks.length > 0 ? (offerConvs.length / offerClicks.length) * 100 : 0,
-        ar: offerConvs.length > 0 ? (offerApprovedConvs / offerConvs.length) * 100 : 0,
-        epc: offerClicks.length > 0 ? offerPayout / offerClicks.length : 0,
+        cr: offerMetrics.cr,
+        ar: offerMetrics.ar,
+        epc: offerMetrics.epc,
         status: offer?.status || 'unknown'
       };
     }));
@@ -4060,7 +4143,7 @@ export class DatabaseStorage implements IStorage {
     const clickMap = new Map(clickCounts.map(c => [c.offerId, c.count]));
     const convMap = new Map(conversionData.map(c => [c.offerId, { count: c.count, approved: c.approvedCount }]));
     
-    return offerIds.map(offerId => {
+    const results = offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
       const convData = convMap.get(offerId) || { count: 0, approved: 0 };
       const partnerPayout = payoutMap.get(offerId) || 0;
@@ -4072,6 +4155,7 @@ export class DatabaseStorage implements IStorage {
         approvedConversions: convData.approved,
         totalEarnings
       });
+      console.log(`[ADV-METRICS] offerId=${offerId.slice(0,8)} clicks=${clickCount} conv=${convData.count} payout=${partnerPayout} earnings=${totalEarnings} -> CR=${metrics.cr}% AR=${metrics.ar}% EPC=$${metrics.epc}`);
       return { 
         offerId, 
         clicks: clickCount, 
@@ -4079,6 +4163,7 @@ export class DatabaseStorage implements IStorage {
         ...metrics
       };
     });
+    return results;
   }
 
   async getOfferPerformanceByPublisher(publisherId: string): Promise<{ offerId: string; clicks: number; conversions: number; cr: number; ar: number; epc: number }[]> {
