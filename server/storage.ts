@@ -51,6 +51,37 @@ import { eq, and, or, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { encrypt, decrypt, hasSecret } from "./services/encryption";
 
+/**
+ * Centralized metrics calculation helper
+ * Ensures consistent CR/AR/EPC calculations across all reports and stats
+ */
+export function calculateMetrics(data: {
+  clicks: number;
+  conversions: number;
+  approvedConversions: number;
+  payout: number;
+}): { cr: number; ar: number; epc: number } {
+  const { clicks, conversions, approvedConversions, payout } = data;
+  
+  // CR (Conversion Rate) = conversions / clicks * 100
+  // For single click: 0% if no conversion, 100% if has conversion (capped)
+  const cr = clicks > 0 
+    ? Math.min(100, Math.round((conversions / clicks) * 100 * 100) / 100)
+    : 0;
+  
+  // AR (Approval Rate) = approved conversions / total conversions * 100
+  const ar = conversions > 0 
+    ? Math.round((approvedConversions / conversions) * 100 * 100) / 100
+    : 0;
+  
+  // EPC (Earnings Per Click) = total payout / total clicks
+  const epc = clicks > 0 
+    ? Math.round((payout / clicks) * 100) / 100
+    : 0;
+  
+  return { cr, ar, epc };
+}
+
 export interface AdvertiserStatsFilters {
   dateFrom?: Date;
   dateTo?: Date;
@@ -2350,15 +2381,17 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Calculate CR, AR, EPC
+    // Calculate CR, AR, EPC using centralized helper
     for (const key in grouped) {
-      if (grouped[key].clicks > 0) {
-        grouped[key].cr = (grouped[key].conversions / grouped[key].clicks) * 100;
-        grouped[key].epc = grouped[key].payout / grouped[key].clicks;
-      }
-      if (grouped[key].conversions > 0) {
-        grouped[key].ar = (grouped[key].approvedConversions / grouped[key].conversions) * 100;
-      }
+      const metrics = calculateMetrics({
+        clicks: grouped[key].clicks,
+        conversions: grouped[key].conversions,
+        approvedConversions: grouped[key].approvedConversions,
+        payout: grouped[key].payout
+      });
+      grouped[key].cr = metrics.cr;
+      grouped[key].ar = metrics.ar;
+      grouped[key].epc = metrics.epc;
     }
     
     // Convert to array and sort
@@ -3973,16 +4006,17 @@ export class DatabaseStorage implements IStorage {
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
       const convData = convMap.get(offerId) || { count: 0, approved: 0, payout: 0 };
-      const cr = clickCount > 0 ? (convData.count / clickCount) * 100 : 0;
-      const ar = convData.count > 0 ? (convData.approved / convData.count) * 100 : 0;
-      const epc = clickCount > 0 ? convData.payout / clickCount : 0;
+      const metrics = calculateMetrics({
+        clicks: clickCount,
+        conversions: convData.count,
+        approvedConversions: convData.approved,
+        payout: convData.payout
+      });
       return { 
         offerId, 
         clicks: clickCount, 
         conversions: convData.count, 
-        cr: Math.round(cr * 10) / 10,
-        ar: Math.round(ar * 10) / 10,
-        epc: Math.round(epc * 100) / 100
+        ...metrics
       };
     });
   }
@@ -4023,16 +4057,17 @@ export class DatabaseStorage implements IStorage {
     return offerIds.map(offerId => {
       const clickCount = clickMap.get(offerId) || 0;
       const convData = convMap.get(offerId) || { count: 0, approved: 0, payout: 0 };
-      const cr = clickCount > 0 ? (convData.count / clickCount) * 100 : 0;
-      const ar = convData.count > 0 ? (convData.approved / convData.count) * 100 : 0;
-      const epc = clickCount > 0 ? convData.payout / clickCount : 0;
+      const metrics = calculateMetrics({
+        clicks: clickCount,
+        conversions: convData.count,
+        approvedConversions: convData.approved,
+        payout: convData.payout
+      });
       return { 
         offerId, 
         clicks: clickCount, 
         conversions: convData.count, 
-        cr: Math.round(cr * 10) / 10,
-        ar: Math.round(ar * 10) / 10,
-        epc: Math.round(epc * 100) / 100
+        ...metrics
       };
     });
   }

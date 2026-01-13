@@ -4971,13 +4971,11 @@ export async function registerRoutes(
         const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
         const margin = cost - payout;
         const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        // Per-row metrics
-        // CR = conversions / clicks * 100 (for single click: 0% or 100% based on conversion)
-        const cr = conversionCount > 0 ? (conversionCount / 1) * 100 : 0;
-        // AR = approved / total conversions * 100
-        const ar = conversionCount > 0 ? (approvedCount / conversionCount) * 100 : 0;
-        // EPC = payout / clicks (for single click = payout)
-        const epc = payout;
+        // Per-row metrics using centralized calculation
+        // For single click: CR = 0% or 100%, AR = approved/total, EPC = payout/1
+        const cr = conversionCount > 0 ? 100 : 0; // Single click: has conversion = 100%
+        const ar = conversionCount > 0 ? Math.round((approvedCount / conversionCount) * 100 * 100) / 100 : 0;
+        const epc = Math.round(payout * 100) / 100; // For single click, EPC = payout
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
@@ -5033,9 +5031,16 @@ export async function registerRoutes(
 
       summary.margin = summary.advertiserCost - summary.payout;
       summary.roi = summary.advertiserCost > 0 ? ((summary.margin / summary.advertiserCost) * 100) : 0;
-      summary.cr = summary.clicks > 0 ? ((summary.conversions / summary.clicks) * 100) : 0;
-      summary.ar = summary.conversions > 0 ? ((summary.approvedConversions / summary.conversions) * 100) : 0;
-      summary.epc = summary.clicks > 0 ? (summary.payout / summary.clicks) : 0;
+      // Use consistent metric calculations
+      summary.cr = summary.clicks > 0 
+        ? Math.round((summary.conversions / summary.clicks) * 100 * 100) / 100
+        : 0;
+      summary.ar = summary.conversions > 0 
+        ? Math.round((summary.approvedConversions / summary.conversions) * 100 * 100) / 100
+        : 0;
+      summary.epc = summary.clicks > 0 
+        ? Math.round((summary.payout / summary.clicks) * 100) / 100
+        : 0;
 
       res.json({ ...result, summary });
     } catch (error: any) {
