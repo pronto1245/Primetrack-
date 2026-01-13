@@ -388,7 +388,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
   } else {
     // Calculate from rows (grouped data) - groupedData uses 'data' not 'rows'
     const rows = data?.data || data?.rows || [];
-    totals = rows.reduce((acc: any, row: any) => ({
+    const calculated = rows.reduce((acc: any, row: any) => ({
       clicks: acc.clicks + (row.clicks || 0),
       uniqueClicks: acc.uniqueClicks + (row.uniqueClicks || 0),
       conversions: acc.conversions + (row.conversions || 0),
@@ -397,13 +397,15 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
       sales: acc.sales + (row.sales || 0),
       payout: acc.payout + (row.payout || 0),
       cost: acc.cost + (row.cost || 0),
-    }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+      epcEarnings: acc.epcEarnings + ((row.epc || 0) * (row.clicks || 0)), // Sum EPC earnings for correct EPC
+    }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0, epcEarnings: 0 });
+    totals = calculated;
     
     margin = totals.cost - totals.payout;
     roi = totals.cost > 0 ? ((margin / totals.cost) * 100) : 0;
     cr = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
     ar = totals.conversions > 0 ? ((totals.approvedConversions / totals.conversions) * 100) : 0;
-    epc = totals.clicks > 0 ? (totals.payout / totals.clicks) : 0;
+    epc = totals.clicks > 0 ? (totals.epcEarnings / totals.clicks) : 0; // Use EPC earnings, not payout
   }
 
   if (loading) {
@@ -916,13 +918,14 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
     sales: acc.sales + (row.sales || 0),
     payout: acc.payout + (row.payout || 0),
     cost: acc.cost + (row.cost || 0),
-  }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0 });
+    epcEarnings: acc.epcEarnings + ((row.epc || 0) * (row.clicks || 0)), // Sum EPC earnings for total EPC calculation
+  }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, leads: 0, sales: 0, payout: 0, cost: 0, epcEarnings: 0 });
 
   const totalMargin = totals.cost - totals.payout;
   const totalROI = totals.cost > 0 ? ((totalMargin / totals.cost) * 100) : 0;
   const totalCR = totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100) : 0;
   const totalAR = totals.conversions > 0 ? ((totals.approvedConversions / totals.conversions) * 100) : 0;
-  const totalEPC = totals.clicks > 0 ? (totals.payout / totals.clicks) : 0;
+  const totalEPC = totals.clicks > 0 ? (totals.epcEarnings / totals.clicks) : 0;
 
   return (
     <Card className="bg-card border-border">
@@ -965,7 +968,7 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                   const roi = cost > 0 ? ((margin / cost) * 100) : 0;
                   const cr = row.clicks > 0 ? ((row.conversions / row.clicks) * 100) : 0;
                   const ar = row.conversions > 0 ? (((row.approvedConversions || 0) / row.conversions) * 100) : 0;
-                  const epc = row.clicks > 0 ? (payout / row.clicks) : 0;
+                  const epc = row.epc || 0; // Use backend-calculated EPC (based on partnerPayout)
                   
                   return (
                     <tr key={i} className="hover:bg-muted transition-colors">
