@@ -2935,38 +2935,58 @@ export class DatabaseStorage implements IStorage {
     avgFraudScore: number;
     byType: { type: string; count: number }[];
   }> {
-    // Get metrics for last 30 days
+    // Get data directly from clicks table for last 30 days
     const dateFrom = new Date();
     dateFrom.setDate(dateFrom.getDate() - 30);
     
-    const metrics = await this.getAntifraudMetrics({ advertiserId, dateFrom });
+    const conditions: any[] = [gte(clicks.createdAt, dateFrom)];
     
-    let totalClicks = 0;
-    let blockedClicks = 0;
-    let flaggedClicks = 0;
-    let proxyVpnCount = 0;
-    let botCount = 0;
-    let datacenterCount = 0;
-    
-    for (const m of metrics) {
-      totalClicks += m.totalClicks || 0;
-      blockedClicks += m.blockedClicks || 0;
-      flaggedClicks += m.flaggedClicks || 0;
-      proxyVpnCount += m.proxyVpnCount || 0;
-      botCount += m.botCount || 0;
-      datacenterCount += m.datacenterCount || 0;
+    // If advertiserId provided, filter by their offers
+    if (advertiserId) {
+      const advertiserOffers = await db.select({ id: offers.id }).from(offers).where(eq(offers.advertiserId, advertiserId));
+      const offerIds = advertiserOffers.map(o => o.id);
+      if (offerIds.length === 0) {
+        return {
+          totalClicks: 0,
+          blockedClicks: 0,
+          flaggedClicks: 0,
+          blockRate: 0,
+          avgFraudScore: 0,
+          byType: [
+            { type: "Proxy/VPN", count: 0 },
+            { type: "Bot", count: 0 },
+            { type: "Datacenter", count: 0 }
+          ]
+        };
+      }
+      conditions.push(inArray(clicks.offerId, offerIds));
     }
     
+    // Get aggregated stats from clicks
+    const stats = await db.select({
+      totalClicks: sql<number>`COUNT(*)::int`,
+      blockedClicks: sql<number>`COUNT(*) FILTER (WHERE ${clicks.antifraudAction} = 'block' OR ${clicks.antifraudAction} = 'reject')::int`,
+      flaggedClicks: sql<number>`COUNT(*) FILTER (WHERE ${clicks.isSuspicious} = true)::int`,
+      proxyVpnCount: sql<number>`COUNT(*) FILTER (WHERE ${clicks.isProxy} = true OR ${clicks.isVpn} = true)::int`,
+      botCount: sql<number>`COUNT(*) FILTER (WHERE ${clicks.isBot} = true)::int`,
+      datacenterCount: sql<number>`COUNT(*) FILTER (WHERE ${clicks.isDatacenter} = true)::int`,
+      avgFraudScore: sql<number>`COALESCE(AVG(${clicks.fraudScore}), 0)::float`,
+    })
+    .from(clicks)
+    .where(and(...conditions));
+    
+    const result = stats[0] || { totalClicks: 0, blockedClicks: 0, flaggedClicks: 0, proxyVpnCount: 0, botCount: 0, datacenterCount: 0, avgFraudScore: 0 };
+    
     return {
-      totalClicks,
-      blockedClicks,
-      flaggedClicks,
-      blockRate: totalClicks > 0 ? (blockedClicks / totalClicks) * 100 : 0,
-      avgFraudScore: 0, // Would need to calculate from logs
+      totalClicks: result.totalClicks || 0,
+      blockedClicks: result.blockedClicks || 0,
+      flaggedClicks: result.flaggedClicks || 0,
+      blockRate: result.totalClicks > 0 ? (result.blockedClicks / result.totalClicks) * 100 : 0,
+      avgFraudScore: result.avgFraudScore || 0,
       byType: [
-        { type: "Proxy/VPN", count: proxyVpnCount },
-        { type: "Bot", count: botCount },
-        { type: "Datacenter", count: datacenterCount }
+        { type: "Proxy/VPN", count: result.proxyVpnCount || 0 },
+        { type: "Bot", count: result.botCount || 0 },
+        { type: "Datacenter", count: result.datacenterCount || 0 }
       ]
     };
   }

@@ -46,6 +46,11 @@ export class Orchestrator {
       event.sum
     );
     
+    // Check antifraud flags from click
+    const antifraudAction = click.antifraudAction || "allow";
+    const isFraudulent = antifraudAction === "block" || antifraudAction === "reject";
+    const shouldHoldForFraud = antifraudAction === "hold" || antifraudAction === "flag";
+    
     // Use offer hold period, or fall back to advertiser default
     let holdDays = offer.holdPeriodDays || 0;
     if (holdDays === 0) {
@@ -53,9 +58,24 @@ export class Orchestrator {
       holdDays = advertiserSettings?.defaultHoldPeriodDays || 0;
     }
     
+    // Force hold if fraud flagged
+    if (shouldHoldForFraud && holdDays === 0) {
+      holdDays = 7; // 7 day hold for suspicious traffic
+    }
+    
     const holdUntil = holdDays > 0
       ? new Date(Date.now() + holdDays * 24 * 60 * 60 * 1000)
       : undefined;
+    
+    // Determine conversion status based on antifraud
+    let conversionStatus: string;
+    if (isFraudulent) {
+      conversionStatus = "rejected";
+    } else if (holdUntil || shouldHoldForFraud) {
+      conversionStatus = "hold";
+    } else {
+      conversionStatus = "pending";
+    }
     
     const conversionData: InsertConversion = {
       clickId: click.id,
@@ -63,15 +83,34 @@ export class Orchestrator {
       publisherId: click.publisherId,
       conversionType: event.status,
       advertiserCost: advertiserCost.toString(),
-      publisherPayout: publisherPayout.toString(),
+      publisherPayout: isFraudulent ? "0" : publisherPayout.toString(), // No payout for fraud
       transactionSum: event.sum?.toString(),
       currency: offer.currency,
-      status: holdUntil ? "hold" : "pending",
-      holdUntil,
+      status: conversionStatus,
+      holdUntil: isFraudulent ? undefined : holdUntil,
       externalId: event.externalId,
     };
     
     const conversion = await storage.createConversion(conversionData);
+    
+    // Notify advertiser about auto-rejected fraud conversion
+    if (isFraudulent) {
+      try {
+        await storage.createNotification({
+          senderId: offer.advertiserId,
+          senderRole: "system",
+          recipientId: offer.advertiserId,
+          advertiserScopeId: offer.advertiserId,
+          type: "antifraud",
+          title: "Конверсия отклонена (антифрод)",
+          body: `Конверсия автоматически отклонена из-за фродового клика. Причина: ${antifraudAction}. Click ID: ${click.clickId}`,
+          entityType: "conversion",
+          entityId: conversion.id,
+        });
+      } catch (err) {
+        console.error("[Orchestrator] Failed to send fraud rejection notification:", err);
+      }
+    }
     
     // Increment offer caps stats
     await storage.incrementOfferCapsStats(click.offerId);
