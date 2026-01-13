@@ -226,9 +226,8 @@ async function setupAuth(app: Express) {
     session({
       name: "sid",
       secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
-      resave: true,
-      saveUninitialized: true,
-      rolling: true,
+      resave: false,
+      saveUninitialized: false,
       store,
       proxy: true,
       cookie: {
@@ -240,19 +239,6 @@ async function setupAuth(app: Express) {
       },
     })
   );
-  
-  // Debug middleware to log Set-Cookie header
-  app.use((req, res, next) => {
-    const originalSend = res.send;
-    res.send = function(body: any) {
-      const setCookie = res.getHeaders()["set-cookie"];
-      if (req.path.includes("/api/auth/login")) {
-        console.log("[session] Login response Set-Cookie:", setCookie);
-      }
-      return originalSend.call(res, body);
-    };
-    next();
-  });
 }
 
 async function seedUsers() {
@@ -496,33 +482,12 @@ export async function registerRoutes(
           });
         }
 
-        // Set session data and save explicitly
+        // Set session data
         req.session.userId = user.id;
         req.session.role = user.role;
         delete req.session.isStaff;
         delete req.session.staffRole;
         delete req.session.staffAdvertiserId;
-        
-        // Force session save and manually set cookie
-        await new Promise<void>((resolve, reject) => {
-          req.session.save((err) => {
-            if (err) {
-              console.error("[session] Save error:", err);
-              reject(err);
-            } else {
-              console.log("[session] Session saved for user:", user.username, "sessionID:", req.sessionID);
-              resolve();
-            }
-          });
-        });
-        
-        // Manually set cookie header if not set by express-session
-        const existingCookie = res.getHeader("set-cookie");
-        if (!existingCookie) {
-          const cookieValue = `sid=${req.sessionID}; Path=/; HttpOnly; Max-Age=86400; SameSite=None; Secure`;
-          res.setHeader("Set-Cookie", cookieValue);
-          console.log("[session] Manually set cookie:", cookieValue);
-        }
 
         const needsSetup2FA = !user.twoFactorEnabled && !user.twoFactorSetupCompleted;
 
