@@ -4975,8 +4975,8 @@ export async function registerRoutes(
         const cr = hasConversion ? (conversionCount * 100) : 0;
         // AR = approved / total conversions × 100
         const ar = conversionCount > 0 ? (approvedCount / conversionCount * 100) : 0;
-        // EPC = payout / 1 click
-        const epc = payout;
+        // EPC is an aggregate metric (payout / clicks), not meaningful for single click rows
+        // Will be calculated properly in summary and grouped reports
         
         // Remove anti-fraud data for publishers
         if (role === "publisher") {
@@ -4994,7 +4994,6 @@ export async function registerRoutes(
             payout,
             cr,
             ar,
-            epc,
           };
         }
         
@@ -5014,7 +5013,6 @@ export async function registerRoutes(
           roi,
           cr,
           ar,
-          epc,
         };
       });
 
