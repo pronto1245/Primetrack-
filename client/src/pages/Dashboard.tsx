@@ -256,11 +256,12 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
 
       <div className="p-4 border-t border-border">
         <button 
-          onClick={() => handleNavClick("/dashboard")}
-          className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full disabled:opacity-50"
         >
           <LogOut className="w-3 h-3 text-red-500" />
-          {t('dashboard.menu.logout')}
+          {loggingOut ? "Выход..." : t('dashboard.menu.logout')}
         </button>
       </div>
     </div>
@@ -345,10 +346,11 @@ function ManagerCard() {
   );
 }
 
-function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: () => void }) {
+function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, t: any, onNavigate?: () => void, onLogout: () => void, loggingOut: boolean }) {
   const { selectedAdvertiser } = useAdvertiserContext();
   const [featureModalOpen, setFeatureModalOpen] = useState(false);
   const { isStaff, staffLoading, canAccess } = useStaff();
+  const [, setLocation] = useLocation();
   
   // Fetch unread news count
   const { data: unreadNewsData } = useQuery<{ count: number }>({
@@ -517,12 +519,14 @@ function Sidebar({ role, t, onNavigate }: { role: string, t: any, onNavigate?: (
       )}
 
       <div className="p-4 border-t border-border">
-        <Link href="/dashboard">
-          <button className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full">
-            <LogOut className="w-3 h-3 text-red-500" />
-            {t('dashboard.menu.logout')}
-          </button>
-        </Link>
+        <button 
+          onClick={onLogout}
+          disabled={loggingOut}
+          className="flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors w-full disabled:opacity-50"
+        >
+          <LogOut className="w-3 h-3 text-red-500" />
+          {loggingOut ? "Выход..." : t('dashboard.menu.logout')}
+        </button>
       </div>
 
       <FeatureSuggestionModal open={featureModalOpen} onOpenChange={setFeatureModalOpen} />
