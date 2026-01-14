@@ -253,23 +253,23 @@ export function AdminSubscriptions() {
                 data-testid="input-search-subscriptions"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter || "all"} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
               <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
                 <SelectValue placeholder="Все статусы" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все статусы</SelectItem>
+                <SelectItem value="all">Все статусы</SelectItem>
                 {Object.entries(statusLabels).map(([key, label]) => (
                   <SelectItem key={key} value={key}>{label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select value={planFilter} onValueChange={setPlanFilter}>
+            <Select value={planFilter || "all"} onValueChange={(v) => setPlanFilter(v === "all" ? "" : v)}>
               <SelectTrigger className="w-[180px]" data-testid="select-plan-filter">
                 <SelectValue placeholder="Все планы" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все планы</SelectItem>
+                <SelectItem value="all">Все планы</SelectItem>
                 {plans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
                 ))}
@@ -391,7 +391,7 @@ export function AdminSubscriptions() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setExtendModal(null)}>
+            <Button variant="outline" onClick={() => setExtendModal(null)} data-testid="button-cancel-extend">
               Отмена
             </Button>
             <Button
@@ -436,7 +436,7 @@ export function AdminSubscriptions() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setChangePlanModal(null)}>
+            <Button variant="outline" onClick={() => setChangePlanModal(null)} data-testid="button-cancel-change-plan">
               Отмена
             </Button>
             <Button
@@ -503,7 +503,7 @@ export function AdminSubscriptions() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setGrantModal(false)}>
+            <Button variant="outline" onClick={() => setGrantModal(false)} data-testid="button-cancel-grant">
               Отмена
             </Button>
             <Button
