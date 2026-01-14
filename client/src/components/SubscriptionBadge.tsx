@@ -96,7 +96,7 @@ export function SubscriptionBadge({ role }: { role: string }) {
     );
   }
 
-  if (subscription.status === "active" && plan) {
+  if (subscription.status === "active") {
     return (
       <Link href={`/dashboard/advertiser/settings?tab=subscription`}>
         <Badge 
@@ -105,7 +105,7 @@ export function SubscriptionBadge({ role }: { role: string }) {
           data-testid="subscription-badge-active"
         >
           <CheckCircle className="w-3 h-3" />
-          {plan.name}
+          {plan?.name || "Активна"}
           {time && !time.expired && (
             <span className="text-muted-foreground ml-1">({formatTime()})</span>
           )}
