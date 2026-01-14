@@ -3916,12 +3916,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async extendSubscription(id: string, newEndDate: Date, note?: string): Promise<AdvertiserSubscription | undefined> {
+    // Get current subscription to check planId
+    const [current] = await db.select().from(advertiserSubscriptions).where(eq(advertiserSubscriptions.id, id));
+    
+    let planIdToSet = current?.planId;
+    
+    // If no planId, set default plan (Starter or first available)
+    if (!planIdToSet) {
+      const starterPlan = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.name, "Starter")).limit(1);
+      if (starterPlan.length > 0) {
+        planIdToSet = starterPlan[0].id;
+      } else {
+        // Fallback to first available plan
+        const anyPlan = await db.select().from(subscriptionPlans).limit(1);
+        if (anyPlan.length > 0) {
+          planIdToSet = anyPlan[0].id;
+        }
+      }
+    }
+    
+    const updateData: Record<string, unknown> = { 
+      currentPeriodEnd: newEndDate,
+      status: "active",
+      updatedAt: new Date()
+    };
+    
+    // Only set planId if we have a valid one
+    if (planIdToSet) {
+      updateData.planId = planIdToSet;
+    }
+    
     const [updated] = await db.update(advertiserSubscriptions)
-      .set({ 
-        currentPeriodEnd: newEndDate,
-        status: "active",
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(advertiserSubscriptions.id, id))
       .returning();
     return updated;
