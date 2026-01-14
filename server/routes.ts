@@ -8197,11 +8197,11 @@ export async function registerRoutes(
     }
   });
 
-  // Grant subscription to user
+  // Grant subscription to user (max 1200 months = 100 years)
   const grantSubscriptionSchema = z.object({
     userId: z.string(),
     planId: z.string(),
-    periodMonths: z.number().int().positive().default(1),
+    periodMonths: z.number().int().positive().max(1200, "Максимум 1200 месяцев (100 лет)").default(1),
     note: z.string().max(500).optional(),
   });
 
