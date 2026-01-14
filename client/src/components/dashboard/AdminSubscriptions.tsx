@@ -258,9 +258,9 @@ export function AdminSubscriptions() {
                 <SelectValue placeholder="Все статусы" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все статусы</SelectItem>
+                <SelectItem value="all" data-testid="select-status-all">Все статусы</SelectItem>
                 {Object.entries(statusLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                  <SelectItem key={key} value={key} data-testid={`select-status-${key}`}>{label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -269,9 +269,9 @@ export function AdminSubscriptions() {
                 <SelectValue placeholder="Все планы" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все планы</SelectItem>
+                <SelectItem value="all" data-testid="select-plan-all">Все планы</SelectItem>
                 {plans.map((plan) => (
-                  <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
+                  <SelectItem key={plan.id} value={plan.id} data-testid={`select-plan-${plan.id}`}>{plan.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -427,7 +427,7 @@ export function AdminSubscriptions() {
                 </SelectTrigger>
                 <SelectContent>
                   {plans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id}>
+                    <SelectItem key={plan.id} value={plan.id} data-testid={`select-change-plan-${plan.id}`}>
                       {plan.name} — ${plan.monthlyPrice}/мес
                     </SelectItem>
                   ))}
@@ -469,7 +469,7 @@ export function AdminSubscriptions() {
                 </SelectTrigger>
                 <SelectContent>
                   {allUsers?.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
+                    <SelectItem key={user.id} value={user.id} data-testid={`select-grant-user-${user.id}`}>
                       {user.username} ({user.email})
                     </SelectItem>
                   ))}
@@ -484,7 +484,7 @@ export function AdminSubscriptions() {
                 </SelectTrigger>
                 <SelectContent>
                   {plans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id}>
+                    <SelectItem key={plan.id} value={plan.id} data-testid={`select-grant-plan-${plan.id}`}>
                       {plan.name} — ${plan.monthlyPrice}/мес
                     </SelectItem>
                   ))}
