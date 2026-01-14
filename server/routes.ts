@@ -8103,6 +8103,180 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // ADMIN SUBSCRIPTION MANAGEMENT
+  // ============================================
+
+  // Get all subscriptions for admin
+  app.get("/api/admin/subscriptions", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { status, planId, search } = req.query;
+      const filters: { status?: string; planId?: string; search?: string } = {};
+      
+      if (status && typeof status === "string") filters.status = status;
+      if (planId && typeof planId === "string") filters.planId = planId;
+      if (search && typeof search === "string") filters.search = search;
+      
+      const subscriptions = await storage.getAllSubscriptionsForAdmin(filters);
+      const plans = await storage.getSubscriptionPlans();
+      
+      res.json({ subscriptions, plans });
+    } catch (error) {
+      console.error("Failed to get subscriptions:", error);
+      res.status(500).json({ message: "Ошибка загрузки подписок" });
+    }
+  });
+
+  // Get subscription by id
+  app.get("/api/admin/subscriptions/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const subscription = await storage.getSubscriptionById(id);
+      
+      if (!subscription) {
+        return res.status(404).json({ message: "Подписка не найдена" });
+      }
+      
+      res.json(subscription);
+    } catch (error) {
+      console.error("Failed to get subscription:", error);
+      res.status(500).json({ message: "Ошибка загрузки подписки" });
+    }
+  });
+
+  // Extend subscription
+  const extendSubscriptionSchema = z.object({
+    extendByDays: z.number().int().positive().optional(),
+    extendByMonths: z.number().int().positive().optional(),
+    newEndDate: z.string().optional(),
+    note: z.string().max(500).optional(),
+  });
+
+  app.post("/api/admin/subscriptions/:id/extend", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const parsed = extendSubscriptionSchema.safeParse(req.body);
+      
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Ошибка валидации" });
+      }
+      
+      const { extendByDays, extendByMonths, newEndDate, note } = parsed.data;
+      
+      // Get current subscription
+      const subscription = await storage.getSubscriptionById(id);
+      if (!subscription) {
+        return res.status(404).json({ message: "Подписка не найдена" });
+      }
+      
+      // Calculate new end date
+      let calculatedEndDate: Date;
+      if (newEndDate) {
+        calculatedEndDate = new Date(newEndDate);
+      } else {
+        const baseDate = subscription.currentPeriodEnd || new Date();
+        calculatedEndDate = new Date(baseDate);
+        
+        if (extendByDays) {
+          calculatedEndDate.setDate(calculatedEndDate.getDate() + extendByDays);
+        }
+        if (extendByMonths) {
+          calculatedEndDate.setMonth(calculatedEndDate.getMonth() + extendByMonths);
+        }
+      }
+      
+      const updated = await storage.extendSubscription(id, calculatedEndDate, note);
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Подписка не найдена" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to extend subscription:", error);
+      res.status(500).json({ message: "Ошибка продления подписки" });
+    }
+  });
+
+  // Grant subscription to user
+  const grantSubscriptionSchema = z.object({
+    userId: z.string(),
+    planId: z.string(),
+    periodMonths: z.number().int().positive().default(1),
+    note: z.string().max(500).optional(),
+  });
+
+  app.post("/api/admin/subscriptions/grant", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const parsed = grantSubscriptionSchema.safeParse(req.body);
+      
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Ошибка валидации" });
+      }
+      
+      const { userId, planId, periodMonths } = parsed.data;
+      
+      // Verify user exists and is advertiser
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== "advertiser") {
+        return res.status(404).json({ message: "Пользователь не найден или не является рекламодателем" });
+      }
+      
+      // Verify plan exists
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Тарифный план не найден" });
+      }
+      
+      // Calculate period end
+      const periodEnd = new Date();
+      periodEnd.setMonth(periodEnd.getMonth() + periodMonths);
+      
+      const subscription = await storage.grantSubscription(userId, planId, periodEnd);
+      
+      res.json(subscription);
+    } catch (error) {
+      console.error("Failed to grant subscription:", error);
+      res.status(500).json({ message: "Ошибка выдачи подписки" });
+    }
+  });
+
+  // Change subscription plan
+  const changePlanSchema = z.object({
+    planId: z.string(),
+    note: z.string().max(500).optional(),
+  });
+
+  app.post("/api/admin/subscriptions/:id/change-plan", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const parsed = changePlanSchema.safeParse(req.body);
+      
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Ошибка валидации" });
+      }
+      
+      const { planId } = parsed.data;
+      
+      // Verify plan exists
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Тарифный план не найден" });
+      }
+      
+      const updated = await storage.changeSubscriptionPlan(id, planId);
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Подписка не найдена" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to change subscription plan:", error);
+      res.status(500).json({ message: "Ошибка смены плана" });
+    }
+  });
+
+  // ============================================
   // DATA MIGRATION (Advertiser)
   // ============================================
   
