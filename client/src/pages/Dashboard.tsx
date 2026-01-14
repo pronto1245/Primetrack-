@@ -44,6 +44,7 @@ import { AdvertiserSettings } from "@/components/dashboard/AdvertiserSettings";
 import { PublisherSettings } from "@/components/dashboard/PublisherSettings";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminDomainRequests } from "@/components/dashboard/AdminDomainRequests";
+import { AdminSubscriptions } from "@/components/dashboard/AdminSubscriptions";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
 import { NewsFeed } from "@/components/dashboard/NewsFeed";
 import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
@@ -180,6 +181,7 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
       { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers`, color: "text-orange-400" },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
+      { icon: Wallet, label: "Подписки", path: `/dashboard/${role}/subscriptions`, color: "text-amber-400" },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
@@ -373,6 +375,7 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
       { icon: Target, label: t('dashboard.menu.offers'), path: `/dashboard/${role}/offers`, color: "text-orange-400" },
       { icon: BarChart2, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: Users, label: t('dashboard.menu.users'), path: `/dashboard/${role}/users`, color: "text-emerald-400" },
+      { icon: Wallet, label: "Подписки", path: `/dashboard/${role}/subscriptions`, color: "text-amber-400" },
       { icon: Shield, label: t('hero.specs.antifraud'), path: `/dashboard/${role}/antifraud`, color: "text-red-400" },
       { icon: DollarSign, label: t('dashboard.menu.finance'), path: `/dashboard/${role}/finance`, color: "text-yellow-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
@@ -558,6 +561,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchNewsEdit, newsEditParams] = useRoute("/dashboard/:role/news/edit/:newsId");
   const [matchNotifications] = useRoute("/dashboard/:role/notifications");
   const [matchDomainRequests] = useRoute("/dashboard/:role/domain-requests");
+  const [matchSubscriptions] = useRoute("/dashboard/:role/subscriptions");
   const [matchAnalytics] = useRoute("/dashboard/:role/analytics");
   const [matchSplitTests] = useRoute("/dashboard/:role/split-tests");
   
@@ -728,6 +732,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (matchDomainRequests && role === 'admin') {
       return <AdminDomainRequests />;
+    }
+
+    if (matchSubscriptions && role === 'admin') {
+      return <AdminSubscriptions />;
     }
 
     if (showRequests) {
