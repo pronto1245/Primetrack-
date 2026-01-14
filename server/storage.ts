@@ -3864,6 +3864,114 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ============================================
+  // ADMIN SUBSCRIPTION MANAGEMENT
+  // ============================================
+
+  async getAllSubscriptionsForAdmin(filters?: { status?: string; planId?: string; search?: string }): Promise<Array<AdvertiserSubscription & { user: User; plan: SubscriptionPlan | null }>> {
+    const conditions: any[] = [];
+    
+    if (filters?.status) {
+      conditions.push(eq(advertiserSubscriptions.status, filters.status));
+    }
+    if (filters?.planId) {
+      conditions.push(eq(advertiserSubscriptions.planId, filters.planId));
+    }
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const subs = whereClause 
+      ? await db.select().from(advertiserSubscriptions).where(whereClause).orderBy(desc(advertiserSubscriptions.updatedAt))
+      : await db.select().from(advertiserSubscriptions).orderBy(desc(advertiserSubscriptions.updatedAt));
+    
+    const result = [];
+    for (const sub of subs) {
+      const user = await this.getUser(sub.advertiserId);
+      if (!user) continue;
+      
+      // Apply search filter on user data
+      if (filters?.search) {
+        const searchLower = filters.search.toLowerCase();
+        if (!user.email.toLowerCase().includes(searchLower) && 
+            !user.username.toLowerCase().includes(searchLower)) {
+          continue;
+        }
+      }
+      
+      const plan = sub.planId ? (await this.getSubscriptionPlanById(sub.planId) ?? null) : null;
+      result.push({ ...sub, user, plan });
+    }
+    
+    return result;
+  }
+
+  async getSubscriptionById(id: string): Promise<(AdvertiserSubscription & { user: User; plan: SubscriptionPlan | null }) | undefined> {
+    const [sub] = await db.select().from(advertiserSubscriptions).where(eq(advertiserSubscriptions.id, id));
+    if (!sub) return undefined;
+    
+    const user = await this.getUser(sub.advertiserId);
+    if (!user) return undefined;
+    
+    const plan = sub.planId ? (await this.getSubscriptionPlanById(sub.planId) ?? null) : null;
+    return { ...sub, user, plan };
+  }
+
+  async extendSubscription(id: string, newEndDate: Date, note?: string): Promise<AdvertiserSubscription | undefined> {
+    const [updated] = await db.update(advertiserSubscriptions)
+      .set({ 
+        currentPeriodEnd: newEndDate,
+        status: "active",
+        updatedAt: new Date()
+      })
+      .where(eq(advertiserSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async grantSubscription(advertiserId: string, planId: string, periodEnd: Date): Promise<AdvertiserSubscription> {
+    // Check if subscription exists
+    const existing = await this.getAdvertiserSubscription(advertiserId);
+    
+    if (existing) {
+      // Update existing subscription
+      const [updated] = await db.update(advertiserSubscriptions)
+        .set({
+          planId,
+          status: "active",
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: periodEnd,
+          trialEndsAt: null,
+          cancelledAt: null,
+          updatedAt: new Date()
+        })
+        .where(eq(advertiserSubscriptions.id, existing.id))
+        .returning();
+      return updated;
+    }
+    
+    // Create new subscription
+    const [created] = await db.insert(advertiserSubscriptions).values({
+      advertiserId,
+      planId,
+      status: "active",
+      billingCycle: "monthly",
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: periodEnd,
+    }).returning();
+    return created;
+  }
+
+  async changeSubscriptionPlan(id: string, planId: string): Promise<AdvertiserSubscription | undefined> {
+    const [updated] = await db.update(advertiserSubscriptions)
+      .set({ 
+        planId,
+        updatedAt: new Date()
+      })
+      .where(eq(advertiserSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+
+  // ============================================
   // SUBSCRIPTION PAYMENTS
   // ============================================
 
