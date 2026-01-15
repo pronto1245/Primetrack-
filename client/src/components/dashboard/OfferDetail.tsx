@@ -398,18 +398,36 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 function getOfferPayoutPrice(offer: Offer): string {
-  if (offer.partnerPayout) return offer.partnerPayout;
+  // Если есть лендинги - показываем диапазон цен
   if (offer.landings && offer.landings.length > 0) {
-    return offer.landings[0].partnerPayout;
+    const payouts = offer.landings.map(l => parseFloat(l.partnerPayout)).filter(p => !isNaN(p));
+    if (payouts.length === 0) return offer.partnerPayout || '';
+    const min = Math.min(...payouts);
+    const max = Math.max(...payouts);
+    if (min === max) {
+      return min.toString();
+    }
+    return `${min} - ${max}`;
   }
+  if (offer.partnerPayout) return offer.partnerPayout;
   return '';
 }
 
 function getOfferCostPrice(offer: Offer): string | null {
-  if (offer.internalCost) return offer.internalCost;
+  // Если есть лендинги - показываем диапазон цен
   if (offer.landings && offer.landings.length > 0) {
-    return offer.landings[0].internalCost || null;
+    const costs = offer.landings
+      .map(l => l.internalCost ? parseFloat(l.internalCost) : NaN)
+      .filter(c => !isNaN(c));
+    if (costs.length === 0) return offer.internalCost || null;
+    const min = Math.min(...costs);
+    const max = Math.max(...costs);
+    if (min === max) {
+      return min.toString();
+    }
+    return `${min} - ${max}`;
   }
+  if (offer.internalCost) return offer.internalCost;
   return null;
 }
 
