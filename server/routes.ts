@@ -1711,11 +1711,24 @@ export async function registerRoutes(
       // Обновить оффер
       const updated = await storage.updateOffer(req.params.id, offerData);
       
-      // Обновление landings: обновляем существующие, создаём новые (БЕЗ удаления)
+      // Обновление landings: обновляем существующие, создаём новые, УДАЛЯЕМ отсутствующие
       if (landings && Array.isArray(landings)) {
         const existingLandings = await storage.getOfferLandings(req.params.id);
         const existingLandingIds = new Set(existingLandings.map(l => l.id));
         
+        // Собираем ID лендингов из payload (только существующие)
+        const payloadLandingIds = new Set(
+          landings.filter(l => l.id && existingLandingIds.has(l.id)).map(l => l.id)
+        );
+        
+        // Удаляем лендинги, которых нет в payload
+        for (const existing of existingLandings) {
+          if (!payloadLandingIds.has(existing.id)) {
+            await storage.deleteOfferLandingById(existing.id);
+          }
+        }
+        
+        // Обновляем/создаём лендинги
         for (const landing of landings) {
           const payout = sanitizeNumericToString(landing.partnerPayout);
           const sanitizedLanding = {
@@ -1741,9 +1754,14 @@ export async function registerRoutes(
         }
       }
       
-      // Вернуть обновлённый оффер с landings
+      // Пересчитываем geo оффера на основе оставшихся лендингов
       const updatedLandings = await storage.getOfferLandings(req.params.id);
-      res.json({ ...updated, landings: updatedLandings });
+      const uniqueGeos = Array.from(new Set(updatedLandings.map(l => l.geo).filter(Boolean)));
+      await storage.updateOffer(req.params.id, { geo: uniqueGeos });
+      
+      // Вернуть обновлённый оффер с landings
+      const finalOffer = await storage.getOffer(req.params.id);
+      res.json({ ...finalOffer, landings: updatedLandings });
     } catch (error) {
       console.error("Update offer error:", error);
       res.status(500).json({ message: "Failed to update offer" });
