@@ -524,7 +524,7 @@ export default function Home() {
             <Badge variant="secondary" className="mb-4">Возможности</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Всё для управления партнёрками</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Полный набор инструментов для рекламодателей и издателей
+              Полный набор инструментов для рекламодателей
             </p>
           </div>
 
