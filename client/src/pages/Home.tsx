@@ -274,7 +274,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="w-full max-w-[1800px] mx-auto px-4 relative z-10">
+        <div className="w-full max-w-[1400px] mx-auto px-4 relative z-10">
               <div className="relative rounded-2xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden">
                 <div className="h-12 bg-[#111] border-b border-border/50 flex items-center px-4">
                   <div className="flex gap-2">
