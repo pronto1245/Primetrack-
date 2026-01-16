@@ -57,13 +57,13 @@ export default function Home() {
   const { toast } = useToast();
 
   const demoTabs = [
-    { label: "Дашборд", src: "/demo-videos/дашборд.mp4" },
-    { label: "Офферы", src: "/demo-videos/офферы_.mp4" },
-    { label: "Создание оффера", src: "/demo-videos/создание_оффера.mp4" },
-    { label: "Статистика", src: "/demo-videos/статитстика.mp4" },
-    { label: "Финансы", src: "/demo-videos/финансы.mp4" },
-    { label: "Команда", src: "/demo-videos/команда.mp4" },
-    { label: "Антифрод", src: "/demo-videos/антифрод.mp4" },
+    { label: "Дашборд", src: "/demo-videos/дашборд.mp4", icon: BarChart3 },
+    { label: "Офферы", src: "/demo-videos/офферы_.mp4", icon: FileText },
+    { label: "Создание оффера", src: "/demo-videos/создание_оффера.mp4", icon: Settings },
+    { label: "Статистика", src: "/demo-videos/статитстика.mp4", icon: TrendingUp },
+    { label: "Финансы", src: "/demo-videos/финансы.mp4", icon: CreditCard },
+    { label: "Команда", src: "/demo-videos/команда.mp4", icon: Users },
+    { label: "Антифрод", src: "/demo-videos/антифрод.mp4", icon: ShieldCheck },
   ];
 
   const handleVideoEnd = () => {
@@ -282,21 +282,25 @@ export default function Home() {
                     <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
                     <div className="w-3 h-3 rounded-full bg-green-500/70" />
                   </div>
-                  <div className="flex-1 flex justify-center gap-1 md:gap-2 overflow-x-auto px-4">
-                    {demoTabs.map((tab, i) => (
-                      <button
-                        key={tab.label}
-                        onClick={() => setActiveDemoTab(i)}
-                        data-testid={`demo-tab-${i}`}
-                        className={`px-3 py-1.5 text-xs md:text-sm font-medium rounded-md transition-all whitespace-nowrap ${
-                          activeDemoTab === i
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
+                  <div className="flex-1 flex justify-center gap-1.5 md:gap-3 overflow-x-auto px-4">
+                    {demoTabs.map((tab, i) => {
+                      const Icon = tab.icon;
+                      return (
+                        <button
+                          key={tab.label}
+                          onClick={() => setActiveDemoTab(i)}
+                          data-testid={`demo-tab-${i}`}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all whitespace-nowrap border ${
+                            activeDemoTab === i
+                              ? "bg-[#1a1a2e] text-white border-[#2a2a4a] shadow-[0_0_10px_rgba(99,102,241,0.3)]"
+                              : "text-muted-foreground hover:text-foreground hover:bg-[#1a1a2e]/50 border-transparent hover:border-[#2a2a4a]/50"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          <span className="hidden md:inline">{tab.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="relative w-full" style={{ aspectRatio: '16/9' }} data-testid="demo-video-container">
