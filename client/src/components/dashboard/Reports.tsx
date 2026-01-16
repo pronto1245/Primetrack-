@@ -446,7 +446,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-purple-400 mb-1">{t('stats.leads') || 'Leads'}</div>
           <div className="text-xl font-bold text-purple-400">{totals.leads}</div>
-          <div className="text-[10px] text-yellow-400" data-testid="text-instreg">
+          <div className="text-[11px] text-yellow-400" data-testid="text-instreg">
             Инстрег: {totals.uniqueClicks > 0 ? ((totals.leads / totals.uniqueClicks) * 100).toFixed(1) : 0}%
           </div>
         </CardContent>
@@ -455,7 +455,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-orange-400 mb-1">{t('stats.sales') || 'Sales'}</div>
           <div className="text-xl font-bold text-orange-400">{totals.sales}</div>
-          <div className="text-[10px] text-yellow-400" data-testid="text-reg2dep">
+          <div className="text-[11px] text-yellow-400" data-testid="text-reg2dep">
             Рег2деп: {totals.leads > 0 ? ((totals.sales / totals.leads) * 100).toFixed(1) : 0}%
           </div>
         </CardContent>
