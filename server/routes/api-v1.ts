@@ -331,7 +331,7 @@ router.patch("/payouts/:id", requirePlatformApiKey(["payouts:write"]), async (re
   }
 });
 
-router.get("/stats", requirePlatformApiKey(["clicks:read", "conversions:read"]), async (req: PlatformApiRequest, res) => {
+router.get("/stats", requirePlatformApiKey(["stats:read"]), async (req: PlatformApiRequest, res) => {
   try {
     const { startDate, endDate } = req.query;
     
