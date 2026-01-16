@@ -381,7 +381,7 @@ export default function Home() {
               <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-8">
                   <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                    <TrendingUp className="w-7 h-7 text-emerald-500" />
+                    <TrendingUp className="w-7 h-7 text-emerald-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Арбитражникам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -406,8 +406,8 @@ export default function Home() {
             >
               <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                    <Users className="w-7 h-7 text-emerald-500" />
+                  <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mb-6">
+                    <Users className="w-7 h-7 text-blue-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Командам и медиабаерам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -432,8 +432,8 @@ export default function Home() {
             >
               <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                    <Globe className="w-7 h-7 text-emerald-500" />
+                  <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
+                    <Globe className="w-7 h-7 text-purple-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Партнёрским программам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -491,8 +491,8 @@ export default function Home() {
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 mb-4 rounded-full bg-amber-500/10 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-amber-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Без лишних модулей</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -512,8 +512,8 @@ export default function Home() {
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 mb-4 rounded-full bg-cyan-500/10 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-cyan-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Быстрый старт</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -533,8 +533,8 @@ export default function Home() {
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Terminal className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 mb-4 rounded-full bg-pink-500/10 flex items-center justify-center">
+                    <Terminal className="w-5 h-5 text-pink-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Простая логика</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -554,7 +554,7 @@ export default function Home() {
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
                   <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Заточено под арбитраж</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -623,10 +623,10 @@ export default function Home() {
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <UserPlus className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 mb-4 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-blue-400" />
                   </div>
-                  <div className="text-xs font-mono text-emerald-500 mb-2">01</div>
+                  <div className="text-xs font-mono text-blue-400 mb-2">01</div>
                   <h3 className="text-lg font-bold mb-3">Регистрация</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
                     <p>Создаёте аккаунт в {platformName} и сразу попадаете в рабочий кабинет.</p>
@@ -645,10 +645,10 @@ export default function Home() {
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 mb-4 rounded-full bg-purple-500/10 flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-purple-400" />
                   </div>
-                  <div className="text-xs font-mono text-emerald-500 mb-2">02</div>
+                  <div className="text-xs font-mono text-purple-400 mb-2">02</div>
                   <h3 className="text-lg font-bold mb-3">Создание оффера</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
                     <p>Добавляете оффер, указываете лендинги и модель выплат.</p>
@@ -667,10 +667,10 @@ export default function Home() {
             >
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 mb-4 rounded-full bg-amber-500/10 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-amber-400" />
                   </div>
-                  <div className="text-xs font-mono text-emerald-500 mb-2">03</div>
+                  <div className="text-xs font-mono text-amber-400 mb-2">03</div>
                   <h3 className="text-lg font-bold mb-3">Привлечение партнёров</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
                     <p>Передаёте партнёрам или медиабаерам готовую ссылку.</p>
@@ -690,9 +690,9 @@ export default function Home() {
               <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
                 <CardContent className="p-6">
                   <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
                   </div>
-                  <div className="text-xs font-mono text-emerald-500 mb-2">04</div>
+                  <div className="text-xs font-mono text-emerald-400 mb-2">04</div>
                   <h3 className="text-lg font-bold mb-3">Отслеживание результатов</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
                     <p>В реальном времени отслеживаете клики, лиды и продажи.</p>
