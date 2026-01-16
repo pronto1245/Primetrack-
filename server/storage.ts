@@ -561,7 +561,7 @@ export interface IStorage {
   getPlatformApiKey(id: string): Promise<PlatformApiKey | undefined>;
   getPlatformApiKeyByHash(keyHash: string): Promise<PlatformApiKey | undefined>;
   createPlatformApiKey(data: InsertPlatformApiKey): Promise<PlatformApiKey>;
-  updatePlatformApiKey(id: string, data: Partial<InsertPlatformApiKey>): Promise<PlatformApiKey | undefined>;
+  updatePlatformApiKey(id: string, data: Partial<PlatformApiKey>): Promise<PlatformApiKey | undefined>;
   revokePlatformApiKey(id: string): Promise<PlatformApiKey | undefined>;
   deletePlatformApiKey(id: string): Promise<void>;
   logPlatformApiKeyUsage(data: InsertPlatformApiKeyUsageLog): Promise<PlatformApiKeyUsageLog>;
@@ -4824,7 +4824,7 @@ export class DatabaseStorage implements IStorage {
     return key;
   }
 
-  async updatePlatformApiKey(id: string, data: Partial<InsertPlatformApiKey>): Promise<PlatformApiKey | undefined> {
+  async updatePlatformApiKey(id: string, data: Partial<PlatformApiKey>): Promise<PlatformApiKey | undefined> {
     const [key] = await db
       .update(platformApiKeys)
       .set(data)
