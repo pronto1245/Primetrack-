@@ -57,13 +57,13 @@ export default function Home() {
   const { toast } = useToast();
 
   const demoTabs = [
-    { label: "Дашборд", src: "/demo-videos/дашборд.mp4", icon: BarChart3 },
-    { label: "Офферы", src: "/demo-videos/офферы_.mp4", icon: FileText },
-    { label: "Создание оффера", src: "/demo-videos/создание_оффера.mp4", icon: Settings },
-    { label: "Статистика", src: "/demo-videos/статитстика.mp4", icon: TrendingUp },
-    { label: "Финансы", src: "/demo-videos/финансы.mp4", icon: CreditCard },
-    { label: "Команда", src: "/demo-videos/команда.mp4", icon: Users },
-    { label: "Антифрод", src: "/demo-videos/антифрод.mp4", icon: ShieldCheck },
+    { label: "Дашборд", src: "/demo-videos/дашборд.mp4", icon: BarChart3, color: "emerald", iconColor: "text-emerald-400" },
+    { label: "Офферы", src: "/demo-videos/офферы_.mp4", icon: FileText, color: "blue", iconColor: "text-blue-400" },
+    { label: "Создание оффера", src: "/demo-videos/создание_оффера.mp4", icon: Settings, color: "purple", iconColor: "text-purple-400" },
+    { label: "Статистика", src: "/demo-videos/статитстика.mp4", icon: TrendingUp, color: "cyan", iconColor: "text-cyan-400" },
+    { label: "Финансы", src: "/demo-videos/финансы.mp4", icon: CreditCard, color: "amber", iconColor: "text-amber-400" },
+    { label: "Команда", src: "/demo-videos/команда.mp4", icon: Users, color: "pink", iconColor: "text-pink-400" },
+    { label: "Антифрод", src: "/demo-videos/антифрод.mp4", icon: ShieldCheck, color: "red", iconColor: "text-red-400" },
   ];
 
   const handleVideoEnd = () => {
@@ -285,6 +285,15 @@ export default function Home() {
                   <div className="flex-1 flex justify-center gap-1.5 md:gap-3 overflow-x-auto px-4">
                     {demoTabs.map((tab, i) => {
                       const Icon = tab.icon;
+                      const colorStyles: Record<string, string> = {
+                        emerald: "bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.4)]",
+                        blue: "bg-blue-500/20 border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.4)]",
+                        purple: "bg-purple-500/20 border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.4)]",
+                        cyan: "bg-cyan-500/20 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.4)]",
+                        amber: "bg-amber-500/20 border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.4)]",
+                        pink: "bg-pink-500/20 border-pink-500/40 shadow-[0_0_12px_rgba(236,72,153,0.4)]",
+                        red: "bg-red-500/20 border-red-500/40 shadow-[0_0_12px_rgba(239,68,68,0.4)]",
+                      };
                       return (
                         <button
                           key={tab.label}
@@ -292,11 +301,11 @@ export default function Home() {
                           data-testid={`demo-tab-${i}`}
                           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all whitespace-nowrap border ${
                             activeDemoTab === i
-                              ? "bg-[#1a1a2e] text-white border-[#2a2a4a] shadow-[0_0_10px_rgba(99,102,241,0.3)]"
+                              ? `text-white ${colorStyles[tab.color]}`
                               : "text-muted-foreground hover:text-foreground hover:bg-[#1a1a2e]/50 border-transparent hover:border-[#2a2a4a]/50"
                           }`}
                         >
-                          <Icon className="w-3.5 h-3.5" />
+                          <Icon className={`w-3.5 h-3.5 ${tab.iconColor}`} />
                           <span className="hidden md:inline">{tab.label}</span>
                         </button>
                       );
