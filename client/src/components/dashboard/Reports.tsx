@@ -330,7 +330,7 @@ export function Reports({ role }: ReportsProps) {
         </TabsContent>
 
         <TabsContent value="conversions" className="mt-0 space-y-4">
-          <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} />
+          <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} useClicksSummary={true} />
           <ConversionsTable 
             data={conversionsData} 
             loading={conversionsLoading} 

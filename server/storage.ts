@@ -2589,7 +2589,43 @@ export class DatabaseStorage implements IStorage {
       return b.clicks - a.clicks;
     });
     
-    return { data: result, groupBy };
+    // Calculate summary totals from ALL data (not paginated)
+    const totalClicks = allClicks.length;
+    const totalUniqueClicks = allClicks.filter(c => c.isUnique).length;
+    const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
+    const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
+    const totalConversions = allConversions.length;
+    const totalApprovedConversions = allConversions.filter(c => c.status === 'approved').length;
+    const totalPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout || '0'), 0);
+    const totalCost = role !== "publisher" ? allConversions.reduce((sum, c) => sum + parseFloat(c.advertiserCost || '0'), 0) : 0;
+    
+    const payableConversions = allConversions.filter(c => parseFloat(c.publisherPayout || '0') > 0).length;
+    const approvedPayableConversions = allConversions.filter(c => c.status === 'approved' && parseFloat(c.publisherPayout || '0') > 0).length;
+    
+    const summaryMetrics = calculateMetrics({
+      clicks: totalClicks,
+      payableConversions,
+      approvedPayableConversions,
+      totalPayout
+    });
+    
+    const summary = {
+      clicks: totalClicks,
+      uniqueClicks: totalUniqueClicks,
+      leads: totalLeads,
+      sales: totalSales,
+      conversions: totalConversions,
+      approvedConversions: totalApprovedConversions,
+      payout: totalPayout,
+      advertiserCost: totalCost,
+      margin: totalCost - totalPayout,
+      roi: totalPayout > 0 ? ((totalCost - totalPayout) / totalPayout * 100) : 0,
+      cr: summaryMetrics.cr,
+      ar: summaryMetrics.ar,
+      epc: summaryMetrics.epc
+    };
+    
+    return { data: result, groupBy, summary };
   }
   
   // ============================================
