@@ -15,28 +15,28 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Key, Webhook, Copy, Eye, EyeOff, Play, Ban, RefreshCw, ExternalLink } from "lucide-react";
 
 const PERMISSIONS = [
-  { value: "offers:read", label: "Offers (Read)" },
-  { value: "offers:write", label: "Offers (Write)" },
-  { value: "partners:read", label: "Partners (Read)" },
-  { value: "partners:write", label: "Partners (Write)" },
-  { value: "clicks:read", label: "Clicks (Read)" },
-  { value: "conversions:read", label: "Conversions (Read)" },
-  { value: "conversions:write", label: "Conversions (Write)" },
-  { value: "payouts:read", label: "Payouts (Read)" },
-  { value: "payouts:write", label: "Payouts (Write)" },
+  { value: "offers:read", label: "Офферы (чтение)" },
+  { value: "offers:write", label: "Офферы (запись)" },
+  { value: "partners:read", label: "Партнёры (чтение)" },
+  { value: "partners:write", label: "Партнёры (запись)" },
+  { value: "clicks:read", label: "Клики (чтение)" },
+  { value: "conversions:read", label: "Конверсии (чтение)" },
+  { value: "conversions:write", label: "Конверсии (запись)" },
+  { value: "payouts:read", label: "Выплаты (чтение)" },
+  { value: "payouts:write", label: "Выплаты (запись)" },
 ];
 
 const WEBHOOK_EVENTS = [
-  { value: "conversion.created", label: "Conversion Created" },
-  { value: "conversion.approved", label: "Conversion Approved" },
-  { value: "conversion.rejected", label: "Conversion Rejected" },
-  { value: "payout.requested", label: "Payout Requested" },
-  { value: "payout.approved", label: "Payout Approved" },
-  { value: "payout.completed", label: "Payout Completed" },
-  { value: "partner.registered", label: "Partner Registered" },
-  { value: "partner.activated", label: "Partner Activated" },
-  { value: "offer.created", label: "Offer Created" },
-  { value: "offer.updated", label: "Offer Updated" },
+  { value: "conversion.created", label: "Конверсия создана" },
+  { value: "conversion.approved", label: "Конверсия одобрена" },
+  { value: "conversion.rejected", label: "Конверсия отклонена" },
+  { value: "payout.requested", label: "Выплата запрошена" },
+  { value: "payout.approved", label: "Выплата одобрена" },
+  { value: "payout.completed", label: "Выплата завершена" },
+  { value: "partner.registered", label: "Партнёр зарегистрирован" },
+  { value: "partner.activated", label: "Партнёр активирован" },
+  { value: "offer.created", label: "Оффер создан" },
+  { value: "offer.updated", label: "Оффер обновлён" },
 ];
 
 interface ApiKey {
@@ -104,10 +104,10 @@ export default function AdminIntegrations() {
       setNewKeyName("");
       setNewKeyPermissions([]);
       setNewKeyExpiry("never");
-      toast({ title: "API key created successfully" });
+      toast({ title: "API ключ успешно создан" });
     },
     onError: () => {
-      toast({ title: "Failed to create API key", variant: "destructive" });
+      toast({ title: "Ошибка создания API ключа", variant: "destructive" });
     },
   });
 
@@ -119,7 +119,7 @@ export default function AdminIntegrations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/platform-api-keys"] });
-      toast({ title: "API key revoked" });
+      toast({ title: "API ключ отозван" });
     },
   });
 
@@ -131,7 +131,7 @@ export default function AdminIntegrations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/platform-api-keys"] });
-      toast({ title: "API key deleted" });
+      toast({ title: "API ключ удалён" });
     },
   });
 
@@ -152,10 +152,10 @@ export default function AdminIntegrations() {
       setNewWebhookUrl("");
       setNewWebhookEvents([]);
       setNewWebhookSecret("");
-      toast({ title: "Webhook created successfully" });
+      toast({ title: "Вебхук успешно создан" });
     },
     onError: () => {
-      toast({ title: "Failed to create webhook", variant: "destructive" });
+      toast({ title: "Ошибка создания вебхука", variant: "destructive" });
     },
   });
 
@@ -167,7 +167,7 @@ export default function AdminIntegrations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/platform-webhooks"] });
-      toast({ title: "Webhook deleted" });
+      toast({ title: "Вебхук удалён" });
     },
   });
 
@@ -179,14 +179,14 @@ export default function AdminIntegrations() {
     },
     onSuccess: (data) => {
       if (data.success) {
-        toast({ title: "Webhook test successful", description: `Status: ${data.statusCode}` });
+        toast({ title: "Тест вебхука успешен", description: `Статус: ${data.statusCode}` });
       } else {
-        toast({ title: "Webhook test failed", description: `Status: ${data.statusCode}`, variant: "destructive" });
+        toast({ title: "Тест вебхука провален", description: `Статус: ${data.statusCode}`, variant: "destructive" });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/platform-webhooks"] });
     },
     onError: () => {
-      toast({ title: "Webhook test failed", variant: "destructive" });
+      toast({ title: "Тест вебхука провален", variant: "destructive" });
     },
   });
 
@@ -221,15 +221,15 @@ export default function AdminIntegrations() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "Copied to clipboard" });
+    toast({ title: "Скопировано в буфер обмена" });
   };
 
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">API & Integrations</h1>
+        <h1 className="text-3xl font-bold">API & Интеграции</h1>
         <p className="text-muted-foreground mt-1">
-          Manage API keys for external integrations (n8n, Zapier, custom scripts)
+          Управление API ключами для внешних интеграций (n8n, Zapier, кастомные скрипты)
         </p>
       </div>
 
@@ -237,15 +237,15 @@ export default function AdminIntegrations() {
         <TabsList>
           <TabsTrigger value="api-keys" data-testid="tab-api-keys">
             <Key className="h-4 w-4 mr-2" />
-            API Keys
+            API Ключи
           </TabsTrigger>
           <TabsTrigger value="webhooks" data-testid="tab-webhooks">
             <Webhook className="h-4 w-4 mr-2" />
-            Platform Webhooks
+            Вебхуки платформы
           </TabsTrigger>
           <TabsTrigger value="docs" data-testid="tab-docs">
             <ExternalLink className="h-4 w-4 mr-2" />
-            Documentation
+            Документация
           </TabsTrigger>
         </TabsList>
 
@@ -253,26 +253,26 @@ export default function AdminIntegrations() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>Keys for X-API-Key authentication to /api/v1/* endpoints</CardDescription>
+                <CardTitle>API Ключи</CardTitle>
+                <CardDescription>Ключи для X-API-Key аутентификации к /api/v1/* эндпоинтам</CardDescription>
               </div>
               <Dialog open={showNewKeyDialog} onOpenChange={setShowNewKeyDialog}>
                 <DialogTrigger asChild>
                   <Button data-testid="btn-create-api-key">
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Key
+                    Создать ключ
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Create API Key</DialogTitle>
-                    <DialogDescription>Generate a new API key for external integrations</DialogDescription>
+                    <DialogTitle>Создание API ключа</DialogTitle>
+                    <DialogDescription>Сгенерировать новый API ключ для внешних интеграций</DialogDescription>
                   </DialogHeader>
                   {createdKey ? (
                     <div className="space-y-4">
                       <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-800 font-medium mb-2">API Key Created!</p>
-                        <p className="text-xs text-green-600 mb-2">Copy this key now - it won't be shown again</p>
+                        <p className="text-sm text-green-800 font-medium mb-2">API ключ создан!</p>
+                        <p className="text-xs text-green-600 mb-2">Скопируйте ключ сейчас — он больше не будет показан</p>
                         <div className="flex items-center gap-2">
                           <code className="flex-1 text-xs bg-white p-2 rounded border break-all">{createdKey}</code>
                           <Button size="sm" variant="outline" onClick={() => copyToClipboard(createdKey)}>
@@ -288,22 +288,22 @@ export default function AdminIntegrations() {
                         }}
                         data-testid="btn-close-key-dialog"
                       >
-                        Done
+                        Готово
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <div>
-                        <Label>Name</Label>
+                        <Label>Название</Label>
                         <Input
                           value={newKeyName}
                           onChange={(e) => setNewKeyName(e.target.value)}
-                          placeholder="e.g., n8n Production"
+                          placeholder="например, n8n Production"
                           data-testid="input-key-name"
                         />
                       </div>
                       <div>
-                        <Label>Permissions</Label>
+                        <Label>Права доступа</Label>
                         <div className="grid grid-cols-2 gap-2 mt-2">
                           {PERMISSIONS.map((perm) => (
                             <div key={perm.value} className="flex items-center gap-2">
@@ -325,17 +325,17 @@ export default function AdminIntegrations() {
                         </div>
                       </div>
                       <div>
-                        <Label>Expiration</Label>
+                        <Label>Срок действия</Label>
                         <Select value={newKeyExpiry} onValueChange={setNewKeyExpiry}>
                           <SelectTrigger data-testid="select-expiry">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="never">Never expires</SelectItem>
-                            <SelectItem value="7">7 days</SelectItem>
-                            <SelectItem value="30">30 days</SelectItem>
-                            <SelectItem value="90">90 days</SelectItem>
-                            <SelectItem value="365">1 year</SelectItem>
+                            <SelectItem value="never">Бессрочно</SelectItem>
+                            <SelectItem value="7">7 дней</SelectItem>
+                            <SelectItem value="30">30 дней</SelectItem>
+                            <SelectItem value="90">90 дней</SelectItem>
+                            <SelectItem value="365">1 год</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -345,7 +345,7 @@ export default function AdminIntegrations() {
                         disabled={!newKeyName || newKeyPermissions.length === 0}
                         data-testid="btn-submit-key"
                       >
-                        Create Key
+                        Создать ключ
                       </Button>
                     </div>
                   )}
@@ -354,19 +354,19 @@ export default function AdminIntegrations() {
             </CardHeader>
             <CardContent>
               {keysLoading ? (
-                <p>Loading...</p>
+                <p>Загрузка...</p>
               ) : apiKeys.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No API keys created yet</p>
+                <p className="text-muted-foreground text-center py-8">API ключи ещё не созданы</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Key Prefix</TableHead>
-                      <TableHead>Permissions</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Used</TableHead>
-                      <TableHead>Expires</TableHead>
+                      <TableHead>Название</TableHead>
+                      <TableHead>Префикс</TableHead>
+                      <TableHead>Права</TableHead>
+                      <TableHead>Статус</TableHead>
+                      <TableHead>Посл. использование</TableHead>
+                      <TableHead>Истекает</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -389,18 +389,18 @@ export default function AdminIntegrations() {
                         </TableCell>
                         <TableCell>
                           {key.revokedAt ? (
-                            <Badge variant="destructive">Revoked</Badge>
+                            <Badge variant="destructive">Отозван</Badge>
                           ) : key.isActive ? (
-                            <Badge variant="default">Active</Badge>
+                            <Badge variant="default">Активен</Badge>
                           ) : (
-                            <Badge variant="secondary">Inactive</Badge>
+                            <Badge variant="secondary">Неактивен</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : "Never"}
+                          {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : "Никогда"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : "Never"}
+                          {key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : "Никогда"}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -437,28 +437,28 @@ export default function AdminIntegrations() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Platform Webhooks</CardTitle>
-                <CardDescription>Send events to external services (n8n, Zapier, custom endpoints)</CardDescription>
+                <CardTitle>Вебхуки платформы</CardTitle>
+                <CardDescription>Отправка событий во внешние сервисы (n8n, Zapier, кастомные эндпоинты)</CardDescription>
               </div>
               <Dialog open={showNewWebhookDialog} onOpenChange={setShowNewWebhookDialog}>
                 <DialogTrigger asChild>
                   <Button data-testid="btn-create-webhook">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Webhook
+                    Добавить вебхук
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Add Webhook</DialogTitle>
-                    <DialogDescription>Configure a new webhook endpoint</DialogDescription>
+                    <DialogTitle>Добавление вебхука</DialogTitle>
+                    <DialogDescription>Настроить новый эндпоинт вебхука</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Name</Label>
+                      <Label>Название</Label>
                       <Input
                         value={newWebhookName}
                         onChange={(e) => setNewWebhookName(e.target.value)}
-                        placeholder="e.g., n8n Conversions"
+                        placeholder="например, n8n Conversions"
                         data-testid="input-webhook-name"
                       />
                     </div>
@@ -472,7 +472,7 @@ export default function AdminIntegrations() {
                       />
                     </div>
                     <div>
-                      <Label>Events</Label>
+                      <Label>События</Label>
                       <div className="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto">
                         {WEBHOOK_EVENTS.map((event) => (
                           <div key={event.value} className="flex items-center gap-2">
@@ -494,15 +494,15 @@ export default function AdminIntegrations() {
                       </div>
                     </div>
                     <div>
-                      <Label>Secret (optional)</Label>
+                      <Label>Секрет (опционально)</Label>
                       <Input
                         value={newWebhookSecret}
                         onChange={(e) => setNewWebhookSecret(e.target.value)}
-                        placeholder="HMAC signing secret"
+                        placeholder="HMAC секрет для подписи"
                         type="password"
                         data-testid="input-webhook-secret"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Used for X-Webhook-Signature header</p>
+                      <p className="text-xs text-muted-foreground mt-1">Используется для заголовка X-Webhook-Signature</p>
                     </div>
                     <Button
                       className="w-full"
@@ -510,7 +510,7 @@ export default function AdminIntegrations() {
                       disabled={!newWebhookName || !newWebhookUrl || newWebhookEvents.length === 0}
                       data-testid="btn-submit-webhook"
                     >
-                      Create Webhook
+                      Создать вебхук
                     </Button>
                   </div>
                 </DialogContent>
@@ -518,18 +518,18 @@ export default function AdminIntegrations() {
             </CardHeader>
             <CardContent>
               {webhooksLoading ? (
-                <p>Loading...</p>
+                <p>Загрузка...</p>
               ) : webhooks.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No webhooks configured yet</p>
+                <p className="text-muted-foreground text-center py-8">Вебхуки ещё не настроены</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
+                      <TableHead>Название</TableHead>
                       <TableHead>URL</TableHead>
-                      <TableHead>Events</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Triggered</TableHead>
+                      <TableHead>События</TableHead>
+                      <TableHead>Статус</TableHead>
+                      <TableHead>Посл. вызов</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -560,12 +560,12 @@ export default function AdminIntegrations() {
                               data-testid={`switch-webhook-${webhook.id}`}
                             />
                             {webhook.failedAttempts > 0 && (
-                              <Badge variant="destructive" className="text-xs">{webhook.failedAttempts} fails</Badge>
+                              <Badge variant="destructive" className="text-xs">{webhook.failedAttempts} ошибок</Badge>
                             )}
                           </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {webhook.lastTriggeredAt ? new Date(webhook.lastTriggeredAt).toLocaleDateString() : "Never"}
+                          {webhook.lastTriggeredAt ? new Date(webhook.lastTriggeredAt).toLocaleDateString() : "Никогда"}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -600,14 +600,14 @@ export default function AdminIntegrations() {
         <TabsContent value="docs" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>API Documentation</CardTitle>
-              <CardDescription>How to use the Platform API</CardDescription>
+              <CardTitle>Документация API</CardTitle>
+              <CardDescription>Как использовать API платформы</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="font-semibold mb-2">Authentication</h3>
+                <h3 className="font-semibold mb-2">Аутентификация</h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  All API requests require an API key in the X-API-Key header:
+                  Все API запросы требуют API ключ в заголовке X-API-Key:
                 </p>
                 <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
 {`curl -H "X-API-Key: pt_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxx" \\
@@ -616,77 +616,77 @@ export default function AdminIntegrations() {
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">Available Endpoints</h3>
+                <h3 className="font-semibold mb-2">Доступные эндпоинты</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/offers</code>
-                    <span className="text-muted-foreground">- List all offers</span>
+                    <span className="text-muted-foreground">- Список всех офферов</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/offers/:id</code>
-                    <span className="text-muted-foreground">- Get offer details</span>
+                    <span className="text-muted-foreground">- Детали оффера</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/partners</code>
-                    <span className="text-muted-foreground">- List all partners</span>
+                    <span className="text-muted-foreground">- Список всех партнёров</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/partners/:id</code>
-                    <span className="text-muted-foreground">- Get partner details</span>
+                    <span className="text-muted-foreground">- Детали партнёра</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/clicks</code>
-                    <span className="text-muted-foreground">- List clicks</span>
+                    <span className="text-muted-foreground">- Список кликов</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/conversions</code>
-                    <span className="text-muted-foreground">- List conversions</span>
+                    <span className="text-muted-foreground">- Список конверсий</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="secondary">POST</Badge>
                     <code>/api/v1/conversions</code>
-                    <span className="text-muted-foreground">- Create conversion</span>
+                    <span className="text-muted-foreground">- Создать конверсию</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/payouts</code>
-                    <span className="text-muted-foreground">- List payout requests</span>
+                    <span className="text-muted-foreground">- Список запросов на выплату</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="secondary">PATCH</Badge>
                     <code>/api/v1/payouts/:id</code>
-                    <span className="text-muted-foreground">- Update payout status</span>
+                    <span className="text-muted-foreground">- Обновить статус выплаты</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline">GET</Badge>
                     <code>/api/v1/stats</code>
-                    <span className="text-muted-foreground">- Platform statistics</span>
+                    <span className="text-muted-foreground">- Статистика платформы</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">n8n Integration</h3>
+                <h3 className="font-semibold mb-2">Интеграция с n8n</h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  To integrate with n8n, create an HTTP Request node with:
+                  Для интеграции с n8n создайте HTTP Request ноду с настройками:
                 </p>
                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Authentication: Header Auth</li>
-                  <li>Header Name: X-API-Key</li>
-                  <li>Header Value: Your API key</li>
+                  <li>Аутентификация: Header Auth</li>
+                  <li>Имя заголовка: X-API-Key</li>
+                  <li>Значение заголовка: Ваш API ключ</li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">Webhook Payloads</h3>
+                <h3 className="font-semibold mb-2">Формат Webhook событий</h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Webhooks send JSON payloads with the following structure:
+                  Вебхуки отправляют JSON с такой структурой:
                 </p>
                 <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
 {`{
