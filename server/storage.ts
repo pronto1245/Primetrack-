@@ -571,7 +571,7 @@ export interface IStorage {
   getPlatformWebhooks(): Promise<PlatformWebhook[]>;
   getPlatformWebhook(id: string): Promise<PlatformWebhook | undefined>;
   createPlatformWebhook(data: InsertPlatformWebhook): Promise<PlatformWebhook>;
-  updatePlatformWebhook(id: string, data: Partial<InsertPlatformWebhook>): Promise<PlatformWebhook | undefined>;
+  updatePlatformWebhook(id: string, data: Partial<PlatformWebhook>): Promise<PlatformWebhook | undefined>;
   deletePlatformWebhook(id: string): Promise<void>;
   createPlatformWebhookLog(data: InsertPlatformWebhookLog): Promise<PlatformWebhookLog>;
   getPlatformWebhookLogs(webhookId: string, limit?: number): Promise<PlatformWebhookLog[]>;
@@ -4884,7 +4884,7 @@ export class DatabaseStorage implements IStorage {
     return webhook;
   }
 
-  async updatePlatformWebhook(id: string, data: Partial<InsertPlatformWebhook>): Promise<PlatformWebhook | undefined> {
+  async updatePlatformWebhook(id: string, data: Partial<PlatformWebhook>): Promise<PlatformWebhook | undefined> {
     const [webhook] = await db
       .update(platformWebhooks)
       .set({ ...data, updatedAt: new Date() })

@@ -8,7 +8,7 @@ import {
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar,
   Plus, Search, UserPlus, ChevronDown, Building2,
-  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb, GitBranch
+  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb, GitBranch, Blocks
 } from "lucide-react";
 import { FeatureSuggestionModal } from "@/components/FeatureSuggestionModal";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -53,6 +53,7 @@ import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { PublisherInvoices } from "@/components/dashboard/PublisherInvoices";
 import { PublisherSplitTests } from "@/components/dashboard/PublisherSplitTests";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import AdminIntegrations from "@/components/dashboard/AdminIntegrations";
 import { NotificationBell } from "@/components/NotificationBell";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { useState, useEffect } from "react";
@@ -188,6 +189,7 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Globe, label: "Домены", path: `/dashboard/${role}/domain-requests`, color: "text-cyan-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
+      { icon: Blocks, label: "API & Интеграции", path: `/dashboard/${role}/integrations`, color: "text-violet-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
     advertiser: [
@@ -382,6 +384,7 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Globe, label: "Домены", path: `/dashboard/${role}/domain-requests`, color: "text-cyan-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
+      { icon: Blocks, label: "API & Интеграции", path: `/dashboard/${role}/integrations`, color: "text-violet-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
     advertiser: [
@@ -564,6 +567,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchSubscriptions] = useRoute("/dashboard/:role/subscriptions");
   const [matchAnalytics] = useRoute("/dashboard/:role/analytics");
   const [matchSplitTests] = useRoute("/dashboard/:role/split-tests");
+  const [matchIntegrations] = useRoute("/dashboard/:role/integrations");
   
   // Staff access control - redirect to overview if accessing restricted section
   // Wait for staffLoading to complete before checking access
@@ -736,6 +740,10 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (matchSubscriptions && role === 'admin') {
       return <AdminSubscriptions />;
+    }
+
+    if (matchIntegrations && role === 'admin') {
+      return <AdminIntegrations />;
     }
 
     if (showRequests) {

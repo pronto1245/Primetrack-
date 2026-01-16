@@ -3,6 +3,7 @@ import type { InsertConversion } from "@shared/schema";
 import { postbackSender } from "./postback-sender";
 import { webhookService } from "./webhook-service";
 import { telegramService } from "./telegram-service";
+import { platformWebhookService } from "./platform-webhook-service";
 
 interface ConversionEvent {
   clickId: string;
@@ -92,6 +93,20 @@ export class Orchestrator {
     };
     
     const conversion = await storage.createConversion(conversionData);
+    
+    // Trigger platform webhooks (for n8n integration)
+    platformWebhookService.trigger("conversion.created", {
+      conversionId: conversion.id,
+      clickId: click.clickId,
+      offerId: click.offerId,
+      publisherId: click.publisherId,
+      conversionType: event.status,
+      status: conversionStatus,
+      publisherPayout,
+      advertiserCost,
+      geo: click.geo,
+      externalId: event.externalId,
+    }).catch(err => console.error("[Orchestrator] Platform webhook failed:", err));
     
     // Notify advertiser about suspected fraud conversion
     if (isFraudulent || shouldHoldForFraud) {

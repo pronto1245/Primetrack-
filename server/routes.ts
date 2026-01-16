@@ -18,6 +18,7 @@ import { totpService } from "./services/totp-service";
 import geoip from "geoip-lite";
 import { resolveRequestHost, resolveRequestOrigin, setWorkerSecret } from "./lib/request-utils";
 import { requireStaffWriteAccess } from "./staffAccessMiddleware";
+import apiV1Router from "./routes/api-v1";
 
 const clickHandler = new ClickHandler();
 const orchestrator = new Orchestrator();
@@ -441,6 +442,9 @@ export async function registerRoutes(
   });
 
   await setupAuth(app);
+  
+  // Platform API v1 (X-API-Key authentication for n8n/integrations)
+  app.use("/api/v1", apiV1Router);
 
   // Health check endpoint for Cloud Run
   app.get("/health", (_req: Request, res: Response) => {
@@ -9140,6 +9144,261 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Export error:", error);
       res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
+  // ============================================
+  // PLATFORM API KEYS (Admin only)
+  // ============================================
+  const { generateApiKey } = await import("./middleware/platform-api-key");
+  
+  app.get("/api/admin/platform-api-keys", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const keys = await storage.getPlatformApiKeys();
+      res.json(keys.map(k => ({
+        ...k,
+        keyHash: undefined,
+      })));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/admin/platform-api-keys", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { name, permissions, expiresInDays } = req.body;
+      
+      if (!name || !permissions || !Array.isArray(permissions)) {
+        return res.status(400).json({ message: "Name and permissions are required" });
+      }
+      
+      const { key, prefix, hash } = generateApiKey();
+      
+      let expiresAt: Date | null = null;
+      if (expiresInDays && expiresInDays > 0) {
+        expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+      }
+      
+      const apiKey = await storage.createPlatformApiKey({
+        name,
+        keyHash: hash,
+        keyPrefix: prefix,
+        permissions,
+        expiresAt,
+        isActive: true,
+      });
+      
+      res.json({
+        ...apiKey,
+        apiKey: key,
+        keyHash: undefined,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/admin/platform-api-keys/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { name, permissions, isActive } = req.body;
+      
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (permissions !== undefined) updateData.permissions = permissions;
+      if (isActive !== undefined) updateData.isActive = isActive;
+      
+      const apiKey = await storage.updatePlatformApiKey(req.params.id, updateData);
+      if (!apiKey) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+      
+      res.json({
+        ...apiKey,
+        keyHash: undefined,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/admin/platform-api-keys/:id/revoke", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const apiKey = await storage.revokePlatformApiKey(req.params.id);
+      if (!apiKey) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+      
+      res.json({ success: true, message: "API key revoked" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/admin/platform-api-keys/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      await storage.deletePlatformApiKey(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/admin/platform-api-keys/:id/logs", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getPlatformApiKeyUsageLogs(req.params.id, limit);
+      res.json(logs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ============================================
+  // PLATFORM WEBHOOKS (Admin only)
+  // ============================================
+  app.get("/api/admin/platform-webhooks", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const webhooks = await storage.getPlatformWebhooks();
+      res.json(webhooks.map(w => ({
+        ...w,
+        secret: w.secret ? "***" : null,
+      })));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/admin/platform-webhooks", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { name, url, events, secret, headers, method } = req.body;
+      
+      if (!name || !url || !events || !Array.isArray(events)) {
+        return res.status(400).json({ message: "Name, URL, and events are required" });
+      }
+      
+      const webhook = await storage.createPlatformWebhook({
+        name,
+        url,
+        events,
+        secret: secret || null,
+        headers: headers ? JSON.stringify(headers) : null,
+        method: method || "POST",
+        isActive: true,
+      });
+      
+      res.json({
+        ...webhook,
+        secret: webhook.secret ? "***" : null,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/admin/platform-webhooks/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const { name, url, events, secret, headers, method, isActive } = req.body;
+      
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (url !== undefined) updateData.url = url;
+      if (events !== undefined) updateData.events = events;
+      if (secret !== undefined) updateData.secret = secret;
+      if (headers !== undefined) updateData.headers = typeof headers === "string" ? headers : JSON.stringify(headers);
+      if (method !== undefined) updateData.method = method;
+      if (isActive !== undefined) updateData.isActive = isActive;
+      
+      const webhook = await storage.updatePlatformWebhook(req.params.id, updateData);
+      if (!webhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      res.json({
+        ...webhook,
+        secret: webhook.secret ? "***" : null,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/admin/platform-webhooks/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      await storage.deletePlatformWebhook(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/admin/platform-webhooks/:id/logs", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getPlatformWebhookLogs(req.params.id, limit);
+      res.json(logs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/admin/platform-webhooks/:id/test", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+    try {
+      const webhook = await storage.getPlatformWebhook(req.params.id);
+      if (!webhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      const testPayload = {
+        event: "test",
+        timestamp: new Date().toISOString(),
+        data: { message: "This is a test webhook from PrimeTrack" },
+      };
+      
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      
+      if (webhook.headers) {
+        try {
+          const customHeaders = JSON.parse(webhook.headers);
+          Object.assign(headers, customHeaders);
+        } catch (e) {}
+      }
+      
+      if (webhook.secret) {
+        const signature = crypto
+          .createHmac("sha256", webhook.secret)
+          .update(JSON.stringify(testPayload))
+          .digest("hex");
+        headers["X-Webhook-Signature"] = signature;
+      }
+      
+      const response = await fetch(webhook.url, {
+        method: webhook.method || "POST",
+        headers,
+        body: JSON.stringify(testPayload),
+      });
+      
+      const responseText = await response.text();
+      
+      await storage.createPlatformWebhookLog({
+        webhookId: webhook.id,
+        eventType: "test",
+        payload: JSON.stringify(testPayload),
+        status: response.ok ? "success" : "failed",
+        statusCode: response.status,
+        response: responseText.substring(0, 1000),
+        attemptNumber: 1,
+      });
+      
+      res.json({
+        success: response.ok,
+        statusCode: response.status,
+        response: responseText.substring(0, 500),
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
