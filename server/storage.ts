@@ -114,6 +114,7 @@ export interface AdvertiserStatsFilters {
 
 export interface AdvertiserStatsResult {
   totalClicks: number;
+  totalUniqueClicks: number;
   totalLeads: number;
   totalSales: number;
   totalConversions: number;
@@ -175,6 +176,7 @@ export interface PublisherStatsFilters {
 
 export interface PublisherStatsResult {
   totalClicks: number;
+  totalUniqueClicks: number;
   totalLeads: number;
   totalSales: number;
   totalConversions: number;
@@ -1235,7 +1237,7 @@ export class DatabaseStorage implements IStorage {
     
     if (offerIds.length === 0) {
       return {
-        totalClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0, approvedConversions: 0,
+        totalClicks: 0, totalUniqueClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0, approvedConversions: 0,
         advertiserCost: 0, publisherPayout: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0,
         byOffer: [], byPublisher: [], byDate: [], byGeo: []
       };
@@ -1312,6 +1314,7 @@ export class DatabaseStorage implements IStorage {
 
     // Calculate totals
     const totalClicks = allClicks.length;
+    const totalUniqueClicks = allClicks.filter(c => c.isUnique).length;
     const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
     const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
     const totalConversions = allConversions.length;
@@ -1432,7 +1435,7 @@ export class DatabaseStorage implements IStorage {
       .sort((a, b) => b.clicks - a.clicks);
 
     return {
-      totalClicks, totalLeads, totalSales, totalConversions, approvedConversions,
+      totalClicks, totalUniqueClicks, totalLeads, totalSales, totalConversions, approvedConversions,
       advertiserCost, publisherPayout, margin, roi, cr, ar, epc,
       byOffer, byPublisher, byDate, byGeo
     };
@@ -1604,6 +1607,7 @@ export class DatabaseStorage implements IStorage {
 
     // Calculate totals
     const totalClicks = allClicks.length;
+    const totalUniqueClicks = allClicks.filter(c => c.isUnique).length;
     const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
     const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
     const totalConversions = allConversions.length;
@@ -1716,7 +1720,7 @@ export class DatabaseStorage implements IStorage {
       .map(([status, stats]) => ({ status, ...stats }));
 
     return {
-      totalClicks, totalLeads, totalSales, totalConversions, approvedConversions,
+      totalClicks, totalUniqueClicks, totalLeads, totalSales, totalConversions, approvedConversions,
       totalPayout, holdPayout, approvedPayout, cr, ar, epc,
       byOffer, byDate, byGeo, byStatus
     };
