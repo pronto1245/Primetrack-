@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Key, Webhook, Copy, Eye, EyeOff, Play, Ban, RefreshCw, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Key, Webhook, Copy, Eye, EyeOff, Play, Ban, RefreshCw, ExternalLink, BookOpen } from "lucide-react";
 
 const PERMISSIONS = [
   { value: "offers:read", label: "Офферы (чтение)" },
@@ -24,6 +24,7 @@ const PERMISSIONS = [
   { value: "conversions:write", label: "Конверсии (запись)" },
   { value: "payouts:read", label: "Выплаты (чтение)" },
   { value: "payouts:write", label: "Выплаты (запись)" },
+  { value: "stats:read", label: "Статистика (чтение)" },
 ];
 
 const WEBHOOK_EVENTS = [
@@ -246,6 +247,10 @@ export default function AdminIntegrations() {
           <TabsTrigger value="docs" data-testid="tab-docs">
             <ExternalLink className="h-4 w-4 mr-2" />
             Документация
+          </TabsTrigger>
+          <TabsTrigger value="n8n-guide" data-testid="tab-n8n-guide">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Инструкция n8n
           </TabsTrigger>
         </TabsList>
 
@@ -707,6 +712,269 @@ export default function AdminIntegrations() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="n8n-guide" className="mt-6">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Полная инструкция по интеграции с n8n</CardTitle>
+                <CardDescription>Пошаговое руководство по настройке автоматизаций</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Что вам понадобится:</h4>
+                  <ul className="list-disc list-inside text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>Аккаунт n8n (self-hosted или n8n.cloud)</li>
+                    <li>API ключ PrimeTrack (создайте во вкладке "API Ключи")</li>
+                    <li>Вебхук с секретом (создайте во вкладке "Вебхуки платформы")</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>1. Настройка API аутентификации</CardTitle>
+                <CardDescription>Подключение n8n к API PrimeTrack для получения данных</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Шаг 1: Создайте credentials в n8n</h4>
+                  <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-2">
+                    <li>Откройте n8n → Settings → Credentials</li>
+                    <li>Нажмите "Add Credential"</li>
+                    <li>Выберите тип: <strong>Header Auth</strong></li>
+                    <li>Заполните поля:</li>
+                  </ol>
+                  <div className="mt-3 bg-muted p-3 rounded text-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                      <span className="text-muted-foreground">Name:</span>
+                      <code>PrimeTrack API</code>
+                      <span className="text-muted-foreground">Header Name:</span>
+                      <code>X-API-Key</code>
+                      <span className="text-muted-foreground">Header Value:</span>
+                      <code>pt_xxxxxxxx_xxxxxxxxxxxxx</code>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Шаг 2: Создайте HTTP Request ноду</h4>
+                  <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-2">
+                    <li>Добавьте ноду "HTTP Request"</li>
+                    <li>Authentication → <strong>Predefined Credential Type</strong></li>
+                    <li>Credential Type → <strong>Header Auth</strong></li>
+                    <li>Header Auth → выберите "PrimeTrack API"</li>
+                  </ol>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Пример: Получение списка офферов</h4>
+                  <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
+{`Method: GET
+URL: https://ваш-домен.com/api/v1/offers
+
+Ответ:
+[
+  {
+    "id": "offer_123",
+    "name": "Casino Offer",
+    "status": "active",
+    "geo": ["RU", "KZ"],
+    "payoutRange": "$30 - $75"
+  }
+]`}
+                  </pre>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Пример: Создание конверсии</h4>
+                  <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
+{`Method: POST
+URL: https://ваш-домен.com/api/v1/conversions
+Headers: Content-Type: application/json
+Body:
+{
+  "clickId": "clk_abc123",
+  "conversionType": "lead",
+  "revenue": 50
+}`}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>2. Настройка приёма Webhook событий</CardTitle>
+                <CardDescription>Получение уведомлений о событиях PrimeTrack в n8n</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Шаг 1: Создайте Webhook ноду в n8n</h4>
+                  <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-2">
+                    <li>Создайте новый workflow в n8n</li>
+                    <li>Добавьте ноду "Webhook"</li>
+                    <li>HTTP Method: <strong>POST</strong></li>
+                    <li>Path: например <code>/primetrack-events</code></li>
+                    <li>Authentication: <strong>None</strong> (подпись проверяется вручную)</li>
+                    <li>Скопируйте Production URL</li>
+                  </ol>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Шаг 2: Добавьте вебхук в PrimeTrack</h4>
+                  <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-2">
+                    <li>Перейдите во вкладку "Вебхуки платформы"</li>
+                    <li>Нажмите "Добавить вебхук"</li>
+                    <li>Вставьте URL из n8n</li>
+                    <li>Выберите нужные события</li>
+                    <li>Укажите секрет для HMAC подписи</li>
+                  </ol>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Формат входящего события</h4>
+                  <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
+{`Headers:
+  X-Webhook-Signature: a1b2c3d4e5f6... (HMAC-SHA256 hex)
+  Content-Type: application/json
+
+Body:
+{
+  "event": "conversion.created",
+  "timestamp": "2024-01-16T12:00:00.000Z",
+  "data": {
+    "conversionId": "conv_123",
+    "clickId": "clk_456", 
+    "offerId": "offer_789",
+    "publisherId": "pub_012",
+    "conversionType": "lead",
+    "status": "pending",
+    "publisherPayout": 50,
+    "advertiserCost": 60
+  }
+}`}
+                  </pre>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Проверка HMAC подписи (опционально)</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Добавьте ноду "Code" после Webhook для проверки подписи:
+                  </p>
+                  <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
+{`const crypto = require('crypto');
+const secret = 'ваш_секрет';
+const signature = $input.first().headers['x-webhook-signature'];
+const payload = JSON.stringify($input.first().body);
+const expected = crypto
+  .createHmac('sha256', secret)
+  .update(payload)
+  .digest('hex');
+
+if (signature !== expected) {
+  throw new Error('Invalid signature');
+}
+return $input.all();`}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>3. Готовые сценарии автоматизации</CardTitle>
+                <CardDescription>Примеры полезных автоматизаций для арбитража</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">🔔 Уведомление о новой конверсии в Telegram</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Webhook → IF (event = conversion.created) → Telegram</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      События: conversion.created, conversion.approved
+                    </code>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">📊 Синхронизация с Google Sheets</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Webhook → Google Sheets (добавить строку)</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      Все конверсии автоматически в таблице
+                    </code>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">💰 Алерт о запросе выплаты</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Webhook → IF (event = payout.requested) → Slack/Email</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      События: payout.requested, payout.approved
+                    </code>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">👤 Приветственное письмо партнёру</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Webhook → IF (event = partner.activated) → Gmail</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      События: partner.registered, partner.activated
+                    </code>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">📈 Ежедневный отчёт статистики</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Schedule → HTTP Request (GET /api/v1/stats) → Telegram</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      Использует API ключ с правом stats:read
+                    </code>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>4. Устранение неполадок</CardTitle>
+                <CardDescription>Частые проблемы и их решения</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                    <h4 className="font-semibold text-red-800 dark:text-red-200">Ошибка 401: Unauthorized</h4>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                      Проверьте, что API ключ указан правильно и имеет нужные права доступа.
+                      Убедитесь, что используете <strong>Header Auth</strong>, а не другой тип.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                    <h4 className="font-semibold text-red-800 dark:text-red-200">Ошибка 403: Forbidden</h4>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                      API ключ не имеет нужных прав. Создайте новый ключ с правильными permissions.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-200">Вебхук не срабатывает</h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                      1. Убедитесь, что вебхук активен (переключатель включён)<br/>
+                      2. Проверьте URL — он должен быть Production URL из n8n<br/>
+                      3. Нажмите кнопку "Тест" для проверки доставки
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-200">Вебхук показывает ошибки</h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                      Система автоматически повторяет доставку 3 раза с интервалами 5 сек, 30 сек, 2 мин.
+                      Проверьте, что n8n workflow активен и Webhook нода запущена.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
