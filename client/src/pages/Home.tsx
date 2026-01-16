@@ -530,15 +530,15 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: Zap, title: "Мини-трекер", desc: "Мгновенная обработка кликов с генерацией уникального click_id и GEO-детекцией", color: "emerald" },
-              { icon: BarChart3, title: "Детальная аналитика", desc: "Отчёты по офферам, партнёрам, гео, устройствам с фильтрами по датам", color: "blue" },
-              { icon: ShieldCheck, title: "Антифрод система", desc: "Защита от фрода: прокси-детекция, fingerprinting, velocity checks", color: "red" },
-              { icon: Webhook, title: "Постбеки и Webhooks", desc: "Автоматическая отправка данных о конверсиях с retry и логированием", color: "purple" },
-              { icon: Users, title: "Команда", desc: "Добавляйте менеджеров, аналитиков и финансистов с разными правами", color: "orange" },
-              { icon: Globe, title: "Кастомные домены", desc: "Подключайте свои домены с автоматическим SSL от Let's Encrypt", color: "cyan" },
-              { icon: CreditCard, title: "Финансы", desc: "Балансы, холды, запросы на выплату и крипто-интеграции", color: "green" },
-              { icon: Bell, title: "Уведомления", desc: "In-app уведомления и Telegram бот для важных событий", color: "yellow" },
-              { icon: FileText, title: "Миграция данных", desc: "Импорт из Scaleo, Affilka, Affise, Alanbase", color: "pink" },
+              { icon: Zap, title: "Мини-трекер под реальный залив", desc: "Лёгкий трекер без перегруза. Клики обрабатываются мгновенно, каждому присваивается уникальный click_id, GEO определяется автоматически.", color: "emerald" },
+              { icon: BarChart3, title: "Понятная статистика", desc: "Статистика по офферам, партнёрам, гео и устройствам — в одном месте. Фильтры помогают быстро понять, что масштабировать, а что отключать.", color: "blue" },
+              { icon: ShieldCheck, title: "Антифрод и контроль качества", desc: "Защита от некачественного трафика: прокси и VPN, подозрительные отпечатки, слишком быстрые или повторяющиеся клики.", color: "red" },
+              { icon: Webhook, title: "Postback и Webhooks", desc: "Автоматическая передача конверсий во внешние системы. Поддержка повторных отправок, логирование и контроль статусов.", color: "purple" },
+              { icon: Users, title: "Командная работа", desc: "Добавляйте менеджеров, аналитиков и финансовых сотрудников. Разграничение прав доступа — каждый видит только то, что ему нужно.", color: "orange" },
+              { icon: Globe, title: "Кастомные домены", desc: "Подключайте свои домены для трекинг-ссылок. SSL-сертификаты выпускаются автоматически через Let's Encrypt — без ручной возни.", color: "cyan" },
+              { icon: CreditCard, title: "Финансы и выплаты", desc: "Учёт балансов, холдов и выплат партнёрам. Поддержка криптовалютных интеграций и прозрачная история операций.", color: "green" },
+              { icon: Bell, title: "Уведомления", desc: "Важные события всегда под рукой: in-app уведомления и Telegram-бот. Клики, конверсии и ошибки — без постоянного обновления страниц.", color: "yellow" },
+              { icon: FileText, title: "Миграция без боли", desc: "Помогаем переехать с Scaleo, Affilka, Affise, Alanbase. Импорт офферов и данных занимает 10–15 минут.", color: "pink" },
             ].map((feature, i) => (
               <Card key={i} className="bg-card/50 border-border hover:border-emerald-500/30 transition-colors group">
                 <CardContent className="p-6">
