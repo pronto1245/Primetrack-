@@ -314,8 +314,11 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Кому подходит {platformName}</h2>
           </motion.div>
           <motion.div {...fadeInUp} className="text-center mb-12 max-w-3xl mx-auto">
+            <p className="text-muted-foreground leading-relaxed mb-3">
+              {platformName} — это рабочий инструмент для тех, кто каждый день заливает трафик и считает деньги.
+            </p>
             <p className="text-muted-foreground leading-relaxed">
-              {platformName} подойдёт всем участникам performance-рынка, но изначально он создавался под тех, кто работает с трафиком каждый день и считает результат.
+              Мы не пытались сделать универсальный сервис «для всех». Он сделан под конкретные задачи.
             </p>
           </motion.div>
 
