@@ -52,7 +52,30 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [showMigrationModal, setShowMigrationModal] = useState(false);
+  const [activeDemoTab, setActiveDemoTab] = useState(0);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+
+  const demoTabs = [
+    { label: "Дашборд", src: "/demo-videos/дашборд.mp4" },
+    { label: "Офферы", src: "/demo-videos/офферы_.mp4" },
+    { label: "Создание оффера", src: "/demo-videos/создание_оффера.mp4" },
+    { label: "Статистика", src: "/demo-videos/статитстика.mp4" },
+    { label: "Финансы", src: "/demo-videos/финансы.mp4" },
+    { label: "Команда", src: "/demo-videos/команда.mp4" },
+    { label: "Антифрод", src: "/demo-videos/антифрод.mp4" },
+  ];
+
+  const handleVideoEnd = () => {
+    setActiveDemoTab((prev) => (prev + 1) % demoTabs.length);
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [activeDemoTab]);
 
   const { data: publicNews = [], isLoading: newsLoading } = useQuery<any[]>({
     queryKey: ["/api/public/news"],
@@ -302,6 +325,70 @@ export default function Home() {
                 <div className="text-xs font-mono text-emerald-500/70 uppercase tracking-widest">{stat.label}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Video Section */}
+      <section className="py-20 bg-background">
+        <div className="container px-4 mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-8">
+            <Badge variant="secondary" className="mb-4">Демо</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Как это работает</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Посмотрите основные возможности платформы в действии
+            </p>
+          </motion.div>
+
+          <div className="w-full max-w-[1600px] mx-auto">
+            <div className="relative rounded-2xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden">
+              <div className="h-12 bg-[#111] border-b border-border/50 flex items-center px-4">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/70" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/70" />
+                </div>
+                <div className="flex-1 flex justify-center gap-1 md:gap-2 overflow-x-auto px-4">
+                  {demoTabs.map((tab, i) => (
+                    <button
+                      key={tab.label}
+                      onClick={() => setActiveDemoTab(i)}
+                      data-testid={`demo-tab-${i}`}
+                      className={`px-3 py-1.5 text-xs md:text-sm font-medium rounded-md transition-all whitespace-nowrap ${
+                        activeDemoTab === i
+                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="relative w-full" style={{ aspectRatio: '16/9' }} data-testid="demo-video-container">
+                <video
+                  ref={videoRef}
+                  key={activeDemoTab}
+                  src={demoTabs[activeDemoTab].src}
+                  className="absolute inset-0 w-full h-full object-contain bg-black"
+                  autoPlay
+                  muted
+                  playsInline
+                  onEnded={handleVideoEnd}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-center gap-2 mt-6">
+              {demoTabs.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveDemoTab(i)}
+                  data-testid={`demo-dot-${i}`}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === activeDemoTab ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
