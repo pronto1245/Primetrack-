@@ -302,7 +302,7 @@ export default function Home() {
                     ref={videoRef}
                     key={activeDemoTab}
                     src={demoTabs[activeDemoTab].src}
-                    className="absolute inset-0 w-full h-full object-contain bg-black"
+                    className="absolute inset-0 w-full h-full object-cover bg-black"
                     autoPlay
                     muted
                     playsInline
