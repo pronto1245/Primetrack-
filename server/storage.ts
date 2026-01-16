@@ -43,7 +43,11 @@ import {
   type SupportConversation, type InsertSupportConversation, supportConversations,
   type SupportMessage, type InsertSupportMessage, supportMessages,
   type SplitTest, type InsertSplitTest, splitTests,
-  type SplitTestItem, type InsertSplitTestItem, splitTestItems
+  type SplitTestItem, type InsertSplitTestItem, splitTestItems,
+  type PlatformApiKey, type InsertPlatformApiKey, platformApiKeys,
+  type PlatformApiKeyUsageLog, type InsertPlatformApiKeyUsageLog, platformApiKeyUsageLogs,
+  type PlatformWebhook, type InsertPlatformWebhook, platformWebhooks,
+  type PlatformWebhookLog, type InsertPlatformWebhookLog, platformWebhookLogs
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -551,6 +555,26 @@ export interface IStorage {
   updateSplitTestItem(id: string, data: Partial<InsertSplitTestItem>): Promise<SplitTestItem | undefined>;
   deleteSplitTestItem(id: string): Promise<void>;
   deleteSplitTestItems(splitTestId: string): Promise<void>;
+  
+  // Platform API Keys
+  getPlatformApiKeys(): Promise<PlatformApiKey[]>;
+  getPlatformApiKey(id: string): Promise<PlatformApiKey | undefined>;
+  getPlatformApiKeyByHash(keyHash: string): Promise<PlatformApiKey | undefined>;
+  createPlatformApiKey(data: InsertPlatformApiKey): Promise<PlatformApiKey>;
+  updatePlatformApiKey(id: string, data: Partial<InsertPlatformApiKey>): Promise<PlatformApiKey | undefined>;
+  revokePlatformApiKey(id: string): Promise<PlatformApiKey | undefined>;
+  deletePlatformApiKey(id: string): Promise<void>;
+  logPlatformApiKeyUsage(data: InsertPlatformApiKeyUsageLog): Promise<PlatformApiKeyUsageLog>;
+  getPlatformApiKeyUsageLogs(apiKeyId: string, limit?: number): Promise<PlatformApiKeyUsageLog[]>;
+  
+  // Platform Webhooks
+  getPlatformWebhooks(): Promise<PlatformWebhook[]>;
+  getPlatformWebhook(id: string): Promise<PlatformWebhook | undefined>;
+  createPlatformWebhook(data: InsertPlatformWebhook): Promise<PlatformWebhook>;
+  updatePlatformWebhook(id: string, data: Partial<InsertPlatformWebhook>): Promise<PlatformWebhook | undefined>;
+  deletePlatformWebhook(id: string): Promise<void>;
+  createPlatformWebhookLog(data: InsertPlatformWebhookLog): Promise<PlatformWebhookLog>;
+  getPlatformWebhookLogs(webhookId: string, limit?: number): Promise<PlatformWebhookLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4767,6 +4791,125 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSplitTestItems(splitTestId: string): Promise<void> {
     await db.delete(splitTestItems).where(eq(splitTestItems.splitTestId, splitTestId));
+  }
+
+  // ============================================
+  // PLATFORM API KEYS
+  // ============================================
+  async getPlatformApiKeys(): Promise<PlatformApiKey[]> {
+    return await db
+      .select()
+      .from(platformApiKeys)
+      .orderBy(desc(platformApiKeys.createdAt));
+  }
+
+  async getPlatformApiKey(id: string): Promise<PlatformApiKey | undefined> {
+    const [key] = await db
+      .select()
+      .from(platformApiKeys)
+      .where(eq(platformApiKeys.id, id));
+    return key;
+  }
+
+  async getPlatformApiKeyByHash(keyHash: string): Promise<PlatformApiKey | undefined> {
+    const [key] = await db
+      .select()
+      .from(platformApiKeys)
+      .where(eq(platformApiKeys.keyHash, keyHash));
+    return key;
+  }
+
+  async createPlatformApiKey(data: InsertPlatformApiKey): Promise<PlatformApiKey> {
+    const [key] = await db.insert(platformApiKeys).values(data).returning();
+    return key;
+  }
+
+  async updatePlatformApiKey(id: string, data: Partial<InsertPlatformApiKey>): Promise<PlatformApiKey | undefined> {
+    const [key] = await db
+      .update(platformApiKeys)
+      .set(data)
+      .where(eq(platformApiKeys.id, id))
+      .returning();
+    return key;
+  }
+
+  async revokePlatformApiKey(id: string): Promise<PlatformApiKey | undefined> {
+    const [key] = await db
+      .update(platformApiKeys)
+      .set({ isActive: false, revokedAt: new Date() })
+      .where(eq(platformApiKeys.id, id))
+      .returning();
+    return key;
+  }
+
+  async deletePlatformApiKey(id: string): Promise<void> {
+    await db.delete(platformApiKeyUsageLogs).where(eq(platformApiKeyUsageLogs.apiKeyId, id));
+    await db.delete(platformApiKeys).where(eq(platformApiKeys.id, id));
+  }
+
+  async logPlatformApiKeyUsage(data: InsertPlatformApiKeyUsageLog): Promise<PlatformApiKeyUsageLog> {
+    const [log] = await db.insert(platformApiKeyUsageLogs).values(data).returning();
+    return log;
+  }
+
+  async getPlatformApiKeyUsageLogs(apiKeyId: string, limit: number = 100): Promise<PlatformApiKeyUsageLog[]> {
+    return await db
+      .select()
+      .from(platformApiKeyUsageLogs)
+      .where(eq(platformApiKeyUsageLogs.apiKeyId, apiKeyId))
+      .orderBy(desc(platformApiKeyUsageLogs.createdAt))
+      .limit(limit);
+  }
+
+  // ============================================
+  // PLATFORM WEBHOOKS
+  // ============================================
+  async getPlatformWebhooks(): Promise<PlatformWebhook[]> {
+    return await db
+      .select()
+      .from(platformWebhooks)
+      .orderBy(desc(platformWebhooks.createdAt));
+  }
+
+  async getPlatformWebhook(id: string): Promise<PlatformWebhook | undefined> {
+    const [webhook] = await db
+      .select()
+      .from(platformWebhooks)
+      .where(eq(platformWebhooks.id, id));
+    return webhook;
+  }
+
+  async createPlatformWebhook(data: InsertPlatformWebhook): Promise<PlatformWebhook> {
+    const [webhook] = await db.insert(platformWebhooks).values(data).returning();
+    return webhook;
+  }
+
+  async updatePlatformWebhook(id: string, data: Partial<InsertPlatformWebhook>): Promise<PlatformWebhook | undefined> {
+    const [webhook] = await db
+      .update(platformWebhooks)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(platformWebhooks.id, id))
+      .returning();
+    return webhook;
+  }
+
+  async deletePlatformWebhook(id: string): Promise<void> {
+    await db.delete(platformWebhookLogs).where(eq(platformWebhookLogs.webhookId, id));
+    await db.delete(platformWebhooks).where(eq(platformWebhooks.id, id));
+  }
+
+  async createPlatformWebhookLog(data: InsertPlatformWebhookLog): Promise<PlatformWebhookLog> {
+    const [log] = await db.insert(platformWebhookLogs).values(data).returning();
+    return log;
+  }
+
+  async getPlatformWebhookLogs(webhookId: string, limit: number = 100): Promise<PlatformWebhookLog[]> {
+    return await db
+      .select()
+      .from(platformWebhookLogs)
+      .where(eq(platformWebhookLogs.webhookId, webhookId))
+      .orderBy(desc(platformWebhookLogs.createdAt))
+      .limit(limit);
   }
 }
 
