@@ -272,7 +272,7 @@ export default function Home() {
               <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Антидубль</span>
             </div>
 
-            <div className="w-full max-w-[1600px] mx-auto relative px-4">
+            <div className="w-full max-w-[95vw] mx-auto relative">
               <div className="relative rounded-2xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden">
                 <div className="h-12 bg-[#111] border-b border-border/50 flex items-center px-4">
                   <div className="flex gap-2">
