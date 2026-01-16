@@ -1011,15 +1011,15 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="py-24 border-t border-border bg-background">
-        <div className="container px-4 mx-auto max-w-3xl">
+      <section id="faq" className="py-24 border-t border-border bg-background">
+        <div className="container px-4 mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">FAQ</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Часто задаваемые вопросы</h2>
           </div>
 
-          <Accordion type="single" collapsible className="space-y-4">
-            {[
+          {(() => {
+            const faqItems = [
               { q: "Кто может зарегистрироваться в системе?", a: "Зарегистрироваться напрямую может только рекламодатель. Партнёры (арбитражники) регистрируются исключительно по персональной ссылке приглашения, которую создаёт рекламодатель в своём кабинете. Это сделано, чтобы рекламодатель контролировал, кто работает с его офферами, и исключить мусорный трафик." },
               { q: "Как партнёру попасть в систему?", a: "Рекламодатель создаёт ссылку регистрации для партнёров и размещает её на своём сайте или отправляет партнёру напрямую. Других способов регистрации партнёров нет." },
               { q: "Есть ли отдельные кабинеты для рекламодателя и партнёра?", a: "Да. Рекламодатель создаёт офферы, управляет партнёрами, настраивает постбеки, смотрит аналитику и финансы. Партнёр видит только доступные ему офферы, генерирует ссылки, смотрит свою статистику и доход — не видит других партнёров и данных рекла." },
@@ -1036,17 +1036,39 @@ export default function Home() {
               { q: "Можно ли добавить команду?", a: "Да. Вы можете добавить менеджеров, аналитиков и финансистов с разными уровнями доступа. Каждый видит только то, что ему разрешено." },
               { q: "Подходит ли платформа для открытых CPA-сетей?", a: "Нет. Платформа создана для рекламодателей, private / in-house партнёрских программ, агентств и команд. Если вам нужна открытая CPA-сеть с публичной регистрацией — это не наш формат." },
               { q: "Чем вы отличаетесь от Scaleo, Affise и Affilka?", a: "Проще и быстрее запуск, жёсткий контроль партнёров, встроенный антифрод без доплат, полноценный white-label, фокус на рекла, а не на «маркетплейс офферов»." },
-            ].map((item, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border border-border rounded-lg px-6">
-                <AccordionTrigger className="text-left font-medium hover:no-underline">
-                  {item.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {item.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+            ];
+            const half = Math.ceil(faqItems.length / 2);
+            const leftColumn = faqItems.slice(0, half);
+            const rightColumn = faqItems.slice(half);
+            return (
+              <div className="grid md:grid-cols-2 gap-6">
+                <Accordion type="single" collapsible className="space-y-3">
+                  {leftColumn.map((item, i) => (
+                    <AccordionItem key={i} value={`item-left-${i}`} className="border border-border rounded-lg px-5 bg-card/50">
+                      <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4">
+                        {item.q}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-sm pb-4">
+                        {item.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                <Accordion type="single" collapsible className="space-y-3">
+                  {rightColumn.map((item, i) => (
+                    <AccordionItem key={i} value={`item-right-${i}`} className="border border-border rounded-lg px-5 bg-card/50">
+                      <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4">
+                        {item.q}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-sm pb-4">
+                        {item.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
