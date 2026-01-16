@@ -790,10 +790,13 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Отзывы</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Что говорят наши клиенты</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Что говорят клиенты, которые реально работают с {platformName}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Не маркетинговые цитаты — а опыт использования
+            </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 name: "MediaBuy Pro",
@@ -815,6 +818,13 @@ export default function Home() {
                 avatar: "leadgen", 
                 text: "Искали решение под white-label, чтобы не городить свой трекер. Подключили домен, настроили офферы — партнёры работают как с нашей платформой. Для старта и масштабирования — то, что нужно.",
                 rating: 5
+              },
+              {
+                name: "Анонимный пользователь",
+                role: "Арбитражная команда",
+                avatar: "anon2024", 
+                text: "Есть моменты, которые ещё допиливаются, но команда быстро реагирует. Нам важнее, что продукт развивается и можно напрямую влиять на фичи.",
+                rating: 4
               }
             ].map((testimonial, i) => (
               <motion.div
