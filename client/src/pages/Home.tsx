@@ -271,8 +271,10 @@ export default function Home() {
               <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />SubID</span>
               <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Антидубль</span>
             </div>
+          </div>
+        </div>
 
-            <div className="w-full max-w-[95vw] mx-auto relative">
+        <div className="w-full max-w-[1800px] mx-auto px-4 relative z-10">
               <div className="relative rounded-2xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden">
                 <div className="h-12 bg-[#111] border-b border-border/50 flex items-center px-4">
                   <div className="flex gap-2">
@@ -302,7 +304,7 @@ export default function Home() {
                     ref={videoRef}
                     key={activeDemoTab}
                     src={demoTabs[activeDemoTab].src}
-                    className="absolute inset-0 w-full h-full object-cover bg-black"
+                    className="absolute inset-0 w-full h-full object-contain bg-black"
                     autoPlay
                     muted
                     playsInline
@@ -312,16 +314,14 @@ export default function Home() {
               </div>
               
               <div className="flex justify-center gap-2 mt-4">
-                {demoTabs.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveDemoTab(i)}
-                    data-testid={`demo-dot-${i}`}
-                    className={`w-2 h-2 rounded-full transition-colors ${i === activeDemoTab ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
-                  />
-                ))}
-              </div>
-            </div>
+            {demoTabs.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveDemoTab(i)}
+                data-testid={`demo-dot-${i}`}
+                className={`w-2 h-2 rounded-full transition-colors ${i === activeDemoTab ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+              />
+            ))}
           </div>
         </div>
       </section>
