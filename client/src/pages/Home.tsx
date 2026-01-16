@@ -16,7 +16,7 @@ import {
   CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle,
   UserPlus, Settings, TrendingUp, Send, Star, Quote, Newspaper,
   ChevronRight, Sparkles, Map, Rocket, Code, Loader2,
-  CheckCircle2, Circle, Play, LayoutDashboard, LineChart, ListTodo, Puzzle, Workflow
+  CheckCircle2, Circle, Play
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,7 +52,6 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [showMigrationModal, setShowMigrationModal] = useState(false);
-  const [activeDemo, setActiveDemo] = useState<string>("dashboard");
   const { toast } = useToast();
 
   const { data: publicNews = [], isLoading: newsLoading } = useQuery<any[]>({
