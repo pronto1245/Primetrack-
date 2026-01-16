@@ -5084,8 +5084,32 @@ export async function registerRoutes(
         };
       });
 
-      // Calculate summary totals from enriched clicks
-      const summary = result.clicks.reduce((acc: any, click: any) => ({
+      // Calculate summary totals from ALL clicks (not just current page)
+      const allClicksForSummary = result.allClicks || result.clicks;
+      
+      // Enrich all clicks with conversion data for summary calculation
+      const enrichedAllClicks = allClicksForSummary.map((click: any) => {
+        const clickConversions = allConversions.conversions.filter((conv: any) => conv.clickId === click.id);
+        const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
+        const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
+        const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
+        const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
+        const payableConversions = clickConversions.filter((conv: any) => parseFloat(conv.publisherPayout || '0') > 0);
+        const approvedPayable = payableConversions.filter((conv: any) => conv.status === 'approved');
+        return {
+          isUnique: click.isUnique ?? true,
+          conversions: clickConversions.length,
+          approvedConversions: clickConversions.filter((conv: any) => conv.status === 'approved').length,
+          payableConversions: payableConversions.length,
+          approvedPayableConversions: approvedPayable.length,
+          leads,
+          sales,
+          payout,
+          advertiserCost: cost
+        };
+      });
+      
+      const summaryBase = enrichedAllClicks.reduce((acc: any, click: any) => ({
         clicks: acc.clicks + 1,
         uniqueClicks: acc.uniqueClicks + (click.isUnique ? 1 : 0),
         conversions: acc.conversions + (click.conversions || 0),
@@ -5098,22 +5122,24 @@ export async function registerRoutes(
         advertiserCost: acc.advertiserCost + (click.advertiserCost || 0),
       }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
 
-      summary.margin = summary.advertiserCost - summary.payout;
-      summary.roi = summary.advertiserCost > 0 ? ((summary.margin / summary.advertiserCost) * 100) : 0;
-      // CR = payable conversions / clicks * 100
-      summary.cr = summary.clicks > 0 
-        ? Math.round((summary.payableConversions / summary.clicks) * 100 * 100) / 100
-        : 0;
-      // AR = approved payable / payable * 100
-      summary.ar = summary.payableConversions > 0 
-        ? Math.round((summary.approvedPayableConversions / summary.payableConversions) * 100 * 100) / 100
-        : 0;
-      // EPC = total payout / clicks
-      summary.epc = summary.clicks > 0 
-        ? Math.round((summary.payout / summary.clicks) * 100) / 100
-        : 0;
+      const summary = {
+        ...summaryBase,
+        margin: summaryBase.advertiserCost - summaryBase.payout,
+        roi: summaryBase.advertiserCost > 0 ? ((summaryBase.advertiserCost - summaryBase.payout) / summaryBase.advertiserCost * 100) : 0,
+        cr: summaryBase.clicks > 0 
+          ? Math.round((summaryBase.payableConversions / summaryBase.clicks) * 100 * 100) / 100
+          : 0,
+        ar: summaryBase.payableConversions > 0 
+          ? Math.round((summaryBase.approvedPayableConversions / summaryBase.payableConversions) * 100 * 100) / 100
+          : 0,
+        epc: summaryBase.clicks > 0 
+          ? Math.round((summaryBase.payout / summaryBase.clicks) * 100) / 100
+          : 0
+      };
 
-      res.json({ ...result, summary });
+      // Remove allClicks from response to reduce payload
+      const { allClicks, ...responseData } = result;
+      res.json({ ...responseData, summary });
     } catch (error: any) {
       console.error("Reports clicks error:", error);
       res.status(500).json({ message: "Failed to fetch clicks report" });

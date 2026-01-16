@@ -361,7 +361,7 @@ export interface IStorage {
   checkOfferCaps(offerId: string): Promise<{ dailyCapReached: boolean; monthlyCapReached: boolean; totalCapReached: boolean; offer: Offer | undefined }>;
   
   // Reports
-  getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number }>;
+  getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number; allClicks?: Click[] }>;
   getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: any[]; total: number; page: number; limit: number }>;
   getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
   
@@ -2169,7 +2169,7 @@ export class DatabaseStorage implements IStorage {
   // REPORTS - Centralized statistics (primary source of truth)
   // ============================================
   
-  async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: any[]; total: number; page: number; limit: number }> {
+  async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: any[]; total: number; page: number; limit: number; allClicks?: any[] }> {
     const conditions: any[] = [];
     
     // Handle free text search - filter by offer name
@@ -2262,7 +2262,7 @@ export class DatabaseStorage implements IStorage {
       publisherName: publisherMap.get(click.publisherId) || click.publisherId
     }));
     
-    return { clicks: enrichedClicks, total, page, limit };
+    return { clicks: enrichedClicks, total, page, limit, allClicks: allClicksRaw };
   }
 
   async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: any[]; total: number; page: number; limit: number }> {
