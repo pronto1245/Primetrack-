@@ -12,7 +12,8 @@ export type PlatformApiPermission =
   | "conversions:read"
   | "conversions:write"
   | "payouts:read"
-  | "payouts:write";
+  | "payouts:write"
+  | "stats:read";
 
 export interface PlatformApiRequest extends Request {
   apiKey?: PlatformApiKey;
