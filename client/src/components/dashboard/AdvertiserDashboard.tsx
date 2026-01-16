@@ -307,9 +307,6 @@ export function AdvertiserDashboard() {
               <span className="text-[10px] uppercase font-medium text-purple-400">{t('stats.leads')}</span>
             </div>
             <div className="text-lg font-bold font-mono text-purple-400">{stats.totalLeads.toLocaleString()}</div>
-            <div className="text-[11px] text-yellow-400 mt-0.5" data-testid="text-instreg">
-              Инстрег: {stats.totalUniqueClicks > 0 ? ((stats.totalLeads / stats.totalUniqueClicks) * 100).toFixed(1) : 0}%
-            </div>
           </CardContent>
         </Card>
         <Card className="bg-orange-500/5 border-orange-500/30 hover:border-orange-500/50 transition-colors">
@@ -319,9 +316,6 @@ export function AdvertiserDashboard() {
               <span className="text-[10px] uppercase font-medium text-orange-400">{t('stats.sales')}</span>
             </div>
             <div className="text-lg font-bold font-mono text-orange-400">{stats.totalSales.toLocaleString()}</div>
-            <div className="text-[11px] text-yellow-400 mt-0.5" data-testid="text-reg2dep">
-              Рег2деп: {stats.totalLeads > 0 ? ((stats.totalSales / stats.totalLeads) * 100).toFixed(1) : 0}%
-            </div>
           </CardContent>
         </Card>
         <Card className="bg-red-500/5 border-red-500/30 hover:border-red-500/50 transition-colors">
