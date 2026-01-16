@@ -2048,3 +2048,131 @@ export const insertSplitTestItemSchema = createInsertSchema(splitTestItems).omit
 
 export type InsertSplitTestItem = z.infer<typeof insertSplitTestItemSchema>;
 export type SplitTestItem = typeof splitTestItems.$inferSelect;
+
+// ============================================
+// PLATFORM API KEYS (Admin-level API access for n8n/integrations)
+// ============================================
+export const platformApiKeys = pgTable("platform_api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  name: text("name").notNull(),
+  keyHash: text("key_hash").notNull(),
+  keyPrefix: text("key_prefix").notNull(),
+  
+  permissions: text("permissions").array().notNull(),
+  
+  expiresAt: timestamp("expires_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  
+  lastUsedAt: timestamp("last_used_at"),
+  lastUsedIp: text("last_used_ip"),
+  lastUsedUserAgent: text("last_used_user_agent"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at"),
+});
+
+export const insertPlatformApiKeySchema = createInsertSchema(platformApiKeys).omit({
+  id: true,
+  createdAt: true,
+  lastUsedAt: true,
+  lastUsedIp: true,
+  lastUsedUserAgent: true,
+  revokedAt: true,
+});
+
+export type InsertPlatformApiKey = z.infer<typeof insertPlatformApiKeySchema>;
+export type PlatformApiKey = typeof platformApiKeys.$inferSelect;
+
+// ============================================
+// PLATFORM API KEY USAGE LOGS (Audit trail)
+// ============================================
+export const platformApiKeyUsageLogs = pgTable("platform_api_key_usage_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  apiKeyId: varchar("api_key_id").notNull().references(() => platformApiKeys.id),
+  
+  endpoint: text("endpoint").notNull(),
+  method: text("method").notNull(),
+  
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  
+  statusCode: integer("status_code"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPlatformApiKeyUsageLogSchema = createInsertSchema(platformApiKeyUsageLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPlatformApiKeyUsageLog = z.infer<typeof insertPlatformApiKeyUsageLogSchema>;
+export type PlatformApiKeyUsageLog = typeof platformApiKeyUsageLogs.$inferSelect;
+
+// ============================================
+// PLATFORM WEBHOOKS (Admin-level webhooks for entire platform)
+// ============================================
+export const platformWebhooks = pgTable("platform_webhooks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  
+  events: text("events").array().notNull(),
+  
+  secret: text("secret"),
+  headers: text("headers"),
+  method: text("method").notNull().default("POST"),
+  
+  isActive: boolean("is_active").notNull().default(true),
+  
+  lastTriggeredAt: timestamp("last_triggered_at"),
+  failedAttempts: integer("failed_attempts").notNull().default(0),
+  lastError: text("last_error"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertPlatformWebhookSchema = createInsertSchema(platformWebhooks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastTriggeredAt: true,
+  failedAttempts: true,
+  lastError: true,
+});
+
+export type InsertPlatformWebhook = z.infer<typeof insertPlatformWebhookSchema>;
+export type PlatformWebhook = typeof platformWebhooks.$inferSelect;
+
+// ============================================
+// PLATFORM WEBHOOK LOGS (Delivery logs)
+// ============================================
+export const platformWebhookLogs = pgTable("platform_webhook_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  webhookId: varchar("webhook_id").notNull().references(() => platformWebhooks.id),
+  
+  eventType: text("event_type").notNull(),
+  payload: text("payload").notNull(),
+  
+  status: text("status").notNull().default("pending"),
+  statusCode: integer("status_code"),
+  response: text("response"),
+  
+  attemptNumber: integer("attempt_number").notNull().default(1),
+  nextRetryAt: timestamp("next_retry_at"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPlatformWebhookLogSchema = createInsertSchema(platformWebhookLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPlatformWebhookLog = z.infer<typeof insertPlatformWebhookLogSchema>;
+export type PlatformWebhookLog = typeof platformWebhookLogs.$inferSelect;
