@@ -236,19 +236,19 @@ export default function AdminIntegrations() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="api-keys" data-testid="tab-api-keys">
+          <TabsTrigger value="api-keys" data-testid="tab-api-keys" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
             <Key className="h-4 w-4 mr-2" />
             API Ключи
           </TabsTrigger>
-          <TabsTrigger value="webhooks" data-testid="tab-webhooks">
+          <TabsTrigger value="webhooks" data-testid="tab-webhooks" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
             <Webhook className="h-4 w-4 mr-2" />
             Вебхуки платформы
           </TabsTrigger>
-          <TabsTrigger value="docs" data-testid="tab-docs">
+          <TabsTrigger value="docs" data-testid="tab-docs" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             <ExternalLink className="h-4 w-4 mr-2" />
             Документация
           </TabsTrigger>
-          <TabsTrigger value="n8n-guide" data-testid="tab-n8n-guide">
+          <TabsTrigger value="n8n-guide" data-testid="tab-n8n-guide" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             <BookOpen className="h-4 w-4 mr-2" />
             Инструкция n8n
           </TabsTrigger>
