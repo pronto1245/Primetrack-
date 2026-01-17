@@ -887,6 +887,7 @@ export async function registerRoutes(
         phone: phone || null,
         contactType: contactType || null,
         contactValue: contactValue || null,
+        telegram: contactType === "telegram" ? contactValue : null,
       });
 
       if (advertiserId) {
@@ -943,6 +944,7 @@ export async function registerRoutes(
         contactType,
         contactValue,
         referralCode,
+        telegram: contactType === "telegram" ? contactValue : null,
       });
 
       res.json({
