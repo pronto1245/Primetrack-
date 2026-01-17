@@ -427,19 +427,21 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
           <div className="text-[10px] uppercase text-blue-400 mb-1">{t('stats.clicks') || 'Clicks'}</div>
           <div className="text-xl font-bold text-blue-400">{totals.clicks.toLocaleString()}</div>
           <div className="text-[10px] text-blue-400/70">{totals.uniqueClicks.toLocaleString()} unique</div>
+          <div className="text-[12px] text-yellow-400" data-testid="text-epc">EPC: ${epc.toFixed(2)}</div>
         </CardContent>
       </Card>
       <Card className="bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50 transition-colors">
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-emerald-400 mb-1">{t('stats.conversions') || 'Conv'}</div>
           <div className="text-xl font-bold text-emerald-400">{totals.conversions}</div>
-          <div className="text-[10px] text-yellow-400">CR: {cr.toFixed(2)}% | AR: {ar.toFixed(2)}% | EPC: ${epc.toFixed(2)}</div>
+          <div className="text-[12px] text-yellow-400" data-testid="text-cr">CR: {cr.toFixed(2)}%</div>
         </CardContent>
       </Card>
       <Card className="bg-green-500/5 border-green-500/30 hover:border-green-500/50 transition-colors">
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-green-400 mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
           <div className="text-xl font-bold text-green-400">${totals.payout.toFixed(2)}</div>
+          <div className="text-[12px] text-yellow-400" data-testid="text-ar">AR: {ar.toFixed(2)}%</div>
         </CardContent>
       </Card>
       <Card className="bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50 transition-colors">
