@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { postbackSender } from "./services/postback-sender";
 import { holdReleaseJob } from "./services/hold-release-job";
 import { capsResetService } from "./services/caps-reset-service";
+import { aggregationService } from "./services/aggregation-service";
 
 const app = express();
 const httpServer = createServer(app);
@@ -112,6 +113,22 @@ export function log(message: string, source = "express") {
       
       // Start caps reset service
       capsResetService.start();
+      
+      // Start daily stats aggregation (run yesterday's aggregation on startup, then every hour)
+      aggregationService.runDailyAggregation().then(result => {
+        if (result.errors.length === 0) {
+          log(`Daily stats aggregation completed: ${result.rowsUpserted} rows`, "aggregation");
+        } else {
+          log(`Daily stats aggregation errors: ${result.errors.join(", ")}`, "aggregation");
+        }
+      });
+      setInterval(() => {
+        aggregationService.runDailyAggregation().then(result => {
+          if (result.errors.length === 0 && result.rowsUpserted > 0) {
+            log(`Hourly aggregation: ${result.rowsUpserted} rows updated`, "aggregation");
+          }
+        });
+      }, 60 * 60 * 1000); // Every hour
       
       // Crypto payout providers are now per-advertiser (encrypted keys in DB)
       log(`Crypto payout service ready (per-advertiser keys)`, "crypto");

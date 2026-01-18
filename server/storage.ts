@@ -47,7 +47,8 @@ import {
   type PlatformApiKey, type InsertPlatformApiKey, platformApiKeys,
   type PlatformApiKeyUsageLog, type InsertPlatformApiKeyUsageLog, platformApiKeyUsageLogs,
   type PlatformWebhook, type InsertPlatformWebhook, platformWebhooks,
-  type PlatformWebhookLog, type InsertPlatformWebhookLog, platformWebhookLogs
+  type PlatformWebhookLog, type InsertPlatformWebhookLog, platformWebhookLogs,
+  type DailyStats, dailyStats
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -5498,6 +5499,261 @@ export class DatabaseStorage implements IStorage {
       .where(eq(platformWebhookLogs.webhookId, webhookId))
       .orderBy(desc(platformWebhookLogs.createdAt))
       .limit(limit);
+  }
+
+  // ============================================
+  // AGGREGATED STATS FROM daily_stats TABLE
+  // Fast reads from pre-computed aggregates
+  // ============================================
+  
+  async getStatsFromAggregates(filters: {
+    advertiserId?: string;
+    publisherId?: string;
+    offerId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    groupBy?: "date" | "offer" | "publisher" | "geo";
+  }): Promise<{
+    data: Array<{
+      groupKey: string;
+      clicks: number;
+      uniqueClicks: number;
+      conversions: number;
+      approvedConversions: number;
+      leads: number;
+      sales: number;
+      payout: number;
+      cost: number;
+    }>;
+    summary: {
+      clicks: number;
+      uniqueClicks: number;
+      conversions: number;
+      approvedConversions: number;
+      leads: number;
+      sales: number;
+      payout: number;
+      cost: number;
+    };
+  }> {
+    const conditions: any[] = [];
+    
+    if (filters.advertiserId) {
+      conditions.push(eq(dailyStats.advertiserId, filters.advertiserId));
+    }
+    if (filters.publisherId) {
+      conditions.push(eq(dailyStats.publisherId, filters.publisherId));
+    }
+    if (filters.offerId) {
+      conditions.push(eq(dailyStats.offerId, filters.offerId));
+    }
+    if (filters.dateFrom) {
+      conditions.push(gte(dailyStats.date, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      conditions.push(lte(dailyStats.date, filters.dateTo));
+    }
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const groupBy = filters.groupBy || "date";
+    const groupExpr = (() => {
+      switch (groupBy) {
+        case "date": return dailyStats.date;
+        case "offer": return dailyStats.offerId;
+        case "publisher": return dailyStats.publisherId;
+        case "geo": return dailyStats.geo;
+        default: return dailyStats.date;
+      }
+    })();
+    
+    const aggregated = whereClause
+      ? await db.select({
+          groupKey: groupExpr,
+          clicks: sql<number>`sum(${dailyStats.clicks})::int`,
+          uniqueClicks: sql<number>`sum(${dailyStats.uniqueClicks})::int`,
+          conversions: sql<number>`sum(${dailyStats.conversions})::int`,
+          approvedConversions: sql<number>`sum(${dailyStats.approvedConversions})::int`,
+          leads: sql<number>`sum(${dailyStats.leads})::int`,
+          sales: sql<number>`sum(${dailyStats.sales})::int`,
+          payout: sql<number>`sum(${dailyStats.payout}::numeric)::float`,
+          cost: sql<number>`sum(${dailyStats.cost}::numeric)::float`,
+        }).from(dailyStats).where(whereClause).groupBy(groupExpr)
+      : await db.select({
+          groupKey: groupExpr,
+          clicks: sql<number>`sum(${dailyStats.clicks})::int`,
+          uniqueClicks: sql<number>`sum(${dailyStats.uniqueClicks})::int`,
+          conversions: sql<number>`sum(${dailyStats.conversions})::int`,
+          approvedConversions: sql<number>`sum(${dailyStats.approvedConversions})::int`,
+          leads: sql<number>`sum(${dailyStats.leads})::int`,
+          sales: sql<number>`sum(${dailyStats.sales})::int`,
+          payout: sql<number>`sum(${dailyStats.payout}::numeric)::float`,
+          cost: sql<number>`sum(${dailyStats.cost}::numeric)::float`,
+        }).from(dailyStats).groupBy(groupExpr);
+    
+    const data = aggregated.map(row => ({
+      groupKey: String(row.groupKey || ''),
+      clicks: row.clicks || 0,
+      uniqueClicks: row.uniqueClicks || 0,
+      conversions: row.conversions || 0,
+      approvedConversions: row.approvedConversions || 0,
+      leads: row.leads || 0,
+      sales: row.sales || 0,
+      payout: row.payout || 0,
+      cost: row.cost || 0,
+    }));
+    
+    const summary = data.reduce((acc, row) => ({
+      clicks: acc.clicks + row.clicks,
+      uniqueClicks: acc.uniqueClicks + row.uniqueClicks,
+      conversions: acc.conversions + row.conversions,
+      approvedConversions: acc.approvedConversions + row.approvedConversions,
+      leads: acc.leads + row.leads,
+      sales: acc.sales + row.sales,
+      payout: acc.payout + row.payout,
+      cost: acc.cost + row.cost,
+    }), {
+      clicks: 0,
+      uniqueClicks: 0,
+      conversions: 0,
+      approvedConversions: 0,
+      leads: 0,
+      sales: 0,
+      payout: 0,
+      cost: 0,
+    });
+    
+    return { data, summary };
+  }
+
+  async getTodayLiveStats(filters: {
+    advertiserId?: string;
+    publisherId?: string;
+    offerId?: string;
+  }): Promise<{
+    clicks: number;
+    uniqueClicks: number;
+    conversions: number;
+    approvedConversions: number;
+    leads: number;
+    sales: number;
+    payout: number;
+    cost: number;
+  }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const clickConditions: any[] = [gte(clicks.createdAt, today)];
+    const convConditions: any[] = [gte(conversions.createdAt, today)];
+    
+    if (filters.publisherId) {
+      clickConditions.push(eq(clicks.publisherId, filters.publisherId));
+      convConditions.push(eq(conversions.publisherId, filters.publisherId));
+    }
+    if (filters.offerId) {
+      clickConditions.push(eq(clicks.offerId, filters.offerId));
+      convConditions.push(eq(conversions.offerId, filters.offerId));
+    }
+    
+    const [clickStats] = await db.select({
+      clicks: sql<number>`count(*)::int`,
+      uniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique})::int`,
+    }).from(clicks).where(and(...clickConditions));
+    
+    const [convStats] = await db.select({
+      conversions: sql<number>`count(*)::int`,
+      approvedConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+      leads: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+      sales: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+      payout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`,
+      cost: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric), 0)::float`,
+    }).from(conversions).where(and(...convConditions));
+    
+    return {
+      clicks: clickStats?.clicks || 0,
+      uniqueClicks: clickStats?.uniqueClicks || 0,
+      conversions: convStats?.conversions || 0,
+      approvedConversions: convStats?.approvedConversions || 0,
+      leads: convStats?.leads || 0,
+      sales: convStats?.sales || 0,
+      payout: convStats?.payout || 0,
+      cost: convStats?.cost || 0,
+    };
+  }
+
+  /**
+   * Get combined stats from daily_stats (historical) + live data (today)
+   * Uses pre-computed aggregates for speed, with real-time fallback for current day
+   */
+  async getCombinedStats(filters: {
+    advertiserId?: string;
+    publisherId?: string;
+    offerId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<{
+    clicks: number;
+    uniqueClicks: number;
+    conversions: number;
+    approvedConversions: number;
+    leads: number;
+    sales: number;
+    payout: number;
+    cost: number;
+  }> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Adjust dateFrom/dateTo to exclude today from aggregates
+    const historicalDateTo = filters.dateTo && filters.dateTo < today 
+      ? filters.dateTo 
+      : (() => {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          return yesterday.toISOString().split('T')[0];
+        })();
+    
+    const includeToday = !filters.dateTo || filters.dateTo >= today;
+    const includeHistorical = !filters.dateFrom || filters.dateFrom <= historicalDateTo;
+    
+    let historicalStats = {
+      clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0,
+      leads: 0, sales: 0, payout: 0, cost: 0,
+    };
+    
+    let todayStats = {
+      clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0,
+      leads: 0, sales: 0, payout: 0, cost: 0,
+    };
+    
+    if (includeHistorical) {
+      const result = await this.getStatsFromAggregates({
+        advertiserId: filters.advertiserId,
+        publisherId: filters.publisherId,
+        offerId: filters.offerId,
+        dateFrom: filters.dateFrom,
+        dateTo: historicalDateTo,
+      });
+      historicalStats = result.summary;
+    }
+    
+    if (includeToday) {
+      todayStats = await this.getTodayLiveStats({
+        advertiserId: filters.advertiserId,
+        publisherId: filters.publisherId,
+        offerId: filters.offerId,
+      });
+    }
+    
+    return {
+      clicks: historicalStats.clicks + todayStats.clicks,
+      uniqueClicks: historicalStats.uniqueClicks + todayStats.uniqueClicks,
+      conversions: historicalStats.conversions + todayStats.conversions,
+      approvedConversions: historicalStats.approvedConversions + todayStats.approvedConversions,
+      leads: historicalStats.leads + todayStats.leads,
+      sales: historicalStats.sales + todayStats.sales,
+      payout: historicalStats.payout + todayStats.payout,
+      cost: historicalStats.cost + todayStats.cost,
+    };
   }
 }
 
