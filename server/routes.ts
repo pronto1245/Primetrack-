@@ -5253,6 +5253,8 @@ export async function registerRoutes(
         filters.search = search.trim();
       }
       
+      const emptyResponse = { data: [], groupBy: groupBy as string, summary: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
+      
       if (role === "publisher") {
         filters.publisherId = userId;
         // Filter by selected advertiser's offers
@@ -5261,20 +5263,20 @@ export async function registerRoutes(
           if (advertiserOffers.length > 0) {
             filters.offerIds = advertiserOffers.map(o => o.id);
           } else {
-            return res.json({ data: [], totals: {} });
+            return res.json(emptyResponse);
           }
         }
       } else if (role === "advertiser") {
         // Use getEffectiveAdvertiserId for staff support
         const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
         if (!effectiveAdvertiserId) {
-          return res.json({ data: [], totals: {} });
+          return res.json(emptyResponse);
         }
         const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
         if (advertiserOffers.length > 0) {
           filters.offerIds = advertiserOffers.map(o => o.id);
         } else {
-          return res.json({ data: [], totals: {} });
+          return res.json(emptyResponse);
         }
       }
 
