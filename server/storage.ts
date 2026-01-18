@@ -53,6 +53,7 @@ import crypto from "crypto";
 import { db } from "../db";
 import { eq, and, or, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import { statsCache, buildCacheKey, CACHE_TTL } from "./services/cache-service";
 import { encrypt, decrypt, hasSecret } from "./services/encryption";
 
 /**
@@ -1257,7 +1258,16 @@ export class DatabaseStorage implements IStorage {
 
   // Advanced Advertiser Statistics with Filters
   // OPTIMIZED: SQL aggregation instead of N+1 loops and in-memory filtering
+  // CACHED: 60 seconds TTL with request deduplication
   async getAdvertiserStats(advertiserId: string, filters: AdvertiserStatsFilters = {}): Promise<AdvertiserStatsResult> {
+    const cacheKey = buildCacheKey("advertiserStats", { advertiserId, ...filters });
+    
+    return statsCache.getOrFetch(cacheKey, CACHE_TTL.ADVERTISER_STATS, async () => {
+      return this._getAdvertiserStatsInternal(advertiserId, filters);
+    });
+  }
+
+  private async _getAdvertiserStatsInternal(advertiserId: string, filters: AdvertiserStatsFilters = {}): Promise<AdvertiserStatsResult> {
     const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
     const offerIds = advertiserOffers.map(o => o.id);
     
@@ -1574,7 +1584,16 @@ export class DatabaseStorage implements IStorage {
 
   // Publisher Statistics (NO advertiser_cost, NO antifraud data)
   // OPTIMIZED: SQL aggregation instead of in-memory filtering and N+1 loops
+  // CACHED: 60 seconds TTL with request deduplication
   async getPublisherStats(publisherId: string, filters: PublisherStatsFilters = {}): Promise<PublisherStatsResult> {
+    const cacheKey = buildCacheKey("publisherStats", { publisherId, ...filters });
+    
+    return statsCache.getOrFetch(cacheKey, CACHE_TTL.PUBLISHER_STATS, async () => {
+      return this._getPublisherStatsInternal(publisherId, filters);
+    });
+  }
+
+  private async _getPublisherStatsInternal(publisherId: string, filters: PublisherStatsFilters = {}): Promise<PublisherStatsResult> {
     // Get advertiser offer IDs if filtering by advertiser
     let advertiserOfferIds: string[] | null = null;
     if (filters.advertiserId) {
@@ -2181,7 +2200,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   // OPTIMIZED: SQL COUNT(*) instead of loading all data into memory
+  // CACHED: 120 seconds TTL with request deduplication
   async getAdminStats(): Promise<{
+    totalUsers: number;
+    totalAdvertisers: number;
+    pendingAdvertisers: number;
+    totalPublishers: number;
+    totalOffers: number;
+    totalClicks: number;
+    totalConversions: number;
+    recentUsers: Array<{
+      id: string;
+      username: string;
+      role: string;
+      status: string;
+      createdAt: string;
+    }>;
+  }> {
+    const cacheKey = buildCacheKey("adminStats", {});
+    
+    return statsCache.getOrFetch(cacheKey, CACHE_TTL.ADMIN_STATS, async () => {
+      return this._getAdminStatsInternal();
+    });
+  }
+
+  private async _getAdminStatsInternal(): Promise<{
     totalUsers: number;
     totalAdvertisers: number;
     pendingAdvertisers: number;
@@ -2239,7 +2282,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   // OPTIMIZED: SQL aggregation for platform financial stats
+  // CACHED: 120 seconds TTL with request deduplication
   async getPlatformFinancialStats(): Promise<{
+    totalRevenue: number;
+    totalPayouts: number;
+    platformMargin: number;
+    pendingPayouts: number;
+    activeAdvertisers: number;
+    activePublishers: number;
+    totalConversions: number;
+    avgROI: number;
+  }> {
+    const cacheKey = buildCacheKey("platformFinancialStats", {});
+    
+    return statsCache.getOrFetch(cacheKey, CACHE_TTL.PLATFORM_FINANCIAL, async () => {
+      return this._getPlatformFinancialStatsInternal();
+    });
+  }
+
+  private async _getPlatformFinancialStatsInternal(): Promise<{
     totalRevenue: number;
     totalPayouts: number;
     platformMargin: number;
