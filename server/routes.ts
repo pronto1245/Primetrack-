@@ -1471,21 +1471,19 @@ export async function registerRoutes(
       // Admin без advertiserId получает все активные офферы
       if (!advertiserId) {
         const allOffers = await storage.getActiveOffers();
-        const offersWithLandings = await Promise.all(
-          allOffers.map(async (offer) => {
-            const landings = await storage.getOfferLandings(offer.id);
-            return { ...offer, landings };
-          })
-        );
+        const landingsMap = await storage.getLandingsForOffers(allOffers.map(o => o.id));
+        const offersWithLandings = allOffers.map(offer => ({
+          ...offer,
+          landings: landingsMap.get(offer.id) || []
+        }));
         return res.json(offersWithLandings);
       }
       const offers = await storage.getOffersByAdvertiser(advertiserId);
-      const offersWithLandings = await Promise.all(
-        offers.map(async (offer) => {
-          const landings = await storage.getOfferLandings(offer.id);
-          return { ...offer, landings };
-        })
-      );
+      const landingsMap = await storage.getLandingsForOffers(offers.map(o => o.id));
+      const offersWithLandings = offers.map(offer => ({
+        ...offer,
+        landings: landingsMap.get(offer.id) || []
+      }));
       res.json(offersWithLandings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch offers" });

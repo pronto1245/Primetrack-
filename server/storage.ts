@@ -843,6 +843,22 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(offerLandings).where(eq(offerLandings.offerId, offerId));
   }
 
+  // Batch load landings for multiple offers - optimized to avoid N+1
+  async getLandingsForOffers(offerIds: string[]): Promise<Map<string, OfferLanding[]>> {
+    if (offerIds.length === 0) return new Map();
+    
+    const allLandings = await db.select().from(offerLandings)
+      .where(inArray(offerLandings.offerId, offerIds));
+    
+    const landingsByOffer = new Map<string, OfferLanding[]>();
+    for (const landing of allLandings) {
+      const existing = landingsByOffer.get(landing.offerId) || [];
+      existing.push(landing);
+      landingsByOffer.set(landing.offerId, existing);
+    }
+    return landingsByOffer;
+  }
+
   async getOfferLanding(id: string): Promise<OfferLanding | undefined> {
     const [landing] = await db.select().from(offerLandings).where(eq(offerLandings.id, id));
     return landing;
@@ -1887,19 +1903,22 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  // Get offers for publisher (ones they have access to)
+  // Get offers for publisher (ones they have access to) - optimized with JOIN
   async getOffersForPublisher(publisherId: string, advertiserId?: string): Promise<Array<{ id: string; name: string }>> {
-    const publisherOfferAccess = await this.getPublisherOffersByPublisher(publisherId);
-    const result: Array<{ id: string; name: string }> = [];
-    for (const po of publisherOfferAccess) {
-      const offer = await this.getOffer(po.offerId);
-      if (offer) {
-        if (advertiserId && offer.advertiserId !== advertiserId) {
-          continue;
-        }
-        result.push({ id: offer.id, name: offer.name });
-      }
+    const conditions = [eq(publisherOffers.publisherId, publisherId)];
+    if (advertiserId) {
+      conditions.push(eq(offers.advertiserId, advertiserId));
     }
+    
+    const result = await db
+      .select({
+        id: offers.id,
+        name: offers.name,
+      })
+      .from(publisherOffers)
+      .innerJoin(offers, eq(publisherOffers.offerId, offers.id))
+      .where(and(...conditions));
+    
     return result;
   }
 
