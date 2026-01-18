@@ -160,6 +160,27 @@ Preferred communication style: Simple, everyday language (Russian).
 - [ ] UI не подключён к реальным endpoints
 - [ ] Voluum/Keitaro надо убрать из UI
 
+### ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ (2025-01-18)
+
+Полная оптимизация для масштабирования на 20-50 рекламодателей × 500-800 паблишеров, миллионы кликов:
+
+| Метод | До | После |
+|-------|-----|-------|
+| getClicksReport / getConversionsReport | `.slice()` в памяти | SQL `LIMIT/OFFSET`, COUNT для пагинации |
+| getGroupedReport | `reduce()` для группировки | SQL `GROUP BY` с агрегациями |
+| getAdvertiserStats | N запросов + in-memory | SQL COUNT/SUM с FILTER |
+| getPublisherStats | N запросов + reduce | SQL агрегация + LEFT JOIN geo |
+| getAdminStats | Загрузка всех users | SQL COUNT с FILTER |
+| getPlatformFinancialStats | Загрузка всех conversions/payouts | SQL SUM с FILTER |
+| getPublisherStatsForAdvertiser | N+1 цикл по офферам | SQL inArray + COUNT/SUM |
+| getPublisherOfferStats | 2 полных SELECT + reduce | SQL COUNT/SUM |
+
+**Паттерны оптимизации:**
+- Parameterized queries (sql.join) для безопасности от SQL injection
+- TO_CHAR для нормализации дат в GROUP BY
+- Map для O(1) lookup вместо find()
+- inArray для batch операций вместо циклов
+
 ### ЧТО НЕ СДЕЛАНО
 
 1. **Миграция:**
