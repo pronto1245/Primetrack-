@@ -88,13 +88,22 @@ export function Reports({ role }: ReportsProps) {
   const groupedParams = new URLSearchParams(queryParams);
   groupedParams.set("groupBy", filters.groupBy);
   
-  const { data: groupedData, isLoading: groupedLoading, refetch: refetchGrouped } = useQuery({
+  const { data: groupedData, isLoading: groupedLoading, refetch: refetchGrouped, isError: groupedError } = useQuery({
     queryKey: ["/api/reports/grouped", filters, selectedAdvertiserId],
     queryFn: async () => {
-      const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch grouped data");
-      return res.json();
-    }
+      try {
+        const res = await fetch(`/api/reports/grouped?${groupedParams.toString()}`, { credentials: "include" });
+        if (!res.ok) {
+          throw new Error("Failed to fetch grouped data");
+        }
+        return res.json();
+      } catch (error) {
+        toast.error(t('reports.error') || "Failed to load report data");
+        throw error;
+      }
+    },
+    retry: 1,
+    staleTime: 30000
   });
 
   // Fetch publishers list for filter (advertiser/admin only)
@@ -330,7 +339,7 @@ export function Reports({ role }: ReportsProps) {
         </TabsContent>
 
         <TabsContent value="conversions" className="mt-0 space-y-4">
-          <SummaryCards data={groupedData} loading={groupedLoading} role={role} t={t} useClicksSummary={true} />
+          <SummaryCards data={groupedData} loading={groupedLoading} isError={groupedError} role={role} t={t} useClicksSummary={true} />
           <ConversionsTable 
             data={conversionsData} 
             loading={conversionsLoading} 
@@ -346,6 +355,7 @@ export function Reports({ role }: ReportsProps) {
           <GroupedTable 
             data={groupedData} 
             loading={groupedLoading}
+            isError={groupedError}
             role={role}
             showFinancials={showFinancials}
             t={t}
@@ -356,9 +366,19 @@ export function Reports({ role }: ReportsProps) {
   );
 }
 
-function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any) {
+function SummaryCards({ data, loading, isError, role, t, useClicksSummary = false }: any) {
   const isAdvertiser = role === "advertiser";
   const isPublisher = role === "publisher";
+  
+  if (isError) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="p-4 text-center">
+          <p className="text-sm text-muted-foreground">{t('reports.summaryError') || 'Unable to load summary'}</p>
+        </CardContent>
+      </Card>
+    );
+  }
   
   // Use summary from clicksData if available, otherwise calculate from rows
   let totals: any;
@@ -904,12 +924,22 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
   );
 }
 
-function GroupedTable({ data, loading, role, showFinancials, t }: any) {
+function GroupedTable({ data, loading, isError, role, showFinancials, t }: any) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
+    );
+  }
+  
+  if (isError) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="p-8 text-center">
+          <p className="text-muted-foreground">{t('reports.error') || 'Failed to load data. Please try again.'}</p>
+        </CardContent>
+      </Card>
     );
   }
 
