@@ -5243,7 +5243,9 @@ export async function registerRoutes(
         dateFrom,
         dateTo,
         search, // free text search by offer name
-        groupBy = "date" // date, geo, publisher, offer, device, os, browser, sub1-5
+        groupBy = "date", // date, geo, publisher, offer, device, os, browser, sub1-5
+        page = "1",
+        limit = "50"
       } = req.query;
 
       const filters: any = {};
@@ -5285,7 +5287,10 @@ export async function registerRoutes(
       if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
       if (dateTo) filters.dateTo = new Date(dateTo as string);
 
-      const result = await storage.getGroupedReport(filters, groupBy as string, role);
+      const pageNum = parseInt(page as string) || 1;
+      const limitNum = Math.min(parseInt(limit as string) || 50, 100);
+
+      const result = await storage.getGroupedReport(filters, groupBy as string, role, pageNum, limitNum);
       
       // Remove all advertiser financial data for publisher - only show payout
       if (role === "publisher") {

@@ -363,7 +363,7 @@ export interface IStorage {
   // Reports
   getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number; allClicks?: Click[] }>;
   getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: any[]; total: number; page: number; limit: number }>;
-  getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
+  getGroupedReport(filters: any, groupBy: string, role: string, page?: number, limit?: number): Promise<any>;
   
   // Payment Methods (Advertiser)
   getPaymentMethodsByAdvertiser(advertiserId: string): Promise<PaymentMethod[]>;
@@ -2373,7 +2373,7 @@ export class DatabaseStorage implements IStorage {
     return { conversions: enrichedConversions, total, page, limit };
   }
 
-  async getGroupedReport(filters: any, groupBy: string, role: string): Promise<any> {
+  async getGroupedReport(filters: any, groupBy: string, role: string, page: number = 1, limit: number = 50): Promise<any> {
     // Build WHERE conditions using Drizzle expressions
     const clickConditions: any[] = [];
     const convConditions: any[] = [];
@@ -2547,7 +2547,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Convert to array and sort
-    const result = Object.entries(grouped).map(([key, data]) => ({
+    const allResults = Object.entries(grouped).map(([key, data]) => ({
       groupKey: key,
       groupBy: groupBy,
       ...data
@@ -2555,6 +2555,11 @@ export class DatabaseStorage implements IStorage {
       if (groupBy === "date") return b.groupKey.localeCompare(a.groupKey);
       return b.clicks - a.clicks;
     });
+    
+    // Apply pagination
+    const total = allResults.length;
+    const offset = (page - 1) * limit;
+    const result = allResults.slice(offset, offset + limit);
     
     // Calculate summary totals using SQL aggregation
     const [summaryClicksResult, summaryConvResult] = await Promise.all([
@@ -2611,7 +2616,7 @@ export class DatabaseStorage implements IStorage {
       epc: summaryMetrics.epc
     };
     
-    return { data: result, groupBy, summary };
+    return { data: result, groupBy, summary, total, page, limit };
   }
   
   // ============================================
