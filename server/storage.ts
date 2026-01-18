@@ -2227,25 +2227,34 @@ export class DatabaseStorage implements IStorage {
     const dateMode = filters.dateMode || "click";
     
     if (dateMode === "conversion" && (filters.dateFrom || filters.dateTo)) {
-      // Find clicks that have conversions in the specified date range
-      const convConditions: any[] = [];
-      if (filters.dateFrom) convConditions.push(gte(conversions.createdAt, filters.dateFrom));
-      if (filters.dateTo) convConditions.push(lte(conversions.createdAt, filters.dateTo));
-      if (filters.publisherId) convConditions.push(eq(conversions.publisherId, filters.publisherId));
-      if (filters.offerIds?.length) convConditions.push(inArray(conversions.offerId, filters.offerIds));
+      // Use EXISTS subquery for efficiency - avoid materializing clickIds
+      const dateFromClause = filters.dateFrom 
+        ? sql`AND ${conversions.createdAt} >= ${filters.dateFrom}` 
+        : sql``;
+      const dateToClause = filters.dateTo 
+        ? sql`AND ${conversions.createdAt} <= ${filters.dateTo}` 
+        : sql``;
+      const publisherClause = filters.publisherId 
+        ? sql`AND ${conversions.publisherId} = ${filters.publisherId}` 
+        : sql``;
+      const offerIdClause = filters.offerId 
+        ? sql`AND ${conversions.offerId} = ${filters.offerId}` 
+        : sql``;
+      const offerIdsClause = filters.offerIds?.length 
+        ? sql`AND ${conversions.offerId} IN (${sql.join(filters.offerIds.map((id: string) => sql`${id}`), sql`, `)})` 
+        : sql``;
       
-      const convWhereCondition = convConditions.length > 0 ? and(...convConditions) : undefined;
-      const matchingConversions = convWhereCondition
-        ? await db.select({ clickId: conversions.clickId }).from(conversions).where(convWhereCondition)
-        : await db.select({ clickId: conversions.clickId }).from(conversions);
-      
-      const clickIdsFromConversions = Array.from(new Set(matchingConversions.map(c => c.clickId)));
-      
-      if (clickIdsFromConversions.length === 0) {
-        return { clicks: [], total: 0, page, limit };
-      }
-      
-      conditions.push(inArray(clicks.id, clickIdsFromConversions));
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${conversions} 
+          WHERE ${conversions.clickId} = ${clicks.id}
+          ${dateFromClause}
+          ${dateToClause}
+          ${publisherClause}
+          ${offerIdClause}
+          ${offerIdsClause}
+        )`
+      );
     } else {
       // Default: filter by click date
       if (filters.dateFrom) conditions.push(gte(clicks.createdAt, filters.dateFrom));
@@ -2266,14 +2275,18 @@ export class DatabaseStorage implements IStorage {
     if (filters.sub5) conditions.push(eq(clicks.sub5, filters.sub5));
     
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
-    
-    const allClicksRaw = whereCondition 
-      ? await db.select().from(clicks).where(whereCondition).orderBy(desc(clicks.createdAt))
-      : await db.select().from(clicks).orderBy(desc(clicks.createdAt));
-    
-    const total = allClicksRaw.length;
     const offset = (page - 1) * limit;
-    const paginatedClicks = allClicksRaw.slice(offset, offset + limit);
+    
+    // OPTIMIZATION: Use SQL COUNT(*) instead of .length
+    const countResult = whereCondition
+      ? await db.select({ count: sql<number>`count(*)::int` }).from(clicks).where(whereCondition)
+      : await db.select({ count: sql<number>`count(*)::int` }).from(clicks);
+    const total = countResult[0]?.count || 0;
+    
+    // OPTIMIZATION: Use SQL OFFSET/LIMIT instead of .slice()
+    const paginatedClicks = whereCondition 
+      ? await db.select().from(clicks).where(whereCondition).orderBy(desc(clicks.createdAt)).limit(limit).offset(offset)
+      : await db.select().from(clicks).orderBy(desc(clicks.createdAt)).limit(limit).offset(offset);
     
     // Enrich with publisher names
     const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
@@ -2287,7 +2300,8 @@ export class DatabaseStorage implements IStorage {
       publisherName: publisherMap.get(click.publisherId) || click.publisherId
     }));
     
-    return { clicks: enrichedClicks, total, page, limit, allClicks: allClicksRaw };
+    // Note: allClicks is deprecated for performance reasons - use getClicksReportOptimized or streaming export
+    return { clicks: enrichedClicks, total, page, limit };
   }
 
   /**
@@ -2682,8 +2696,16 @@ export class DatabaseStorage implements IStorage {
     if (filters.conversionType) conditions.push(eq(conversions.conversionType, filters.conversionType));
     
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (page - 1) * limit;
     
-    const allConversions = whereCondition 
+    // OPTIMIZATION: Use SQL COUNT(*) instead of .length
+    const countResult = whereCondition
+      ? await db.select({ count: sql<number>`count(*)::int` }).from(conversions).where(whereCondition)
+      : await db.select({ count: sql<number>`count(*)::int` }).from(conversions);
+    const total = countResult[0]?.count || 0;
+    
+    // OPTIMIZATION: Use SQL OFFSET/LIMIT instead of .slice()
+    const paginatedConversions = whereCondition 
       ? await db.select({
           id: conversions.id,
           clickId: conversions.clickId,
@@ -2709,7 +2731,7 @@ export class DatabaseStorage implements IStorage {
           sub9: clicks.sub9,
           sub10: clicks.sub10,
           geo: clicks.geo,
-        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).where(whereCondition).orderBy(desc(conversions.createdAt))
+        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).where(whereCondition).orderBy(desc(conversions.createdAt)).limit(limit).offset(offset)
       : await db.select({
           id: conversions.id,
           clickId: conversions.clickId,
@@ -2735,11 +2757,7 @@ export class DatabaseStorage implements IStorage {
           sub9: clicks.sub9,
           sub10: clicks.sub10,
           geo: clicks.geo,
-        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).orderBy(desc(conversions.createdAt));
-    
-    const total = allConversions.length;
-    const offset = (page - 1) * limit;
-    const paginatedConversions = allConversions.slice(offset, offset + limit);
+        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).orderBy(desc(conversions.createdAt)).limit(limit).offset(offset);
     
     // Enrich with publisher names
     const publisherIds = Array.from(new Set(paginatedConversions.map(c => c.publisherId)));
