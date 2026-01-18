@@ -2161,6 +2161,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  // OPTIMIZED: SQL COUNT(*) instead of loading all data into memory
   async getAdminStats(): Promise<{
     totalUsers: number;
     totalAdvertisers: number;
@@ -2177,15 +2178,28 @@ export class DatabaseStorage implements IStorage {
       createdAt: string;
     }>;
   }> {
-    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
-    const advertisers = allUsers.filter(u => u.role === "advertiser");
-    const publishers = allUsers.filter(u => u.role === "publisher");
+    // SQL COUNT aggregation in parallel - avoid loading all data
+    const [userCounts] = await db.select({
+      totalUsers: sql<number>`count(*)::int`,
+      totalAdvertisers: sql<number>`count(*) FILTER (WHERE ${users.role} = 'advertiser')::int`,
+      pendingAdvertisers: sql<number>`count(*) FILTER (WHERE ${users.role} = 'advertiser' AND ${users.status} = 'pending')::int`,
+      totalPublishers: sql<number>`count(*) FILTER (WHERE ${users.role} = 'publisher')::int`
+    }).from(users);
+
+    const [offerCount] = await db.select({ count: sql<number>`count(*)::int` }).from(offers);
+    const [clickCount] = await db.select({ count: sql<number>`count(*)::int` }).from(clicks);
+    const [conversionCount] = await db.select({ count: sql<number>`count(*)::int` }).from(conversions);
     
-    const allOffers = await db.select().from(offers);
-    const allClicks = await db.select().from(clicks);
-    const allConversions = await db.select().from(conversions);
+    // Only fetch 10 recent users, not all users
+    const recentUsersData = await db.select({
+      id: users.id,
+      username: users.username,
+      role: users.role,
+      status: users.status,
+      createdAt: users.createdAt
+    }).from(users).orderBy(desc(users.createdAt)).limit(10);
     
-    const recentUsers = allUsers.slice(0, 10).map(u => ({
+    const recentUsers = recentUsersData.map(u => ({
       id: u.id,
       username: u.username,
       role: u.role,
@@ -2194,14 +2208,59 @@ export class DatabaseStorage implements IStorage {
     }));
     
     return {
-      totalUsers: allUsers.length,
-      totalAdvertisers: advertisers.length,
-      pendingAdvertisers: advertisers.filter(a => a.status === "pending").length,
-      totalPublishers: publishers.length,
-      totalOffers: allOffers.length,
-      totalClicks: allClicks.length,
-      totalConversions: allConversions.length,
+      totalUsers: userCounts?.totalUsers || 0,
+      totalAdvertisers: userCounts?.totalAdvertisers || 0,
+      pendingAdvertisers: userCounts?.pendingAdvertisers || 0,
+      totalPublishers: userCounts?.totalPublishers || 0,
+      totalOffers: offerCount?.count || 0,
+      totalClicks: clickCount?.count || 0,
+      totalConversions: conversionCount?.count || 0,
       recentUsers
+    };
+  }
+
+  // OPTIMIZED: SQL aggregation for platform financial stats
+  async getPlatformFinancialStats(): Promise<{
+    totalRevenue: number;
+    totalPayouts: number;
+    platformMargin: number;
+    pendingPayouts: number;
+    activeAdvertisers: number;
+    activePublishers: number;
+    totalConversions: number;
+    avgROI: number;
+  }> {
+    // SQL aggregation for conversion financials - avoid loading all conversions
+    const [convStats] = await db.select({
+      totalConversions: sql<number>`count(*)::int`,
+      totalRevenue: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric) FILTER (WHERE ${conversions.status} IN ('approved', 'paid')), 0)::float`,
+      totalPayouts: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric) FILTER (WHERE ${conversions.status} IN ('approved', 'paid')), 0)::float`
+    }).from(conversions);
+
+    // SQL aggregation for user counts
+    const [userStats] = await db.select({
+      activeAdvertisers: sql<number>`count(*) FILTER (WHERE ${users.role} = 'advertiser' AND ${users.status} = 'active')::int`,
+      activePublishers: sql<number>`count(*) FILTER (WHERE ${users.role} = 'publisher' AND ${users.status} = 'active')::int`
+    }).from(users);
+
+    // SQL aggregation for pending payout requests
+    const [payoutStats] = await db.select({
+      pendingPayouts: sql<number>`COALESCE(sum(${payoutRequests.requestedAmount}::numeric) FILTER (WHERE ${payoutRequests.status} IN ('pending', 'approved')), 0)::float`
+    }).from(payoutRequests);
+
+    const totalRevenue = convStats?.totalRevenue || 0;
+    const totalPayouts = convStats?.totalPayouts || 0;
+    const platformMargin = totalRevenue - totalPayouts;
+
+    return {
+      totalRevenue,
+      totalPayouts,
+      platformMargin,
+      pendingPayouts: payoutStats?.pendingPayouts || 0,
+      activeAdvertisers: userStats?.activeAdvertisers || 0,
+      activePublishers: userStats?.activePublishers || 0,
+      totalConversions: convStats?.totalConversions || 0,
+      avgROI: totalPayouts > 0 ? ((platformMargin / totalPayouts) * 100) : 0
     };
   }
 

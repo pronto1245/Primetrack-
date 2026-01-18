@@ -4848,40 +4848,13 @@ export async function registerRoutes(
   });
 
   // Admin platform financial stats
+  // OPTIMIZED: SQL aggregation instead of loading all data into memory
   app.get("/api/admin/platform-stats", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
     try {
-      const conversionsResult = await storage.getConversionsReport({}, undefined, 1, 10000);
-      const allConversions = conversionsResult.conversions;
-      const allUsers = await storage.getAllUsers();
-      const allPayoutRequests = await storage.getAllPayoutRequests();
+      // SQL aggregation for conversions - avoid loading 10000 records
+      const financialStats = await storage.getPlatformFinancialStats();
       
-      const advertisers = allUsers.filter(u => u.role === 'advertiser');
-      const publishers = allUsers.filter(u => u.role === 'publisher');
-      
-      let totalRevenue = 0;
-      let totalPayouts = 0;
-      
-      for (const conv of allConversions) {
-        if (conv.status === 'approved' || conv.status === 'paid') {
-          totalRevenue += parseFloat(conv.advertiserPrice || '0');
-          totalPayouts += parseFloat(conv.publisherPayout || '0');
-        }
-      }
-      
-      const pendingPayouts = allPayoutRequests
-        .filter(r => r.status === 'pending' || r.status === 'approved')
-        .reduce((sum, r) => sum + parseFloat(r.requestedAmount || '0'), 0);
-      
-      res.json({
-        totalRevenue,
-        totalPayouts,
-        platformMargin: totalRevenue - totalPayouts,
-        pendingPayouts,
-        activeAdvertisers: advertisers.filter(a => a.status === 'active').length,
-        activePublishers: publishers.filter(p => p.status === 'active').length,
-        totalConversions: conversionsResult.total,
-        avgROI: totalPayouts > 0 ? ((totalRevenue - totalPayouts) / totalPayouts * 100) : 0
-      });
+      res.json(financialStats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch platform stats" });
     }
