@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, numeric, timestamp, boolean, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, numeric, timestamp, boolean, pgEnum, index, date, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -328,6 +328,56 @@ export const insertConversionSchema = createInsertSchema(conversions).omit({
 
 export type InsertConversion = z.infer<typeof insertConversionSchema>;
 export type Conversion = typeof conversions.$inferSelect;
+
+// ============================================
+// DAILY STATS (Pre-aggregated statistics)
+// Speeds up dashboards by storing ready aggregates
+// ============================================
+export const dailyStats = pgTable("daily_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Dimensions (NOT NULL with empty string default for unique index)
+  date: date("date").notNull(), // YYYY-MM-DD
+  advertiserId: varchar("advertiser_id").notNull().default(""),
+  publisherId: varchar("publisher_id").notNull().default(""),
+  offerId: varchar("offer_id").notNull().default(""),
+  geo: text("geo").notNull().default(""), // Country code
+  
+  // Click metrics
+  clicks: integer("clicks").notNull().default(0),
+  uniqueClicks: integer("unique_clicks").notNull().default(0),
+  
+  // Conversion metrics
+  conversions: integer("conversions").notNull().default(0),
+  approvedConversions: integer("approved_conversions").notNull().default(0),
+  rejectedConversions: integer("rejected_conversions").notNull().default(0),
+  leads: integer("leads").notNull().default(0),
+  sales: integer("sales").notNull().default(0),
+  
+  // Financial metrics (stored as cents for precision)
+  payout: numeric("payout", { precision: 12, scale: 2 }).notNull().default("0"),
+  cost: numeric("cost", { precision: 12, scale: 2 }).notNull().default("0"),
+  
+  // Metadata
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  // Unique index for upsert ON CONFLICT
+  uniqueDims: uniqueIndex("daily_stats_unique_dims").on(
+    table.date, table.advertiserId, table.publisherId, table.offerId, table.geo
+  ),
+  // Index for advertiser dashboard
+  advertiserDateIdx: index("daily_stats_advertiser_date_idx").on(table.advertiserId, table.date),
+  // Index for publisher dashboard
+  publisherDateIdx: index("daily_stats_publisher_date_idx").on(table.publisherId, table.date),
+}));
+
+export const insertDailyStatsSchema = createInsertSchema(dailyStats).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertDailyStats = z.infer<typeof insertDailyStatsSchema>;
+export type DailyStats = typeof dailyStats.$inferSelect;
 
 // ============================================
 // POSTBACK LOGS
