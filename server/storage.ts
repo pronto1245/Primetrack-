@@ -365,6 +365,31 @@ export interface IStorage {
   getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: any[]; total: number; page: number; limit: number }>;
   getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
   
+  // Optimized Reports (SQL-based pagination and aggregation)
+  getClicksReportOptimized(filters: any, page?: number, limit?: number): Promise<{
+    clicks: any[];
+    total: number;
+    page: number;
+    limit: number;
+    summary: {
+      clicks: number;
+      uniqueClicks: number;
+      conversions: number;
+      approvedConversions: number;
+      payableConversions: number;
+      approvedPayableConversions: number;
+      leads: number;
+      sales: number;
+      payout: number;
+      advertiserCost: number;
+      margin: number;
+      roi: number;
+      cr: number;
+      ar: number;
+      epc: number;
+    };
+  }>;
+  
   // Payment Methods (Advertiser)
   getPaymentMethodsByAdvertiser(advertiserId: string): Promise<PaymentMethod[]>;
   getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
@@ -2263,6 +2288,364 @@ export class DatabaseStorage implements IStorage {
     }));
     
     return { clicks: enrichedClicks, total, page, limit, allClicks: allClicksRaw };
+  }
+
+  /**
+   * OPTIMIZED getClicksReportOptimized - SQL-based pagination and aggregation
+   * Fixes:
+   * 1. Uses SQL COUNT(*) instead of .length
+   * 2. Uses SQL OFFSET/LIMIT instead of .slice()
+   * 3. Loads conversions only for current page clickIds
+   * 4. Uses single query for offers instead of N+1
+   * 5. Calculates summary via SQL aggregation
+   */
+  async getClicksReportOptimized(filters: any, page: number = 1, limit: number = 50): Promise<{
+    clicks: any[];
+    total: number;
+    page: number;
+    limit: number;
+    summary: {
+      clicks: number;
+      uniqueClicks: number;
+      conversions: number;
+      approvedConversions: number;
+      payableConversions: number;
+      approvedPayableConversions: number;
+      leads: number;
+      sales: number;
+      payout: number;
+      advertiserCost: number;
+      margin: number;
+      roi: number;
+      cr: number;
+      ar: number;
+      epc: number;
+    };
+  }> {
+    const conditions: any[] = [];
+    
+    // Handle free text search - filter by offer name
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchingOffers = await db.select({ id: offers.id }).from(offers)
+        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
+      const matchingOfferIds = matchingOffers.map(o => o.id);
+      if (matchingOfferIds.length === 0) {
+        return { 
+          clicks: [], 
+          total: 0, 
+          page, 
+          limit, 
+          summary: { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 }
+        };
+      }
+      if (filters.offerIds?.length) {
+        const intersection = filters.offerIds.filter((id: string) => matchingOfferIds.includes(id));
+        if (intersection.length === 0) {
+          return { 
+            clicks: [], 
+            total: 0, 
+            page, 
+            limit, 
+            summary: { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 }
+        };
+        }
+        conditions.push(inArray(clicks.offerId, intersection));
+      } else {
+        conditions.push(inArray(clicks.offerId, matchingOfferIds));
+      }
+    } else if (filters.offerIds?.length) {
+      conditions.push(inArray(clicks.offerId, filters.offerIds));
+    }
+    
+    if (filters.publisherId) conditions.push(eq(clicks.publisherId, filters.publisherId));
+    if (filters.offerId) conditions.push(eq(clicks.offerId, filters.offerId));
+    
+    // Handle dateMode for filtering
+    const dateMode = filters.dateMode || "click";
+    
+    if (dateMode === "conversion" && (filters.dateFrom || filters.dateTo)) {
+      // Use EXISTS subquery instead of materializing clickIds in memory
+      // This keeps the filtering in SQL without loading potentially millions of IDs
+      // Include ALL conversion-side filters (publisherId, offerIds, offerId) for correctness
+      const dateFromClause = filters.dateFrom 
+        ? sql`AND ${conversions.createdAt} >= ${filters.dateFrom}` 
+        : sql``;
+      const dateToClause = filters.dateTo 
+        ? sql`AND ${conversions.createdAt} <= ${filters.dateTo}` 
+        : sql``;
+      const publisherClause = filters.publisherId 
+        ? sql`AND ${conversions.publisherId} = ${filters.publisherId}` 
+        : sql``;
+      const offerIdClause = filters.offerId 
+        ? sql`AND ${conversions.offerId} = ${filters.offerId}` 
+        : sql``;
+      // Also apply offerIds filter to conversions for data integrity (safe parameterized query)
+      const offerIdsClause = filters.offerIds?.length 
+        ? sql`AND ${conversions.offerId} IN (${sql.join(filters.offerIds.map((id: string) => sql`${id}`), sql`, `)})` 
+        : sql``;
+      
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${conversions} 
+          WHERE ${conversions.clickId} = ${clicks.id}
+          ${dateFromClause}
+          ${dateToClause}
+          ${publisherClause}
+          ${offerIdClause}
+          ${offerIdsClause}
+        )`
+      );
+    } else {
+      if (filters.dateFrom) conditions.push(gte(clicks.createdAt, filters.dateFrom));
+      if (filters.dateTo) conditions.push(lte(clicks.createdAt, filters.dateTo));
+    }
+    
+    if (filters.geo) conditions.push(eq(clicks.geo, filters.geo));
+    if (filters.device) conditions.push(eq(clicks.device, filters.device));
+    if (filters.os) conditions.push(eq(clicks.os, filters.os));
+    if (filters.browser) conditions.push(eq(clicks.browser, filters.browser));
+    if (filters.isUnique !== undefined) conditions.push(eq(clicks.isUnique, filters.isUnique));
+    if (filters.isGeoMatch !== undefined) conditions.push(eq(clicks.isGeoMatch, filters.isGeoMatch));
+    if (filters.isBot !== undefined) conditions.push(eq(clicks.isBot, filters.isBot));
+    if (filters.sub1) conditions.push(eq(clicks.sub1, filters.sub1));
+    if (filters.sub2) conditions.push(eq(clicks.sub2, filters.sub2));
+    if (filters.sub3) conditions.push(eq(clicks.sub3, filters.sub3));
+    if (filters.sub4) conditions.push(eq(clicks.sub4, filters.sub4));
+    if (filters.sub5) conditions.push(eq(clicks.sub5, filters.sub5));
+    
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    // Step 1: Get total count via SQL COUNT (NOT .length)
+    const countResult = whereCondition 
+      ? await db.select({ count: sql<number>`count(*)::int` }).from(clicks).where(whereCondition)
+      : await db.select({ count: sql<number>`count(*)::int` }).from(clicks);
+    const total = countResult[0]?.count || 0;
+    
+    if (total === 0) {
+      return { 
+        clicks: [], 
+        total: 0, 
+        page, 
+        limit, 
+        summary: { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 }
+      };
+    }
+    
+    // Step 2: Get paginated clicks via SQL OFFSET/LIMIT (NOT .slice)
+    const offset = (page - 1) * limit;
+    const paginatedClicks = whereCondition 
+      ? await db.select().from(clicks).where(whereCondition).orderBy(desc(clicks.createdAt)).limit(limit).offset(offset)
+      : await db.select().from(clicks).orderBy(desc(clicks.createdAt)).limit(limit).offset(offset);
+    
+    const clickIds = paginatedClicks.map(c => c.id);
+    
+    // Step 3: Get conversions ONLY for current page clickIds (NOT all conversions)
+    // For dateMode=conversion, also filter by conversion date range and other conversion-side filters
+    let pageConversions: any[] = [];
+    if (clickIds.length > 0) {
+      const convConditionsPage: any[] = [inArray(conversions.clickId, clickIds)];
+      
+      // For dateMode=conversion, apply ALL conversion-side filters for consistency
+      if (dateMode === "conversion") {
+        if (filters.dateFrom) convConditionsPage.push(gte(conversions.createdAt, filters.dateFrom));
+        if (filters.dateTo) convConditionsPage.push(lte(conversions.createdAt, filters.dateTo));
+        if (filters.publisherId) convConditionsPage.push(eq(conversions.publisherId, filters.publisherId));
+        if (filters.offerId) convConditionsPage.push(eq(conversions.offerId, filters.offerId));
+        if (filters.offerIds?.length) convConditionsPage.push(inArray(conversions.offerId, filters.offerIds));
+      }
+      
+      const convWhereConditionPage = and(...convConditionsPage);
+      pageConversions = await db.select().from(conversions).where(convWhereConditionPage);
+    }
+    
+    // Step 4: Get offer data with single query (NOT N+1)
+    const offerIds = Array.from(new Set(paginatedClicks.map(c => c.offerId)));
+    const offersData = offerIds.length > 0 
+      ? await db.select({ id: offers.id, name: offers.name, partnerPayout: offers.partnerPayout }).from(offers).where(inArray(offers.id, offerIds))
+      : [];
+    const offerMap = new Map(offersData.map(o => [o.id, o.name]));
+    const offerPayoutMap = new Map(offersData.map(o => [o.id, parseFloat(o.partnerPayout || '0')]));
+    
+    // Get landing payouts as fallback
+    const landingsData = offerIds.length > 0 
+      ? await db.select({ offerId: offerLandings.offerId, partnerPayout: offerLandings.partnerPayout }).from(offerLandings).where(inArray(offerLandings.offerId, offerIds))
+      : [];
+    const landingPayoutMap = new Map<string, number>();
+    landingsData.forEach(l => {
+      if (!landingPayoutMap.has(l.offerId)) {
+        landingPayoutMap.set(l.offerId, parseFloat(l.partnerPayout || '0'));
+      }
+    });
+    
+    // Merge payout maps
+    offerIds.forEach(id => {
+      const offerPayout = offerPayoutMap.get(id) || 0;
+      if (offerPayout === 0) {
+        offerPayoutMap.set(id, landingPayoutMap.get(id) || 0);
+      }
+    });
+    
+    // Get publisher names with single query
+    const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
+    const publishersData = publisherIds.length > 0 
+      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, publisherIds))
+      : [];
+    const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
+    
+    // Step 5: Build conversions map by clickId
+    const conversionsByClickId = new Map<string, any[]>();
+    pageConversions.forEach(conv => {
+      if (!conversionsByClickId.has(conv.clickId)) {
+        conversionsByClickId.set(conv.clickId, []);
+      }
+      conversionsByClickId.get(conv.clickId)!.push(conv);
+    });
+    
+    // Enrich clicks with conversion data
+    const enrichedClicks = paginatedClicks.map(click => {
+      const clickConversions = conversionsByClickId.get(click.id) || [];
+      const conversionCount = clickConversions.length;
+      const approvedCount = clickConversions.filter(conv => conv.status === 'approved').length;
+      const hasConversion = conversionCount > 0;
+      const leads = clickConversions.filter(conv => conv.conversionType === 'lead').length;
+      const sales = clickConversions.filter(conv => conv.conversionType === 'sale').length;
+      const payout = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.publisherPayout || '0'), 0);
+      const cost = clickConversions.reduce((sum, conv) => sum + parseFloat(conv.advertiserCost || '0'), 0);
+      const margin = cost - payout;
+      const roi = cost > 0 ? ((margin / cost) * 100) : 0;
+      const payableConversions = clickConversions.filter(conv => parseFloat(conv.publisherPayout || '0') > 0);
+      const approvedPayable = payableConversions.filter(conv => conv.status === 'approved');
+      const cr = payableConversions.length > 0 ? 100 : 0;
+      const ar = payableConversions.length > 0 ? Math.round((approvedPayable.length / payableConversions.length) * 100 * 100) / 100 : 0;
+      const epc = Math.round(payout * 100) / 100;
+      
+      return {
+        ...click,
+        offerName: offerMap.get(click.offerId) || click.offerId,
+        publisherName: publisherMap.get(click.publisherId) || click.publisherId,
+        isUnique: click.isUnique ?? true,
+        hasConversion,
+        clicks: 1,
+        conversions: conversionCount,
+        approvedConversions: approvedCount,
+        payableConversions: payableConversions.length,
+        approvedPayableConversions: approvedPayable.length,
+        leads,
+        sales,
+        payout,
+        advertiserCost: cost,
+        margin,
+        roi,
+        cr,
+        ar,
+        epc,
+      };
+    });
+    
+    // Step 6: Calculate summary via SQL aggregation with JOIN (applies ALL click filters)
+    const summaryResult = whereCondition 
+      ? await db.select({
+          totalClicks: sql<number>`count(*)::int`,
+          uniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique} = true)::int`
+        }).from(clicks).where(whereCondition)
+      : await db.select({
+          totalClicks: sql<number>`count(*)::int`,
+          uniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique} = true)::int`
+        }).from(clicks);
+    
+    // Get conversion summary using JOIN with clicks to apply ALL click filters
+    let convSummary = { 
+      totalConversions: 0, 
+      approvedConversions: 0, 
+      payableConversions: 0, 
+      approvedPayableConversions: 0,
+      leads: 0, 
+      sales: 0, 
+      totalPayout: 0, 
+      totalCost: 0 
+    };
+    
+    if (total > 0) {
+      // Use JOIN to apply click filters to conversions - this is the correct approach
+      // For dateMode=conversion, also apply date filter to conversions in the JOIN
+      
+      // Build JOIN condition with optional conversion date filter
+      let joinCondition = eq(conversions.clickId, clicks.id);
+      
+      // For dateMode=conversion, add ALL conversion-side filters to JOIN for consistency
+      if (dateMode === "conversion") {
+        const joinConditions: any[] = [eq(conversions.clickId, clicks.id)];
+        if (filters.dateFrom) joinConditions.push(gte(conversions.createdAt, filters.dateFrom));
+        if (filters.dateTo) joinConditions.push(lte(conversions.createdAt, filters.dateTo));
+        if (filters.publisherId) joinConditions.push(eq(conversions.publisherId, filters.publisherId));
+        if (filters.offerId) joinConditions.push(eq(conversions.offerId, filters.offerId));
+        if (filters.offerIds?.length) joinConditions.push(inArray(conversions.offerId, filters.offerIds));
+        joinCondition = and(...joinConditions)!;
+      }
+      
+      const convSummaryResult = whereCondition 
+        ? await db.select({
+            totalConversions: sql<number>`count(${conversions.id})::int`,
+            approvedConversions: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+            payableConversions: sql<number>`count(${conversions.id}) FILTER (WHERE CAST(${conversions.publisherPayout} AS DECIMAL) > 0)::int`,
+            approvedPayableConversions: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.status} = 'approved' AND CAST(${conversions.publisherPayout} AS DECIMAL) > 0)::int`,
+            leads: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+            sales: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+            totalPayout: sql<number>`COALESCE(SUM(CAST(${conversions.publisherPayout} AS DECIMAL)), 0)::numeric`,
+            totalCost: sql<number>`COALESCE(SUM(CAST(${conversions.advertiserCost} AS DECIMAL)), 0)::numeric`
+          }).from(clicks)
+            .leftJoin(conversions, joinCondition)
+            .where(whereCondition)
+        : await db.select({
+            totalConversions: sql<number>`count(${conversions.id})::int`,
+            approvedConversions: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+            payableConversions: sql<number>`count(${conversions.id}) FILTER (WHERE CAST(${conversions.publisherPayout} AS DECIMAL) > 0)::int`,
+            approvedPayableConversions: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.status} = 'approved' AND CAST(${conversions.publisherPayout} AS DECIMAL) > 0)::int`,
+            leads: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+            sales: sql<number>`count(${conversions.id}) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+            totalPayout: sql<number>`COALESCE(SUM(CAST(${conversions.publisherPayout} AS DECIMAL)), 0)::numeric`,
+            totalCost: sql<number>`COALESCE(SUM(CAST(${conversions.advertiserCost} AS DECIMAL)), 0)::numeric`
+          }).from(clicks)
+            .leftJoin(conversions, joinCondition);
+      
+      if (convSummaryResult[0]) {
+        convSummary = {
+          totalConversions: convSummaryResult[0].totalConversions || 0,
+          approvedConversions: convSummaryResult[0].approvedConversions || 0,
+          payableConversions: convSummaryResult[0].payableConversions || 0,
+          approvedPayableConversions: convSummaryResult[0].approvedPayableConversions || 0,
+          leads: convSummaryResult[0].leads || 0,
+          sales: convSummaryResult[0].sales || 0,
+          totalPayout: Number(convSummaryResult[0].totalPayout) || 0,
+          totalCost: Number(convSummaryResult[0].totalCost) || 0
+        };
+      }
+    }
+    
+    const clicksCount = summaryResult[0]?.totalClicks || 0;
+    const uniqueClicks = summaryResult[0]?.uniqueClicks || 0;
+    const margin = convSummary.totalCost - convSummary.totalPayout;
+    
+    const summary = {
+      clicks: clicksCount,
+      uniqueClicks,
+      conversions: convSummary.totalConversions,
+      approvedConversions: convSummary.approvedConversions,
+      payableConversions: convSummary.payableConversions,
+      approvedPayableConversions: convSummary.approvedPayableConversions,
+      leads: convSummary.leads,
+      sales: convSummary.sales,
+      payout: convSummary.totalPayout,
+      advertiserCost: convSummary.totalCost,
+      margin,
+      roi: convSummary.totalCost > 0 ? ((margin / convSummary.totalCost) * 100) : 0,
+      cr: clicksCount > 0 ? Math.round((convSummary.payableConversions / clicksCount) * 100 * 100) / 100 : 0,
+      ar: convSummary.payableConversions > 0 ? Math.round((convSummary.approvedPayableConversions / convSummary.payableConversions) * 100 * 100) / 100 : 0,
+      epc: clicksCount > 0 ? Math.round((convSummary.totalPayout / clicksCount) * 100) / 100 : 0
+    };
+    
+    return { clicks: enrichedClicks, total, page, limit, summary };
   }
 
   async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: any[]; total: number; page: number; limit: number }> {

@@ -4988,160 +4988,18 @@ export async function registerRoutes(
       const pageNum = parseInt(page as string);
       const limitNum = Math.min(parseInt(limit as string), 1000);
 
-      const result = await storage.getClicksReport(filters, groupBy as string, pageNum, limitNum);
+      // Use optimized method with SQL-based pagination and aggregation
+      const result = await storage.getClicksReportOptimized(filters, pageNum, limitNum);
       
-      // Get all conversions to calculate per-click stats
-      const allConversions = await storage.getConversionsReport({ 
-        ...(role === "publisher" ? { publisherId: userId } : {}),
-        ...(role === "advertiser" ? { offerIds: filters.offerIds } : {})
-      }, undefined, 1, 10000);
-      
-      // Get offers for names and partnerPayout
-      const offerIds = Array.from(new Set(result.clicks.map((c: any) => c.offerId)));
-      const offersData = await Promise.all(offerIds.map(id => storage.getOffer(id)));
-      const offerMap = new Map(offersData.filter(Boolean).map(o => [o!.id, o!.name]));
-      
-      // Get landing payouts as fallback when offer.partnerPayout is NULL
-      const landingsData = await Promise.all(offerIds.map(id => storage.getOfferLandings(id)));
-      const landingPayoutMap = new Map<string, number>();
-      landingsData.flat().forEach(l => {
-        if (l && !landingPayoutMap.has(l.offerId)) {
-          landingPayoutMap.set(l.offerId, parseFloat(l.partnerPayout || '0'));
-        }
-      });
-      
-      const offerPayoutMap = new Map(offersData.filter(Boolean).map(o => {
-        const offerPayout = parseFloat(o!.partnerPayout || '0');
-        return [o!.id, offerPayout > 0 ? offerPayout : (landingPayoutMap.get(o!.id) || 0)];
-      }));
-      
-      // Enrich clicks with conversion data
-      result.clicks = result.clicks.map((click: any) => {
-        const clickConversions = allConversions.conversions.filter((conv: any) => conv.clickId === click.id);
-        const conversionCount = clickConversions.length;
-        const approvedCount = clickConversions.filter((conv: any) => conv.status === 'approved').length;
-        const hasConversion = conversionCount > 0;
-        // Count leads and sales by conversion type
-        const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
-        const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
-        // Use actual payout from conversions for display (CPA lead=$0, CPA sale=full payout)
-        const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
-        // Use partnerPayout from offer for EPC calculation
-        const offerPayout = offerPayoutMap.get(click.offerId) || 0;
-        const epcEarnings = conversionCount * offerPayout;
-        const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
-        const margin = cost - payout;
-        const roi = cost > 0 ? ((margin / cost) * 100) : 0;
-        // Per-row metrics using PAYABLE conversions (publisherPayout > 0)
-        const payableConversions = clickConversions.filter((conv: any) => parseFloat(conv.publisherPayout || '0') > 0);
-        const approvedPayable = payableConversions.filter((conv: any) => conv.status === 'approved');
-        // CR = has payable conversion ? 100 : 0
-        const cr = payableConversions.length > 0 ? 100 : 0;
-        // AR = approved payable / total payable * 100
-        const ar = payableConversions.length > 0 ? Math.round((approvedPayable.length / payableConversions.length) * 100 * 100) / 100 : 0;
-        // EPC = actual payout for this click
-        const epc = Math.round(payout * 100) / 100;
-        
-        // Remove anti-fraud data for publishers
-        if (role === "publisher") {
+      // Remove anti-fraud data for publishers
+      if (role === "publisher") {
+        result.clicks = result.clicks.map((click: any) => {
           const { fraudScore, isProxy, isVpn, fingerprint, ...safeClick } = click;
-          return {
-            ...safeClick,
-            offerName: offerMap.get(click.offerId) || click.offerId,
-            isUnique: click.isUnique ?? true,
-            hasConversion,
-            clicks: 1,
-            conversions: conversionCount,
-            approvedConversions: approvedCount,
-            leads,
-            sales,
-            payout,
-            payableConversions: payableConversions.length,
-            approvedPayableConversions: approvedPayable.length,
-            cr,
-            ar,
-            epc,
-          };
-        }
-        
-        return {
-          ...click,
-          offerName: offerMap.get(click.offerId) || click.offerId,
-          isUnique: click.isUnique ?? true,
-          hasConversion,
-          clicks: 1,
-          conversions: conversionCount,
-          approvedConversions: approvedCount,
-          payableConversions: payableConversions.length,
-          approvedPayableConversions: approvedPayable.length,
-          leads,
-          sales,
-          payout,
-          advertiserCost: cost,
-          margin,
-          roi,
-          cr,
-          ar,
-          epc,
-        };
-      });
+          return safeClick;
+        });
+      }
 
-      // Calculate summary totals from ALL clicks (not just current page)
-      const allClicksForSummary = result.allClicks || result.clicks;
-      
-      // Enrich all clicks with conversion data for summary calculation
-      const enrichedAllClicks = allClicksForSummary.map((click: any) => {
-        const clickConversions = allConversions.conversions.filter((conv: any) => conv.clickId === click.id);
-        const leads = clickConversions.filter((conv: any) => conv.conversionType === 'lead').length;
-        const sales = clickConversions.filter((conv: any) => conv.conversionType === 'sale').length;
-        const payout = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.publisherPayout || '0'), 0);
-        const cost = clickConversions.reduce((sum: number, conv: any) => sum + parseFloat(conv.advertiserCost || '0'), 0);
-        const payableConversions = clickConversions.filter((conv: any) => parseFloat(conv.publisherPayout || '0') > 0);
-        const approvedPayable = payableConversions.filter((conv: any) => conv.status === 'approved');
-        return {
-          isUnique: click.isUnique ?? true,
-          conversions: clickConversions.length,
-          approvedConversions: clickConversions.filter((conv: any) => conv.status === 'approved').length,
-          payableConversions: payableConversions.length,
-          approvedPayableConversions: approvedPayable.length,
-          leads,
-          sales,
-          payout,
-          advertiserCost: cost
-        };
-      });
-      
-      const summaryBase = enrichedAllClicks.reduce((acc: any, click: any) => ({
-        clicks: acc.clicks + 1,
-        uniqueClicks: acc.uniqueClicks + (click.isUnique ? 1 : 0),
-        conversions: acc.conversions + (click.conversions || 0),
-        approvedConversions: acc.approvedConversions + (click.approvedConversions || 0),
-        payableConversions: acc.payableConversions + (click.payableConversions || 0),
-        approvedPayableConversions: acc.approvedPayableConversions + (click.approvedPayableConversions || 0),
-        leads: acc.leads + (click.leads || 0),
-        sales: acc.sales + (click.sales || 0),
-        payout: acc.payout + (click.payout || 0),
-        advertiserCost: acc.advertiserCost + (click.advertiserCost || 0),
-      }), { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0 });
-
-      const summary = {
-        ...summaryBase,
-        margin: summaryBase.advertiserCost - summaryBase.payout,
-        roi: summaryBase.advertiserCost > 0 ? ((summaryBase.advertiserCost - summaryBase.payout) / summaryBase.advertiserCost * 100) : 0,
-        cr: summaryBase.clicks > 0 
-          ? Math.round((summaryBase.payableConversions / summaryBase.clicks) * 100 * 100) / 100
-          : 0,
-        ar: summaryBase.payableConversions > 0 
-          ? Math.round((summaryBase.approvedPayableConversions / summaryBase.payableConversions) * 100 * 100) / 100
-          : 0,
-        epc: summaryBase.clicks > 0 
-          ? Math.round((summaryBase.payout / summaryBase.clicks) * 100) / 100
-          : 0
-      };
-
-      // Remove allClicks from response to reduce payload
-      const { allClicks, ...responseData } = result;
-      res.json({ ...responseData, summary });
+      res.json(result);
     } catch (error: any) {
       console.error("Reports clicks error:", error);
       res.status(500).json({ message: "Failed to fetch clicks report" });
