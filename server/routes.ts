@@ -1620,12 +1620,11 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
       const archivedOffers = await storage.getArchivedOffersByAdvertiser(advertiserId);
-      const offersWithLandings = await Promise.all(
-        archivedOffers.map(async (offer) => {
-          const landings = await storage.getOfferLandings(offer.id);
-          return { ...offer, landings };
-        })
-      );
+      const landingsMap = await storage.getLandingsForOffers(archivedOffers.map(o => o.id));
+      const offersWithLandings = archivedOffers.map(offer => ({
+        ...offer,
+        landings: landingsMap.get(offer.id) || []
+      }));
       res.json(offersWithLandings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch archived offers" });
@@ -1851,25 +1850,25 @@ export async function registerRoutes(
       const isPublisher = req.session.role === "publisher";
       const publisherId = req.session.userId!;
       
-      const offersWithLandings = await Promise.all(
-        offers.map(async (offer) => {
-          const { internalCost, ...safeOffer } = offer;
-          
-          // Для publisher проверяем доступ к офферу
-          if (isPublisher) {
-            const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, publisherId);
-            if (!hasAccess) {
-              // Без доступа - НЕ показываем landing URLs
-              return { ...safeOffer, landings: [] };
-            }
-          }
-          
-          // С доступом или для advertiser/admin - показываем лендинги
-          const landings = await storage.getOfferLandings(offer.id);
-          const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
-          return { ...safeOffer, landings: safeLandings };
-        })
-      );
+      // Batch load all data to avoid N+1
+      const offerIds = offers.map(o => o.id);
+      const landingsMap = await storage.getLandingsForOffers(offerIds);
+      const accessSet = isPublisher 
+        ? await storage.getPublisherAccessMap(offerIds, publisherId)
+        : new Set(offerIds); // Non-publishers have access to all
+      
+      const offersWithLandings = offers.map(offer => {
+        const { internalCost, ...safeOffer } = offer;
+        const hasAccess = accessSet.has(offer.id);
+        
+        if (!hasAccess) {
+          return { ...safeOffer, landings: [] };
+        }
+        
+        const landings = landingsMap.get(offer.id) || [];
+        const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
+        return { ...safeOffer, landings: safeLandings };
+      });
       
       res.json(offersWithLandings);
     } catch (error) {
@@ -2002,35 +2001,24 @@ export async function registerRoutes(
     }
   });
 
-  // Статистика для advertiser
+  // Статистика для advertiser - optimized with SQL aggregation
   app.get("/api/stats/advertiser", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
       if (!advertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const offers = await storage.getOffersByAdvertiser(advertiserId);
       
-      let totalClicks = 0;
-      let totalConversions = 0;
-      let totalSpent = 0;
-
-      for (const offer of offers) {
-        const clicks = await storage.getClicksByOffer(offer.id);
-        const convs = await storage.getConversionsByOffer(offer.id);
-        totalClicks += clicks.length;
-        totalConversions += convs.length;
-        totalSpent += convs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
-      }
-
-      const cr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+      // Use optimized cached method instead of N+1 loop
+      const stats = await storage.getAdvertiserStats(advertiserId);
+      const offers = await storage.getOffersByAdvertiser(advertiserId);
 
       res.json({
         totalOffers: offers.length,
-        totalClicks,
-        totalConversions,
-        totalSpent,
-        cr: cr.toFixed(2),
+        totalClicks: stats.totalClicks,
+        totalConversions: stats.totalConversions,
+        totalSpent: stats.publisherPayout,
+        cr: stats.cr.toFixed(2),
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stats" });

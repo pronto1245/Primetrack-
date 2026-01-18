@@ -258,6 +258,7 @@ export interface IStorage {
   
   // Offer Landings
   getOfferLandings(offerId: string): Promise<OfferLanding[]>;
+  getLandingsForOffers(offerIds: string[]): Promise<Map<string, OfferLanding[]>>;
   getOfferLanding(id: string): Promise<OfferLanding | undefined>;
   getOfferLandingByShortId(shortId: number): Promise<OfferLanding | undefined>;
   createOfferLanding(landing: InsertOfferLanding): Promise<OfferLanding>;
@@ -349,6 +350,7 @@ export interface IStorage {
   createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
   deletePublisherOffer(offerId: string, publisherId: string): Promise<void>;
   hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
+  getPublisherAccessMap(offerIds: string[], publisherId: string): Promise<Set<string>>;
   
   // Publisher-Advertiser relationships
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
@@ -1216,6 +1218,20 @@ export class DatabaseStorage implements IStorage {
     
     const access = await this.getPublisherOffer(offerId, publisherId);
     return !!access;
+  }
+
+  // Batch check publisher access to multiple offers - optimized to avoid N+1
+  async getPublisherAccessMap(offerIds: string[], publisherId: string): Promise<Set<string>> {
+    if (offerIds.length === 0) return new Set();
+    
+    const accessList = await db.select({ offerId: publisherOffers.offerId })
+      .from(publisherOffers)
+      .where(and(
+        inArray(publisherOffers.offerId, offerIds),
+        eq(publisherOffers.publisherId, publisherId)
+      ));
+    
+    return new Set(accessList.map(a => a.offerId));
   }
 
   // Publisher-Advertiser relationships
