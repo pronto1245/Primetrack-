@@ -2030,26 +2030,37 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  // OPTIMIZED: SQL aggregation instead of N+1 loops
   async getPublisherStatsForAdvertiser(publisherId: string, advertiserId: string): Promise<{ clicks: number; conversions: number; payout: number }> {
     const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
     const offerIds = advertiserOffers.map(o => o.id);
     
-    let totalClicks = 0;
-    let totalConversions = 0;
-    let totalPayout = 0;
-    
-    for (const offerId of offerIds) {
-      const offerClicks = await db.select().from(clicks)
-        .where(and(eq(clicks.offerId, offerId), eq(clicks.publisherId, publisherId)));
-      totalClicks += offerClicks.length;
-      
-      const offerConvs = await db.select().from(conversions)
-        .where(and(eq(conversions.offerId, offerId), eq(conversions.publisherId, publisherId)));
-      totalConversions += offerConvs.length;
-      totalPayout += offerConvs.reduce((sum, c) => sum + parseFloat(c.publisherPayout), 0);
+    if (offerIds.length === 0) {
+      return { clicks: 0, conversions: 0, payout: 0 };
     }
     
-    return { clicks: totalClicks, conversions: totalConversions, payout: totalPayout };
+    // SQL COUNT for clicks - single query instead of N queries
+    const [clickStats] = await db.select({
+      totalClicks: sql<number>`count(*)::int`
+    }).from(clicks).where(and(
+      inArray(clicks.offerId, offerIds),
+      eq(clicks.publisherId, publisherId)
+    ));
+
+    // SQL aggregation for conversions - single query instead of N queries
+    const [convStats] = await db.select({
+      totalConversions: sql<number>`count(*)::int`,
+      totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`
+    }).from(conversions).where(and(
+      inArray(conversions.offerId, offerIds),
+      eq(conversions.publisherId, publisherId)
+    ));
+    
+    return { 
+      clicks: clickStats?.totalClicks || 0, 
+      conversions: convStats?.totalConversions || 0, 
+      payout: convStats?.totalPayout || 0 
+    };
   }
 
   async getPublisherOfferAccess(publisherId: string, offerId: string): Promise<PublisherOfferAccess | undefined> {
@@ -2058,19 +2069,27 @@ export class DatabaseStorage implements IStorage {
     return access;
   }
 
+  // OPTIMIZED: SQL aggregation instead of loading all data
   async getPublisherOfferStats(publisherId: string, offerId: string): Promise<{ clicks: number; conversions: number; revenue: number }> {
-    const offerClicks = await db.select().from(clicks)
-      .where(and(eq(clicks.offerId, offerId), eq(clicks.publisherId, publisherId)));
+    const [clickStats] = await db.select({
+      clicks: sql<number>`count(*)::int`
+    }).from(clicks).where(and(
+      eq(clicks.offerId, offerId),
+      eq(clicks.publisherId, publisherId)
+    ));
     
-    const offerConvs = await db.select().from(conversions)
-      .where(and(eq(conversions.offerId, offerId), eq(conversions.publisherId, publisherId)));
-    
-    const revenue = offerConvs.reduce((sum, c) => sum + parseFloat(c.advertiserCost || "0"), 0);
+    const [convStats] = await db.select({
+      conversions: sql<number>`count(*)::int`,
+      revenue: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric), 0)::float`
+    }).from(conversions).where(and(
+      eq(conversions.offerId, offerId),
+      eq(conversions.publisherId, publisherId)
+    ));
     
     return { 
-      clicks: offerClicks.length, 
-      conversions: offerConvs.length, 
-      revenue 
+      clicks: clickStats?.clicks || 0, 
+      conversions: convStats?.conversions || 0, 
+      revenue: convStats?.revenue || 0 
     };
   }
 
