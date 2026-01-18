@@ -181,6 +181,11 @@ Preferred communication style: Simple, everyday language (Russian).
 - Map для O(1) lookup вместо find()
 - inArray для batch операций вместо циклов
 
+**Индексы базы данных (2025-01-18):**
+- clicks: `(offer_id, publisher_id, created_at)`, `(publisher_id, created_at)`, `(offer_id, created_at)`
+- conversions: `(offer_id, publisher_id, created_at)`, `(status, created_at)`, `(click_id)`, `(publisher_id, created_at)`
+- offers: `(advertiser_id)`
+
 ### ЧТО НЕ СДЕЛАНО
 
 1. **Миграция:**
