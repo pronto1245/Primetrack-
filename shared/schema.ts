@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, numeric, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, numeric, timestamp, boolean, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -151,7 +151,10 @@ export const offers = pgTable("offers", {
   archivedAt: timestamp("archived_at"),
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  // Performance index for advertiser dashboard queries
+  advertiserIdx: index("offers_advertiser_idx").on(table.advertiserId),
+}));
 
 export const insertOfferSchema = createInsertSchema(offers).omit({
   id: true,
@@ -262,7 +265,12 @@ export const clicks = pgTable("clicks", {
   redirectUrl: text("redirect_url"),
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  // Performance indexes for reports and stats queries
+  offerPublisherDateIdx: index("clicks_offer_publisher_date_idx").on(table.offerId, table.publisherId, table.createdAt),
+  publisherDateIdx: index("clicks_publisher_date_idx").on(table.publisherId, table.createdAt),
+  offerDateIdx: index("clicks_offer_date_idx").on(table.offerId, table.createdAt),
+}));
 
 export const insertClickSchema = createInsertSchema(clicks).omit({
   id: true,
@@ -304,7 +312,13 @@ export const conversions = pgTable("conversions", {
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at"),
-});
+}, (table) => ({
+  // Performance indexes for reports and stats queries
+  offerPublisherDateIdx: index("conversions_offer_publisher_date_idx").on(table.offerId, table.publisherId, table.createdAt),
+  statusDateIdx: index("conversions_status_date_idx").on(table.status, table.createdAt),
+  clickIdIdx: index("conversions_click_id_idx").on(table.clickId),
+  publisherDateIdx: index("conversions_publisher_date_idx").on(table.publisherId, table.createdAt),
+}));
 
 export const insertConversionSchema = createInsertSchema(conversions).omit({
   id: true,
