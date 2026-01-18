@@ -3066,10 +3066,10 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Merge click stats and conversion stats
-    const allKeys = new Set([...clickStatsMap.keys(), ...convStatsMap.keys()]);
+    const allKeys = new Set([...Array.from(clickStatsMap.keys()), ...Array.from(convStatsMap.keys())]);
     const grouped: any[] = [];
     
-    for (const key of allKeys) {
+    for (const key of Array.from(allKeys)) {
       const clickData = clickStatsMap.get(key) || { clicks: 0, uniqueClicks: 0 };
       const convData = convStatsMap.get(key);
       
