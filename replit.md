@@ -192,6 +192,12 @@ Preferred communication style: Simple, everyday language (Russian).
    - [ ] Подключить UI к реальным API
    - [ ] Real-time polling статуса
 
+2. **⚠️ НАПОМИНАНИЕ: Преагрегированная статистика (daily_stats)**
+   - [ ] Когда дашборды начнут тормозить — подключить getCombinedStats() к endpoints
+   - Инфраструктура ГОТОВА: таблица daily_stats, aggregation-service (каждый час), методы чтения
+   - Файлы: `server/services/aggregation-service.ts`, `server/storage.ts` (getCombinedStats, getStatsFromAggregates, getTodayLiveStats)
+   - Для подключения: добавить feature flag USE_AGGREGATES и заменить старые методы на getCombinedStats()
+
 ### СТРУКТУРА ФАЙЛОВ
 
 **Frontend:**
