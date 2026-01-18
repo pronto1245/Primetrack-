@@ -2775,9 +2775,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGroupedReport(filters: any, groupBy: string, role: string): Promise<any> {
-    // Get all clicks and conversions matching filters
-    const clickConditions: any[] = [];
-    const convConditions: any[] = [];
+    // OPTIMIZED: Use SQL GROUP BY instead of O(n²) in-memory processing
     
     // Handle free text search - filter by offer name
     let effectiveOfferIds = filters.offerIds || [];
@@ -2787,221 +2785,216 @@ export class DatabaseStorage implements IStorage {
         .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
       const matchingOfferIds = matchingOffers.map(o => o.id);
       if (matchingOfferIds.length === 0) {
-        return { data: [], totals: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
+        return { data: [], groupBy, summary: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
       }
-      // Combine with existing offerIds filter if any
       if (effectiveOfferIds.length > 0) {
         effectiveOfferIds = effectiveOfferIds.filter((id: string) => matchingOfferIds.includes(id));
         if (effectiveOfferIds.length === 0) {
-          return { data: [], totals: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
+          return { data: [], groupBy, summary: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
         }
       } else {
         effectiveOfferIds = matchingOfferIds;
       }
     }
     
-    if (filters.publisherId) {
-      clickConditions.push(eq(clicks.publisherId, filters.publisherId));
-      convConditions.push(eq(conversions.publisherId, filters.publisherId));
-    }
-    if (filters.offerId) {
-      clickConditions.push(eq(clicks.offerId, filters.offerId));
-      convConditions.push(eq(conversions.offerId, filters.offerId));
-    }
-    if (effectiveOfferIds.length > 0) {
-      clickConditions.push(inArray(clicks.offerId, effectiveOfferIds));
-      convConditions.push(inArray(conversions.offerId, effectiveOfferIds));
-    }
-    if (filters.dateFrom) {
-      clickConditions.push(gte(clicks.createdAt, filters.dateFrom));
-      convConditions.push(gte(conversions.createdAt, filters.dateFrom));
-    }
-    if (filters.dateTo) {
-      clickConditions.push(lte(clicks.createdAt, filters.dateTo));
-      convConditions.push(lte(conversions.createdAt, filters.dateTo));
-    }
+    // Build WHERE conditions for clicks
+    const clickConditions: any[] = [];
+    if (filters.publisherId) clickConditions.push(eq(clicks.publisherId, filters.publisherId));
+    if (filters.offerId) clickConditions.push(eq(clicks.offerId, filters.offerId));
+    if (effectiveOfferIds.length > 0) clickConditions.push(inArray(clicks.offerId, effectiveOfferIds));
+    if (filters.dateFrom) clickConditions.push(gte(clicks.createdAt, filters.dateFrom));
+    if (filters.dateTo) clickConditions.push(lte(clicks.createdAt, filters.dateTo));
     
     const clickWhere = clickConditions.length > 0 ? and(...clickConditions) : undefined;
+    
+    // Determine SQL GROUP BY expression based on groupBy parameter
+    // Use TO_CHAR for dates to ensure consistent YYYY-MM-DD string format
+    const getClickGroupExpr = () => {
+      switch (groupBy) {
+        case "date": return sql`TO_CHAR(${clicks.createdAt}, 'YYYY-MM-DD')`;
+        case "geo": return sql`COALESCE(${clicks.geo}, 'unknown')`;
+        case "publisher": return clicks.publisherId;
+        case "offer": return clicks.offerId;
+        case "device": return sql`COALESCE(${clicks.device}, 'unknown')`;
+        case "os": return sql`COALESCE(${clicks.os}, 'unknown')`;
+        case "browser": return sql`COALESCE(${clicks.browser}, 'unknown')`;
+        case "sub1": return sql`COALESCE(${clicks.sub1}, 'empty')`;
+        case "sub2": return sql`COALESCE(${clicks.sub2}, 'empty')`;
+        case "sub3": return sql`COALESCE(${clicks.sub3}, 'empty')`;
+        case "sub4": return sql`COALESCE(${clicks.sub4}, 'empty')`;
+        case "sub5": return sql`COALESCE(${clicks.sub5}, 'empty')`;
+        default: return sql`TO_CHAR(${clicks.createdAt}, 'YYYY-MM-DD')`;
+      }
+    };
+    
+    // SQL GROUP BY for clicks - no in-memory loops
+    const clickGroupExpr = getClickGroupExpr();
+    const clickStats = clickWhere
+      ? await db.select({
+          groupKey: clickGroupExpr,
+          clicks: sql<number>`count(*)::int`,
+          uniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique})::int`
+        }).from(clicks).where(clickWhere).groupBy(clickGroupExpr)
+      : await db.select({
+          groupKey: clickGroupExpr,
+          clicks: sql<number>`count(*)::int`,
+          uniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique})::int`
+        }).from(clicks).groupBy(clickGroupExpr);
+    
+    // Build click stats map
+    const clickStatsMap = new Map<string, { clicks: number; uniqueClicks: number }>();
+    for (const row of clickStats) {
+      const key = String(row.groupKey);
+      clickStatsMap.set(key, { clicks: row.clicks || 0, uniqueClicks: row.uniqueClicks || 0 });
+    }
+    
+    // For conversions, need to JOIN with clicks to get groupBy fields (geo, device, etc.)
+    const convConditions: any[] = [];
+    if (filters.publisherId) convConditions.push(eq(conversions.publisherId, filters.publisherId));
+    if (filters.offerId) convConditions.push(eq(conversions.offerId, filters.offerId));
+    if (effectiveOfferIds.length > 0) convConditions.push(inArray(conversions.offerId, effectiveOfferIds));
+    if (filters.dateFrom) convConditions.push(gte(conversions.createdAt, filters.dateFrom));
+    if (filters.dateTo) convConditions.push(lte(conversions.createdAt, filters.dateTo));
+    
     const convWhere = convConditions.length > 0 ? and(...convConditions) : undefined;
     
-    const allClicks = clickWhere 
-      ? await db.select().from(clicks).where(clickWhere)
-      : await db.select().from(clicks);
-    
-    const allConversions = convWhere 
-      ? await db.select().from(conversions).where(convWhere)
-      : await db.select().from(conversions);
-    
-    // Note: Metrics now use actual publisherPayout from conversions directly
-    
-    // Group data
-    const grouped: Record<string, { 
-      clicks: number; 
-      uniqueClicks: number;
-      leads: number; 
-      sales: number; 
-      conversions: number;
-      approvedConversions: number;
-      payout: number;
-      payableConversions: number;
-      approvedPayableConversions: number;
-      cost: number;
-      cr: number;
-      ar: number;
-      epc: number;
-    }> = {};
-    
-    for (const click of allClicks) {
-      let key: string;
+    // Determine conversion GROUP BY expression (may need click data)
+    // Use TO_CHAR for dates to ensure consistent YYYY-MM-DD string format
+    const getConvGroupExpr = () => {
       switch (groupBy) {
-        case "date":
-          key = click.createdAt.toISOString().split("T")[0];
-          break;
-        case "geo":
-          key = click.geo || "unknown";
-          break;
-        case "publisher":
-          key = click.publisherId;
-          break;
-        case "offer":
-          key = click.offerId;
-          break;
-        case "device":
-          key = click.device || "unknown";
-          break;
-        case "os":
-          key = click.os || "unknown";
-          break;
-        case "browser":
-          key = click.browser || "unknown";
-          break;
-        case "sub1":
-          key = click.sub1 || "empty";
-          break;
-        case "sub2":
-          key = click.sub2 || "empty";
-          break;
-        case "sub3":
-          key = click.sub3 || "empty";
-          break;
-        case "sub4":
-          key = click.sub4 || "empty";
-          break;
-        case "sub5":
-          key = click.sub5 || "empty";
-          break;
-        default:
-          key = click.createdAt.toISOString().split("T")[0];
+        case "date": return sql`TO_CHAR(${conversions.createdAt}, 'YYYY-MM-DD')`;
+        case "geo": return sql`COALESCE(${clicks.geo}, 'unknown')`;
+        case "publisher": return conversions.publisherId;
+        case "offer": return conversions.offerId;
+        case "device": return sql`COALESCE(${clicks.device}, 'unknown')`;
+        case "os": return sql`COALESCE(${clicks.os}, 'unknown')`;
+        case "browser": return sql`COALESCE(${clicks.browser}, 'unknown')`;
+        case "sub1": return sql`COALESCE(${clicks.sub1}, 'empty')`;
+        case "sub2": return sql`COALESCE(${clicks.sub2}, 'empty')`;
+        case "sub3": return sql`COALESCE(${clicks.sub3}, 'empty')`;
+        case "sub4": return sql`COALESCE(${clicks.sub4}, 'empty')`;
+        case "sub5": return sql`COALESCE(${clicks.sub5}, 'empty')`;
+        default: return sql`TO_CHAR(${conversions.createdAt}, 'YYYY-MM-DD')`;
       }
-      
-      if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, payableConversions: 0, approvedPayableConversions: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
-      }
-      grouped[key].clicks++;
-      if (click.isUnique) grouped[key].uniqueClicks++;
+    };
+    
+    // SQL GROUP BY for conversions with LEFT JOIN to clicks
+    const convGroupExpr = getConvGroupExpr();
+    const convStats = convWhere
+      ? await db.select({
+          groupKey: convGroupExpr,
+          conversions: sql<number>`count(*)::int`,
+          approvedConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+          leads: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+          sales: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+          payout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`,
+          cost: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric), 0)::float`,
+          payableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.publisherPayout}::numeric > 0)::int`,
+          approvedPayableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved' AND ${conversions.publisherPayout}::numeric > 0)::int`
+        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).where(convWhere).groupBy(convGroupExpr)
+      : await db.select({
+          groupKey: convGroupExpr,
+          conversions: sql<number>`count(*)::int`,
+          approvedConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+          leads: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+          sales: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+          payout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`,
+          cost: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric), 0)::float`,
+          payableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.publisherPayout}::numeric > 0)::int`,
+          approvedPayableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved' AND ${conversions.publisherPayout}::numeric > 0)::int`
+        }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).groupBy(convGroupExpr);
+    
+    // Build conversion stats map for O(1) lookup instead of O(n²) find()
+    const convStatsMap = new Map<string, typeof convStats[0]>();
+    for (const row of convStats) {
+      const key = String(row.groupKey);
+      convStatsMap.set(key, row);
     }
     
-    for (const conv of allConversions) {
-      let key: string;
-      const click = allClicks.find(c => c.id === conv.clickId);
-      
-      switch (groupBy) {
-        case "date":
-          key = conv.createdAt.toISOString().split("T")[0];
-          break;
-        case "geo":
-          key = click?.geo || "unknown";
-          break;
-        case "publisher":
-          key = conv.publisherId;
-          break;
-        case "offer":
-          key = conv.offerId;
-          break;
-        case "device":
-          key = click?.device || "unknown";
-          break;
-        case "os":
-          key = click?.os || "unknown";
-          break;
-        case "browser":
-          key = click?.browser || "unknown";
-          break;
-        case "sub1":
-          key = click?.sub1 || "empty";
-          break;
-        case "sub2":
-          key = click?.sub2 || "empty";
-          break;
-        case "sub3":
-          key = click?.sub3 || "empty";
-          break;
-        case "sub4":
-          key = click?.sub4 || "empty";
-          break;
-        case "sub5":
-          key = click?.sub5 || "empty";
-          break;
-        default:
-          key = conv.createdAt.toISOString().split("T")[0];
-      }
-      
-      if (!grouped[key]) {
-        grouped[key] = { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, payableConversions: 0, approvedPayableConversions: 0, cost: 0, cr: 0, ar: 0, epc: 0 };
-      }
-      
-      grouped[key].conversions++;
-      if (conv.status === "approved") grouped[key].approvedConversions++;
-      if (conv.conversionType === "lead") grouped[key].leads++;
-      if (conv.conversionType === "sale") grouped[key].sales++;
-      // Use actual payout from conversion for display and metrics
-      const convPayout = parseFloat(conv.publisherPayout || '0');
-      grouped[key].payout += convPayout;
-      // Simplified: payable = publisherPayout > 0
-      if (convPayout > 0) {
-        grouped[key].payableConversions++;
-        if (conv.status === "approved") grouped[key].approvedPayableConversions++;
-      }
-      if (role !== "publisher") {
-        grouped[key].cost += parseFloat(conv.advertiserCost || '0');
-      }
-    }
+    // Merge click stats and conversion stats
+    const allKeys = new Set([...clickStatsMap.keys(), ...convStatsMap.keys()]);
+    const grouped: any[] = [];
     
-    // Calculate CR, AR, EPC using centralized helper
-    for (const key in grouped) {
+    for (const key of allKeys) {
+      const clickData = clickStatsMap.get(key) || { clicks: 0, uniqueClicks: 0 };
+      const convData = convStatsMap.get(key);
+      
+      const rowClicks = clickData.clicks;
+      const rowPayout = convData?.payout || 0;
+      const rowPayableConv = convData?.payableConversions || 0;
+      const rowApprovedPayableConv = convData?.approvedPayableConversions || 0;
+      
       const metrics = calculateMetrics({
-        clicks: grouped[key].clicks,
-        payableConversions: grouped[key].payableConversions,
-        approvedPayableConversions: grouped[key].approvedPayableConversions,
-        totalPayout: grouped[key].payout
+        clicks: rowClicks,
+        payableConversions: rowPayableConv,
+        approvedPayableConversions: rowApprovedPayableConv,
+        totalPayout: rowPayout
       });
-      grouped[key].cr = metrics.cr;
-      grouped[key].ar = metrics.ar;
-      grouped[key].epc = metrics.epc;
+      
+      grouped.push({
+        groupKey: key,
+        groupBy,
+        clicks: rowClicks,
+        uniqueClicks: clickData.uniqueClicks,
+        leads: convData?.leads || 0,
+        sales: convData?.sales || 0,
+        conversions: convData?.conversions || 0,
+        approvedConversions: convData?.approvedConversions || 0,
+        payout: rowPayout,
+        payableConversions: rowPayableConv,
+        approvedPayableConversions: rowApprovedPayableConv,
+        cost: role !== "publisher" ? (convData?.cost || 0) : 0,
+        cr: metrics.cr,
+        ar: metrics.ar,
+        epc: metrics.epc
+      });
     }
     
-    // Convert to array and sort
-    const result = Object.entries(grouped).map(([key, data]) => ({
-      groupKey: key,
-      groupBy: groupBy,
-      ...data
-    })).sort((a, b) => {
+    // Sort result
+    grouped.sort((a, b) => {
       if (groupBy === "date") return b.groupKey.localeCompare(a.groupKey);
       return b.clicks - a.clicks;
     });
     
-    // Calculate summary totals from ALL data (not paginated)
-    const totalClicks = allClicks.length;
-    const totalUniqueClicks = allClicks.filter(c => c.isUnique).length;
-    const totalLeads = allConversions.filter(c => c.conversionType === 'lead').length;
-    const totalSales = allConversions.filter(c => c.conversionType === 'sale').length;
-    const totalConversions = allConversions.length;
-    const totalApprovedConversions = allConversions.filter(c => c.status === 'approved').length;
-    const totalPayout = allConversions.reduce((sum, c) => sum + parseFloat(c.publisherPayout || '0'), 0);
-    const totalCost = role !== "publisher" ? allConversions.reduce((sum, c) => sum + parseFloat(c.advertiserCost || '0'), 0) : 0;
+    // Calculate summary via SQL aggregation (not in-memory)
+    const clickSummary = clickWhere
+      ? await db.select({
+          totalClicks: sql<number>`count(*)::int`,
+          totalUniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique})::int`
+        }).from(clicks).where(clickWhere)
+      : await db.select({
+          totalClicks: sql<number>`count(*)::int`,
+          totalUniqueClicks: sql<number>`count(*) FILTER (WHERE ${clicks.isUnique})::int`
+        }).from(clicks);
     
-    const payableConversions = allConversions.filter(c => parseFloat(c.publisherPayout || '0') > 0).length;
-    const approvedPayableConversions = allConversions.filter(c => c.status === 'approved' && parseFloat(c.publisherPayout || '0') > 0).length;
+    const convSummary = convWhere
+      ? await db.select({
+          totalConversions: sql<number>`count(*)::int`,
+          totalApprovedConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+          totalLeads: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+          totalSales: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+          totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`,
+          totalCost: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric), 0)::float`,
+          totalPayableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.publisherPayout}::numeric > 0)::int`,
+          totalApprovedPayableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved' AND ${conversions.publisherPayout}::numeric > 0)::int`
+        }).from(conversions).where(convWhere)
+      : await db.select({
+          totalConversions: sql<number>`count(*)::int`,
+          totalApprovedConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved')::int`,
+          totalLeads: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'lead')::int`,
+          totalSales: sql<number>`count(*) FILTER (WHERE ${conversions.conversionType} = 'sale')::int`,
+          totalPayout: sql<number>`COALESCE(sum(${conversions.publisherPayout}::numeric), 0)::float`,
+          totalCost: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric), 0)::float`,
+          totalPayableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.publisherPayout}::numeric > 0)::int`,
+          totalApprovedPayableConversions: sql<number>`count(*) FILTER (WHERE ${conversions.status} = 'approved' AND ${conversions.publisherPayout}::numeric > 0)::int`
+        }).from(conversions);
+    
+    const totalClicks = clickSummary[0]?.totalClicks || 0;
+    const totalUniqueClicks = clickSummary[0]?.totalUniqueClicks || 0;
+    const totalPayout = convSummary[0]?.totalPayout || 0;
+    const totalCost = role !== "publisher" ? (convSummary[0]?.totalCost || 0) : 0;
+    const payableConversions = convSummary[0]?.totalPayableConversions || 0;
+    const approvedPayableConversions = convSummary[0]?.totalApprovedPayableConversions || 0;
     
     const summaryMetrics = calculateMetrics({
       clicks: totalClicks,
@@ -3013,10 +3006,10 @@ export class DatabaseStorage implements IStorage {
     const summary = {
       clicks: totalClicks,
       uniqueClicks: totalUniqueClicks,
-      leads: totalLeads,
-      sales: totalSales,
-      conversions: totalConversions,
-      approvedConversions: totalApprovedConversions,
+      leads: convSummary[0]?.totalLeads || 0,
+      sales: convSummary[0]?.totalSales || 0,
+      conversions: convSummary[0]?.totalConversions || 0,
+      approvedConversions: convSummary[0]?.totalApprovedConversions || 0,
       payout: totalPayout,
       advertiserCost: totalCost,
       margin: totalCost - totalPayout,
@@ -3026,7 +3019,7 @@ export class DatabaseStorage implements IStorage {
       epc: summaryMetrics.epc
     };
     
-    return { data: result, groupBy, summary };
+    return { data: grouped, groupBy, summary };
   }
   
   // ============================================
