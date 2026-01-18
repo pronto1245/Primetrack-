@@ -174,6 +174,10 @@ Preferred communication style: Simple, everyday language (Russian).
 | getPlatformFinancialStats | Загрузка всех conversions/payouts | SQL SUM с FILTER |
 | getPublisherStatsForAdvertiser | N+1 цикл по офферам | SQL inArray + COUNT/SUM |
 | getPublisherOfferStats | 2 полных SELECT + reduce | SQL COUNT/SUM |
+| getOffersForPublisher | N+1 цикл getOffer() | Один JOIN запрос |
+| GET /api/offers | N+1 getOfferLandings | getLandingsForOffers() batch |
+| GET /api/marketplace | N+1 access + landings | getPublisherAccessMap() + getLandingsForOffers() batch |
+| GET /api/stats/advertiser | N+1 clicks/convs | getAdvertiserStats() cached SQL |
 
 **Паттерны оптимизации:**
 - Parameterized queries (sql.join) для безопасности от SQL injection
