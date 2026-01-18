@@ -5243,9 +5243,7 @@ export async function registerRoutes(
         dateFrom,
         dateTo,
         search, // free text search by offer name
-        groupBy = "date", // date, geo, publisher, offer, device, os, browser, sub1-5
-        page = "1",
-        limit = "50"
+        groupBy = "date" // date, geo, publisher, offer, device, os, browser, sub1-5
       } = req.query;
 
       const filters: any = {};
@@ -5255,8 +5253,6 @@ export async function registerRoutes(
         filters.search = search.trim();
       }
       
-      const emptyResponse = { data: [], groupBy: groupBy as string, summary: { clicks: 0, uniqueClicks: 0, leads: 0, sales: 0, conversions: 0, approvedConversions: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 } };
-      
       if (role === "publisher") {
         filters.publisherId = userId;
         // Filter by selected advertiser's offers
@@ -5265,20 +5261,20 @@ export async function registerRoutes(
           if (advertiserOffers.length > 0) {
             filters.offerIds = advertiserOffers.map(o => o.id);
           } else {
-            return res.json(emptyResponse);
+            return res.json({ data: [], totals: {} });
           }
         }
       } else if (role === "advertiser") {
         // Use getEffectiveAdvertiserId for staff support
         const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
         if (!effectiveAdvertiserId) {
-          return res.json(emptyResponse);
+          return res.json({ data: [], totals: {} });
         }
         const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
         if (advertiserOffers.length > 0) {
           filters.offerIds = advertiserOffers.map(o => o.id);
         } else {
-          return res.json(emptyResponse);
+          return res.json({ data: [], totals: {} });
         }
       }
 
@@ -5287,10 +5283,7 @@ export async function registerRoutes(
       if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
       if (dateTo) filters.dateTo = new Date(dateTo as string);
 
-      const pageNum = parseInt(page as string) || 1;
-      const limitNum = Math.min(parseInt(limit as string) || 50, 100);
-
-      const result = await storage.getGroupedReport(filters, groupBy as string, role, pageNum, limitNum);
+      const result = await storage.getGroupedReport(filters, groupBy as string, role);
       
       // Remove all advertiser financial data for publisher - only show payout
       if (role === "publisher") {
