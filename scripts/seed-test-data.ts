@@ -160,107 +160,136 @@ async function verifyMetrics(offerIds: Record<string, string>) {
   return allPassed;
 }
 
+async function getOrCreateUser(data: { username: string; email: string; password: string; role: string; telegram?: string; companyName?: string }) {
+  const byEmail = await db.select().from(users).where(eq(users.email, data.email));
+  if (byEmail.length > 0) return byEmail[0];
+  
+  const byUsername = await db.select().from(users).where(eq(users.username, data.username));
+  if (byUsername.length > 0) return byUsername[0];
+  
+  const [created] = await db.insert(users).values({
+    ...data,
+    status: "active",
+    twoFactorEnabled: false,
+    twoFactorSetupCompleted: true,
+  }).returning();
+  return created;
+}
+
+async function getOrCreateOffer(advertiserId: string, name: string, config: typeof OFFERS_CONFIG.leon) {
+  const existing = await db.select().from(offers).where(sql`name = ${name} AND advertiser_id = ${advertiserId}`);
+  if (existing.length > 0) return existing[0];
+  
+  const [created] = await db.insert(offers).values({
+    advertiserId,
+    name,
+    description: `Premium ${config.geo} gambling offer - TEST DATA`,
+    geo: [config.geo],
+    category: "gambling",
+    trafficSources: ["Facebook", "Google", "TikTok", "PPC", "Push"],
+    appTypes: ["PWA", "WebView"],
+    partnerPayout: String(config.partnerPayout),
+    internalCost: String(config.internalCost),
+    payoutModel: "CPA",
+    currency: "USD",
+    status: "active",
+    isTop: true,
+    holdPeriodDays: 7,
+  }).returning();
+  return created;
+}
+
+async function getOrCreateLanding(offerId: string, geo: string, name: string, config: typeof OFFERS_CONFIG.leon) {
+  const existing = await db.select().from(offerLandings).where(sql`offer_id = ${offerId} AND geo = ${geo}`);
+  if (existing.length > 0) return existing[0];
+  
+  const [created] = await db.insert(offerLandings).values({
+    offerId,
+    geo,
+    landingName: `${name} Main`,
+    landingUrl: `https://${name.toLowerCase().replace(/[^a-z]/g, '')}.casino/lp1?click_id={click_id}`,
+    partnerPayout: String(config.partnerPayout),
+    internalCost: String(config.internalCost),
+    currency: "USD",
+  }).returning();
+  return created;
+}
+
 async function seed() {
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log("  PrimeTrack Test Data Seed Script");
+  console.log("  PrimeTrack Test Data Seed Script (Additive)");
   console.log("═══════════════════════════════════════════════════════════════\n");
-  
-  await cleanupTestData();
   
   const hashedPassword = await bcrypt.hash("test123", 10);
   
-  console.log("👤 Creating test advertiser...");
-  const [advertiser] = await db.insert(users).values({
+  console.log("👤 Getting or creating test advertiser...");
+  const advertiser = await getOrCreateUser({
     username: "test_advertiser",
     email: TEST_ADVERTISER_EMAIL,
     password: hashedPassword,
     role: "advertiser",
-    status: "active",
     companyName: "TestCasino Partners [TEST]",
     telegram: "@test_adv",
-    twoFactorEnabled: false,
-    twoFactorSetupCompleted: true,
-  }).returning();
+  });
   
   const advId = advertiser.id;
-  console.log(`  ✓ Created: ${advId}\n`);
+  console.log(`  ✓ Advertiser: ${advId}\n`);
   
-  console.log("👥 Creating test publishers (10 вебов)...");
+  console.log("👥 Getting or creating test publishers (10 вебов)...");
   const publisherIds: string[] = [];
   for (const pub of PUBLISHERS) {
-    const [created] = await db.insert(users).values({
+    const publisher = await getOrCreateUser({
       username: pub.username,
       email: pub.email,
       password: hashedPassword,
       role: "publisher",
-      status: "active",
       telegram: pub.telegram,
-      twoFactorEnabled: false,
-      twoFactorSetupCompleted: true,
-    }).returning();
-    
-    publisherIds.push(created.id);
+    });
+    publisherIds.push(publisher.id);
     console.log(`  ✓ ${pub.username}`);
   }
   
-  console.log("\n🤝 Creating publisher-advertiser relationships...");
+  console.log("\n🤝 Setting up publisher-advertiser relationships...");
   for (const pubId of publisherIds) {
-    await db.insert(publisherAdvertisers).values({
-      publisherId: pubId,
-      advertiserId: advId,
-      status: "active",
-    });
+    const existing = await db.select().from(publisherAdvertisers)
+      .where(sql`publisher_id = ${pubId} AND advertiser_id = ${advId}`);
+    if (existing.length === 0) {
+      await db.insert(publisherAdvertisers).values({
+        publisherId: pubId,
+        advertiserId: advId,
+        status: "active",
+      });
+    }
   }
-  console.log(`  ✓ Created ${publisherIds.length} relationships\n`);
+  console.log(`  ✓ ${publisherIds.length} relationships ready\n`);
   
-  console.log("📦 Creating offers...");
+  console.log("📦 Getting or creating offers...");
   const offerIds: Record<string, string> = {};
   const landingIds: Record<string, string> = {};
   
   for (const [key, config] of Object.entries(OFFERS_CONFIG)) {
-    const [offer] = await db.insert(offers).values({
-      advertiserId: advId,
-      name: config.name,
-      description: `Premium ${config.geo} gambling offer - TEST DATA`,
-      geo: [config.geo],
-      category: "gambling",
-      trafficSources: ["Facebook", "Google", "TikTok", "PPC", "Push"],
-      appTypes: ["PWA", "WebView"],
-      partnerPayout: String(config.partnerPayout),
-      internalCost: String(config.internalCost),
-      payoutModel: "CPA",
-      currency: "USD",
-      status: "active",
-      isTop: true,
-      holdPeriodDays: 7,
-    }).returning();
-    
+    const offer = await getOrCreateOffer(advId, config.name, config);
     offerIds[key] = offer.id;
     console.log(`  ✓ ${config.name} (${config.geo})`);
     
-    const [landing] = await db.insert(offerLandings).values({
-      offerId: offer.id,
-      geo: config.geo,
-      landingName: `${config.name} Main`,
-      landingUrl: `https://${key}.casino/lp1?click_id={click_id}`,
-      partnerPayout: String(config.partnerPayout),
-      internalCost: String(config.internalCost),
-      currency: "USD",
-    }).returning();
-    
+    const landing = await getOrCreateLanding(offer.id, config.geo, config.name, config);
     landingIds[key] = landing.id;
   }
   
-  console.log("\n🔐 Granting publisher access to offers...");
+  console.log("\n🔐 Setting up publisher access to offers...");
   for (const pubId of publisherIds) {
     for (const offerId of Object.values(offerIds)) {
-      await db.insert(publisherOffers).values({
-        publisherId: pubId,
-        offerId: offerId,
-      });
+      const existing = await db.select().from(publisherOffers)
+        .where(sql`publisher_id = ${pubId} AND offer_id = ${offerId}`);
+      if (existing.length === 0) {
+        await db.insert(publisherOffers).values({
+          publisherId: pubId,
+          offerId: offerId,
+        });
+      }
     }
   }
-  console.log(`  ✓ Granted access for ${publisherIds.length} publishers\n`);
+  console.log(`  ✓ ${publisherIds.length} publishers have access\n`);
   
   console.log("📊 Generating clicks and conversions...");
   
@@ -268,14 +297,28 @@ async function seed() {
     const offerId = offerIds[key];
     const landingId = landingIds[key];
     
+    const existingClicksResult = await db.select({ count: sql<number>`COUNT(*)::int` })
+      .from(clicks).where(eq(clicks.offerId, offerId));
+    const existingClicks = existingClicksResult[0].count;
+    
+    if (existingClicks >= config.clicks) {
+      console.log(`\n  ${config.name} (${config.geo}): Already has ${existingClicks} clicks, skipping`);
+      continue;
+    }
+    
+    const clicksNeeded = config.clicks - existingClicks;
+    const leadsNeeded = config.registrations;
+    const salesNeeded = config.deposits;
+    
     console.log(`\n  ${config.name} (${config.geo}):`);
-    console.log(`    Target: ${config.clicks} clicks, ${config.registrations} leads, ${config.deposits} sales`);
+    console.log(`    Existing: ${existingClicks} clicks`);
+    console.log(`    Adding: ${clicksNeeded} clicks, ${leadsNeeded} leads, ${salesNeeded} sales`);
     
     const cities = config.geo === "PT" ? PT_CITIES : FR_CITIES;
     
-    const clicksPerPub = distributeExact(config.clicks, TRAFFIC_DISTRIBUTION);
-    const leadsPerPub = distributeExact(config.registrations, TRAFFIC_DISTRIBUTION);
-    const salesPerPub = distributeExact(config.deposits, TRAFFIC_DISTRIBUTION);
+    const clicksPerPub = distributeExact(clicksNeeded, TRAFFIC_DISTRIBUTION);
+    const leadsPerPub = distributeExact(leadsNeeded, TRAFFIC_DISTRIBUTION);
+    const salesPerPub = distributeExact(salesNeeded, TRAFFIC_DISTRIBUTION);
     
     let totalClicks = 0;
     let totalLeads = 0;
@@ -380,23 +423,28 @@ async function seed() {
   
   console.log("\n💰 Updating publisher balances...");
   for (const pubId of publisherIds) {
-    const pubConversions = await db.select({
-      total: sql<string>`COALESCE(SUM(CAST(payout AS NUMERIC)), 0)`,
-    }).from(conversions).where(sql`publisher_id = ${pubId} AND status = 'approved' AND CAST(payout AS NUMERIC) > 0`);
+    const existing = await db.select().from(publisherBalances)
+      .where(sql`publisher_id = ${pubId} AND advertiser_id = ${advId}`);
     
-    const balance = parseFloat(pubConversions[0]?.total || "0");
-    
-    await db.insert(publisherBalances).values({
-      publisherId: pubId,
-      advertiserId: advId,
-      availableBalance: String(balance * 0.7),
-      pendingBalance: String(balance * 0.2),
-      holdBalance: String(balance * 0.1),
-      totalPaid: "0",
-      currency: "USD",
-    });
+    if (existing.length === 0) {
+      const pubConversions = await db.select({
+        total: sql<string>`COALESCE(SUM(CAST(payout AS NUMERIC)), 0)`,
+      }).from(conversions).where(sql`publisher_id = ${pubId} AND status = 'approved' AND CAST(payout AS NUMERIC) > 0`);
+      
+      const balance = parseFloat(pubConversions[0]?.total || "0");
+      
+      await db.insert(publisherBalances).values({
+        publisherId: pubId,
+        advertiserId: advId,
+        availableBalance: String(balance * 0.7),
+        pendingBalance: String(balance * 0.2),
+        holdBalance: String(balance * 0.1),
+        totalPaid: "0",
+        currency: "USD",
+      });
+    }
   }
-  console.log(`  ✓ Updated balances for ${publisherIds.length} publishers`);
+  console.log(`  ✓ Balances ready for ${publisherIds.length} publishers`);
   
   const verified = await verifyMetrics(offerIds);
   
