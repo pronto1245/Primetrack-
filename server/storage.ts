@@ -368,6 +368,7 @@ export interface IStorage {
   getReferralEarningByConversion(conversionId: string): Promise<ReferralEarning | undefined>;
   getReferralStats(referrerId: string, advertiserId: string): Promise<{ totalReferred: number; totalEarnings: number; pendingEarnings: number }>;
   getAdvertiserReferralStats(advertiserId: string): Promise<Array<{ publisherId: string; publisherName: string; referralEnabled: boolean; referralRate: string; referredCount: number; totalPaid: number }>>;
+  bulkUpdateReferralSettings(advertiserId: string, data: { referralEnabled: boolean; referralRate: string }): Promise<number>;
   setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined>;
   
   // Offer Caps Stats
@@ -1423,6 +1424,17 @@ export class DatabaseStorage implements IStorage {
       referredCount: row.referredCount || 0,
       totalPaid: row.totalPaid || 0
     }));
+  }
+
+  async bulkUpdateReferralSettings(advertiserId: string, data: { referralEnabled: boolean; referralRate: string }): Promise<number> {
+    const result = await db.update(publisherAdvertisers)
+      .set({
+        referralEnabled: data.referralEnabled,
+        referralRate: data.referralRate
+      })
+      .where(eq(publisherAdvertisers.advertiserId, advertiserId))
+      .returning();
+    return result.length;
   }
 
   async setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined> {

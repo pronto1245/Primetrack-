@@ -9410,6 +9410,33 @@ export async function registerRoutes(
     }
   });
 
+  // Advertiser: Bulk update referral settings for all publishers
+  app.patch("/api/advertiser/referrals/bulk", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const { referralEnabled, referralRate } = req.body;
+      
+      if (typeof referralEnabled !== "boolean") {
+        return res.status(400).json({ message: "referralEnabled обязателен и должен быть boolean" });
+      }
+      if (referralRate === undefined || isNaN(parseFloat(referralRate)) || parseFloat(referralRate) < 0 || parseFloat(referralRate) > 100) {
+        return res.status(400).json({ message: "referralRate обязателен и должен быть числом от 0 до 100" });
+      }
+      
+      const count = await storage.bulkUpdateReferralSettings(advertiserId, {
+        referralEnabled,
+        referralRate: referralRate.toString()
+      });
+      
+      res.json({ updated: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Publisher: Get referral link and settings for specific advertiser
   app.get("/api/publisher/referrals/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
