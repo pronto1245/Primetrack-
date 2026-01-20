@@ -369,6 +369,7 @@ export interface IStorage {
   getReferralStats(referrerId: string, advertiserId: string): Promise<{ totalReferred: number; totalEarnings: number; pendingEarnings: number }>;
   getAdvertiserReferralStats(advertiserId: string): Promise<Array<{ publisherId: string; publisherName: string; referralEnabled: boolean; referralRate: string; referredCount: number; totalPaid: number }>>;
   bulkUpdateReferralSettings(advertiserId: string, data: { referralEnabled: boolean; referralRate: string }): Promise<number>;
+  getAdvertiserReferralFinancialStats(advertiserId: string): Promise<{ accrued: number; paid: number; pending: number }>;
   setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined>;
   
   // Offer Caps Stats
@@ -1373,19 +1374,19 @@ export class DatabaseStorage implements IStorage {
         eq(users.referredByAdvertiserId, advertiserId)
       ));
     
-    const earnings = await db.select({
-      total: sql<number>`COALESCE(SUM(amount::numeric), 0)::float`
-    })
-      .from(referralEarnings)
-      .where(and(
-        eq(referralEarnings.referrerId, referrerId),
-        eq(referralEarnings.advertiserId, advertiserId)
-      ));
+    const earnings = await db.execute(sql`
+      SELECT 
+        COALESCE(SUM(amount::numeric), 0)::float as "total",
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN amount::numeric ELSE 0 END), 0)::float as "pending"
+      FROM referral_earnings
+      WHERE referrer_id = ${referrerId} AND advertiser_id = ${advertiserId}
+    `);
+    const row = earnings.rows[0] as any;
     
     return {
       totalReferred: referred[0]?.count || 0,
-      totalEarnings: earnings[0]?.total || 0,
-      pendingEarnings: 0
+      totalEarnings: row?.total || 0,
+      pendingEarnings: row?.pending || 0
     };
   }
 
@@ -1435,6 +1436,23 @@ export class DatabaseStorage implements IStorage {
       .where(eq(publisherAdvertisers.advertiserId, advertiserId))
       .returning();
     return result.length;
+  }
+
+  async getAdvertiserReferralFinancialStats(advertiserId: string): Promise<{ accrued: number; paid: number; pending: number }> {
+    const result = await db.execute(sql`
+      SELECT 
+        COALESCE(SUM(amount::numeric), 0)::float as "accrued",
+        COALESCE(SUM(CASE WHEN status = 'paid' THEN amount::numeric ELSE 0 END), 0)::float as "paid",
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN amount::numeric ELSE 0 END), 0)::float as "pending"
+      FROM referral_earnings
+      WHERE advertiser_id = ${advertiserId}
+    `);
+    const row = result.rows[0] as any;
+    return {
+      accrued: row?.accrued || 0,
+      paid: row?.paid || 0,
+      pending: row?.pending || 0
+    };
   }
 
   async setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined> {

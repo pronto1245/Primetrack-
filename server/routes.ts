@@ -9437,6 +9437,20 @@ export async function registerRoutes(
     }
   });
 
+  // Advertiser: Get referral financial stats (accrued/paid/pending)
+  app.get("/api/advertiser/referrals/stats", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const stats = await storage.getAdvertiserReferralFinancialStats(advertiserId);
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Publisher: Get referral link and settings for specific advertiser
   app.get("/api/publisher/referrals/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {

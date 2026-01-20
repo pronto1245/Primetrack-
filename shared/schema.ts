@@ -2295,6 +2295,7 @@ export const referralEarnings = pgTable("referral_earnings", {
   referralRate: numeric("referral_rate", { precision: 5, scale: 2 }).notNull(),
   originalPayout: numeric("original_payout", { precision: 12, scale: 2 }).notNull(),
   currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => ({
   referrerIdx: index("referral_earnings_referrer_idx").on(table.referrerId),
@@ -2305,6 +2306,7 @@ export const referralEarnings = pgTable("referral_earnings", {
 
 export const insertReferralEarningSchema = createInsertSchema(referralEarnings).omit({
   id: true,
+  status: true,
   createdAt: true,
 });
 

@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Users2, Search, Percent, DollarSign, UserPlus, Save, Loader2, TrendingUp, Settings2
+  Users2, Search, Percent, DollarSign, UserPlus, Save, Loader2, TrendingUp, Settings2, Wallet, CheckCircle2, Clock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -34,6 +34,15 @@ export function AdvertiserReferrals() {
     queryFn: async () => {
       const res = await fetch("/api/advertiser/referrals", { credentials: "include" });
       if (!res.ok) throw new Error("Не удалось загрузить данные");
+      return res.json();
+    },
+  });
+
+  const { data: financialStats } = useQuery<{ accrued: number; paid: number; pending: number }>({
+    queryKey: ["advertiser-referrals-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/advertiser/referrals/stats", { credentials: "include" });
+      if (!res.ok) throw new Error("Не удалось загрузить статистику");
       return res.json();
     },
   });
@@ -167,6 +176,50 @@ export function AdvertiserReferrals() {
               </div>
               <div className="p-3 rounded-full bg-yellow-500/20">
                 <DollarSign className="w-5 h-5 text-yellow-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-purple-500/30">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Начислено</p>
+                <p className="text-2xl font-bold text-purple-400" data-testid="text-accrued">${(financialStats?.accrued || 0).toFixed(2)}</p>
+              </div>
+              <div className="p-3 rounded-full bg-purple-500/20">
+                <Wallet className="w-5 h-5 text-purple-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-emerald-500/30">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Выплачено</p>
+                <p className="text-2xl font-bold text-emerald-400" data-testid="text-paid">${(financialStats?.paid || 0).toFixed(2)}</p>
+              </div>
+              <div className="p-3 rounded-full bg-emerald-500/20">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-500/30">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Осталось к выплате</p>
+                <p className="text-2xl font-bold text-orange-400" data-testid="text-pending">${(financialStats?.pending || 0).toFixed(2)}</p>
+              </div>
+              <div className="p-3 rounded-full bg-orange-500/20">
+                <Clock className="w-5 h-5 text-orange-400" />
               </div>
             </div>
           </CardContent>
