@@ -53,7 +53,6 @@ export function AdvertiserReferrals() {
       referralEnabled?: boolean; 
       referralRate?: string;
     }) => {
-      console.log("[FE] Updating single publisher:", publisherId, { referralEnabled, referralRate });
       const res = await apiRequest("PATCH", `/api/advertiser/referrals/${publisherId}`, { 
         referralEnabled, 
         referralRate 
@@ -76,7 +75,6 @@ export function AdvertiserReferrals() {
 
   const bulkMutation = useMutation({
     mutationFn: async ({ referralEnabled, referralRate }: { referralEnabled: boolean; referralRate: string }) => {
-      console.log("[FE] Bulk update:", { referralEnabled, referralRate });
       const res = await apiRequest("PATCH", "/api/advertiser/referrals/bulk", { referralEnabled, referralRate });
       return res.json();
     },

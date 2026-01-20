@@ -9440,7 +9440,6 @@ export async function registerRoutes(
 
   // Advertiser: Bulk update referral settings for all publishers (MUST be before :publisherId)
   app.patch("/api/advertiser/referrals/bulk", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
-    console.log("[BULK] Bulk referral endpoint called:", req.path, req.body);
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
       if (!advertiserId) {
@@ -9482,7 +9481,6 @@ export async function registerRoutes(
 
   // Advertiser: Update referral settings for a publisher
   app.patch("/api/advertiser/referrals/:publisherId", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
-    console.log("[SINGLE] Single publisher referral endpoint called:", req.path, "publisherId:", req.params.publisherId, "body:", req.body);
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
       if (!advertiserId) {
