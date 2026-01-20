@@ -9525,11 +9525,38 @@ export async function registerRoutes(
         return res.json({ enabled: false });
       }
       
-      const user = await storage.getUser(publisherId);
-      const referralCode = user?.referralCode;
+      let user = await storage.getUser(publisherId);
+      let referralCode = user?.referralCode;
       
+      // Генерируем уникальный реферальный код для партнёра если его нет
       if (!referralCode) {
-        return res.json({ enabled: true, hasCode: false });
+        const crypto = await import("crypto");
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (attempts < maxAttempts) {
+          const candidateCode = `PUB-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+          
+          try {
+            const updated = await storage.updateUser(publisherId, { referralCode: candidateCode });
+            if (updated) {
+              referralCode = candidateCode;
+              break;
+            }
+          } catch (dbError: any) {
+            // Уникальное ограничение нарушено — пробуем другой код
+            if (dbError?.code === "23505" || dbError?.message?.includes("unique")) {
+              attempts++;
+              continue;
+            }
+            throw dbError;
+          }
+          attempts++;
+        }
+        
+        if (!referralCode) {
+          return res.status(500).json({ message: "Не удалось сгенерировать уникальный код" });
+        }
       }
       
       const baseUrl = process.env.REPLIT_DEV_DOMAIN 
