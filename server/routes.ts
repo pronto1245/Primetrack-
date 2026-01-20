@@ -9472,10 +9472,18 @@ export async function registerRoutes(
         return res.json({ enabled: true, hasCode: false });
       }
       
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+        : process.env.REPL_SLUG 
+          ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER?.toLowerCase()}.repl.co`
+          : "https://primetrack.io";
+      const referralLink = `${baseUrl}/register?ref=${referralCode}&adv=${advertiserId}`;
+      
       res.json({
         enabled: true,
         hasCode: true,
         referralCode,
+        referralLink,
         referralRate: settings.referralRate
       });
     } catch (error: any) {
