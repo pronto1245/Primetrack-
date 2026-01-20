@@ -20,7 +20,9 @@ const CONTACT_TYPES = [
 export default function PublisherRegister() {
   const [, setLocation] = useLocation();
   const params = useParams<{ ref?: string }>();
-  const referralCode = params.ref || new URLSearchParams(window.location.search).get("ref") || "";
+  const searchParams = new URLSearchParams(window.location.search);
+  const referralCode = params.ref || searchParams.get("ref") || "";
+  const advertiserId = searchParams.get("adv") || "";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -39,10 +41,13 @@ export default function PublisherRegister() {
   const [linkAdvertiserData, setLinkAdvertiserData] = useState<{ advertiserId: string; advertiserName: string } | null>(null);
 
   const { data: referralData, isLoading: isValidating } = useQuery({
-    queryKey: ["validate-referral", referralCode],
+    queryKey: ["validate-referral", referralCode, advertiserId],
     queryFn: async () => {
       if (!referralCode) return null;
-      const response = await fetch(`/api/auth/validate-referral/${referralCode}`, { credentials: "include" });
+      const url = advertiserId 
+        ? `/api/auth/validate-referral/${referralCode}?adv=${advertiserId}`
+        : `/api/auth/validate-referral/${referralCode}`;
+      const response = await fetch(url, { credentials: "include" });
       if (!response.ok) return null;
       return response.json();
     },
@@ -50,7 +55,7 @@ export default function PublisherRegister() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: typeof formData & { referralCode?: string }) => {
+    mutationFn: async (data: typeof formData & { referralCode?: string; advertiserId?: string; referrerId?: string }) => {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,6 +68,8 @@ export default function PublisherRegister() {
           contactValue: data.contactValue,
           password: data.password,
           referralCode: data.referralCode,
+          advertiserId: data.advertiserId,
+          referrerId: data.referrerId,
         }),
         credentials: "include",
       });
@@ -150,6 +157,8 @@ export default function PublisherRegister() {
     registerMutation.mutate({
       ...formData,
       referralCode: referralCode || undefined,
+      advertiserId: referralData?.advertiserId || undefined,
+      referrerId: referralData?.referrerId || undefined,
     });
   };
 
@@ -274,9 +283,17 @@ export default function PublisherRegister() {
                 <span>Проверка ссылки...</span>
               </div>
             ) : referralData?.valid ? (
-              <div className="flex items-center gap-2 text-emerald-400">
-                <CheckCircle className="w-4 h-4" />
-                <span>Рекламодатель: <strong>{referralData.advertiserName}</strong></span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Рекламодатель: <strong>{referralData.advertiserName}</strong></span>
+                </div>
+                {referralData.type === "publisher" && referralData.referrerName && (
+                  <div className="flex items-center gap-2 text-blue-400 text-sm">
+                    <User className="w-3 h-3" />
+                    <span>Приглашает: <strong>{referralData.referrerName}</strong></span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2 text-red-400">

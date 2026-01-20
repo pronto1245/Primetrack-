@@ -16,10 +16,14 @@ export default function Register() {
   const referralCode = params.ref || searchParams.get("ref") || "";
   const advertiserId = searchParams.get("adv") || "";
 
-  // If there's a referral code without adv parameter (old format), redirect to publisher registration
+  // Redirect to full publisher registration form when referral code is present
   useEffect(() => {
-    if (referralCode && !advertiserId) {
-      setLocation(`/register/${referralCode}`);
+    if (referralCode) {
+      // Redirect to /register/:ref with adv param if present
+      const redirectUrl = advertiserId 
+        ? `/register/${referralCode}?adv=${advertiserId}`
+        : `/register/${referralCode}`;
+      setLocation(redirectUrl);
     }
   }, [referralCode, advertiserId, setLocation]);
 

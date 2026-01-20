@@ -9564,7 +9564,8 @@ export async function registerRoutes(
         : process.env.REPL_SLUG 
           ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER?.toLowerCase()}.repl.co`
           : "https://primetrack.io";
-      const referralLink = `${baseUrl}/register?ref=${referralCode}&adv=${advertiserId}`;
+      // Формат: /register/:referralCode?adv=advertiserId для использования полной формы регистрации
+      const referralLink = `${baseUrl}/register/${referralCode}?adv=${advertiserId}`;
       
       res.json({
         enabled: true,
