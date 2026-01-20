@@ -164,7 +164,7 @@ export function PublisherReferrals() {
       </div>
 
       {referralInfo?.referralLink && (
-        <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-purple-500/20">
