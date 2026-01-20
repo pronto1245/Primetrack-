@@ -194,62 +194,38 @@ export function PublisherReferrals() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Процент</p>
-                <p className="text-2xl font-bold text-foreground" data-testid="text-referral-rate">{referralRate}%</p>
-              </div>
-              <div className="p-3 rounded-full bg-purple-500/20">
-                <TrendingUp className="w-5 h-5 text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="w-4 h-4 text-purple-400" />
+            <p className="text-xs text-muted-foreground">Процент</p>
+          </div>
+          <p className="text-xl font-bold text-purple-400" data-testid="text-referral-rate">{referralRate}%</p>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Привлечено</p>
-                <p className="text-2xl font-bold text-foreground" data-testid="text-total-referred">{totalReferred}</p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-500/20">
-                <UserPlus className="w-5 h-5 text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <UserPlus className="w-4 h-4 text-blue-400" />
+            <p className="text-xs text-muted-foreground">Привлечено</p>
+          </div>
+          <p className="text-xl font-bold text-blue-400" data-testid="text-total-referred">{totalReferred}</p>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Заработано</p>
-                <p className="text-2xl font-bold text-emerald-400" data-testid="text-total-earnings">${totalEarnings.toFixed(2)}</p>
-              </div>
-              <div className="p-3 rounded-full bg-emerald-500/20">
-                <DollarSign className="w-5 h-5 text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs text-muted-foreground">Заработано</p>
+          </div>
+          <p className="text-xl font-bold text-emerald-400" data-testid="text-total-earnings">${totalEarnings.toFixed(2)}</p>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Ожидает</p>
-                <p className="text-2xl font-bold text-yellow-400" data-testid="text-pending-earnings">${pendingEarnings.toFixed(2)}</p>
-              </div>
-              <div className="p-3 rounded-full bg-yellow-500/20">
-                <Clock className="w-5 h-5 text-yellow-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4 text-yellow-400" />
+            <p className="text-xs text-muted-foreground">Ожидает</p>
+          </div>
+          <p className="text-xl font-bold text-yellow-400" data-testid="text-pending-earnings">${pendingEarnings.toFixed(2)}</p>
+        </div>
       </div>
 
       {stats?.referredPartners && stats.referredPartners.length > 0 && (
