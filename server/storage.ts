@@ -49,7 +49,8 @@ import {
   type PlatformWebhook, type InsertPlatformWebhook, platformWebhooks,
   type PlatformWebhookLog, type InsertPlatformWebhookLog, platformWebhookLogs,
   type DailyStats, dailyStats,
-  type AdvertiserSource, type InsertAdvertiserSource, advertiserSources
+  type AdvertiserSource, type InsertAdvertiserSource, advertiserSources,
+  type ReferralEarning, type InsertReferralEarning, referralEarnings
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -357,6 +358,16 @@ export interface IStorage {
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
   getPublishersByAdvertiser(advertiserId: string): Promise<(PublisherAdvertiser & { publisher: User })[]>;
   addPublisherToAdvertiser(publisherId: string, advertiserId: string, status?: string): Promise<PublisherAdvertiser>;
+  
+  // Referral System
+  updatePublisherReferralSettings(publisherId: string, advertiserId: string, data: { referralEnabled?: boolean; referralRate?: string }): Promise<PublisherAdvertiser | undefined>;
+  getPublisherReferralSettings(publisherId: string, advertiserId: string): Promise<{ referralEnabled: boolean; referralRate: string } | undefined>;
+  getReferredPublishers(referrerId: string, advertiserId: string): Promise<User[]>;
+  createReferralEarning(earning: InsertReferralEarning): Promise<ReferralEarning>;
+  getReferralEarnings(referrerId: string, advertiserId: string): Promise<ReferralEarning[]>;
+  getReferralStats(referrerId: string, advertiserId: string): Promise<{ totalReferred: number; totalEarnings: number; pendingEarnings: number }>;
+  getAdvertiserReferralStats(advertiserId: string): Promise<Array<{ publisherId: string; publisherName: string; referralEnabled: boolean; referralRate: string; referredCount: number; totalPaid: number }>>;
+  setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined>;
   
   // Offer Caps Stats
   getOfferCapsStats(offerId: string, date: string): Promise<OfferCapsStats | undefined>;
@@ -1288,6 +1299,133 @@ export class DatabaseStorage implements IStorage {
       status
     }).returning();
     return relation;
+  }
+
+  // Referral System Methods
+  async updatePublisherReferralSettings(publisherId: string, advertiserId: string, data: { referralEnabled?: boolean; referralRate?: string }): Promise<PublisherAdvertiser | undefined> {
+    const [updated] = await db.update(publisherAdvertisers)
+      .set(data)
+      .where(and(
+        eq(publisherAdvertisers.publisherId, publisherId),
+        eq(publisherAdvertisers.advertiserId, advertiserId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async getPublisherReferralSettings(publisherId: string, advertiserId: string): Promise<{ referralEnabled: boolean; referralRate: string } | undefined> {
+    const [result] = await db.select({
+      referralEnabled: publisherAdvertisers.referralEnabled,
+      referralRate: publisherAdvertisers.referralRate
+    })
+      .from(publisherAdvertisers)
+      .where(and(
+        eq(publisherAdvertisers.publisherId, publisherId),
+        eq(publisherAdvertisers.advertiserId, advertiserId)
+      ));
+    
+    if (!result) return undefined;
+    return {
+      referralEnabled: result.referralEnabled,
+      referralRate: result.referralRate || "0"
+    };
+  }
+
+  async getReferredPublishers(referrerId: string, advertiserId: string): Promise<User[]> {
+    const referred = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.referredByPublisherId, referrerId),
+        eq(users.referredByAdvertiserId, advertiserId)
+      ));
+    return referred;
+  }
+
+  async createReferralEarning(earning: InsertReferralEarning): Promise<ReferralEarning> {
+    const [created] = await db.insert(referralEarnings).values(earning).returning();
+    return created;
+  }
+
+  async getReferralEarnings(referrerId: string, advertiserId: string): Promise<ReferralEarning[]> {
+    return db.select()
+      .from(referralEarnings)
+      .where(and(
+        eq(referralEarnings.referrerId, referrerId),
+        eq(referralEarnings.advertiserId, advertiserId)
+      ))
+      .orderBy(desc(referralEarnings.createdAt));
+  }
+
+  async getReferralStats(referrerId: string, advertiserId: string): Promise<{ totalReferred: number; totalEarnings: number; pendingEarnings: number }> {
+    const referred = await db.select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .where(and(
+        eq(users.referredByPublisherId, referrerId),
+        eq(users.referredByAdvertiserId, advertiserId)
+      ));
+    
+    const earnings = await db.select({
+      total: sql<number>`COALESCE(SUM(amount::numeric), 0)::float`
+    })
+      .from(referralEarnings)
+      .where(and(
+        eq(referralEarnings.referrerId, referrerId),
+        eq(referralEarnings.advertiserId, advertiserId)
+      ));
+    
+    return {
+      totalReferred: referred[0]?.count || 0,
+      totalEarnings: earnings[0]?.total || 0,
+      pendingEarnings: 0
+    };
+  }
+
+  async getAdvertiserReferralStats(advertiserId: string): Promise<Array<{ publisherId: string; publisherName: string; referralEnabled: boolean; referralRate: string; referredCount: number; totalPaid: number }>> {
+    // Single SQL query with LEFT JOINs and aggregation to avoid N+1
+    const result = await db.execute(sql`
+      SELECT 
+        pa.publisher_id as "publisherId",
+        u.username as "publisherName",
+        pa.referral_enabled as "referralEnabled",
+        COALESCE(pa.referral_rate, '0') as "referralRate",
+        COALESCE(ref_counts.count, 0)::int as "referredCount",
+        COALESCE(earnings.total, 0)::float as "totalPaid"
+      FROM publisher_advertisers pa
+      INNER JOIN users u ON pa.publisher_id = u.id
+      LEFT JOIN (
+        SELECT referred_by_publisher_id, COUNT(*) as count
+        FROM users
+        WHERE referred_by_advertiser_id = ${advertiserId}
+        GROUP BY referred_by_publisher_id
+      ) ref_counts ON ref_counts.referred_by_publisher_id = pa.publisher_id
+      LEFT JOIN (
+        SELECT referrer_id, SUM(amount::numeric) as total
+        FROM referral_earnings
+        WHERE advertiser_id = ${advertiserId}
+        GROUP BY referrer_id
+      ) earnings ON earnings.referrer_id = pa.publisher_id
+      WHERE pa.advertiser_id = ${advertiserId}
+    `);
+    
+    return (result.rows as any[]).map(row => ({
+      publisherId: row.publisherId,
+      publisherName: row.publisherName,
+      referralEnabled: row.referralEnabled,
+      referralRate: row.referralRate || "0",
+      referredCount: row.referredCount || 0,
+      totalPaid: row.totalPaid || 0
+    }));
+  }
+
+  async setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({
+        referredByPublisherId: referrerId,
+        referredByAdvertiserId: advertiserId
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
   }
 
   // Advanced Advertiser Statistics with Filters
