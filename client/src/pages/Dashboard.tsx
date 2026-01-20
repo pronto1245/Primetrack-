@@ -8,7 +8,7 @@ import {
   Link as LinkIcon, DollarSign, BarChart2, Users, Target, Wallet,
   ArrowUpRight, Activity, Filter, RefreshCw, Calendar,
   Plus, Search, UserPlus, ChevronDown, Building2,
-  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb, GitBranch, Blocks
+  Phone, Send, Globe, Newspaper, Menu, X, Lightbulb, GitBranch, Blocks, Users2
 } from "lucide-react";
 import { FeatureSuggestionModal } from "@/components/FeatureSuggestionModal";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -46,6 +46,8 @@ import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminDomainRequests } from "@/components/dashboard/AdminDomainRequests";
 import { AdminSubscriptions } from "@/components/dashboard/AdminSubscriptions";
 import { AdvertiserTeam } from "@/components/dashboard/AdvertiserTeam";
+import { AdvertiserReferrals } from "@/components/dashboard/AdvertiserReferrals";
+import { PublisherReferrals } from "@/components/dashboard/PublisherReferrals";
 import { NewsFeed } from "@/components/dashboard/NewsFeed";
 import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
 import NewsComposer from "@/pages/NewsComposer";
@@ -204,6 +206,7 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
+      { icon: Users2, label: "Рефералы", path: `/dashboard/${role}/referrals`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
     publisher: [
@@ -212,6 +215,7 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
       { icon: GitBranch, label: t('dashboard.menu.splitTests'), path: `/dashboard/${role}/split-tests`, color: "text-teal-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
+      { icon: Users2, label: "Рефералы", path: `/dashboard/${role}/referrals`, color: "text-pink-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
@@ -399,6 +403,7 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Briefcase, label: "Команда", path: `/dashboard/${role}/team`, color: "text-indigo-400" },
+      { icon: Users2, label: "Рефералы", path: `/dashboard/${role}/referrals`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
     ],
     publisher: [
@@ -407,6 +412,7 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
       { icon: GitBranch, label: t('dashboard.menu.splitTests'), path: `/dashboard/${role}/split-tests`, color: "text-teal-400" },
       { icon: Activity, label: t('dashboard.menu.reports'), path: `/dashboard/${role}/reports`, color: "text-purple-400" },
       { icon: DollarSign, label: t('dashboard.menu.payouts'), path: `/dashboard/${role}/payouts`, color: "text-yellow-400" },
+      { icon: Users2, label: "Рефералы", path: `/dashboard/${role}/referrals`, color: "text-pink-400" },
       { icon: Newspaper, label: "Новости", path: `/dashboard/${role}/news`, color: "text-orange-400" },
       { icon: Globe, label: "Постбеки", path: `/dashboard/${role}/postbacks`, color: "text-pink-400" },
       { icon: Settings, label: t('dashboard.menu.settings'), path: `/dashboard/${role}/settings`, color: "text-muted-foreground" },
@@ -568,6 +574,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
   const [matchAnalytics] = useRoute("/dashboard/:role/analytics");
   const [matchSplitTests] = useRoute("/dashboard/:role/split-tests");
   const [matchIntegrations] = useRoute("/dashboard/:role/integrations");
+  const [matchReferrals] = useRoute("/dashboard/:role/referrals");
   
   // Staff access control - redirect to overview if accessing restricted section
   // Wait for staffLoading to complete before checking access
@@ -728,6 +735,15 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
     if (showTeam) {
       return <AdvertiserTeam />;
+    }
+
+    if (matchReferrals) {
+      if (role === 'advertiser') {
+        return <AdvertiserReferrals />;
+      }
+      if (role === 'publisher') {
+        return <PublisherReferrals />;
+      }
     }
 
     if (showUsers) {
