@@ -365,6 +365,7 @@ export interface IStorage {
   getReferredPublishers(referrerId: string, advertiserId: string): Promise<User[]>;
   createReferralEarning(earning: InsertReferralEarning): Promise<ReferralEarning>;
   getReferralEarnings(referrerId: string, advertiserId: string): Promise<ReferralEarning[]>;
+  getReferralEarningByConversion(conversionId: string): Promise<ReferralEarning | undefined>;
   getReferralStats(referrerId: string, advertiserId: string): Promise<{ totalReferred: number; totalEarnings: number; pendingEarnings: number }>;
   getAdvertiserReferralStats(advertiserId: string): Promise<Array<{ publisherId: string; publisherName: string; referralEnabled: boolean; referralRate: string; referredCount: number; totalPaid: number }>>;
   setUserReferrer(userId: string, referrerId: string, advertiserId: string): Promise<User | undefined>;
@@ -1354,6 +1355,13 @@ export class DatabaseStorage implements IStorage {
         eq(referralEarnings.advertiserId, advertiserId)
       ))
       .orderBy(desc(referralEarnings.createdAt));
+  }
+
+  async getReferralEarningByConversion(conversionId: string): Promise<ReferralEarning | undefined> {
+    const [result] = await db.select()
+      .from(referralEarnings)
+      .where(eq(referralEarnings.conversionId, conversionId));
+    return result;
   }
 
   async getReferralStats(referrerId: string, advertiserId: string): Promise<{ totalReferred: number; totalEarnings: number; pendingEarnings: number }> {

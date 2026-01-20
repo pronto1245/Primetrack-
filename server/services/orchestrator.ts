@@ -309,6 +309,12 @@ export class Orchestrator {
   async approveConversion(conversionId: string): Promise<void> {
     const conversion = await storage.getConversion(conversionId);
     const previousStatus = conversion?.status;
+    
+    // Skip if already approved (idempotency)
+    if (previousStatus === "approved") {
+      return;
+    }
+    
     await storage.updateConversionStatus(conversionId, "approved");
     
     // If released from hold, send webhook
@@ -321,6 +327,65 @@ export class Orchestrator {
         }).catch(console.error);
       }
     }
+    
+    // Process referral bonus if applicable (only on first approval)
+    if (conversion && parseFloat(conversion.publisherPayout || "0") > 0) {
+      this.processReferralBonus(conversion).catch(err => {
+        console.error("[Orchestrator] Referral bonus processing failed:", err);
+      });
+    }
+  }
+  
+  private async processReferralBonus(conversion: any): Promise<void> {
+    // Check for existing referral earning (idempotency)
+    const existingEarning = await storage.getReferralEarningByConversion(conversion.id);
+    if (existingEarning) {
+      return; // Already processed
+    }
+    
+    const publisher = await storage.getUser(conversion.publisherId);
+    if (!publisher?.referredByPublisherId || !publisher?.referredByAdvertiserId) {
+      return; // Not a referred publisher
+    }
+    
+    const offer = await storage.getOffer(conversion.offerId);
+    if (!offer || offer.advertiserId !== publisher.referredByAdvertiserId) {
+      return; // Conversion not from the same advertiser who has the referral
+    }
+    
+    const settings = await storage.getPublisherReferralSettings(
+      publisher.referredByPublisherId,
+      publisher.referredByAdvertiserId
+    );
+    
+    if (!settings?.referralEnabled || !settings.referralRate) {
+      return; // Referral not enabled for this referrer
+    }
+    
+    const referralRate = parseFloat(settings.referralRate);
+    if (referralRate <= 0) {
+      return;
+    }
+    
+    const originalPayout = parseFloat(conversion.publisherPayout || "0");
+    const bonusAmount = (originalPayout * referralRate) / 100;
+    
+    if (bonusAmount <= 0) {
+      return;
+    }
+    
+    await storage.createReferralEarning({
+      referrerId: publisher.referredByPublisherId,
+      referredId: conversion.publisherId,
+      advertiserId: publisher.referredByAdvertiserId,
+      conversionId: conversion.id,
+      amount: bonusAmount.toFixed(2),
+      referralRate: referralRate.toFixed(2),
+      originalPayout: originalPayout.toFixed(2),
+      currency: conversion.currency || "USD"
+    });
+    
+    console.log(`[Orchestrator] Referral bonus created: $${bonusAmount.toFixed(2)} for referrer ${publisher.referredByPublisherId}`);
   }
   
   async rejectConversion(conversionId: string, reason?: string): Promise<void> {
