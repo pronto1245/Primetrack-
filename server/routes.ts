@@ -9360,5 +9360,169 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // REFERRAL SYSTEM ROUTES
+  // ============================================
+  
+  // Advertiser: Get referral stats for all publishers
+  app.get("/api/advertiser/referrals", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const stats = await storage.getAdvertiserReferralStats(advertiserId);
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Advertiser: Update referral settings for a publisher
+  app.patch("/api/advertiser/referrals/:publisherId", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const { publisherId } = req.params;
+      const { referralEnabled, referralRate } = req.body;
+      
+      if (typeof referralEnabled !== "boolean" && referralEnabled !== undefined) {
+        return res.status(400).json({ message: "referralEnabled должен быть boolean" });
+      }
+      if (referralRate !== undefined && (isNaN(parseFloat(referralRate)) || parseFloat(referralRate) < 0 || parseFloat(referralRate) > 100)) {
+        return res.status(400).json({ message: "referralRate должен быть числом от 0 до 100" });
+      }
+      
+      const updated = await storage.updatePublisherReferralSettings(publisherId, advertiserId, {
+        referralEnabled,
+        referralRate: referralRate?.toString()
+      });
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Партнёр не найден" });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Publisher: Get referral link and settings for specific advertiser
+  app.get("/api/publisher/referrals/:advertiserId", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherId = req.session.userId;
+      if (!publisherId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const { advertiserId } = req.params;
+      
+      const settings = await storage.getPublisherReferralSettings(publisherId, advertiserId);
+      if (!settings || !settings.referralEnabled) {
+        return res.json({ enabled: false });
+      }
+      
+      const user = await storage.getUser(publisherId);
+      const referralCode = user?.referralCode;
+      
+      if (!referralCode) {
+        return res.json({ enabled: true, hasCode: false });
+      }
+      
+      res.json({
+        enabled: true,
+        hasCode: true,
+        referralCode,
+        referralRate: settings.referralRate
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Publisher: Get referral stats for specific advertiser
+  app.get("/api/publisher/referrals/:advertiserId/stats", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherId = req.session.userId;
+      if (!publisherId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const { advertiserId } = req.params;
+      
+      const settings = await storage.getPublisherReferralSettings(publisherId, advertiserId);
+      if (!settings || !settings.referralEnabled) {
+        return res.json({ enabled: false });
+      }
+      
+      const stats = await storage.getReferralStats(publisherId, advertiserId);
+      const referred = await storage.getReferredPublishers(publisherId, advertiserId);
+      
+      res.json({
+        enabled: true,
+        referralRate: settings.referralRate,
+        totalReferred: stats.totalReferred,
+        totalEarnings: stats.totalEarnings,
+        referred: referred.map(u => ({
+          id: u.id,
+          username: u.username,
+          createdAt: u.createdAt
+        }))
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Publisher: Get referral earnings history
+  app.get("/api/publisher/referrals/:advertiserId/earnings", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherId = req.session.userId;
+      if (!publisherId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const { advertiserId } = req.params;
+      
+      const earnings = await storage.getReferralEarnings(publisherId, advertiserId);
+      res.json(earnings);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Publisher: Get all advertisers with referral programs (for menu)
+  app.get("/api/publisher/referral-programs", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const publisherId = req.session.userId;
+      if (!publisherId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const advertisers = await storage.getAdvertisersForPublisher(publisherId);
+      
+      const programs = await Promise.all(
+        advertisers
+          .filter(a => a.status === "active")
+          .map(async (a) => {
+            const settings = await storage.getPublisherReferralSettings(publisherId, a.advertiserId);
+            if (!settings?.referralEnabled) return null;
+            
+            const stats = await storage.getReferralStats(publisherId, a.advertiserId);
+            return {
+              advertiserId: a.advertiserId,
+              advertiserName: a.advertiser.companyName || a.advertiser.username,
+              referralRate: settings.referralRate,
+              totalReferred: stats.totalReferred,
+              totalEarnings: stats.totalEarnings
+            };
+          })
+      );
+      
+      res.json(programs.filter(Boolean));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
