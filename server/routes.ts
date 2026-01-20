@@ -829,7 +829,7 @@ export async function registerRoutes(
 
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
-      const { username, password, email, referralCode, fullName, phone, contactType, contactValue } = req.body;
+      const { username, password, email, referralCode, fullName, phone, contactType, contactValue, advertiserId: directAdvertiserId, referrerId } = req.body;
 
       if (!username || !password || !email) {
         return res.status(400).json({ message: "Username, password and email are required" });
@@ -869,8 +869,34 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Username already exists" });
       }
 
+      // Определяем advertiserId и referrerId с серверной валидацией
       let advertiserId: string | null = null;
-      if (referralCode) {
+      let validatedReferrerId: string | null = null;
+      
+      // Если передан directAdvertiserId и referrerId - это партнёрский реферал
+      if (directAdvertiserId && referrerId) {
+        // Валидация: advertiser должен существовать и быть рекламодателем
+        const advertiser = await storage.getUser(directAdvertiserId);
+        if (!advertiser || advertiser.role !== "advertiser") {
+          return res.status(400).json({ message: "Invalid advertiser" });
+        }
+        
+        // Валидация: referrer должен существовать и быть партнёром
+        const referrer = await storage.getUser(referrerId);
+        if (!referrer || referrer.role !== "publisher") {
+          return res.status(400).json({ message: "Invalid referrer" });
+        }
+        
+        // Валидация: у referrer должна быть активная реферальная программа у этого рекламодателя
+        const referralSettings = await storage.getPublisherReferralSettings(referrerId, directAdvertiserId);
+        if (!referralSettings?.referralEnabled) {
+          return res.status(400).json({ message: "Referral program not active" });
+        }
+        
+        advertiserId = directAdvertiserId;
+        validatedReferrerId = referrerId;
+      } else if (referralCode) {
+        // Стандартный реферальный код рекламодателя
         const advertiser = await storage.getUserByReferralCode(referralCode);
         if (!advertiser || advertiser.role !== "advertiser") {
           return res.status(400).json({ message: "Invalid referral code" });
@@ -888,6 +914,8 @@ export async function registerRoutes(
         contactType: contactType || null,
         contactValue: contactValue || null,
         telegram: contactType === "telegram" ? contactValue : null,
+        referredByPublisherId: validatedReferrerId,
+        referredByAdvertiserId: validatedReferrerId ? advertiserId : null,
       });
 
       if (advertiserId) {
@@ -9410,40 +9438,9 @@ export async function registerRoutes(
     }
   });
 
-  // Advertiser: Update referral settings for a publisher
-  app.patch("/api/advertiser/referrals/:publisherId", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
-    try {
-      const advertiserId = getEffectiveAdvertiserId(req);
-      if (!advertiserId) {
-        return res.status(401).json({ message: "Не авторизован" });
-      }
-      const { publisherId } = req.params;
-      const { referralEnabled, referralRate } = req.body;
-      
-      if (typeof referralEnabled !== "boolean" && referralEnabled !== undefined) {
-        return res.status(400).json({ message: "referralEnabled должен быть boolean" });
-      }
-      if (referralRate !== undefined && (isNaN(parseFloat(referralRate)) || parseFloat(referralRate) < 0 || parseFloat(referralRate) > 100)) {
-        return res.status(400).json({ message: "referralRate должен быть числом от 0 до 100" });
-      }
-      
-      const updated = await storage.updatePublisherReferralSettings(publisherId, advertiserId, {
-        referralEnabled,
-        referralRate: referralRate?.toString()
-      });
-      
-      if (!updated) {
-        return res.status(404).json({ message: "Партнёр не найден" });
-      }
-      
-      res.json(updated);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Advertiser: Bulk update referral settings for all publishers
+  // Advertiser: Bulk update referral settings for all publishers (MUST be before :publisherId)
   app.patch("/api/advertiser/referrals/bulk", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
+    console.log("[BULK] Bulk referral endpoint called:", req.path, req.body);
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
       if (!advertiserId) {
@@ -9469,7 +9466,7 @@ export async function registerRoutes(
     }
   });
 
-  // Advertiser: Get referral financial stats (accrued/paid/pending)
+  // Advertiser: Get referral financial stats (MUST be before :publisherId)
   app.get("/api/advertiser/referrals/stats", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const advertiserId = getEffectiveAdvertiserId(req);
@@ -9478,6 +9475,39 @@ export async function registerRoutes(
       }
       const stats = await storage.getAdvertiserReferralFinancialStats(advertiserId);
       res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Advertiser: Update referral settings for a publisher
+  app.patch("/api/advertiser/referrals/:publisherId", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("team"), async (req: Request, res: Response) => {
+    console.log("[SINGLE] Single publisher referral endpoint called:", req.path, "publisherId:", req.params.publisherId, "body:", req.body);
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Не авторизован" });
+      }
+      const { publisherId } = req.params;
+      const { referralEnabled, referralRate } = req.body;
+      
+      if (typeof referralEnabled !== "boolean" && referralEnabled !== undefined) {
+        return res.status(400).json({ message: "referralEnabled должен быть boolean" });
+      }
+      if (referralRate !== undefined && (isNaN(parseFloat(referralRate)) || parseFloat(referralRate) < 0 || parseFloat(referralRate) > 100)) {
+        return res.status(400).json({ message: "referralRate должен быть числом от 0 до 100" });
+      }
+      
+      const updated = await storage.updatePublisherReferralSettings(publisherId, advertiserId, {
+        referralEnabled,
+        referralRate: referralRate?.toString()
+      });
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Партнёр не найден" });
+      }
+      
+      res.json(updated);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

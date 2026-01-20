@@ -32,10 +32,13 @@ export default function Register() {
   const [error, setError] = useState("");
 
   const { data: referralData, isLoading: isValidating } = useQuery({
-    queryKey: ["validate-referral", referralCode],
+    queryKey: ["validate-referral", referralCode, advertiserId],
     queryFn: async () => {
       if (!referralCode) return null;
-      const response = await fetch(`/api/auth/validate-referral/${referralCode}`, { credentials: "include" });
+      const url = advertiserId 
+        ? `/api/auth/validate-referral/${referralCode}?adv=${advertiserId}`
+        : `/api/auth/validate-referral/${referralCode}`;
+      const response = await fetch(url, { credentials: "include" });
       if (!response.ok) return null;
       return response.json();
     },
@@ -43,12 +46,14 @@ export default function Register() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: typeof formData & { referralCode?: string }) => {
+    mutationFn: async (data: typeof formData & { referralCode?: string; advertiserId?: string; referrerId?: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", {
         username: data.username,
         email: data.email,
         password: data.password,
         referralCode: data.referralCode,
+        advertiserId: data.advertiserId,
+        referrerId: data.referrerId,
       });
       return response.json();
     },
@@ -82,6 +87,8 @@ export default function Register() {
     registerMutation.mutate({
       ...formData,
       referralCode: referralCode || undefined,
+      advertiserId: referralData?.advertiserId || undefined,
+      referrerId: referralData?.referrerId || undefined,
     });
   };
 
@@ -104,17 +111,25 @@ export default function Register() {
               {isValidating ? (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Validating referral code...</span>
+                  <span>Проверка реферальной ссылки...</span>
                 </div>
               ) : referralData?.valid ? (
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Joining advertiser: <strong>{referralData.advertiserName}</strong></span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Рекламодатель: <strong>{referralData.advertiserName}</strong></span>
+                  </div>
+                  {referralData.type === "publisher" && referralData.referrerName && (
+                    <div className="flex items-center gap-2 text-blue-400 text-sm">
+                      <User className="w-3 h-3" />
+                      <span>Приглашает: <strong>{referralData.referrerName}</strong></span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-red-400">
                   <XCircle className="w-4 h-4" />
-                  <span>Invalid referral code</span>
+                  <span>Недействительная реферальная ссылка</span>
                 </div>
               )}
             </div>

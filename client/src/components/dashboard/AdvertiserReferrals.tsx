@@ -53,6 +53,7 @@ export function AdvertiserReferrals() {
       referralEnabled?: boolean; 
       referralRate?: string;
     }) => {
+      console.log("[FE] Updating single publisher:", publisherId, { referralEnabled, referralRate });
       const res = await apiRequest("PATCH", `/api/advertiser/referrals/${publisherId}`, { 
         referralEnabled, 
         referralRate 
@@ -64,10 +65,18 @@ export function AdvertiserReferrals() {
       setEditingId(null);
       setEditRate("");
     },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: error.message,
+      });
+    },
   });
 
   const bulkMutation = useMutation({
     mutationFn: async ({ referralEnabled, referralRate }: { referralEnabled: boolean; referralRate: string }) => {
+      console.log("[FE] Bulk update:", { referralEnabled, referralRate });
       const res = await apiRequest("PATCH", "/api/advertiser/referrals/bulk", { referralEnabled, referralRate });
       return res.json();
     },
