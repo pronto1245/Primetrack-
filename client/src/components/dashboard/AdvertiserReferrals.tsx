@@ -7,8 +7,9 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Users2, Search, Percent, DollarSign, UserPlus, Save, Loader2, TrendingUp
+  Users2, Search, Percent, DollarSign, UserPlus, Save, Loader2, TrendingUp, Settings2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 interface PublisherReferralStats {
@@ -22,9 +23,11 @@ interface PublisherReferralStats {
 
 export function AdvertiserReferrals() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRate, setEditRate] = useState("");
+  const [bulkRate, setBulkRate] = useState("5");
 
   const { data: publishers = [], isLoading } = useQuery<PublisherReferralStats[]>({
     queryKey: ["advertiser-referrals"],
@@ -51,6 +54,27 @@ export function AdvertiserReferrals() {
       queryClient.invalidateQueries({ queryKey: ["advertiser-referrals"] });
       setEditingId(null);
       setEditRate("");
+    },
+  });
+
+  const bulkMutation = useMutation({
+    mutationFn: async ({ referralEnabled, referralRate }: { referralEnabled: boolean; referralRate: string }) => {
+      const res = await apiRequest("PATCH", "/api/advertiser/referrals/bulk", { referralEnabled, referralRate });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["advertiser-referrals"] });
+      toast({
+        title: "Настройки обновлены",
+        description: `Обновлено партнёров: ${data.updated}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: error.message,
+      });
     },
   });
 
@@ -151,17 +175,73 @@ export function AdvertiserReferrals() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Партнёры</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                data-testid="input-search-publishers"
-                placeholder="Поиск партнёра..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Партнёры</CardTitle>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  data-testid="input-search-publishers"
+                  placeholder="Поиск партнёра..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+              <div className="flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Массовые действия:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  data-testid="input-bulk-rate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={bulkRate}
+                  onChange={(e) => setBulkRate(e.target.value)}
+                  className="w-20 h-8 text-center"
+                  placeholder="%"
+                />
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+              <Button
+                data-testid="button-bulk-enable"
+                size="sm"
+                variant="default"
+                className="bg-emerald-600 hover:bg-emerald-700"
+                onClick={() => {
+                  const rate = parseFloat(bulkRate);
+                  if (isNaN(rate) || rate < 0 || rate > 100) {
+                    toast({ variant: "destructive", title: "Ошибка", description: "Процент должен быть от 0 до 100" });
+                    return;
+                  }
+                  bulkMutation.mutate({ referralEnabled: true, referralRate: bulkRate });
+                }}
+                disabled={bulkMutation.isPending || publishers.length === 0}
+              >
+                {bulkMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                Включить для всех
+              </Button>
+              <Button
+                data-testid="button-bulk-disable"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const rate = parseFloat(bulkRate);
+                  if (isNaN(rate) || rate < 0 || rate > 100) {
+                    toast({ variant: "destructive", title: "Ошибка", description: "Процент должен быть от 0 до 100" });
+                    return;
+                  }
+                  bulkMutation.mutate({ referralEnabled: false, referralRate: bulkRate });
+                }}
+                disabled={bulkMutation.isPending || publishers.length === 0}
+              >
+                Выключить для всех
+              </Button>
             </div>
           </div>
         </CardHeader>
