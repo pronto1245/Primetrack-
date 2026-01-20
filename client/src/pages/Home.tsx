@@ -275,58 +275,86 @@ export default function Home() {
         </div>
 
         <div className="w-full max-w-[1200px] mx-auto px-4 relative z-10">
-              <div className="relative rounded-2xl bg-[#0a0a0a] border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden">
-                <div className="h-12 bg-[#111] border-b border-border/50 flex items-center px-4">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/70" />
+          {/* iMac-style Computer Frame */}
+          <div className="relative">
+            {/* Monitor Body */}
+            <div className="relative rounded-[24px] bg-gradient-to-b from-[#3a3a3c] via-[#2c2c2e] to-[#1c1c1e] p-[3px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8),0_0_80px_rgba(16,185,129,0.12)]">
+              <div className="rounded-[22px] bg-gradient-to-b from-[#1a1a1c] to-[#0a0a0a] overflow-hidden">
+                {/* Screen Bezel */}
+                <div className="p-3 md:p-4">
+                  {/* Camera Notch */}
+                  <div className="flex justify-center mb-2">
+                    <div className="w-2 h-2 rounded-full bg-[#1a1a1c] ring-1 ring-[#2a2a2c]" />
                   </div>
-                  <div className="flex-1 flex justify-center gap-1.5 md:gap-3 overflow-x-auto px-4">
-                    {demoTabs.map((tab, i) => {
-                      const Icon = tab.icon;
-                      const colorStyles: Record<string, string> = {
-                        emerald: "bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.4)]",
-                        blue: "bg-blue-500/20 border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.4)]",
-                        purple: "bg-purple-500/20 border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.4)]",
-                        cyan: "bg-cyan-500/20 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.4)]",
-                        amber: "bg-amber-500/20 border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.4)]",
-                        pink: "bg-pink-500/20 border-pink-500/40 shadow-[0_0_12px_rgba(236,72,153,0.4)]",
-                        red: "bg-red-500/20 border-red-500/40 shadow-[0_0_12px_rgba(239,68,68,0.4)]",
-                      };
-                      return (
-                        <button
-                          key={tab.label}
-                          onClick={() => setActiveDemoTab(i)}
-                          data-testid={`demo-tab-${i}`}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all whitespace-nowrap border ${
-                            activeDemoTab === i
-                              ? `text-white ${colorStyles[tab.color]}`
-                              : "text-muted-foreground hover:text-foreground hover:bg-[#1a1a2e]/50 border-transparent hover:border-[#2a2a4a]/50"
-                          }`}
-                        >
-                          <Icon className={`w-3.5 h-3.5 ${tab.iconColor}`} />
-                          <span className="hidden md:inline">{tab.label}</span>
-                        </button>
-                      );
-                    })}
+                  {/* Screen Content */}
+                  <div className="relative rounded-lg bg-[#0a0a0a] border border-[#2a2a2c] overflow-hidden shadow-inner">
+                    {/* Browser Chrome */}
+                    <div className="h-10 md:h-12 bg-[#111] border-b border-[#2a2a2c] flex items-center px-3 md:px-4">
+                      <div className="flex gap-1.5 md:gap-2">
+                        <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#ff5f57]" />
+                        <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#febc2e]" />
+                        <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#28c840]" />
+                      </div>
+                      <div className="flex-1 flex justify-center gap-1 md:gap-2 overflow-x-auto px-2 md:px-4">
+                        {demoTabs.map((tab, i) => {
+                          const Icon = tab.icon;
+                          const colorStyles: Record<string, string> = {
+                            emerald: "bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.4)]",
+                            blue: "bg-blue-500/20 border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.4)]",
+                            purple: "bg-purple-500/20 border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.4)]",
+                            cyan: "bg-cyan-500/20 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.4)]",
+                            amber: "bg-amber-500/20 border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.4)]",
+                            pink: "bg-pink-500/20 border-pink-500/40 shadow-[0_0_12px_rgba(236,72,153,0.4)]",
+                            red: "bg-red-500/20 border-red-500/40 shadow-[0_0_12px_rgba(239,68,68,0.4)]",
+                          };
+                          return (
+                            <button
+                              key={tab.label}
+                              onClick={() => setActiveDemoTab(i)}
+                              data-testid={`demo-tab-${i}`}
+                              className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm font-medium rounded-lg transition-all whitespace-nowrap border ${
+                                activeDemoTab === i
+                                  ? `text-white ${colorStyles[tab.color]}`
+                                  : "text-muted-foreground hover:text-foreground hover:bg-[#1a1a2e]/50 border-transparent hover:border-[#2a2a4a]/50"
+                              }`}
+                            >
+                              <Icon className={`w-3 h-3 md:w-3.5 md:h-3.5 ${tab.iconColor}`} />
+                              <span className="hidden md:inline">{tab.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Video Content */}
+                    <div className="relative w-full" style={{ aspectRatio: '16/9' }} data-testid="demo-video-container">
+                      <video
+                        ref={videoRef}
+                        key={activeDemoTab}
+                        src={demoTabs[activeDemoTab].src}
+                        className="absolute inset-0 w-full h-full object-contain bg-black"
+                        autoPlay
+                        muted
+                        playsInline
+                        onEnded={handleVideoEnd}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="relative w-full" style={{ aspectRatio: '16/9' }} data-testid="demo-video-container">
-                  <video
-                    ref={videoRef}
-                    key={activeDemoTab}
-                    src={demoTabs[activeDemoTab].src}
-                    className="absolute inset-0 w-full h-full object-contain bg-black"
-                    autoPlay
-                    muted
-                    playsInline
-                    onEnded={handleVideoEnd}
-                  />
                 </div>
               </div>
+            </div>
+            {/* Monitor Stand */}
+            <div className="flex flex-col items-center -mt-1">
+              {/* Stand Neck */}
+              <div className="w-24 md:w-32 h-12 md:h-16 bg-gradient-to-b from-[#2c2c2e] via-[#3a3a3c] to-[#2c2c2e] rounded-b-lg shadow-inner" 
+                   style={{ clipPath: 'polygon(15% 0, 85% 0, 100% 100%, 0% 100%)' }} />
+              {/* Stand Base */}
+              <div className="w-40 md:w-56 h-2 md:h-3 bg-gradient-to-b from-[#3a3a3c] to-[#2c2c2e] rounded-full shadow-lg" />
+              {/* Base Shadow */}
+              <div className="w-48 md:w-64 h-1 bg-black/20 rounded-full blur-sm -mt-0.5" />
+            </div>
+          </div>
               
-              <div className="flex justify-center gap-2 mt-4">
+          <div className="flex justify-center gap-2 mt-6">
             {demoTabs.map((_, i) => (
               <button
                 key={i}
