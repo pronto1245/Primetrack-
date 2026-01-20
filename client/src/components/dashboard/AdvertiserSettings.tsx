@@ -12,13 +12,14 @@ import {
   User, Lock, Bell, Palette, Database, Loader2, Save, Eye, EyeOff,
   Send, MessageSquare, Mail, Globe, Upload, Shield, Key, AlertCircle,
   CheckCircle2, Copy, ExternalLink, Webhook, Fingerprint, CreditCard, Clock, TestTube2, Info,
-  Wallet, Trash2
+  Wallet, Trash2, Building2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { WebhooksSettings } from "./WebhooksSettings";
 import { CustomDomainsSettings } from "./CustomDomainsSettings";
 import { E2ETestPanel } from "./E2ETestPanel";
+import { AdvertiserSources } from "./AdvertiserSources";
 
 export function AdvertiserSettings() {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ export function AdvertiserSettings() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="overflow-x-auto -mx-2 px-2 pb-2">
-          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-9 gap-1">
+          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-10 gap-1">
             <TabsTrigger value="profile" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="tab-profile">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Профиль</span>
@@ -72,6 +73,10 @@ export function AdvertiserSettings() {
               <Database className="h-4 w-4" />
               <span className="hidden sm:inline">Миграция</span>
             </TabsTrigger>
+            <TabsTrigger value="sources" className="flex items-center gap-2 whitespace-nowrap data-[state=active]:bg-orange-500 data-[state=active]:text-white" data-testid="tab-sources">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Источники</span>
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -101,6 +106,9 @@ export function AdvertiserSettings() {
         </TabsContent>
         <TabsContent value="migration">
           <MigrationTab />
+        </TabsContent>
+        <TabsContent value="sources">
+          <AdvertiserSources />
         </TabsContent>
       </Tabs>
     </div>

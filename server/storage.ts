@@ -48,7 +48,8 @@ import {
   type PlatformApiKeyUsageLog, type InsertPlatformApiKeyUsageLog, platformApiKeyUsageLogs,
   type PlatformWebhook, type InsertPlatformWebhook, platformWebhooks,
   type PlatformWebhookLog, type InsertPlatformWebhookLog, platformWebhookLogs,
-  type DailyStats, dailyStats
+  type DailyStats, dailyStats,
+  type AdvertiserSource, type InsertAdvertiserSource, advertiserSources
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
@@ -5789,6 +5790,90 @@ export class DatabaseStorage implements IStorage {
       payout: historicalStats.payout + todayStats.payout,
       cost: historicalStats.cost + todayStats.cost,
     };
+  }
+
+  // ============================================
+  // ADVERTISER SOURCES CRUD
+  // ============================================
+
+  async getAdvertiserSources(advertiserId: string): Promise<AdvertiserSource[]> {
+    return await db.select()
+      .from(advertiserSources)
+      .where(eq(advertiserSources.advertiserId, advertiserId))
+      .orderBy(desc(advertiserSources.createdAt));
+  }
+
+  async getAdvertiserSourceById(id: string, advertiserId: string): Promise<AdvertiserSource | undefined> {
+    const [source] = await db.select()
+      .from(advertiserSources)
+      .where(and(
+        eq(advertiserSources.id, id),
+        eq(advertiserSources.advertiserId, advertiserId)
+      ));
+    return source;
+  }
+
+  async createAdvertiserSource(
+    advertiserId: string, 
+    data: InsertAdvertiserSource & { password?: string }
+  ): Promise<AdvertiserSource> {
+    const passwordEncrypted = data.password ? encrypt(data.password) : null;
+    
+    const [source] = await db.insert(advertiserSources).values({
+      advertiserId,
+      name: data.name,
+      brand: data.brand || null,
+      contact: data.contact || null,
+      chatLink: data.chatLink || null,
+      siteName: data.siteName || null,
+      login: data.login || null,
+      passwordEncrypted,
+      siteUrl: data.siteUrl || null,
+    }).returning();
+    
+    return source;
+  }
+
+  async updateAdvertiserSource(
+    id: string, 
+    advertiserId: string, 
+    data: Partial<InsertAdvertiserSource & { password?: string }>
+  ): Promise<AdvertiserSource | undefined> {
+    const updateData: Record<string, any> = {
+      updatedAt: new Date(),
+    };
+    
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.brand !== undefined) updateData.brand = data.brand;
+    if (data.contact !== undefined) updateData.contact = data.contact;
+    if (data.chatLink !== undefined) updateData.chatLink = data.chatLink;
+    if (data.siteName !== undefined) updateData.siteName = data.siteName;
+    if (data.login !== undefined) updateData.login = data.login;
+    if (data.siteUrl !== undefined) updateData.siteUrl = data.siteUrl;
+    if (data.password !== undefined) {
+      updateData.passwordEncrypted = data.password ? encrypt(data.password) : null;
+    }
+    
+    const [source] = await db.update(advertiserSources)
+      .set(updateData)
+      .where(and(
+        eq(advertiserSources.id, id),
+        eq(advertiserSources.advertiserId, advertiserId)
+      ))
+      .returning();
+    
+    return source;
+  }
+
+  async deleteAdvertiserSource(id: string, advertiserId: string): Promise<boolean> {
+    const result = await db.delete(advertiserSources)
+      .where(and(
+        eq(advertiserSources.id, id),
+        eq(advertiserSources.advertiserId, advertiserId)
+      ))
+      .returning({ id: advertiserSources.id });
+    
+    return result.length > 0;
   }
 }
 

@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices, insertAdvertiserSourceSchema } from "@shared/schema";
 import { db } from "../db";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
@@ -3784,6 +3784,119 @@ export async function registerRoutes(
       res.json(publishers.map(p => ({ id: p.id, username: p.username, email: p.email })));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch publishers" });
+    }
+  });
+
+  // ============================================
+  // ADVERTISER SOURCES (Partner-advertisers who provide offers)
+  // ============================================
+
+  // List all sources for advertiser
+  app.get("/api/advertiser/sources", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const sources = await storage.getAdvertiserSources(advertiserId);
+      // Mask passwords in response
+      const safeSources = sources.map(s => ({
+        ...s,
+        hasPassword: !!s.passwordEncrypted,
+        passwordEncrypted: undefined,
+      }));
+      res.json(safeSources);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sources" });
+    }
+  });
+
+  // Get single source
+  app.get("/api/advertiser/sources/:id", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const source = await storage.getAdvertiserSourceById(req.params.id, advertiserId);
+      if (!source) {
+        return res.status(404).json({ message: "Source not found" });
+      }
+      res.json({
+        ...source,
+        hasPassword: !!source.passwordEncrypted,
+        passwordEncrypted: undefined,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch source" });
+    }
+  });
+
+  // Create source
+  app.post("/api/advertiser/sources", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const parsed = insertAdvertiserSourceSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Validation error", errors: parsed.error.flatten() });
+      }
+      
+      const source = await storage.createAdvertiserSource(advertiserId, parsed.data);
+      res.json({
+        ...source,
+        hasPassword: !!source.passwordEncrypted,
+        passwordEncrypted: undefined,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create source" });
+    }
+  });
+
+  // Update source
+  app.put("/api/advertiser/sources/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const parsed = insertAdvertiserSourceSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Validation error", errors: parsed.error.flatten() });
+      }
+      
+      const source = await storage.updateAdvertiserSource(req.params.id, advertiserId, parsed.data);
+      if (!source) {
+        return res.status(404).json({ message: "Source not found" });
+      }
+      res.json({
+        ...source,
+        hasPassword: !!source.passwordEncrypted,
+        passwordEncrypted: undefined,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update source" });
+    }
+  });
+
+  // Delete source
+  app.delete("/api/advertiser/sources/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("settings"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const deleted = await storage.deleteAdvertiserSource(req.params.id, advertiserId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Source not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete source" });
     }
   });
 

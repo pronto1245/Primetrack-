@@ -2240,3 +2240,38 @@ export const insertPlatformWebhookLogSchema = createInsertSchema(platformWebhook
 
 export type InsertPlatformWebhookLog = z.infer<typeof insertPlatformWebhookLogSchema>;
 export type PlatformWebhookLog = typeof platformWebhookLogs.$inferSelect;
+
+// ============================================
+// ADVERTISER SOURCES (Partner-advertisers who provide offers)
+// ============================================
+export const advertiserSources = pgTable("advertiser_sources", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  
+  name: text("name").notNull(),
+  brand: text("brand"),
+  contact: text("contact"),
+  chatLink: text("chat_link"),
+  siteName: text("site_name"),
+  login: text("login"),
+  passwordEncrypted: text("password_encrypted"),
+  siteUrl: text("site_url"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+}, (table) => ({
+  advertiserIdx: index("advertiser_sources_advertiser_idx").on(table.advertiserId),
+}));
+
+export const insertAdvertiserSourceSchema = createInsertSchema(advertiserSources).omit({
+  id: true,
+  advertiserId: true,
+  createdAt: true,
+  updatedAt: true,
+  passwordEncrypted: true,
+}).extend({
+  password: z.string().optional(),
+});
+
+export type InsertAdvertiserSource = z.infer<typeof insertAdvertiserSourceSchema>;
+export type AdvertiserSource = typeof advertiserSources.$inferSelect;
