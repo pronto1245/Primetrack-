@@ -197,6 +197,23 @@ Preferred communication style: Simple, everyday language (Russian).
    - [ ] Real-time polling статуса
 
 2. **⚠️ НАПОМИНАНИЕ: Преагрегированная статистика (daily_stats)**
+
+3. **🔄 TODO: Royal Partners API Integration (~7 часов)**
+   - Документация: `attached_assets/Pasted-*_1768900*.txt`
+   - Base URL: `https://royal.partners/api/customer/v1/partner/`
+   - Auth: Header `Authorization: YOUR_STATISTIC_TOKEN_HERE`
+   - Endpoints:
+     - `GET /campaigns` — список кампаний (офферов)
+     - `GET /promos` — промо-ссылки с tracking_link, landing_url
+     - `GET /report` — статистика (visits, registrations, deposits, NGR, FTD)
+     - `GET /report/attributes` — доступные колонки и группировки
+   - Что реализовать:
+     - [ ] Импорт кампаний как офферов (~1.5ч)
+     - [ ] Импорт промо как лендингов (~1ч)
+     - [ ] Синхронизация статистики (~2.5ч)
+     - [ ] Сверка конверсий с репортами (~2ч)
+
+2. **⚠️ НАПОМИНАНИЕ: Преагрегированная статистика (daily_stats)**
    - [ ] Когда дашборды начнут тормозить — подключить getCombinedStats() к endpoints
    - Инфраструктура ГОТОВА: таблица daily_stats, aggregation-service (каждый час), методы чтения
    - Файлы: `server/services/aggregation-service.ts`, `server/storage.ts` (getCombinedStats, getStatsFromAggregates, getTodayLiveStats)
