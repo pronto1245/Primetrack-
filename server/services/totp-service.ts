@@ -58,6 +58,8 @@ export const totpService = {
     await storage.updateUser(userId, {
       twoFactorEnabled: false,
       twoFactorSecret: null,
+      // Сохраняем twoFactorSetupCompleted: true чтобы не перенаправлять на настройку 2FA
+      twoFactorSetupCompleted: true,
     });
 
     return true;

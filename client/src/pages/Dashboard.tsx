@@ -643,8 +643,8 @@ function MainContent({ role, t }: { role: string, t: any }) {
   // Redirect to 2FA setup only if: 2FA not enabled AND never completed setup before
   useEffect(() => {
     if (!userLoading && currentUser) {
-      // Only require 2FA setup if user never completed it before
-      const needsSetup2FA = !currentUser.twoFactorEnabled && !currentUser.twoFactorSetupCompleted;
+      // Only require 2FA setup if user explicitly never completed it (=== false, not just falsy)
+      const needsSetup2FA = !currentUser.twoFactorEnabled && currentUser.twoFactorSetupCompleted === false;
       
       if (needsSetup2FA) {
         // For advertisers/admins: redirect to 2FA if status is active
