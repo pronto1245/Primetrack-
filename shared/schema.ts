@@ -44,6 +44,10 @@ export const users = pgTable("users", {
   apiToken: text("api_token"),
   apiTokenCreatedAt: timestamp("api_token_created_at"),
   
+  // Referral tracking (who referred this user)
+  referredByPublisherId: varchar("referred_by_publisher_id").references(() => users.id),
+  referredByAdvertiserId: varchar("referred_by_advertiser_id").references(() => users.id),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -87,6 +91,8 @@ export const publisherAdvertisers = pgTable("publisher_advertisers", {
   publisherId: varchar("publisher_id").notNull().references(() => users.id),
   advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
   status: text("status").notNull().default("pending"), // pending, active, paused, blocked
+  referralEnabled: boolean("referral_enabled").notNull().default(false),
+  referralRate: numeric("referral_rate", { precision: 5, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -2275,3 +2281,32 @@ export const insertAdvertiserSourceSchema = createInsertSchema(advertiserSources
 
 export type InsertAdvertiserSource = z.infer<typeof insertAdvertiserSourceSchema>;
 export type AdvertiserSource = typeof advertiserSources.$inferSelect;
+
+// ============================================
+// REFERRAL EARNINGS (Bonus payouts for referrers)
+// ============================================
+export const referralEarnings = pgTable("referral_earnings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  referrerId: varchar("referrer_id").notNull().references(() => users.id),
+  referredId: varchar("referred_id").notNull().references(() => users.id),
+  advertiserId: varchar("advertiser_id").notNull().references(() => users.id),
+  conversionId: varchar("conversion_id").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  referralRate: numeric("referral_rate", { precision: 5, scale: 2 }).notNull(),
+  originalPayout: numeric("original_payout", { precision: 12, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  referrerIdx: index("referral_earnings_referrer_idx").on(table.referrerId),
+  referredIdx: index("referral_earnings_referred_idx").on(table.referredId),
+  advertiserIdx: index("referral_earnings_advertiser_idx").on(table.advertiserId),
+  conversionIdx: index("referral_earnings_conversion_idx").on(table.conversionId),
+}));
+
+export const insertReferralEarningSchema = createInsertSchema(referralEarnings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertReferralEarning = z.infer<typeof insertReferralEarningSchema>;
+export type ReferralEarning = typeof referralEarnings.$inferSelect;
