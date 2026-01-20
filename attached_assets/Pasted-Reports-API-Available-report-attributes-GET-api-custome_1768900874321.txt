@@ -1,0 +1,116 @@
+Reports API
+Available report attributes
+GET /api/customer/v1/partner/report/attributes
+Request
+Headers
+Accept: application/json
+Content-Type: application/json
+Route
+GET /api/customer/v1/partner/report/attributes
+cURL
+curl -g "http://royal.partners/api/customer/v1/partner/report/attributes" -X GET \
+	-H "Version: HTTP/1.0" \
+	-H "Accept: application/json" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: YOUR_STATISTIC_TOKEN_HERE"
+Response
+Headers
+Content-Type: application/json; charset=utf-8
+Status
+200 OK
+Body
+{
+  "available_columns": [
+    "casino_total_bets_sum",
+    "casino_total_wins_sum",
+    "bonus_issues_sum",
+    "casino_bonus_ratio",
+    "additional_deductions_sum",
+    "casino_taxes_sum",
+    "ggr",
+    "ngr",
+    "deposits_count",
+    "average_deposits_count",
+    "deposits_sum",
+    "average_deposit_amount",
+    "cashouts_count",
+    "cashouts_sum",
+    "first_deposits_count",
+    "first_deposits_sum",
+    "average_first_deposit_amount",
+    "depositing_players_count",
+    "wager",
+    "casino_bets_count",
+    "visits_count",
+    "registrations_count",
+    "qualified_players_count",
+    "prequalified_players_count",
+    "duplicated_players_count",
+    "self_excluded_players_count",
+    "disabled_players_count",
+    "chargebacks_count",
+    "chargebacks_sum",
+    "payment_system_fees_sum",
+    "game_provider_fees_sum",
+    "jackpot_fees_sum",
+    "sb_bets_sum",
+    "sb_settled_bets_sum",
+    "sb_bonuses_sum",
+    "sb_balance_corrections_sum",
+    "sb_third_party_fees_sum",
+    "sb_total_cancelled_bets_sum",
+    "sb_total_wins_sum",
+    "sb_ggr",
+    "sb_ngr",
+    "poker_rounds_count",
+    "poker_bets_sum",
+    "poker_rake_sum",
+    "poker_bonuses_sum",
+    "poker_balance_corrections_sum",
+    "poker_third_party_fees_sum",
+    "poker_ngr",
+    "first_deposits_conversion_rate",
+    "clean_net_revenue",
+    "net_deposits",
+    "partner_income",
+    "fixed",
+    "fixed_per_player",
+    "ngr_percent",
+    "ngr_percent_per_player",
+    "deposits_sum_percent",
+    "deposits_sum_percent_per_player",
+    "effective_deposits_sum_percent",
+    "effective_deposits_sum_percent_per_player",
+    "wager_percent",
+    "wager_percent_per_player",
+    "sb_ngr_percent",
+    "sb_ngr_percent_per_player",
+    "sb_bets_sum_percent",
+    "sb_bets_sum_percent_per_player",
+    "poker_ngr_percent",
+    "poker_rake_sum_percent",
+    "payable_ngr"
+  ],
+  "available_filters": [
+    "brand_ids",
+    "strategies",
+    "commission_ids",
+    "campaign_ids",
+    "promo_ids",
+    "promo_codes",
+    "exchange_rates_date",
+    "conversion_currency",
+    "from",
+    "to"
+  ],
+  "available_groupers": [
+    "brand",
+    "campaign",
+    "promo",
+    "strategy",
+    "year",
+    "month",
+    "week",
+    "day"
+  ]
+}

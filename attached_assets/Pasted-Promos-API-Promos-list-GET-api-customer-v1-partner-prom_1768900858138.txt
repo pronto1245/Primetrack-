@@ -1,0 +1,88 @@
+Promos API
+Promos list
+GET /api/customer/v1/partner/promos
+Parameters
+Name	Description	Required	Scope
+ids	Array of promo IDs	false	
+names	Array of promo names	false	
+name	Promo name	false	
+omit_names	Array of promo names to omit	false	
+codes	Array of promo codes	false	
+code	Promo code	false	
+omit_codes	Array of promo codes to omit	false	
+brands	Array of brand IDs	false	
+campaign_ids	Array of campaign IDs	false	
+commission_titles	Array of commission titles	false	
+commission_title	Commission title	false	
+omit_commission_titles	Array of commission titles to omit	false	
+is_subaffiliate	Subaffiliate, one of ["true", "false"]	false	
+created_at_from	Select promos created starting from this date	false	
+created_at_to	Select promos created upto this date	false	
+page	Page number	false	
+per_page	Per page count	false	
+Request
+Headers
+Accept: application/json
+Content-Type: application/json
+Route
+GET /api/customer/v1/partner/promos?ids[]=397&names[]=test-6b03c9c3&name=test-6b03c9c3&omit_names[]=&codes[]=test-6b03c9c3&code=test-6b03c9c3&omit_codes[]=&brands[]=1812&campaign_ids[]=377&commission_titles[]=commission451&commission_title=commission451&omit_commission_titles[]=&is_subaffiliate=false&created_at_from=2025-07-06&created_at_to=2025-07-07&page=1&per_page=20
+Query Parameters
+ids: ["397"]
+names: ["test-6b03c9c3"]
+name: test-6b03c9c3
+omit_names: [""]
+codes: ["test-6b03c9c3"]
+code: test-6b03c9c3
+omit_codes: [""]
+brands: ["1812"]
+campaign_ids: ["377"]
+commission_titles: ["commission451"]
+commission_title: commission451
+omit_commission_titles: [""]
+is_subaffiliate: false
+created_at_from: 2025-07-06
+created_at_to: 2025-07-07
+page: 1
+per_page: 20
+cURL
+curl -g "http://royal.partners/api/customer/v1/partner/promos?ids[]=397&names[]=test-6b03c9c3&name=test-6b03c9c3&omit_names[]=&codes[]=test-6b03c9c3&code=test-6b03c9c3&omit_codes[]=&brands[]=1812&campaign_ids[]=377&commission_titles[]=commission451&commission_title=commission451&omit_commission_titles[]=&is_subaffiliate=false&created_at_from=2025-07-06&created_at_to=2025-07-07&page=1&per_page=20" -X GET \
+	-H "Version: HTTP/1.0" \
+	-H "Accept: application/json" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: YOUR_STATISTIC_TOKEN_HERE"
+Response
+Headers
+Content-Type: application/json; charset=utf-8
+Status
+200 OK
+Body
+{
+  "current_page": 1,
+  "total_pages": 1,
+  "total_count": 1,
+  "current_per_page": 20,
+  "items": [
+    {
+      "id": 397,
+      "name": "test-6b03c9c3",
+      "code": "test-6b03c9c3",
+      "subaffiliate": false,
+      "campaign": {
+        "id": 377,
+        "name": "campaign376"
+      },
+      "landing_url": "https://anderson-5bf69f.io/landing486",
+      "tracking_link": "http://prosacco-636ba9.name/test-6b03c9c3",
+      "traffic_source": null,
+      "brand": {
+        "id": 1812,
+        "name": "brand1812"
+      },
+      "commission_title": "commission451",
+      "postbacks_count": 0,
+      "players_count": 0,
+      "created_at": "2025-07-07T13:05:17.078Z",
+      "archived_at": null
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+Reports API
+attempt to receive partner report with invalid params
+GET /api/customer/v1/partner/report
+Parameters
+Name	Description	Required	Scope
+async	Whether to calculate report in background (true) or not (false), default: false	false	
+landing_ids	Array of landing IDs to filter.	false	
+from	From time to report, ISO 8601 date	true	
+to	To time to report, ISO 8601 date	true	
+exchange_rates_date	Date of exchange rates for totals calculation, ISO 8601 date	false	
+conversion_currency	Currency to which all amounts should be converted	false	
+columns	Array of columns to add to report. Available options: casino_total_bets_sum, casino_total_wins_sum, bonus_issues_sum, casino_bonus_ratio, additional_deductions_sum, casino_taxes_sum, ggr, ngr, deposits_count, average_deposits_count, deposits_sum, average_deposit_amount, cashouts_count, cashouts_sum, first_deposits_count, first_deposits_sum, average_first_deposit_amount, depositing_players_count, wager, casino_bets_count, visits_count, registrations_count, qualified_players_count, prequalified_players_count, duplicated_players_count, self_excluded_players_count, disabled_players_count, cross_brand_duplicated_players_count, chargebacks_count, chargebacks_sum, payment_system_fees_sum, game_provider_fees_sum, jackpot_fees_sum, sb_bets_sum, sb_settled_bets_sum, sb_bonuses_sum, sb_balance_corrections_sum, sb_third_party_fees_sum, sb_total_cancelled_bets_sum, sb_total_wins_sum, sb_ggr, sb_ngr, poker_rounds_count, poker_bets_sum, poker_rake_sum, poker_bonuses_sum, poker_balance_corrections_sum, poker_third_party_fees_sum, poker_ngr, first_deposits_conversion_rate, clean_net_revenue, net_deposits, partner_income, fixed, fixed_per_player, ngr_percent, ngr_percent_per_player, deposits_sum_percent, deposits_sum_percent_per_player, effective_deposits_sum_percent, effective_deposits_sum_percent_per_player, wager_percent, wager_percent_per_player, sb_ngr_percent, sb_ngr_percent_per_player, sb_bets_sum_percent, sb_bets_sum_percent_per_player, poker_ngr_percent, poker_rake_sum_percent, payable_ngr(can be limited in a casino's settings)	false	
+group_by	Array of groupers to group the report. Available options: brand, campaign, commission, promo, strategy, player, player_country, year, month, week, day, sign_up_at_year, sign_up_at_month, sign_up_at_week, sign_up_at_day, first_deposit_year, first_deposit_month, first_deposit_week, first_deposit_day. Only one of date grouper (year, month, week, day) allowed.	false	
+Request
+Headers
+Accept: application/json
+Content-Type: application/json
+Route
+GET /api/customer/v1/partner/report?async=false&from=invalid+from+time&to=invalid+to+time&exchange_rates_date=2019-01-01&columns[]=invalid&columns[]=columns&columns[]=array&group_by[]=invalid&group_by[]=groupers
+Query Parameters
+async: false
+from: invalid from time
+to: invalid to time
+exchange_rates_date: 2019-01-01
+columns: ["invalid", "columns", "array"]
+group_by: ["invalid", "groupers"]
+cURL
+curl -g "http://royal.partners/api/customer/v1/partner/report?async=false&from=invalid+from+time&to=invalid+to+time&exchange_rates_date=2019-01-01&columns[]=invalid&columns[]=columns&columns[]=array&group_by[]=invalid&group_by[]=groupers" -X GET \
+	-H "Version: HTTP/1.0" \
+	-H "Accept: application/json" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: YOUR_STATISTIC_TOKEN_HERE"
+Response
+Headers
+Content-Type: application/json; charset=utf-8
+Status
+422 Unprocessable Entity
+Body
+{
+  "errors": {
+    "from": [
+      "is invalid"
+    ],
+    "to": [
+      "is invalid"
+    ]
+  }
+}
