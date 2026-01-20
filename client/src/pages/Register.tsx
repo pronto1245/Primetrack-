@@ -12,14 +12,16 @@ import { apiRequest } from "@/lib/queryClient";
 export default function Register() {
   const [, setLocation] = useLocation();
   const params = useParams<{ ref?: string }>();
-  const referralCode = params.ref || new URLSearchParams(window.location.search).get("ref") || "";
+  const searchParams = new URLSearchParams(window.location.search);
+  const referralCode = params.ref || searchParams.get("ref") || "";
+  const advertiserId = searchParams.get("adv") || "";
 
-  // If there's a referral code, redirect to publisher registration
+  // If there's a referral code without adv parameter (old format), redirect to publisher registration
   useEffect(() => {
-    if (referralCode) {
+    if (referralCode && !advertiserId) {
       setLocation(`/register/${referralCode}`);
     }
-  }, [referralCode, setLocation]);
+  }, [referralCode, advertiserId, setLocation]);
 
   const [formData, setFormData] = useState({
     username: "",

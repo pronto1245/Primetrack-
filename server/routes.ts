@@ -1265,6 +1265,37 @@ export async function registerRoutes(
   app.get("/api/auth/validate-referral/:code", async (req: Request, res: Response) => {
     try {
       const { code } = req.params;
+      const { adv } = req.query;
+      
+      // Check if this is a publisher referral (has advertiser ID in query)
+      if (adv && typeof adv === "string") {
+        const publisher = await storage.getUserByReferralCode(code);
+        if (!publisher || publisher.role !== "publisher") {
+          return res.status(404).json({ valid: false, message: "Invalid referral code" });
+        }
+        
+        const advertiser = await storage.getUser(adv);
+        if (!advertiser || advertiser.role !== "advertiser") {
+          return res.status(404).json({ valid: false, message: "Invalid advertiser" });
+        }
+        
+        // Check if publisher has referral enabled for this advertiser
+        const settings = await storage.getPublisherReferralSettings(publisher.id, adv);
+        if (!settings?.referralEnabled) {
+          return res.status(404).json({ valid: false, message: "Referral program not active" });
+        }
+        
+        return res.json({
+          valid: true,
+          type: "publisher",
+          referrerName: publisher.username,
+          advertiserName: advertiser.companyName || advertiser.username,
+          advertiserId: adv,
+          referrerId: publisher.id,
+        });
+      }
+      
+      // Standard advertiser referral
       const advertiser = await storage.getUserByReferralCode(code);
       
       if (!advertiser || advertiser.role !== "advertiser") {
@@ -1273,7 +1304,8 @@ export async function registerRoutes(
 
       res.json({
         valid: true,
-        advertiserName: advertiser.username,
+        type: "advertiser",
+        advertiserName: advertiser.companyName || advertiser.username,
       });
     } catch (error) {
       res.status(500).json({ message: "Validation failed" });
