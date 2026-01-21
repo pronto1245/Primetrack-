@@ -105,7 +105,9 @@ export function Navbar() {
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-b border-border p-4 shadow-xl flex flex-col gap-4">
           <a href="#features" className="text-sm font-mono text-muted-foreground py-2">Возможности</a>
           <a href="#pricing" className="text-sm font-mono text-muted-foreground py-2">Тарифы</a>
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-foreground font-mono">ВОЙТИ В СИСТЕМУ</Button>
+          <Link href="/login">
+            <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-foreground font-mono">ВОЙТИ В СИСТЕМУ</Button>
+          </Link>
         </div>
       )}
     </nav>
