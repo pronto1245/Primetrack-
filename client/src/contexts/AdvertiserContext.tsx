@@ -68,7 +68,8 @@ export function AdvertiserProvider({ children, role }: { children: ReactNode; ro
   }, [advertisers]);
 
   const selectedAdvertiser = advertisers.find(a => a.id === selectedAdvertiserId) || null;
-  const isPendingPartnership = selectedAdvertiser?.status === "pending";
+  // Блокировать доступ если нет ни одного активного рекламодателя
+  const isPendingPartnership = advertisers.length === 0 || !advertisers.some(a => a.status === "active");
 
   if (role !== "publisher") {
     return <>{children}</>;
