@@ -760,7 +760,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
     },
     onSuccess: () => {
       toast.success("Конверсия отклонена");
-      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/conversions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports/conversions"] });
       setRejectModal({ open: false, conversionId: null });
       setSelectedReason("");
     },
@@ -778,7 +778,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
     },
     onSuccess: () => {
       toast.success("Конверсия поставлена на холд");
-      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/conversions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports/conversions"] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Ошибка при постановке на холд");
@@ -794,7 +794,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
     },
     onSuccess: () => {
       toast.success("Конверсия одобрена");
-      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/conversions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports/conversions"] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Ошибка при одобрении конверсии");
