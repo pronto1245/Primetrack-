@@ -3403,7 +3403,11 @@ export async function registerRoutes(
       if (role === 'admin') {
         logs = await storage.getPostbackLogs({ limit });
       } else if (role === 'advertiser') {
-        logs = await storage.getPostbackLogs({ advertiserId: userId, limit });
+        const advertiserId = getEffectiveAdvertiserId(req);
+        if (!advertiserId) {
+          return res.status(401).json({ message: "Not authorized as advertiser" });
+        }
+        logs = await storage.getPostbackLogs({ advertiserId, limit });
       } else {
         logs = await storage.getPostbackLogs({ publisherId: userId, limit });
       }
