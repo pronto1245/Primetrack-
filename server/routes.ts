@@ -4013,7 +4013,7 @@ export async function registerRoutes(
   app.put("/api/advertiser/conversions/:id/status", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const conversionId = req.params.id;
-      const { status } = req.body;
+      const { status, reason } = req.body;
       
       if (!status || !["approved", "rejected"].includes(status)) {
         return res.status(400).json({ message: "Invalid status. Must be 'approved' or 'rejected'" });
@@ -4026,15 +4026,21 @@ export async function registerRoutes(
       
       // Check if advertiser owns this offer
       const offer = await storage.getOffer(conversion.offerId);
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
       const user = await storage.getUser(req.session.userId!);
-      if (!offer || (offer.advertiserId !== req.session.userId && user?.role !== "admin")) {
+      if (!offer || (offer.advertiserId !== effectiveAdvertiserId && user?.role !== "admin")) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      // Update conversion status
-      await storage.updateConversionStatus(conversionId, status);
+      if (status === "rejected") {
+        // Use orchestrator for full rejection flow (balance update, postback)
+        await orchestrator.rejectConversion(conversionId, reason);
+      } else {
+        // Approve conversion
+        await storage.updateConversionStatus(conversionId, status);
+      }
       
-      res.json({ message: `Conversion ${status}`, id: conversionId, status });
+      res.json({ message: `Conversion ${status}`, id: conversionId, status, reason });
     } catch (error) {
       console.error("Error updating conversion status:", error);
       res.status(500).json({ message: "Failed to update conversion status" });

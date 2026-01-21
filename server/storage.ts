@@ -281,7 +281,7 @@ export interface IStorage {
   getConversionsByOffer(offerId: string): Promise<Conversion[]>;
   getConversionsByPublisher(publisherId: string): Promise<Conversion[]>;
   createConversion(conversion: InsertConversion): Promise<Conversion>;
-  updateConversionStatus(id: string, status: string): Promise<Conversion | undefined>;
+  updateConversionStatus(id: string, status: string, reason?: string): Promise<Conversion | undefined>;
   
   // Postback Logs
   getPostbackLogsByConversion(conversionId: string): Promise<PostbackLog[]>;
@@ -977,14 +977,28 @@ export class DatabaseStorage implements IStorage {
     return conversion;
   }
 
-  async updateConversionStatus(id: string, status: string): Promise<Conversion | undefined> {
+  async updateConversionStatus(id: string, status: string, reason?: string): Promise<Conversion | undefined> {
     const updateData: any = { status };
     
     // Set appropriate timestamp based on status
     if (status === "approved") {
       updateData.approvedAt = new Date();
+      updateData.rejectedAt = null;
+      updateData.rejectionReason = null;
     } else if (status === "rejected") {
       updateData.rejectedAt = new Date();
+      updateData.approvedAt = null; // Clear approved timestamp
+      if (reason) {
+        updateData.rejectionReason = reason;
+      }
+    } else if (status === "hold") {
+      updateData.approvedAt = null;
+      updateData.rejectedAt = null;
+      updateData.rejectionReason = null;
+    } else if (status === "pending") {
+      updateData.approvedAt = null;
+      updateData.rejectedAt = null;
+      updateData.rejectionReason = null;
     }
     
     const [conversion] = await db.update(conversions)

@@ -395,21 +395,63 @@ export class Orchestrator {
   
   async rejectConversion(conversionId: string, reason?: string): Promise<void> {
     const conversion = await storage.getConversion(conversionId);
-    const previousStatus = conversion?.status;
-    await storage.updateConversionStatus(conversionId, "rejected");
-    // Decrement caps when conversion is rejected (using conversion date)
-    if (conversion) {
+    if (!conversion) {
+      throw new Error("Conversion not found");
+    }
+    
+    // Idempotency check: if already rejected, do nothing
+    if (conversion.status === "rejected") {
+      console.log(`[Orchestrator] Conversion ${conversionId} already rejected, skipping`);
+      return;
+    }
+    
+    const offer = await storage.getOffer(conversion.offerId);
+    if (!offer) {
+      throw new Error("Offer not found");
+    }
+    
+    const previousStatus = conversion.status;
+    const publisherPayout = parseFloat(conversion.publisherPayout || "0");
+    
+    // Update conversion status with reason
+    await storage.updateConversionStatus(conversionId, "rejected", reason);
+    
+    // Decrement caps when conversion is rejected (only if not pending)
+    if (previousStatus !== "pending") {
       await storage.decrementOfferCapsStats(conversion.offerId, conversion.createdAt);
-      
-      // Send webhook notification
-      const offer = await storage.getOffer(conversion.offerId);
-      if (offer) {
-        webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "rejected", {
-          reason: reason || "Rejected by advertiser",
-          previousStatus,
-        }).catch(console.error);
+    }
+    
+    // Subtract payout from publisher balance based on previous status
+    // Only deduct if conversion was approved (actually credited) or on hold (pending release)
+    if (publisherPayout > 0 && (previousStatus === "approved" || previousStatus === "hold")) {
+      const balance = await storage.getPublisherBalance(conversion.publisherId, offer.advertiserId);
+      if (balance) {
+        if (previousStatus === "approved") {
+          const newAvailable = Math.max(0, parseFloat(balance.availableBalance || "0") - publisherPayout);
+          await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
+            availableBalance: newAvailable.toFixed(2)
+          });
+          console.log(`[Orchestrator] Deducted $${publisherPayout.toFixed(2)} from publisher ${conversion.publisherId} available balance`);
+        } else if (previousStatus === "hold") {
+          const newHold = Math.max(0, parseFloat(balance.holdBalance || "0") - publisherPayout);
+          await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
+            holdBalance: newHold.toFixed(2)
+          });
+          console.log(`[Orchestrator] Deducted $${publisherPayout.toFixed(2)} from publisher ${conversion.publisherId} hold balance`);
+        }
       }
     }
+    
+    // Send webhook notification to advertiser
+    webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "rejected", {
+      reason: reason || "Rejected by advertiser",
+      previousStatus,
+    }).catch(console.error);
+    
+    // Send postback to publisher
+    postbackSender.sendPostback(conversionId).catch(err => {
+      console.error(`[Orchestrator] Publisher postback failed for rejected conversion ${conversionId}:`, err);
+    });
   }
   
   async holdConversion(conversionId: string, holdDays: number): Promise<void> {

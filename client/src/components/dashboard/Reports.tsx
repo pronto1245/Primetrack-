@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,14 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { 
   Filter, RefreshCw, Download, ChevronLeft, ChevronRight, 
   MousePointer, Target, DollarSign, TrendingUp, Loader2,
-  Calendar, Copy
+  Calendar, Copy, Ban
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { COUNTRIES } from "@/lib/countries";
 import { ExportMenu } from "@/components/ui/export-menu";
+import { apiRequest } from "@/lib/queryClient";
 
 const getCountryFlag = (code: string): string => {
   const codePoints = code
@@ -732,7 +734,46 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   );
 }
 
+const REJECTION_REASONS = [
+  { value: "duplicate", label: "Дубликат" },
+  { value: "motivation", label: "Мотивированный трафик" },
+  { value: "fraud", label: "Фрод" },
+  { value: "non_target", label: "Нецелевой трафик" },
+  { value: "other", label: "Другое" },
+];
+
 function ConversionsTable({ data, loading, page, setPage, role, showFinancials, t }: any) {
+  const queryClient = useQueryClient();
+  const [rejectModal, setRejectModal] = useState<{ open: boolean; conversionId: string | null }>({
+    open: false,
+    conversionId: null
+  });
+  const [selectedReason, setSelectedReason] = useState<string>("");
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ conversionId, reason }: { conversionId: string; reason: string }) => {
+      const res = await apiRequest("PUT", `/api/advertiser/conversions/${conversionId}/status`, {
+        status: "rejected",
+        reason
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Конверсия отклонена");
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/conversions"] });
+      setRejectModal({ open: false, conversionId: null });
+      setSelectedReason("");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Ошибка при отклонении конверсии");
+    }
+  });
+
+  const handleReject = () => {
+    if (!rejectModal.conversionId || !selectedReason) return;
+    rejectMutation.mutate({ conversionId: rejectModal.conversionId, reason: selectedReason });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -775,12 +816,13 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                 <th className="px-4 py-3 font-medium">Sub8</th>
                 <th className="px-4 py-3 font-medium">Sub9</th>
                 <th className="px-4 py-3 font-medium">Sub10</th>
+                {isAdvertiser && <th className="px-4 py-3 font-medium">Действия</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {conversions.length === 0 ? (
                 <tr>
-                  <td colSpan={21} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={isAdvertiser ? 22 : 21} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -857,6 +899,27 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub8 || '-'}</td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub9 || '-'}</td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub10 || '-'}</td>
+                      {isAdvertiser && (
+                        <td className="px-4 py-3">
+                          {conv.status !== 'rejected' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              onClick={() => setRejectModal({ open: true, conversionId: conv.id })}
+                              data-testid={`button-reject-conversion-${conv.id}`}
+                            >
+                              <Ban className="w-3.5 h-3.5 mr-1" />
+                              Отклонить
+                            </Button>
+                          )}
+                          {conv.status === 'rejected' && conv.rejectionReason && (
+                            <span className="text-xs text-red-400">
+                              {REJECTION_REASONS.find(r => r.value === conv.rejectionReason)?.label || conv.rejectionReason}
+                            </span>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   );
                 })
@@ -894,6 +957,58 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
           </div>
         )}
       </CardContent>
+
+      <Dialog open={rejectModal.open} onOpenChange={(open) => {
+        if (!open) {
+          setRejectModal({ open: false, conversionId: null });
+          setSelectedReason("");
+        }
+      }}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle>Отклонить конверсию</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Причина отклонения</Label>
+              <Select value={selectedReason} onValueChange={setSelectedReason}>
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Выберите причину" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REJECTION_REASONS.map((reason) => (
+                    <SelectItem key={reason.value} value={reason.value}>
+                      {reason.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRejectModal({ open: false, conversionId: null })}
+              className="border-border"
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={!selectedReason || rejectMutation.isPending}
+              data-testid="button-confirm-reject"
+            >
+              {rejectMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Ban className="w-4 h-4 mr-2" />
+              )}
+              Отклонить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

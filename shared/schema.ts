@@ -312,6 +312,7 @@ export const conversions = pgTable("conversions", {
   holdUntil: timestamp("hold_until"),
   approvedAt: timestamp("approved_at"),
   rejectedAt: timestamp("rejected_at"),
+  rejectionReason: text("rejection_reason"), // duplicate, motivation, fraud, non_target, other
   
   // External reference (from advertiser postback)
   externalId: text("external_id"),
