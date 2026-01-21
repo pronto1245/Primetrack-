@@ -4009,14 +4009,14 @@ export async function registerRoutes(
     }
   });
 
-  // Approve or reject conversion manually
+  // Approve, reject, or hold conversion manually
   app.put("/api/advertiser/conversions/:id/status", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
       const conversionId = req.params.id;
-      const { status, reason } = req.body;
+      const { status, reason, holdDays } = req.body;
       
-      if (!status || !["approved", "rejected"].includes(status)) {
-        return res.status(400).json({ message: "Invalid status. Must be 'approved' or 'rejected'" });
+      if (!status || !["approved", "rejected", "hold"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be 'approved', 'rejected', or 'hold'" });
       }
       
       const conversion = await storage.getConversion(conversionId);
@@ -4035,9 +4035,12 @@ export async function registerRoutes(
       if (status === "rejected") {
         // Use orchestrator for full rejection flow (balance update, postback)
         await orchestrator.rejectConversion(conversionId, reason);
-      } else {
-        // Approve conversion
-        await storage.updateConversionStatus(conversionId, status);
+      } else if (status === "hold") {
+        // Use orchestrator for hold flow (balance transfer, postback)
+        await orchestrator.holdConversion(conversionId, holdDays);
+      } else if (status === "approved") {
+        // Use orchestrator for approval flow (balance update, postback)
+        await orchestrator.approveConversion(conversionId);
       }
       
       res.json({ message: `Conversion ${status}`, id: conversionId, status, reason });

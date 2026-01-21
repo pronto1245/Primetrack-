@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { 
   Filter, RefreshCw, Download, ChevronLeft, ChevronRight, 
   MousePointer, Target, DollarSign, TrendingUp, Loader2,
-  Calendar, Copy, Ban
+  Calendar, Copy, Ban, Pause, Play, Check
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { COUNTRIES } from "@/lib/countries";
@@ -769,6 +769,38 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
     }
   });
 
+  const holdMutation = useMutation({
+    mutationFn: async ({ conversionId }: { conversionId: string }) => {
+      const res = await apiRequest("PUT", `/api/advertiser/conversions/${conversionId}/status`, {
+        status: "hold"
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Конверсия поставлена на холд");
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/conversions"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Ошибка при постановке на холд");
+    }
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ conversionId }: { conversionId: string }) => {
+      const res = await apiRequest("PUT", `/api/advertiser/conversions/${conversionId}/status`, {
+        status: "approved"
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Конверсия одобрена");
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/conversions"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Ошибка при одобрении конверсии");
+    }
+  });
+
   const handleReject = () => {
     if (!rejectModal.conversionId || !selectedReason) return;
     rejectMutation.mutate({ conversionId: rejectModal.conversionId, reason: selectedReason });
@@ -901,23 +933,51 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                       <td className="px-4 py-3 text-muted-foreground">{conv.sub10 || '-'}</td>
                       {isAdvertiser && (
                         <td className="px-4 py-3">
-                          {conv.status !== 'rejected' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              onClick={() => setRejectModal({ open: true, conversionId: conv.id })}
-                              data-testid={`button-reject-conversion-${conv.id}`}
-                            >
-                              <Ban className="w-3.5 h-3.5 mr-1" />
-                              Отклонить
-                            </Button>
-                          )}
-                          {conv.status === 'rejected' && conv.rejectionReason && (
-                            <span className="text-xs text-red-400">
-                              {REJECTION_REASONS.find(r => r.value === conv.rejectionReason)?.label || conv.rejectionReason}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {conv.status === 'hold' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                onClick={() => approveMutation.mutate({ conversionId: conv.id })}
+                                disabled={approveMutation.isPending}
+                                data-testid={`button-approve-conversion-${conv.id}`}
+                              >
+                                <Check className="w-3.5 h-3.5 mr-1" />
+                                Одобрить
+                              </Button>
+                            )}
+                            {(conv.status === 'pending' || conv.status === 'approved') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                                onClick={() => holdMutation.mutate({ conversionId: conv.id })}
+                                disabled={holdMutation.isPending}
+                                data-testid={`button-hold-conversion-${conv.id}`}
+                              >
+                                <Pause className="w-3.5 h-3.5 mr-1" />
+                                На холд
+                              </Button>
+                            )}
+                            {conv.status !== 'rejected' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                onClick={() => setRejectModal({ open: true, conversionId: conv.id })}
+                                data-testid={`button-reject-conversion-${conv.id}`}
+                              >
+                                <Ban className="w-3.5 h-3.5 mr-1" />
+                                Отклонить
+                              </Button>
+                            )}
+                            {conv.status === 'rejected' && conv.rejectionReason && (
+                              <span className="text-xs text-red-400">
+                                {REJECTION_REASONS.find(r => r.value === conv.rejectionReason)?.label || conv.rejectionReason}
+                              </span>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>

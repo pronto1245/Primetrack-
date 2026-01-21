@@ -99,6 +99,20 @@ export class Orchestrator {
     
     const conversion = await storage.createConversion(conversionData);
     
+    // Update publisher balance and handle referral bonus for hold conversions
+    if (conversionStatus === "hold" && publisherPayout > 0) {
+      const balance = await storage.getPublisherBalance(click.publisherId, offer.advertiserId);
+      if (balance) {
+        const newHold = parseFloat(balance.holdBalance || "0") + publisherPayout;
+        await storage.updatePublisherBalance(click.publisherId, offer.advertiserId, {
+          holdBalance: newHold.toFixed(2)
+        });
+        console.log(`[Orchestrator] Added $${publisherPayout.toFixed(2)} to hold for publisher ${click.publisherId} (new conversion)`);
+      }
+      // Process referral bonus for hold conversions at creation time
+      await this.handleReferralBonus(conversion);
+    }
+    
     // Trigger platform webhooks (for n8n integration)
     platformWebhookService.trigger("conversion.created", {
       conversionId: conversion.id,
@@ -311,88 +325,6 @@ export class Orchestrator {
     }
   }
   
-  async approveConversion(conversionId: string): Promise<void> {
-    const conversion = await storage.getConversion(conversionId);
-    const previousStatus = conversion?.status;
-    
-    // Skip if already approved (idempotency)
-    if (previousStatus === "approved") {
-      return;
-    }
-    
-    await storage.updateConversionStatus(conversionId, "approved");
-    
-    // If released from hold, send webhook
-    if (previousStatus === "hold" && conversion) {
-      const offer = await storage.getOffer(conversion.offerId);
-      if (offer) {
-        webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "hold_released", {
-          reason: "Approved after hold period",
-          previousStatus,
-        }).catch(console.error);
-      }
-    }
-    
-    // Process referral bonus if applicable (only on first approval)
-    if (conversion && parseFloat(conversion.publisherPayout || "0") > 0) {
-      this.processReferralBonus(conversion).catch(err => {
-        console.error("[Orchestrator] Referral bonus processing failed:", err);
-      });
-    }
-  }
-  
-  private async processReferralBonus(conversion: any): Promise<void> {
-    // Check for existing referral earning (idempotency)
-    const existingEarning = await storage.getReferralEarningByConversion(conversion.id);
-    if (existingEarning) {
-      return; // Already processed
-    }
-    
-    const publisher = await storage.getUser(conversion.publisherId);
-    if (!publisher?.referredByPublisherId || !publisher?.referredByAdvertiserId) {
-      return; // Not a referred publisher
-    }
-    
-    const offer = await storage.getOffer(conversion.offerId);
-    if (!offer || offer.advertiserId !== publisher.referredByAdvertiserId) {
-      return; // Conversion not from the same advertiser who has the referral
-    }
-    
-    const settings = await storage.getPublisherReferralSettings(
-      publisher.referredByPublisherId,
-      publisher.referredByAdvertiserId
-    );
-    
-    if (!settings?.referralEnabled || !settings.referralRate) {
-      return; // Referral not enabled for this referrer
-    }
-    
-    const referralRate = parseFloat(settings.referralRate);
-    if (referralRate <= 0) {
-      return;
-    }
-    
-    const originalPayout = parseFloat(conversion.publisherPayout || "0");
-    const bonusAmount = (originalPayout * referralRate) / 100;
-    
-    if (bonusAmount <= 0) {
-      return;
-    }
-    
-    await storage.createReferralEarning({
-      referrerId: publisher.referredByPublisherId,
-      referredId: conversion.publisherId,
-      advertiserId: publisher.referredByAdvertiserId,
-      conversionId: conversion.id,
-      amount: bonusAmount.toFixed(2),
-      referralRate: referralRate.toFixed(2),
-      originalPayout: originalPayout.toFixed(2),
-      currency: conversion.currency || "USD"
-    });
-    
-    console.log(`[Orchestrator] Referral bonus created: $${bonusAmount.toFixed(2)} for referrer ${publisher.referredByPublisherId}`);
-  }
-  
   async rejectConversion(conversionId: string, reason?: string): Promise<void> {
     const conversion = await storage.getConversion(conversionId);
     if (!conversion) {
@@ -454,9 +386,139 @@ export class Orchestrator {
     });
   }
   
-  async holdConversion(conversionId: string, holdDays: number): Promise<void> {
-    const holdUntil = new Date(Date.now() + holdDays * 24 * 60 * 60 * 1000);
+  async holdConversion(conversionId: string, holdDays?: number): Promise<void> {
+    const conversion = await storage.getConversion(conversionId);
+    if (!conversion) {
+      throw new Error("Conversion not found");
+    }
+    
+    // Idempotency check
+    if (conversion.status === "hold") {
+      console.log(`[Orchestrator] Conversion ${conversionId} already on hold, skipping`);
+      return;
+    }
+    
+    const offer = await storage.getOffer(conversion.offerId);
+    if (!offer) {
+      throw new Error("Offer not found");
+    }
+    
+    const previousStatus = conversion.status;
+    const publisherPayout = parseFloat(conversion.publisherPayout || "0");
+    
+    // Calculate hold until date
+    const days = holdDays ?? offer.holdPeriodDays ?? 7;
+    const holdUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    
     await storage.updateConversionStatus(conversionId, "hold");
+    await storage.updateConversionHoldUntil(conversionId, holdUntil);
+    
+    // Update balance based on previous status
+    if (publisherPayout > 0) {
+      const balance = await storage.getPublisherBalance(conversion.publisherId, offer.advertiserId);
+      if (balance) {
+        if (previousStatus === "approved") {
+          // Move from available to hold
+          const newAvailable = Math.max(0, parseFloat(balance.availableBalance || "0") - publisherPayout);
+          const newHold = parseFloat(balance.holdBalance || "0") + publisherPayout;
+          await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
+            availableBalance: newAvailable.toFixed(2),
+            holdBalance: newHold.toFixed(2)
+          });
+          console.log(`[Orchestrator] Moved $${publisherPayout.toFixed(2)} from available to hold for publisher ${conversion.publisherId}`);
+        } else if (previousStatus === "pending") {
+          // Add to hold (new conversion going on hold)
+          const newHold = parseFloat(balance.holdBalance || "0") + publisherPayout;
+          await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
+            holdBalance: newHold.toFixed(2)
+          });
+          console.log(`[Orchestrator] Added $${publisherPayout.toFixed(2)} to hold for publisher ${conversion.publisherId}`);
+          
+          // Process referral bonus when moving to hold from pending
+          await this.handleReferralBonus(conversion);
+        }
+      }
+    }
+    
+    // Send webhook notification
+    webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "hold", {
+      holdUntil: holdUntil.toISOString(),
+      previousStatus,
+    }).catch(console.error);
+    
+    // Send postback to publisher
+    postbackSender.sendPostback(conversionId).catch(err => {
+      console.error(`[Orchestrator] Publisher postback failed for hold conversion ${conversionId}:`, err);
+    });
+    
+    console.log(`[Orchestrator] Conversion ${conversionId} put on hold until ${holdUntil.toISOString()}`);
+  }
+  
+  async approveConversion(conversionId: string): Promise<void> {
+    const conversion = await storage.getConversion(conversionId);
+    if (!conversion) {
+      throw new Error("Conversion not found");
+    }
+    
+    // Idempotency check
+    if (conversion.status === "approved") {
+      console.log(`[Orchestrator] Conversion ${conversionId} already approved, skipping`);
+      return;
+    }
+    
+    const offer = await storage.getOffer(conversion.offerId);
+    if (!offer) {
+      throw new Error("Offer not found");
+    }
+    
+    const previousStatus = conversion.status;
+    const publisherPayout = parseFloat(conversion.publisherPayout || "0");
+    
+    await storage.updateConversionStatus(conversionId, "approved");
+    
+    // Update balance based on previous status
+    if (publisherPayout > 0) {
+      const balance = await storage.getPublisherBalance(conversion.publisherId, offer.advertiserId);
+      if (balance) {
+        if (previousStatus === "hold") {
+          // Move from hold to available
+          const newHold = Math.max(0, parseFloat(balance.holdBalance || "0") - publisherPayout);
+          const newAvailable = parseFloat(balance.availableBalance || "0") + publisherPayout;
+          await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
+            holdBalance: newHold.toFixed(2),
+            availableBalance: newAvailable.toFixed(2)
+          });
+          console.log(`[Orchestrator] Moved $${publisherPayout.toFixed(2)} from hold to available for publisher ${conversion.publisherId}`);
+        } else if (previousStatus === "pending") {
+          // Add to available (new approval)
+          const newAvailable = parseFloat(balance.availableBalance || "0") + publisherPayout;
+          await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
+            availableBalance: newAvailable.toFixed(2)
+          });
+          console.log(`[Orchestrator] Added $${publisherPayout.toFixed(2)} to available for publisher ${conversion.publisherId}`);
+        }
+        // Note: hold→approved doesn't add new money, just moves it
+        // Bonus was already created when conversion first reached hold
+      }
+    }
+    
+    // Handle referral bonus only for pending→approved (first time approval)
+    // When approving from hold, referral was already processed when conversion was created
+    if (previousStatus === "pending") {
+      await this.handleReferralBonus(conversion);
+    }
+    
+    // Send webhook notification
+    webhookService.notifyStatusChange(offer.advertiserId, conversionId, conversion.offerId, conversion.publisherId, "approved", {
+      previousStatus,
+    }).catch(console.error);
+    
+    // Send postback to publisher
+    postbackSender.sendPostback(conversionId).catch(err => {
+      console.error(`[Orchestrator] Publisher postback failed for approved conversion ${conversionId}:`, err);
+    });
+    
+    console.log(`[Orchestrator] Conversion ${conversionId} approved (was ${previousStatus})`);
   }
 }
 

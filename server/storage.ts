@@ -1008,6 +1008,14 @@ export class DatabaseStorage implements IStorage {
     return conversion;
   }
 
+  async updateConversionHoldUntil(id: string, holdUntil: Date): Promise<Conversion | undefined> {
+    const [conversion] = await db.update(conversions)
+      .set({ holdUntil })
+      .where(eq(conversions.id, id))
+      .returning();
+    return conversion;
+  }
+
   // Postback Logs
   async getPostbackLogsByConversion(conversionId: string): Promise<PostbackLog[]> {
     return db.select().from(postbackLogs)
