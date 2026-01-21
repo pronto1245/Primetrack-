@@ -489,16 +489,14 @@ export class Orchestrator {
             availableBalance: newAvailable.toFixed(2)
           });
           console.log(`[Orchestrator] Moved $${publisherPayout.toFixed(2)} from hold to available for publisher ${conversion.publisherId}`);
-        } else if (previousStatus === "pending") {
-          // Add to available (new approval)
+        } else if (previousStatus === "pending" || previousStatus === "rejected") {
+          // Add to available (new approval or restoring from rejected)
           const newAvailable = parseFloat(balance.availableBalance || "0") + publisherPayout;
           await storage.updatePublisherBalance(conversion.publisherId, offer.advertiserId, {
             availableBalance: newAvailable.toFixed(2)
           });
-          console.log(`[Orchestrator] Added $${publisherPayout.toFixed(2)} to available for publisher ${conversion.publisherId}`);
+          console.log(`[Orchestrator] Added $${publisherPayout.toFixed(2)} to available for publisher ${conversion.publisherId} (was ${previousStatus})`);
         }
-        // Note: hold→approved doesn't add new money, just moves it
-        // Bonus was already created when conversion first reached hold
       }
     }
     
