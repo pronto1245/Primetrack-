@@ -53,8 +53,13 @@ export class Orchestrator {
     const shouldHoldForFraud = antifraudAction === "hold" || antifraudAction === "flag";
     
     // Use offer hold period, or fall back to advertiser default
-    let holdDays = offer.holdPeriodDays || 0;
-    if (holdDays === 0) {
+    // If offer explicitly set to 0 (no hold), don't use advertiser default
+    let holdDays: number;
+    if (offer.holdPeriodDays !== null && offer.holdPeriodDays !== undefined) {
+      // Offer has explicit hold setting (including 0 = no hold)
+      holdDays = offer.holdPeriodDays;
+    } else {
+      // Offer has no hold setting, use advertiser default
       const advertiserSettings = await storage.getAdvertiserSettings(offer.advertiserId);
       holdDays = advertiserSettings?.defaultHoldPeriodDays || 0;
     }
