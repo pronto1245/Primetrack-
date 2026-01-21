@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
-import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 import { getCountryFlag } from "./CountrySelector";
 
 interface OfferLanding {
@@ -56,7 +55,7 @@ export function PublisherOffers({ role }: { role: string }) {
   const [filterPrivate, setFilterPrivate] = useState(false);
   
   // Use global advertiser context for filtering
-  const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
+  const { selectedAdvertiserId } = useAdvertiserContext();
 
   const { data: offers, isLoading, error } = useQuery<MarketplaceOffer[]>({
     queryKey: ["/api/marketplace/offers", selectedAdvertiserId],
@@ -152,11 +151,6 @@ export function PublisherOffers({ role }: { role: string }) {
     }
     return null;
   };
-
-  // Show pending overlay if partnership is not active (after all hooks)
-  if (isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
 
   if (isLoading) {
     return (

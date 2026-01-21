@@ -14,7 +14,6 @@ import {
   Calendar, Copy
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
-import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 import { COUNTRIES } from "@/lib/countries";
 import { ExportMenu } from "@/components/ui/export-menu";
 
@@ -47,7 +46,7 @@ export function Reports({ role }: ReportsProps) {
   const [page, setPage] = useState(1);
   
   // Use global advertiser context for publisher filtering
-  const { selectedAdvertiserId, isPendingPartnership } = useAdvertiserContext();
+  const { selectedAdvertiserId } = useAdvertiserContext();
 
   const queryParams = new URLSearchParams();
   if (filters.freeSearch) queryParams.set("search", filters.freeSearch);
@@ -122,11 +121,6 @@ export function Reports({ role }: ReportsProps) {
   const isAdvertiser = role === "advertiser";
   const isAdmin = role === "admin";
   const showFinancials = isAdvertiser || isAdmin;
-
-  // Show pending overlay if partnership is not active (publisher only, after all hooks)
-  if (role === "publisher" && isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
 
   return (
     <div className="space-y-6">

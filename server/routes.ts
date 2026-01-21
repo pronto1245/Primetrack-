@@ -471,6 +471,15 @@ export async function registerRoutes(
           return res.status(401).json({ message: "Invalid credentials" });
         }
 
+        // Блокировать вход для партнёров без активного рекламодателя
+        if (user.role === "publisher") {
+          const advertisers = await storage.getAdvertisersForPublisher(user.id);
+          const hasActiveAdvertiser = advertisers.some(a => a.status === "active");
+          if (!hasActiveAdvertiser) {
+            return res.status(403).json({ message: "Ваша заявка на рассмотрении. Ожидайте одобрения рекламодателем." });
+          }
+        }
+
         // Check if 2FA is enabled - don't create full session yet
         if (user.twoFactorEnabled) {
           req.session.pending2FAUserId = user.id;

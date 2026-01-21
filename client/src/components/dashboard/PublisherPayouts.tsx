@@ -20,7 +20,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
-import { PendingPartnershipOverlay } from "./PendingPartnershipOverlay";
 import { ExportMenu } from "@/components/ui/export-menu";
 
 const PAYMENT_ICONS: Record<string, any> = {
@@ -52,7 +51,7 @@ export function PublisherPayouts() {
   const queryClient = useQueryClient();
   
   // Use global advertiser context
-  const { selectedAdvertiserId: selectedAdvertiser, selectedAdvertiser: advertiserInfo, isPendingPartnership } = useAdvertiserContext();
+  const { selectedAdvertiserId: selectedAdvertiser, selectedAdvertiser: advertiserInfo } = useAdvertiserContext();
   
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [showRequestPayout, setShowRequestPayout] = useState(false);
@@ -151,11 +150,6 @@ export function PublisherPayouts() {
   const pendingBalance = balance?.pending || 0;
   const holdBalance = balance?.hold || 0;
   const totalPaid = balance?.totalPaid || 0;
-
-  // Show pending overlay if partnership is not active (after all hooks)
-  if (isPendingPartnership) {
-    return <PendingPartnershipOverlay />;
-  }
 
   return (
     <div className="space-y-6">

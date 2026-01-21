@@ -24,7 +24,6 @@ interface AdvertiserContextType {
   selectedAdvertiser: AdvertiserInfo | null;
   setSelectedAdvertiserId: (id: string) => void;
   isLoading: boolean;
-  isPendingPartnership: boolean;
 }
 
 const AdvertiserContext = createContext<AdvertiserContextType | undefined>(undefined);
@@ -68,8 +67,6 @@ export function AdvertiserProvider({ children, role }: { children: ReactNode; ro
   }, [advertisers]);
 
   const selectedAdvertiser = advertisers.find(a => a.id === selectedAdvertiserId) || null;
-  // Блокировать доступ если нет ни одного активного рекламодателя
-  const isPendingPartnership = advertisers.length === 0 || !advertisers.some(a => a.status === "active");
 
   if (role !== "publisher") {
     return <>{children}</>;
@@ -83,7 +80,6 @@ export function AdvertiserProvider({ children, role }: { children: ReactNode; ro
         selectedAdvertiser,
         setSelectedAdvertiserId,
         isLoading,
-        isPendingPartnership,
       }}
     >
       {children}
@@ -100,7 +96,6 @@ export function useAdvertiserContext() {
       selectedAdvertiser: null,
       setSelectedAdvertiserId: () => {},
       isLoading: false,
-      isPendingPartnership: false,
     };
   }
   return context;
