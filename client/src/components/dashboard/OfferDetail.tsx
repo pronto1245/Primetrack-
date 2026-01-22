@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo, useEffect } from "react";
+import { getCurrencySymbol } from "@/lib/utils";
 
 function getCountryFlag(code: string): string {
   const codeMap: Record<string, string> = {
@@ -117,7 +118,7 @@ function LandingsGroupedByGeo({
     const payouts = geoLandings.map(l => parseFloat(l.partnerPayout));
     const min = Math.min(...payouts);
     const max = Math.max(...payouts);
-    const currency = geoLandings[0]?.currency === 'USD' ? '$' : geoLandings[0]?.currency || '';
+    const currency = getCurrencySymbol(geoLandings[0]?.currency || 'USD');
     if (min === max) {
       return `${currency}${min}`;
     }
@@ -184,7 +185,7 @@ function LandingsGroupedByGeo({
                       <div className="flex items-center gap-3 ml-4">
                         <div className="text-right">
                           <div className="text-sm font-bold text-emerald-400">
-                            {landing.currency === 'USD' ? '$' : landing.currency}{landing.partnerPayout}
+                            {getCurrencySymbol(landing.currency || 'USD')}{landing.partnerPayout}
                           </div>
                         </div>
                         <Button
@@ -654,7 +655,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl p-4 border border-emerald-500/20">
                   <div className="text-[10px] uppercase text-emerald-400/70 mb-1 font-medium">Выплата</div>
                   <div className="text-xl font-bold text-emerald-400" data-testid="text-offer-payout">
-                    {getOfferPayoutPrice(offer) ? `${offer.currency === 'USD' ? '$' : offer.currency}${getOfferPayoutPrice(offer)}` : 'N/A'}
+                    {getOfferPayoutPrice(offer) ? `${getCurrencySymbol(offer.currency)}${getOfferPayoutPrice(offer)}` : 'N/A'}
                   </div>
                 </div>
                 <div className="bg-muted rounded-xl p-4 border border-border">
@@ -665,7 +666,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                   <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl p-4 border border-red-500/20">
                     <div className="text-[10px] uppercase text-red-400/70 mb-1 font-medium">Internal Cost</div>
                     <div className="text-xl font-bold text-red-400" data-testid="text-internal-cost">
-                      {getOfferCostPrice(offer) ? `${offer.currency === 'USD' ? '$' : offer.currency}${getOfferCostPrice(offer)}` : 'N/A'}
+                      {getOfferCostPrice(offer) ? `${getCurrencySymbol(offer.currency)}${getOfferCostPrice(offer)}` : 'N/A'}
                     </div>
                   </div>
                 )}

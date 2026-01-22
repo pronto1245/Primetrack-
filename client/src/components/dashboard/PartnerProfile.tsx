@@ -13,6 +13,7 @@ import {
   MousePointer, Target, DollarSign, Check, X, Loader2, Settings
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { getCurrencySymbol } from "@/lib/utils";
 
 interface PartnerProfileProps {
   publisherId: string;
@@ -47,6 +48,7 @@ interface PartnerOffer {
   accessStatus: string;
   payout: string | null;
   payoutModel: string;
+  currency: string;
   clicks: number;
   conversions: number;
   revenue: number;
@@ -336,7 +338,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
               <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-emerald-400 mb-1">
                   <DollarSign className="w-4 h-4" />
-                  <span className="text-xs uppercase">Выплаты</span>
+                  <span className="text-xs uppercase">Выплаты (USD)</span>
                 </div>
                 <p className="text-2xl font-bold text-emerald-400">${partner.payout.toFixed(2)}</p>
               </div>
@@ -391,7 +393,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                       <td className="px-4 py-3">{accessBadge(offer)}</td>
                       <td className="px-4 py-3 text-right">
                         <span className="text-emerald-400 font-mono">
-                          {offer.payout ? `от $${offer.payout}` : "—"}
+                          {offer.payout ? `от ${getCurrencySymbol(offer.currency || 'USD')}${offer.payout}` : "—"}
                         </span>
                         <span className="text-muted-foreground text-xs ml-1">/{offer.payoutModel}</span>
                       </td>
