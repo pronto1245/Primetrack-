@@ -2930,7 +2930,7 @@ export async function registerRoutes(
           const { internalCost, ...safeOffer } = offer;
           
           if (hasAccess) {
-            const landings = await storage.getOfferLandings(offer.id);
+            const allLandings = await storage.getOfferLandings(offer.id);
             const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
             const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
             
@@ -2939,11 +2939,17 @@ export async function registerRoutes(
             const offerShortId = formatShortId(offer.shortId, 4, offer.id);
             const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
             
-            // Get approved GEOs for this publisher
+            // Get approved GEOs and landings for this publisher
             const publisherOffer = await storage.getPublisherOffer(offer.id, publisherId);
             const approvedGeos = publisherOffer?.approvedGeos || null;
+            const approvedLandings = publisherOffer?.approvedLandings || null;
             
-            const safeLandings = landings.map(({ internalCost, ...rest }) => {
+            // Filter landings by approvedLandings if set
+            const filteredLandings = approvedLandings && approvedLandings.length > 0
+              ? allLandings.filter(l => approvedLandings.includes(l.id))
+              : allLandings;
+            
+            const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => {
               const landingShortId = formatShortId(rest.shortId, 4, rest.id);
               return {
                 ...rest,
