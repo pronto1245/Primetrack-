@@ -117,7 +117,7 @@ function LandingsGroupedByGeo({
     });
   };
 
-  const getPayoutRange = (geoLandings: OfferLanding[]) => {
+  const getPayoutRange = (geoLandings: OfferLandingType[]) => {
     const payouts = geoLandings.map(l => parseFloat(l.partnerPayout));
     const min = Math.min(...payouts);
     const max = Math.max(...payouts);
@@ -361,19 +361,6 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
   );
 }
 
-interface OfferLandingFull {
-  id: string;
-  offerId: string;
-  geo: string;
-  landingName: string | null;
-  landingUrl: string;
-  partnerPayout: string;
-  internalCost: string | null;
-  currency: string;
-  trackingUrl?: string | null;
-  isApproved?: boolean;
-}
-
 interface Offer {
   id: string;
   advertiserId: string;
@@ -395,7 +382,7 @@ interface Offer {
   creativeLinks: string[];
   trackingUrl: string;
   status: string;
-  landings: OfferLandingFull[];
+  landings: OfferLandingType[];
   hasAccess?: boolean;
   accessStatus?: string | null;
 }
