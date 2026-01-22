@@ -581,6 +581,8 @@ export const publisherOffers = pgTable("publisher_offers", {
   approvedAt: timestamp("approved_at").notNull().defaultNow(),
   approvedGeos: text("approved_geos").array(),
   approvedLandings: text("approved_landings").array(),
+  requestedLandings: text("requested_landings").array(),
+  extensionRequestedAt: timestamp("extension_requested_at"),
 });
 
 export const insertPublisherOfferSchema = createInsertSchema(publisherOffers).omit({

@@ -350,7 +350,10 @@ export interface IStorage {
   getPublisherOffersByPublisher(publisherId: string): Promise<PublisherOfferAccess[]>;
   getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]>;
   createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
-  updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null }): Promise<PublisherOfferAccess | undefined>;
+  updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null; requestedLandings?: string[] | null; extensionRequestedAt?: Date | null }): Promise<PublisherOfferAccess | undefined>;
+  requestLandingsExtension(offerId: string, publisherId: string, landingIds: string[]): Promise<PublisherOfferAccess | undefined>;
+  approveLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
+  rejectLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
   deletePublisherOffer(offerId: string, publisherId: string): Promise<void>;
   hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
   getPublisherAccessMap(offerIds: string[], publisherId: string): Promise<Set<string>>;
@@ -1239,9 +1242,61 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null }): Promise<PublisherOfferAccess | undefined> {
+  async updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null; requestedLandings?: string[] | null; extensionRequestedAt?: Date | null }): Promise<PublisherOfferAccess | undefined> {
     const [result] = await db.update(publisherOffers)
       .set(data)
+      .where(and(
+        eq(publisherOffers.offerId, offerId),
+        eq(publisherOffers.publisherId, publisherId)
+      ))
+      .returning();
+    return result;
+  }
+
+  async requestLandingsExtension(offerId: string, publisherId: string, landingIds: string[]): Promise<PublisherOfferAccess | undefined> {
+    const [result] = await db.update(publisherOffers)
+      .set({
+        requestedLandings: landingIds,
+        extensionRequestedAt: new Date(),
+      })
+      .where(and(
+        eq(publisherOffers.offerId, offerId),
+        eq(publisherOffers.publisherId, publisherId)
+      ))
+      .returning();
+    return result;
+  }
+
+  async approveLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined> {
+    const existing = await this.getPublisherOffer(offerId, publisherId);
+    if (!existing || !existing.requestedLandings || existing.requestedLandings.length === 0) {
+      return existing;
+    }
+    
+    const currentApproved = existing.approvedLandings || [];
+    const requested = existing.requestedLandings;
+    const merged = [...new Set([...currentApproved, ...requested])];
+    
+    const [result] = await db.update(publisherOffers)
+      .set({
+        approvedLandings: merged.length > 0 ? merged : null,
+        requestedLandings: null,
+        extensionRequestedAt: null,
+      })
+      .where(and(
+        eq(publisherOffers.offerId, offerId),
+        eq(publisherOffers.publisherId, publisherId)
+      ))
+      .returning();
+    return result;
+  }
+
+  async rejectLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined> {
+    const [result] = await db.update(publisherOffers)
+      .set({
+        requestedLandings: null,
+        extensionRequestedAt: null,
+      })
       .where(and(
         eq(publisherOffers.offerId, offerId),
         eq(publisherOffers.publisherId, publisherId)
