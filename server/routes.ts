@@ -3143,7 +3143,10 @@ export async function registerRoutes(
   // Publisher's approved offers (with landing URLs)
   app.get("/api/publisher/offers", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
-      const publisherOffers = await storage.getPublisherOffersByPublisher(req.session.userId!);
+      const publisherId = req.session.userId!;
+      const publisherOffers = await storage.getPublisherOffersByPublisher(publisherId);
+      const publisher = await storage.getUser(publisherId);
+      const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
       
       const offersWithDetails = await Promise.all(
         publisherOffers.map(async (po) => {
@@ -3151,13 +3154,23 @@ export async function registerRoutes(
           if (!offer) return null;
           
           const allLandings = await storage.getOfferLandings(offer.id);
+          const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
+          const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
+          const offerShortId = formatShortId(offer.shortId, 4, offer.id);
           const { internalCost, ...safeOffer } = offer;
           
-          // Show ALL landings with isApproved flag
+          // Show ALL landings with isApproved flag and trackingUrl for approved
           const approvedLandings = normalizePostgresArray(po.approvedLandings);
           const safeLandings = allLandings.map(({ internalCost, ...rest }) => {
+            const landingShortId = formatShortId(rest.shortId, 4, rest.id);
             const isApproved = !approvedLandings || approvedLandings.length === 0 || approvedLandings.includes(rest.id);
-            return { ...rest, isApproved };
+            return { 
+              ...rest, 
+              trackingUrl: isApproved 
+                ? `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`
+                : null,
+              isApproved 
+            };
           });
           
           return { 
@@ -3178,7 +3191,10 @@ export async function registerRoutes(
   app.get("/api/publisher/offers-approved", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
       const { advertiser_id } = req.query;
-      const publisherOffers = await storage.getPublisherOffersByPublisher(req.session.userId!);
+      const publisherId = req.session.userId!;
+      const publisherOffers = await storage.getPublisherOffersByPublisher(publisherId);
+      const publisher = await storage.getUser(publisherId);
+      const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
       
       const offersWithDetails = await Promise.all(
         publisherOffers.map(async (po) => {
@@ -3189,8 +3205,11 @@ export async function registerRoutes(
           if (advertiser_id && offer.advertiserId !== advertiser_id) return null;
           
           const allLandings = await storage.getOfferLandings(offer.id);
+          const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
+          const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
+          const offerShortId = formatShortId(offer.shortId, 4, offer.id);
           
-          // Show ALL landings with isApproved flag
+          // Show ALL landings with isApproved flag and trackingUrl for approved
           const approvedLandings = normalizePostgresArray(po.approvedLandings);
           
           return { 
@@ -3200,6 +3219,7 @@ export async function registerRoutes(
             category: offer.category,
             payoutModel: offer.payoutModel,
             landings: allLandings.map(l => {
+              const landingShortId = formatShortId(l.shortId, 4, l.id);
               const isApproved = !approvedLandings || approvedLandings.length === 0 || approvedLandings.includes(l.id);
               return {
                 id: l.id,
@@ -3209,6 +3229,9 @@ export async function registerRoutes(
                 landingUrl: l.landingUrl,
                 partnerPayout: l.partnerPayout,
                 currency: l.currency,
+                trackingUrl: isApproved 
+                  ? `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`
+                  : null,
                 isApproved,
               };
             }),
