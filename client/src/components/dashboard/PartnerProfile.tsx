@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ArrowLeft, User, Mail, Phone, Send, Calendar, 
-  MousePointer, Target, DollarSign, Check, X, Loader2
+  MousePointer, Target, DollarSign, Check, X, Loader2, Settings
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -29,6 +32,12 @@ interface PartnerDetails {
   payout: number;
 }
 
+interface Landing {
+  id: string;
+  name: string;
+  url: string;
+}
+
 interface PartnerOffer {
   id: string;
   name: string;
@@ -40,10 +49,16 @@ interface PartnerOffer {
   clicks: number;
   conversions: number;
   revenue: number;
+  landings: Landing[];
+  approvedLandings: string[] | null;
 }
 
 export function PartnerProfile({ publisherId }: PartnerProfileProps) {
   const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState<"grant" | "revoke" | "edit">("grant");
+  const [selectedOffer, setSelectedOffer] = useState<PartnerOffer | null>(null);
+  const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
 
   const { data: partner, isLoading: isLoadingPartner } = useQuery<PartnerDetails>({
     queryKey: ["/api/advertiser/partners", publisherId],
@@ -64,13 +79,80 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
   });
 
   const updateAccessMutation = useMutation({
-    mutationFn: async ({ offerId, status }: { offerId: string; status: string }) => {
-      return apiRequest("PUT", `/api/advertiser/partners/${publisherId}/offers/${offerId}`, { status });
+    mutationFn: async ({ offerId, status, approvedLandings }: { offerId: string; status: string; approvedLandings?: string[] }) => {
+      return apiRequest("PUT", `/api/advertiser/partners/${publisherId}/offers/${offerId}`, { status, approvedLandings });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/partners", publisherId, "offers"] });
+      setDialogOpen(false);
+      setSelectedOffer(null);
+      setSelectedLandings([]);
     }
   });
+
+  const openGrantDialog = (offer: PartnerOffer) => {
+    setSelectedOffer(offer);
+    setDialogAction("grant");
+    setSelectedLandings(offer.landings.map(l => l.id));
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (offer: PartnerOffer) => {
+    setSelectedOffer(offer);
+    setDialogAction("edit");
+    const currentApproved = offer.approvedLandings;
+    if (currentApproved && currentApproved.length > 0) {
+      setSelectedLandings(currentApproved);
+    } else {
+      setSelectedLandings(offer.landings.map(l => l.id));
+    }
+    setDialogOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (!selectedOffer) return;
+    
+    if (dialogAction === "grant" || dialogAction === "edit") {
+      const approvedLandings = selectedLandings.length === selectedOffer.landings.length 
+        ? [] 
+        : selectedLandings;
+      updateAccessMutation.mutate({ 
+        offerId: selectedOffer.id, 
+        status: "approved", 
+        approvedLandings 
+      });
+    }
+  };
+
+  const handleRevoke = (offerId: string) => {
+    updateAccessMutation.mutate({ offerId, status: "revoked" });
+  };
+
+  const handleReject = (offerId: string) => {
+    updateAccessMutation.mutate({ offerId, status: "rejected" });
+  };
+
+  const handleRestore = (offer: PartnerOffer) => {
+    openGrantDialog(offer);
+  };
+
+  const toggleLanding = (landingId: string) => {
+    setSelectedLandings(prev => 
+      prev.includes(landingId) 
+        ? prev.filter(id => id !== landingId)
+        : [...prev, landingId]
+    );
+  };
+
+  const selectAllLandings = () => {
+    if (selectedOffer) {
+      setSelectedLandings(selectedOffer.landings.map(l => l.id));
+    }
+  };
+
+  const deselectAllLandings = () => {
+    setSelectedLandings([]);
+  };
 
   const statusBadge = (status: string) => {
     const variants: Record<string, string> = {
@@ -82,7 +164,8 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
     return <Badge className={variants[status] || "bg-muted text-muted-foreground"}>{status}</Badge>;
   };
 
-  const accessBadge = (status: string) => {
+  const accessBadge = (offer: PartnerOffer) => {
+    const status = offer.accessStatus;
     const variants: Record<string, { className: string; label: string }> = {
       approved: { className: "bg-emerald-500/20 text-emerald-400", label: "Одобрен" },
       pending: { className: "bg-yellow-500/20 text-yellow-400", label: "Ожидает" },
@@ -91,7 +174,20 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
       not_requested: { className: "bg-muted text-muted-foreground", label: "Не запрошен" }
     };
     const v = variants[status] || variants.not_requested;
-    return <Badge className={v.className}>{v.label}</Badge>;
+    
+    const hasRestrictions = status === "approved" && 
+      offer.approvedLandings && 
+      offer.approvedLandings.length > 0 && 
+      offer.approvedLandings.length < offer.landings.length;
+    
+    return (
+      <div className="flex flex-col gap-1">
+        <Badge className={v.className}>{v.label}</Badge>
+        {hasRestrictions && (
+          <span className="text-xs text-yellow-400">(ограничено)</span>
+        )}
+      </div>
+    );
   };
 
   if (isLoadingPartner) {
@@ -273,7 +369,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                           <span className="text-foreground font-medium">{offer.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">{accessBadge(offer.accessStatus)}</td>
+                      <td className="px-4 py-3">{accessBadge(offer)}</td>
                       <td className="px-4 py-3 text-right">
                         <span className="text-emerald-400 font-mono">
                           {offer.payout ? `от $${offer.payout}` : "—"}
@@ -289,7 +385,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                               data-testid={`button-grant-${offer.id}`}
                               size="sm"
                               className="bg-emerald-600 hover:bg-emerald-700 h-7 text-xs"
-                              onClick={() => updateAccessMutation.mutate({ offerId: offer.id, status: "approved" })}
+                              onClick={() => openGrantDialog(offer)}
                               disabled={updateAccessMutation.isPending}
                             >
                               <Check className="w-3 h-3 mr-1" />
@@ -297,17 +393,32 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                             </Button>
                           )}
                           {offer.accessStatus === "approved" && (
-                            <Button
-                              data-testid={`button-revoke-${offer.id}`}
-                              size="sm"
-                              variant="destructive"
-                              className="h-7 text-xs"
-                              onClick={() => updateAccessMutation.mutate({ offerId: offer.id, status: "revoked" })}
-                              disabled={updateAccessMutation.isPending}
-                            >
-                              <X className="w-3 h-3 mr-1" />
-                              Отозвать
-                            </Button>
+                            <>
+                              {offer.landings.length > 0 && (
+                                <Button
+                                  data-testid={`button-edit-${offer.id}`}
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-border h-7 text-xs"
+                                  onClick={() => openEditDialog(offer)}
+                                  disabled={updateAccessMutation.isPending}
+                                >
+                                  <Settings className="w-3 h-3 mr-1" />
+                                  Лендинги
+                                </Button>
+                              )}
+                              <Button
+                                data-testid={`button-revoke-${offer.id}`}
+                                size="sm"
+                                variant="destructive"
+                                className="h-7 text-xs"
+                                onClick={() => handleRevoke(offer.id)}
+                                disabled={updateAccessMutation.isPending}
+                              >
+                                <X className="w-3 h-3 mr-1" />
+                                Отозвать
+                              </Button>
+                            </>
                           )}
                           {offer.accessStatus === "pending" && (
                             <>
@@ -315,7 +426,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                                 data-testid={`button-approve-${offer.id}`}
                                 size="sm"
                                 className="bg-emerald-600 hover:bg-emerald-700 h-7 text-xs"
-                                onClick={() => updateAccessMutation.mutate({ offerId: offer.id, status: "approved" })}
+                                onClick={() => openGrantDialog(offer)}
                                 disabled={updateAccessMutation.isPending}
                               >
                                 <Check className="w-3 h-3 mr-1" />
@@ -326,7 +437,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                                 size="sm"
                                 variant="destructive"
                                 className="h-7 text-xs"
-                                onClick={() => updateAccessMutation.mutate({ offerId: offer.id, status: "rejected" })}
+                                onClick={() => handleReject(offer.id)}
                                 disabled={updateAccessMutation.isPending}
                               >
                                 <X className="w-3 h-3 mr-1" />
@@ -340,7 +451,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                               size="sm"
                               variant="outline"
                               className="border-border h-7 text-xs"
-                              onClick={() => updateAccessMutation.mutate({ offerId: offer.id, status: "approved" })}
+                              onClick={() => handleRestore(offer)}
                               disabled={updateAccessMutation.isPending}
                             >
                               Восстановить
@@ -356,6 +467,119 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {dialogAction === "grant" && "Выдать доступ к офферу"}
+              {dialogAction === "edit" && "Изменить доступ к лендингам"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedOffer && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                {selectedOffer.logoUrl ? (
+                  <img 
+                    src={selectedOffer.logoUrl} 
+                    alt={selectedOffer.name} 
+                    className="w-10 h-10 rounded object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded bg-background flex items-center justify-center text-sm font-bold text-muted-foreground">
+                    {selectedOffer.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-foreground font-medium">{selectedOffer.name}</span>
+              </div>
+
+              {selectedOffer.landings.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Выберите лендинги для доступа:
+                    </p>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 text-xs"
+                        onClick={selectAllLandings}
+                      >
+                        Все
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 text-xs"
+                        onClick={deselectAllLandings}
+                      >
+                        Снять
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto space-y-2 border border-border rounded-lg p-3">
+                    {selectedOffer.landings.map((landing) => (
+                      <label 
+                        key={landing.id} 
+                        className="flex items-center gap-3 p-2 rounded hover:bg-muted cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={selectedLandings.includes(landing.id)}
+                          onCheckedChange={() => toggleLanding(landing.id)}
+                          data-testid={`checkbox-landing-${landing.id}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {landing.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {landing.url}
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    Выбрано: {selectedLandings.length} из {selectedOffer.landings.length}
+                    {selectedLandings.length === selectedOffer.landings.length && " (все лендинги)"}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  У этого оффера нет лендингов. Будет выдан полный доступ.
+                </p>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setDialogOpen(false)}
+              disabled={updateAccessMutation.isPending}
+            >
+              Отмена
+            </Button>
+            <Button 
+              className="bg-emerald-600 hover:bg-emerald-700"
+              onClick={handleConfirm}
+              disabled={updateAccessMutation.isPending || (selectedOffer?.landings.length ? selectedLandings.length === 0 : false)}
+              data-testid="button-confirm-access"
+            >
+              {updateAccessMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Check className="w-4 h-4 mr-2" />
+              )}
+              {dialogAction === "grant" ? "Выдать доступ" : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
