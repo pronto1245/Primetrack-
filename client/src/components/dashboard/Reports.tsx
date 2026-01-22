@@ -19,6 +19,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { ExportMenu } from "@/components/ui/export-menu";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 const getCountryFlag = (code: string): string => {
   const codePoints = code
@@ -212,19 +213,23 @@ export function Reports({ role }: ReportsProps) {
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.geo') || 'GEO'}</Label>
-              <Select value={filters.geo || "all"} onValueChange={(v) => setFilters(f => ({ ...f, geo: v === "all" ? "" : v }))}>
-                <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-geo">
-                  <SelectValue placeholder={t('reports.all') || 'All'} />
-                </SelectTrigger>
-                <SelectContent className="bg-input border-border max-h-[300px]">
-                  <SelectItem value="all">🌍 Все страны</SelectItem>
-                  {COUNTRIES.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      {getCountryFlag(country.code)} {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={filters.geo || "all"}
+                onValueChange={(v) => setFilters(f => ({ ...f, geo: v === "all" ? "" : v }))}
+                placeholder="🌍 Все страны"
+                searchPlaceholder="Поиск страны..."
+                emptyText="Страна не найдена"
+                className="mt-1"
+                data-testid="select-geo"
+                options={[
+                  { value: "all", label: "Все страны", icon: "🌍" },
+                  ...COUNTRIES.map((country) => ({
+                    value: country.code,
+                    label: country.name,
+                    icon: getCountryFlag(country.code),
+                  })),
+                ]}
+              />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">{t('reports.device') || 'Device'}</Label>
@@ -243,17 +248,22 @@ export function Reports({ role }: ReportsProps) {
             {role !== "publisher" && (
               <div>
                 <Label className="text-xs text-muted-foreground">Вебмастер</Label>
-                <Select value={filters.publisherId || "all"} onValueChange={(v) => setFilters(f => ({ ...f, publisherId: v === "all" ? "" : v }))}>
-                  <SelectTrigger className="mt-1 bg-input border-border text-foreground" data-testid="select-publisher">
-                    <SelectValue placeholder="Все" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-input border-border">
-                    <SelectItem value="all">Все вебмастера</SelectItem>
-                    {publishers.map((pub) => (
-                      <SelectItem key={pub.id} value={pub.id}>{pub.username || pub.email}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={filters.publisherId || "all"}
+                  onValueChange={(v) => setFilters(f => ({ ...f, publisherId: v === "all" ? "" : v }))}
+                  placeholder="Все вебмастера"
+                  searchPlaceholder="Поиск вебмастера..."
+                  emptyText="Не найден"
+                  className="mt-1"
+                  data-testid="select-publisher"
+                  options={[
+                    { value: "all", label: "Все вебмастера" },
+                    ...publishers.map((pub) => ({
+                      value: pub.id,
+                      label: pub.username || pub.email,
+                    })),
+                  ]}
+                />
               </div>
             )}
             <div>
