@@ -28,6 +28,15 @@ const OFFERS_CONFIG = [
     leads: 7321,
     sales: 719,
   },
+  {
+    name: "Spinania | Slot | FB",
+    geo: "ES",
+    partnerPayout: 170,
+    internalCost: 190,
+    clicks: 22877,
+    leads: 7321,
+    sales: 719,
+  },
 ];
 
 const PUBLISHERS = [
@@ -53,14 +62,22 @@ const IOS_UAS = [
 
 const PT_CITIES = ["Lisbon", "Porto", "Braga", "Coimbra", "Funchal", "Faro", "Aveiro", "Setubal"];
 const FR_CITIES = ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Bordeaux"];
+const ES_CITIES = ["Madrid", "Barcelona", "Valencia", "Seville", "Zaragoza", "Malaga", "Murcia", "Bilbao"];
 
 const PT_ISPS = ["NOS", "MEO", "Vodafone PT", "NOWO", "Altice Portugal"];
 const FR_ISPS = ["Orange", "SFR", "Bouygues Telecom", "Free Mobile", "Iliad"];
+const ES_ISPS = ["Movistar", "Vodafone ES", "Orange ES", "MasMovil", "Yoigo"];
 
 function generateUniqueIP(index: number, geo: string): string {
   if (geo === "PT") {
     const base = 85 + (index % 10);
     const b = 240 + (index % 15);
+    const c = Math.floor(index / 1000) % 256;
+    const d = index % 256;
+    return `${base}.${b}.${c}.${d}`;
+  } else if (geo === "ES") {
+    const base = 83 + (index % 10);
+    const b = 32 + (index % 64);
     const c = Math.floor(index / 1000) % 256;
     const d = index % 256;
     return `${base}.${b}.${c}.${d}`;
@@ -144,7 +161,7 @@ async function main() {
     const [newOffer] = await db.insert(offers).values({
       advertiserId: ADVERTISER_ID,
       name: offerName,
-      description: `${config.name} - ${config.geo === "PT" ? "Португалия" : "Франция"}`,
+      description: `${config.name} - ${config.geo === "PT" ? "Португалия" : config.geo === "FR" ? "Франция" : "Испания"}`,
       partnerPayout: String(config.partnerPayout),
       internalCost: String(config.internalCost),
       payoutModel: "CPA",
@@ -182,8 +199,8 @@ async function main() {
     console.log(`   - Лиды: ${config.leads}`);
     console.log(`   - Сейлы: ${config.sales}`);
 
-    const cities = config.geo === "PT" ? PT_CITIES : FR_CITIES;
-    const isps = config.geo === "PT" ? PT_ISPS : FR_ISPS;
+    const cities = config.geo === "PT" ? PT_CITIES : config.geo === "FR" ? FR_CITIES : ES_CITIES;
+    const isps = config.geo === "PT" ? PT_ISPS : config.geo === "FR" ? FR_ISPS : ES_ISPS;
 
     const clicksToCreate: any[] = [];
     const clickIds: { id: string; clickId: string; createdAt: Date; publisherId: string }[] = [];
@@ -298,12 +315,13 @@ async function main() {
 
   console.log("\n=== Готово! ===");
   console.log("\nСводка:");
-  console.log("- Офферы: Leon (PT), Twin (FR)");
+  console.log("- Офферы: Leon (PT), Twin (FR), Spinania | Slot | FB (ES)");
   console.log("- Партнёры: web043, web279");
   console.log("- Период: 17.12.2025 - 18.01.2026");
   console.log("\nМетрики:");
   console.log("Leon (PT): 10,873 кликов, 4,023 лидов, 447 сейлов");
   console.log("Twin (FR): 22,877 кликов, 7,321 лидов, 719 сейлов");
+  console.log("Spinania | Slot | FB (ES): 22,877 кликов, 7,321 лидов, 719 сейлов");
 
   process.exit(0);
 }
