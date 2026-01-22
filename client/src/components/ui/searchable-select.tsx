@@ -1,15 +1,7 @@
 import * as React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Search, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export interface SearchableSelectOption {
   value: string;
@@ -38,7 +30,10 @@ export function SearchableSelect({
   className,
   "data-testid": testId,
 }: SearchableSelectProps) {
+  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const filteredOptions = useMemo(() => {
     if (!search.trim()) return options;
@@ -48,46 +43,89 @@ export function SearchableSelect({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
+  useEffect(() => {
+    if (open) {
+      setSearch("");
+      setTimeout(() => inputRef.current?.focus(), 10);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const handleSelect = (val: string) => {
+    onValueChange(val);
+    setOpen(false);
+  };
+
   return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger
-        className={cn("bg-input border-border text-foreground", className)}
+    <div ref={containerRef} className={cn("relative", className)}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "flex h-9 w-full items-center justify-between rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-input/80 focus:outline-none focus:ring-1 focus:ring-ring",
+          !selectedOption && "text-muted-foreground"
+        )}
         data-testid={testId}
       >
-        <SelectValue placeholder={placeholder}>
-          {selectedOption && (
-            <span className="flex items-center gap-1">
+        <span className="truncate flex items-center gap-1">
+          {selectedOption ? (
+            <>
               {selectedOption.icon && <span>{selectedOption.icon}</span>}
               {selectedOption.label}
-            </span>
+            </>
+          ) : (
+            placeholder
           )}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent className="bg-input border-border max-h-[300px]">
-        <div className="flex items-center border-b border-border px-3 pb-2">
-          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-8 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          />
+        </span>
+        <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-lg">
+          <div className="flex items-center border-b border-border px-3 py-2">
+            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+              data-testid={testId ? `${testId}-search` : "input-search"}
+            />
+          </div>
+          <div className="max-h-[250px] overflow-y-auto py-1">
+            {filteredOptions.length === 0 ? (
+              <div className="py-4 text-center text-sm text-muted-foreground">{emptyText}</div>
+            ) : (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.value}
+                  onClick={() => handleSelect(option.value)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-accent",
+                    value === option.value && "bg-accent"
+                  )}
+                >
+                  {option.icon && <span>{option.icon}</span>}
+                  <span className="flex-1">{option.label}</span>
+                  {value === option.value && <Check className="h-4 w-4 text-primary" />}
+                </div>
+              ))
+            )}
+          </div>
         </div>
-        {filteredOptions.length === 0 ? (
-          <div className="py-4 text-center text-sm text-muted-foreground">{emptyText}</div>
-        ) : (
-          filteredOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              <span className="flex items-center gap-2">
-                {option.icon && <span>{option.icon}</span>}
-                {option.label}
-              </span>
-            </SelectItem>
-          ))
-        )}
-      </SelectContent>
-    </Select>
+      )}
+    </div>
   );
 }
