@@ -1738,11 +1738,18 @@ export async function registerRoutes(
         }
         
         // С доступом - показываем лендинги с tracking URLs (без internalCost)
-        const landings = await storage.getOfferLandings(offer.id);
+        const allLandings = await storage.getOfferLandings(offer.id);
         const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
         // Always use PLATFORM_DOMAIN for tracking links
         const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
         const publisherId = req.session.userId!;
+        
+        // Filter landings by approvedLandings
+        const publisherOffer = await storage.getPublisherOffer(offer.id, publisherId);
+        const approvedLandings = normalizePostgresArray(publisherOffer?.approvedLandings);
+        const landings = approvedLandings && approvedLandings.length > 0
+          ? allLandings.filter(l => approvedLandings.includes(l.id))
+          : allLandings;
         
         // Get shortIds for compact tracking URLs
         const publisher = await storage.getUser(publisherId);
