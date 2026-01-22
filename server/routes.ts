@@ -1612,6 +1612,7 @@ export async function registerRoutes(
         capReachedAction: rawOfferData.capReachedAction || "block",
         capRedirectUrl: rawOfferData.capRedirectUrl || null,
         advertiserId: effectiveAdvertiserId,
+        currency: rawOfferData.currency || "USD",
         geo: Array.isArray(rawOfferData.geo) ? rawOfferData.geo.filter((g: string) => g && g.trim()) : [],
         trafficSources: Array.isArray(rawOfferData.trafficSources) ? rawOfferData.trafficSources : [],
         appTypes: Array.isArray(rawOfferData.appTypes) ? rawOfferData.appTypes : [],
