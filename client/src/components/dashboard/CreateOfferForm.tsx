@@ -477,28 +477,6 @@ export function CreateOfferForm({ role }: { role: string }) {
                     {PAYOUT_MODELS.map(model => <option key={model}>{model}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
-                    <DollarSign className="w-3 h-3" /> Валюта оффера
-                  </Label>
-                  <select 
-                    data-testid="select-offer-currency"
-                    className="w-full h-9 rounded-md bg-background border border-border text-foreground px-3 text-sm font-mono focus:border-blue-500 focus:outline-none"
-                    value={formData.currency}
-                    onChange={e => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                  >
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="RUB">RUB (₽)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="UAH">UAH (₴)</option>
-                    <option value="KZT">KZT (₸)</option>
-                    <option value="PLN">PLN (zł)</option>
-                    <option value="TRY">TRY (₺)</option>
-                    <option value="BRL">BRL (R$)</option>
-                    <option value="INR">INR (₹)</option>
-                  </select>
-                </div>
               </div>
 
               {(formData.payoutModel === "RevShare" || formData.payoutModel === "Hybrid") && (
