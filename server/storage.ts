@@ -2347,15 +2347,22 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async updatePublisherOfferAccess(publisherId: string, offerId: string, status: string, approvedGeos?: string[] | null): Promise<PublisherOfferAccess | null> {
+  async updatePublisherOfferAccess(publisherId: string, offerId: string, status: string, approvedGeos?: string[] | null, approvedLandings?: string[] | null): Promise<PublisherOfferAccess | null> {
     if (status === "approved") {
       // Check if already exists
       const existing = await this.getPublisherOfferAccess(publisherId, offerId);
       if (existing) {
-        // Update approvedGeos if provided
+        // Update approvedGeos/approvedLandings if provided
+        const updateData: { approvedGeos?: string[] | null; approvedLandings?: string[] | null } = {};
         if (approvedGeos !== undefined) {
+          updateData.approvedGeos = approvedGeos;
+        }
+        if (approvedLandings !== undefined) {
+          updateData.approvedLandings = approvedLandings;
+        }
+        if (Object.keys(updateData).length > 0) {
           const [updated] = await db.update(publisherOffers)
-            .set({ approvedGeos })
+            .set(updateData)
             .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)))
             .returning();
           return updated;
@@ -2366,7 +2373,8 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db.insert(publisherOffers).values({
         publisherId,
         offerId,
-        approvedGeos: approvedGeos ?? null
+        approvedGeos: approvedGeos ?? null,
+        approvedLandings: approvedLandings ?? null
       }).returning();
       return created;
     } else if (status === "revoked" || status === "rejected") {
