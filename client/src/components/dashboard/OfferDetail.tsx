@@ -4,10 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Globe, DollarSign, Tag, ExternalLink, Copy, 
   Smartphone, Monitor, Share2, FileText, Link2, CheckCircle,
-  Lock, Clock, Send, AlertCircle, ChevronDown, ChevronRight
+  Lock, Clock, Send, AlertCircle, ChevronDown, ChevronRight, Plus
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -361,6 +363,134 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
   );
 }
 
+function RequestLandingsCard({ offerId, landings, onSuccess }: { offerId: string; landings: OfferLandingType[]; onSuccess: () => void }) {
+  const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
+  
+  const unavailableLandings = landings.filter(l => l.isApproved === false);
+  
+  const requestLandingsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/offers/${offerId}/request-landings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ landingIds: selectedLandings })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to request landings");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/offers", offerId] });
+      setIsOpen(false);
+      setSelectedLandings([]);
+      onSuccess();
+    }
+  });
+
+  if (unavailableLandings.length === 0) {
+    return null;
+  }
+
+  const toggleLanding = (id: string) => {
+    setSelectedLandings(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedLandings(unavailableLandings.map(l => l.id));
+  };
+
+  return (
+    <Card className="bg-orange-500/10 border-orange-500/30 mt-4">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-orange-500/20 rounded-full flex items-center justify-center">
+              <Lock className="w-4 h-4 text-orange-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-orange-400">
+                {unavailableLandings.length} лендинг{unavailableLandings.length === 1 ? '' : unavailableLandings.length < 5 ? 'а' : 'ов'} недоступно
+              </p>
+              <p className="text-xs text-orange-400/70">Запросите доступ у рекламодателя</p>
+            </div>
+          </div>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-orange-600 hover:bg-orange-500 text-white" data-testid="button-request-landings">
+                <Plus className="w-4 h-4 mr-1" />
+                Запросить
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Запросить доступ к лендингам</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">
+                    Выберите лендинги для запроса
+                  </p>
+                  <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs">
+                    Выбрать все
+                  </Button>
+                </div>
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {unavailableLandings.map((landing) => (
+                    <div 
+                      key={landing.id} 
+                      className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 cursor-pointer"
+                      onClick={() => toggleLanding(landing.id)}
+                    >
+                      <Checkbox 
+                        checked={selectedLandings.includes(landing.id)}
+                        onCheckedChange={() => toggleLanding(landing.id)}
+                        data-testid={`checkbox-landing-${landing.id}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {landing.landingName || 'Landing'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {getCountryFlag(landing.geo)} {landing.geo} — {getCurrencySymbol(landing.currency)}{landing.partnerPayout}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={() => requestLandingsMutation.mutate()}
+                  disabled={selectedLandings.length === 0 || requestLandingsMutation.isPending}
+                  data-testid="button-submit-request-landings"
+                >
+                  {requestLandingsMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Отправка...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Запросить доступ ({selectedLandings.length})
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 interface Offer {
   id: string;
   advertiserId: string;
@@ -690,7 +820,16 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
           </Card>
 
           {canSeeLinks && offer.landings && offer.landings.length > 0 && (
-            <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
+            <>
+              <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
+              {isPublisher && hasAccess && (
+                <RequestLandingsCard 
+                  offerId={offer.id} 
+                  landings={offer.landings}
+                  onSuccess={() => {}}
+                />
+              )}
+            </>
           )}
 
           {!canSeeLinks && (
