@@ -350,6 +350,7 @@ export interface IStorage {
   getPublisherOffersByPublisher(publisherId: string): Promise<PublisherOfferAccess[]>;
   getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]>;
   createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
+  updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null }): Promise<PublisherOfferAccess | undefined>;
   deletePublisherOffer(offerId: string, publisherId: string): Promise<void>;
   hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
   getPublisherAccessMap(offerIds: string[], publisherId: string): Promise<Set<string>>;
@@ -1238,6 +1239,17 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null }): Promise<PublisherOfferAccess | undefined> {
+    const [result] = await db.update(publisherOffers)
+      .set(data)
+      .where(and(
+        eq(publisherOffers.offerId, offerId),
+        eq(publisherOffers.publisherId, publisherId)
+      ))
+      .returning();
+    return result;
+  }
+
   async deletePublisherOffer(offerId: string, publisherId: string): Promise<void> {
     await db.delete(publisherOffers)
       .where(and(
@@ -1270,10 +1282,13 @@ export class DatabaseStorage implements IStorage {
       ));
     
     if (approvedRequest) {
-      // Auto-create missing publisher_offers record
+      // Auto-create missing publisher_offers record with all landings
+      const offerLandings = await this.getOfferLandings(offerId);
+      const allLandingIds = offerLandings.map(l => l.id);
       await this.createPublisherOffer({
         offerId,
         publisherId,
+        approvedLandings: allLandingIds.length > 0 ? allLandingIds : null,
       });
       return true;
     }

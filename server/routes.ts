@@ -3515,19 +3515,23 @@ export async function registerRoutes(
       }
       const requests = await storage.getAccessRequestsByAdvertiser(advertiserId);
       
-      const safeRequests = requests.map(r => ({
-        ...r,
-        publisher: {
-          id: r.publisher.id,
-          username: r.publisher.username,
-          email: r.publisher.email,
-        },
-        offer: {
-          id: r.offer.id,
-          name: r.offer.name,
-          category: r.offer.category,
-          geo: r.offer.geo,
-        },
+      const safeRequests = await Promise.all(requests.map(async r => {
+        const landings = await storage.getOfferLandings(r.offer.id);
+        return {
+          ...r,
+          publisher: {
+            id: r.publisher.id,
+            username: r.publisher.username,
+            email: r.publisher.email,
+          },
+          offer: {
+            id: r.offer.id,
+            name: r.offer.name,
+            category: r.offer.category,
+            geo: r.offer.geo,
+            landings: landings.map(l => ({ id: l.id, name: l.name, geo: l.geo })),
+          },
+        };
       }));
       
       res.json(safeRequests);
@@ -3540,7 +3544,7 @@ export async function registerRoutes(
   app.put("/api/advertiser/access-requests/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("requests"), async (req: Request, res: Response) => {
     try {
       const requestId = req.params.id;
-      const { action, rejectionReason, approvedGeos } = req.body;
+      const { action, rejectionReason, approvedGeos, approvedLandings } = req.body;
 
       if (!action || !["approve", "reject", "revoke"].includes(action)) {
         return res.status(400).json({ message: "Invalid action. Use 'approve', 'reject', or 'revoke'" });
@@ -3575,11 +3579,29 @@ export async function registerRoutes(
           : null;
         const validGeos = filteredGeos && filteredGeos.length > 0 ? filteredGeos : null;
         
-        await storage.createPublisherOffer({
-          offerId: request.offerId,
-          publisherId: request.publisherId,
-          approvedGeos: validGeos,
-        });
+        // Validate approvedLandings if provided - must be subset of offer landings
+        const offerLandings = await storage.getOfferLandings(request.offerId);
+        const offerLandingIds = offerLandings.map(l => l.id);
+        const filteredLandings = Array.isArray(approvedLandings)
+          ? approvedLandings.filter((id: string) => offerLandingIds.includes(id))
+          : null;
+        const validLandings = filteredLandings && filteredLandings.length > 0 ? filteredLandings : null;
+        
+        // Upsert logic: check if publisher_offer exists, then update or create
+        const existingAccess = await storage.getPublisherOffer(request.offerId, request.publisherId);
+        if (existingAccess) {
+          await storage.updatePublisherOffer(request.offerId, request.publisherId, {
+            approvedGeos: validGeos,
+            approvedLandings: validLandings,
+          });
+        } else {
+          await storage.createPublisherOffer({
+            offerId: request.offerId,
+            publisherId: request.publisherId,
+            approvedGeos: validGeos,
+            approvedLandings: validLandings,
+          });
+        }
         
         // Send notification to publisher
         notificationService.notifyAccessApproved(

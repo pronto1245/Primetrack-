@@ -9,6 +9,12 @@ import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 
+interface Landing {
+  id: string;
+  name: string;
+  geo: string;
+}
+
 interface AccessRequestWithDetails {
   id: string;
   offerId: string;
@@ -22,6 +28,7 @@ interface AccessRequestWithDetails {
     name: string;
     category: string;
     geo: string[];
+    landings: Landing[];
   };
   publisher: {
     id: string;
@@ -42,6 +49,7 @@ export function AccessRequests() {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [approvingRequest, setApprovingRequest] = useState<AccessRequestWithDetails | null>(null);
   const [selectedGeos, setSelectedGeos] = useState<string[]>([]);
+  const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
 
   const { data: requests, isLoading, error } = useQuery<AccessRequestWithDetails[]>({
     queryKey: ["/api/advertiser/access-requests"],
@@ -53,11 +61,11 @@ export function AccessRequests() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ requestId, action, reason, approvedGeos }: { requestId: string; action: "approve" | "reject" | "revoke"; reason?: string; approvedGeos?: string[] }) => {
+    mutationFn: async ({ requestId, action, reason, approvedGeos, approvedLandings }: { requestId: string; action: "approve" | "reject" | "revoke"; reason?: string; approvedGeos?: string[]; approvedLandings?: string[] }) => {
       const res = await fetch(`/api/advertiser/access-requests/${requestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, rejectionReason: reason, approvedGeos }),
+        body: JSON.stringify({ action, rejectionReason: reason, approvedGeos, approvedLandings }),
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update request");
@@ -271,6 +279,7 @@ export function AccessRequests() {
                             onClick={() => {
                               setApprovingRequest(req);
                               setSelectedGeos([...req.offer.geo]);
+                              setSelectedLandings(req.offer.landings.map(l => l.id));
                               setApproveDialogOpen(true);
                             }}
                             disabled={updateMutation.isPending}
@@ -388,70 +397,133 @@ export function AccessRequests() {
       </Dialog>
 
       <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-foreground font-mono">Одобрить заявку</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <label className="text-sm text-muted-foreground font-mono mb-3 block">
-              Выберите ГЕО для доступа партнёра
-            </label>
-            <div className="flex items-center gap-2 mb-3">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="text-xs"
-                onClick={() => setSelectedGeos([...(approvingRequest?.offer.geo || [])])}
-                data-testid="button-select-all-geos"
-              >
-                Выбрать все
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="text-xs"
-                onClick={() => setSelectedGeos([])}
-                data-testid="button-deselect-all-geos"
-              >
-                Снять все
-              </Button>
-            </div>
-            <div className="grid grid-cols-4 gap-2 max-h-[200px] overflow-y-auto">
-              {approvingRequest?.offer.geo.map((geo) => (
-                <label
-                  key={geo}
-                  className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer transition-colors ${
-                    selectedGeos.includes(geo)
-                      ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
-                      : "bg-muted border-border text-muted-foreground hover:border-blue-500/30"
-                  }`}
+          <div className="py-4 space-y-6">
+            <div>
+              <label className="text-sm text-muted-foreground font-mono mb-3 block">
+                Выберите ГЕО для доступа партнёра
+              </label>
+              <div className="flex items-center gap-2 mb-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => setSelectedGeos([...(approvingRequest?.offer.geo || [])])}
+                  data-testid="button-select-all-geos"
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedGeos.includes(geo)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedGeos([...selectedGeos, geo]);
-                      } else {
-                        setSelectedGeos(selectedGeos.filter((g) => g !== geo));
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-border"
-                    data-testid={`checkbox-geo-${geo}`}
-                  />
-                  <span className="font-mono text-sm">{geo}</span>
-                </label>
-              ))}
+                  Выбрать все
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => setSelectedGeos([])}
+                  data-testid="button-deselect-all-geos"
+                >
+                  Снять все
+                </Button>
+              </div>
+              <div className="grid grid-cols-4 gap-2 max-h-[150px] overflow-y-auto">
+                {approvingRequest?.offer.geo.map((geo) => (
+                  <label
+                    key={geo}
+                    className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer transition-colors ${
+                      selectedGeos.includes(geo)
+                        ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
+                        : "bg-muted border-border text-muted-foreground hover:border-blue-500/30"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedGeos.includes(geo)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedGeos([...selectedGeos, geo]);
+                        } else {
+                          setSelectedGeos(selectedGeos.filter((g) => g !== geo));
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-border"
+                      data-testid={`checkbox-geo-${geo}`}
+                    />
+                    <span className="font-mono text-sm">{geo}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 font-mono">
+                {selectedGeos.length === approvingRequest?.offer.geo.length
+                  ? "Доступ ко всем ГЕО"
+                  : selectedGeos.length === 0
+                  ? "Доступ ко всем ГЕО (по умолчанию)"
+                  : `Доступ к ${selectedGeos.length} из ${approvingRequest?.offer.geo.length} ГЕО`}
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground mt-3 font-mono">
-              {selectedGeos.length === approvingRequest?.offer.geo.length
-                ? "Доступ ко всем ГЕО"
-                : selectedGeos.length === 0
-                ? "Доступ ко всем ГЕО (по умолчанию)"
-                : `Доступ к ${selectedGeos.length} из ${approvingRequest?.offer.geo.length} ГЕО`}
-            </p>
+
+            <div>
+              <label className="text-sm text-muted-foreground font-mono mb-3 block">
+                Выберите лендинги для доступа партнёра
+              </label>
+              <div className="flex items-center gap-2 mb-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => setSelectedLandings(approvingRequest?.offer.landings.map(l => l.id) || [])}
+                  data-testid="button-select-all-landings"
+                >
+                  Выбрать все
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => setSelectedLandings([])}
+                  data-testid="button-deselect-all-landings"
+                >
+                  Снять все
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                {approvingRequest?.offer.landings.map((landing) => (
+                  <label
+                    key={landing.id}
+                    className={`flex items-center gap-3 px-3 py-2 rounded border cursor-pointer transition-colors ${
+                      selectedLandings.includes(landing.id)
+                        ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                        : "bg-muted border-border text-muted-foreground hover:border-emerald-500/30"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLandings.includes(landing.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedLandings([...selectedLandings, landing.id]);
+                        } else {
+                          setSelectedLandings(selectedLandings.filter((id) => id !== landing.id));
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-border"
+                      data-testid={`checkbox-landing-${landing.id}`}
+                    />
+                    <span className="font-mono text-sm flex-1">{landing.name}</span>
+                    <span className="font-mono text-xs text-muted-foreground">{landing.geo}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 font-mono">
+                {selectedLandings.length === approvingRequest?.offer.landings.length || selectedLandings.length === 0
+                  ? "Доступ ко всем лендингам"
+                  : `Доступ к ${selectedLandings.length} из ${approvingRequest?.offer.landings.length} лендингов`}
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -467,10 +539,14 @@ export function AccessRequests() {
                   const geosToSend = selectedGeos.length === approvingRequest.offer.geo.length || selectedGeos.length === 0
                     ? undefined
                     : selectedGeos;
+                  const landingsToSend = selectedLandings.length === approvingRequest.offer.landings.length
+                    ? undefined
+                    : selectedLandings;
                   updateMutation.mutate({
                     requestId: approvingRequest.id,
                     action: "approve",
                     approvedGeos: geosToSend,
+                    approvedLandings: landingsToSend,
                   });
                   setApproveDialogOpen(false);
                 }
