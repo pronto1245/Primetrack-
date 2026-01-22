@@ -3796,7 +3796,9 @@ export async function registerRoutes(
           payoutModel: offer.payoutModel,
           clicks: stats.clicks,
           conversions: stats.conversions,
-          revenue: stats.revenue
+          revenue: stats.revenue,
+          landings: landings.map(l => ({ id: l.id, name: l.name, url: l.url })),
+          approvedLandings: access?.approvedLandings || null
         };
       }));
       
@@ -3814,7 +3816,7 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
       const { publisherId, offerId } = req.params;
-      const { status } = req.body;
+      const { status, approvedLandings } = req.body;
       
       if (!["approved", "rejected", "revoked"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
@@ -3826,9 +3828,33 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const updated = await storage.updatePublisherOfferAccess(publisherId, offerId, status);
+      // Validate approvedLandings if provided (must be subset of offer landings)
+      let validatedLandings: string[] | undefined = undefined;
+      if (status === "approved" && approvedLandings !== undefined) {
+        // Validate input type
+        if (!Array.isArray(approvedLandings) || !approvedLandings.every((id: unknown) => typeof id === "string")) {
+          return res.status(400).json({ message: "approvedLandings must be an array of strings" });
+        }
+        
+        // Empty array means "all landings allowed"
+        if (approvedLandings.length === 0) {
+          validatedLandings = null as any;
+        } else {
+          // Validate all IDs exist in offer landings
+          const offerLandings = await storage.getOfferLandings(offerId);
+          const offerLandingIds = offerLandings.map(l => l.id);
+          const invalidIds = approvedLandings.filter((id: string) => !offerLandingIds.includes(id));
+          if (invalidIds.length > 0) {
+            return res.status(400).json({ message: `Invalid landing IDs: ${invalidIds.join(", ")}` });
+          }
+          validatedLandings = approvedLandings;
+        }
+      }
+      
+      const updated = await storage.updatePublisherOfferAccess(publisherId, offerId, status, undefined, validatedLandings);
       res.json(updated);
     } catch (error) {
+      console.error("[partners/offers] Error:", error);
       res.status(500).json({ message: "Failed to update offer access" });
     }
   });
