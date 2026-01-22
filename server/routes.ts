@@ -3498,7 +3498,7 @@ export async function registerRoutes(
   app.put("/api/advertiser/access-requests/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("requests"), async (req: Request, res: Response) => {
     try {
       const requestId = req.params.id;
-      const { action, rejectionReason } = req.body;
+      const { action, rejectionReason, approvedGeos } = req.body;
 
       if (!action || !["approve", "reject", "revoke"].includes(action)) {
         return res.status(400).json({ message: "Invalid action. Use 'approve', 'reject', or 'revoke'" });
@@ -3526,9 +3526,17 @@ export async function registerRoutes(
       if (action === "approve") {
         await storage.updateOfferAccessRequest(requestId, { status: "approved" });
         
+        // Validate approvedGeos if provided - must be subset of offer.geo
+        // Empty array or no valid geos = null (access to all geos)
+        const filteredGeos = Array.isArray(approvedGeos) 
+          ? approvedGeos.filter((g: string) => offer.geo.includes(g))
+          : null;
+        const validGeos = filteredGeos && filteredGeos.length > 0 ? filteredGeos : null;
+        
         await storage.createPublisherOffer({
           offerId: request.offerId,
           publisherId: request.publisherId,
+          approvedGeos: validGeos,
         });
         
         // Send notification to publisher
