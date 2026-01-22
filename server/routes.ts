@@ -2973,6 +2973,7 @@ export async function registerRoutes(
       // Filter out null values (offers from non-active partnerships)
       res.json(offersWithAccess.filter(o => o !== null));
     } catch (error) {
+      console.error("[marketplace/offers] Error:", error);
       res.status(500).json({ message: "Failed to fetch marketplace offers" });
     }
   });
