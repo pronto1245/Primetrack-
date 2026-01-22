@@ -51,6 +51,22 @@ function sanitizeInteger(value: any): number | null {
   return parsed;
 }
 
+// Normalize Postgres array - handles both string "{a,b}" and actual array formats
+function normalizePostgresArray(value: any): string[] | null {
+  if (!value) return null;
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    // Parse Postgres array format: "{val1,val2,val3}"
+    if (value.startsWith('{') && value.endsWith('}')) {
+      const inner = value.slice(1, -1);
+      if (!inner) return [];
+      return inner.split(',').map(s => s.trim());
+    }
+    return [value];
+  }
+  return null;
+}
+
 // For Drizzle numeric() fields which expect string type
 function sanitizeNumericToString(value: any): string | null {
   if (value === null || value === undefined || value === "") {
@@ -2941,19 +2957,13 @@ export async function registerRoutes(
             
             // Get approved GEOs and landings for this publisher
             const publisherOffer = await storage.getPublisherOffer(offer.id, publisherId);
-            const approvedGeos = publisherOffer?.approvedGeos || null;
-            const approvedLandings = publisherOffer?.approvedLandings || null;
-            
-            console.log(`[marketplace/offers] offer=${offer.id} publisherOffer=`, publisherOffer);
-            console.log(`[marketplace/offers] approvedLandings=`, approvedLandings, `type=${typeof approvedLandings}`);
-            console.log(`[marketplace/offers] allLandings ids=`, allLandings.map(l => l.id));
+            const approvedGeos = normalizePostgresArray(publisherOffer?.approvedGeos);
+            const approvedLandings = normalizePostgresArray(publisherOffer?.approvedLandings);
             
             // Filter landings by approvedLandings if set
             const filteredLandings = approvedLandings && approvedLandings.length > 0
               ? allLandings.filter(l => approvedLandings.includes(l.id))
               : allLandings;
-            
-            console.log(`[marketplace/offers] filteredLandings count=${filteredLandings.length}`);
             
             const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => {
               const landingShortId = formatShortId(rest.shortId, 4, rest.id);
@@ -3136,8 +3146,9 @@ export async function registerRoutes(
           const { internalCost, ...safeOffer } = offer;
           
           // Filter landings by approvedLandings if set
-          const filteredLandings = po.approvedLandings && po.approvedLandings.length > 0
-            ? allLandings.filter(l => po.approvedLandings!.includes(l.id))
+          const approvedLandings = normalizePostgresArray(po.approvedLandings);
+          const filteredLandings = approvedLandings && approvedLandings.length > 0
+            ? allLandings.filter(l => approvedLandings.includes(l.id))
             : allLandings;
           
           const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => rest);
@@ -3173,8 +3184,9 @@ export async function registerRoutes(
           const allLandings = await storage.getOfferLandings(offer.id);
           
           // Filter landings by approvedLandings if set
-          const filteredLandings = po.approvedLandings && po.approvedLandings.length > 0
-            ? allLandings.filter(l => po.approvedLandings!.includes(l.id))
+          const approvedLandings = normalizePostgresArray(po.approvedLandings);
+          const filteredLandings = approvedLandings && approvedLandings.length > 0
+            ? allLandings.filter(l => approvedLandings.includes(l.id))
             : allLandings;
           
           return { 
