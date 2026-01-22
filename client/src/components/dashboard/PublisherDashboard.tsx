@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
+import { formatCurrency } from "@/lib/utils";
 
 interface PublisherStatsData {
   totalClicks: number;
@@ -298,7 +299,7 @@ export function PublisherDashboard() {
               <DollarSign className="w-3 h-3 text-emerald-400" />
               <span className="text-[10px] uppercase font-medium text-emerald-400">{t('publisherDashboard.totalPayout')}</span>
             </div>
-            <div className="text-lg font-bold font-mono text-emerald-400">${stats.totalPayout.toFixed(2)}</div>
+            <div className="text-lg font-bold font-mono text-emerald-400">{formatCurrency(stats.totalPayout)}</div>
           </CardContent>
         </Card>
         <Card className="bg-yellow-500/5 border-yellow-500/30 hover:border-yellow-500/50 transition-colors">
@@ -307,7 +308,7 @@ export function PublisherDashboard() {
               <Clock className="w-3 h-3 text-yellow-400" />
               <span className="text-[10px] uppercase font-medium text-yellow-400">{t('publisherDashboard.hold')}</span>
             </div>
-            <div className="text-lg font-bold font-mono text-yellow-400">${stats.holdPayout.toFixed(2)}</div>
+            <div className="text-lg font-bold font-mono text-yellow-400">{formatCurrency(stats.holdPayout)}</div>
           </CardContent>
         </Card>
         <Card className="bg-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50 transition-colors">
@@ -325,7 +326,7 @@ export function PublisherDashboard() {
               <TrendingUp className="w-3 h-3 text-pink-400" />
               <span className="text-[10px] uppercase font-medium text-pink-400">{t('publisherDashboard.epc')}</span>
             </div>
-            <div className="text-lg font-bold font-mono text-pink-400">${stats.epc.toFixed(3)}</div>
+            <div className="text-lg font-bold font-mono text-pink-400">{formatCurrency(stats.epc)}</div>
           </CardContent>
         </Card>
       </div>
@@ -409,7 +410,7 @@ export function PublisherDashboard() {
                     {!['approved', 'hold', 'rejected', 'pending'].includes(status.status) && status.status}
                   </div>
                   <div className="text-2xl font-bold font-mono text-foreground">{status.count}</div>
-                  <div className="text-sm font-mono text-emerald-500">${status.payout.toFixed(2)}</div>
+                  <div className="text-sm font-mono text-emerald-500">{formatCurrency(status.payout)}</div>
                 </div>
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                   status.status === 'approved' ? 'bg-emerald-500/20' :
@@ -466,7 +467,7 @@ export function PublisherDashboard() {
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.leads.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.sales.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right text-emerald-400">${row.payout.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-emerald-400">{formatCurrency(row.payout)}</td>
                       <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
                     </tr>
                   ))}

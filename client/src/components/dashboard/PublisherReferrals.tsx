@@ -9,6 +9,7 @@ import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { 
   Users2, Copy, Check, DollarSign, UserPlus, TrendingUp, Link as LinkIcon, Clock
 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface ReferralStats {
   enabled: boolean;
@@ -216,7 +217,7 @@ export function PublisherReferrals() {
             <DollarSign className="w-4 h-4 text-emerald-400" />
             <p className="text-xs text-muted-foreground">Заработано</p>
           </div>
-          <p className="text-xl font-bold text-emerald-400" data-testid="text-total-earnings">${totalEarnings.toFixed(2)}</p>
+          <p className="text-xl font-bold text-emerald-400" data-testid="text-total-earnings">{formatCurrency(totalEarnings)}</p>
         </div>
 
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
@@ -224,7 +225,7 @@ export function PublisherReferrals() {
             <Clock className="w-4 h-4 text-yellow-400" />
             <p className="text-xs text-muted-foreground">Ожидает</p>
           </div>
-          <p className="text-xl font-bold text-yellow-400" data-testid="text-pending-earnings">${pendingEarnings.toFixed(2)}</p>
+          <p className="text-xl font-bold text-yellow-400" data-testid="text-pending-earnings">{formatCurrency(pendingEarnings)}</p>
         </div>
       </div>
 
