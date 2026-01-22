@@ -101,28 +101,28 @@ export function AccessRequests() {
         return (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-500">
             <Clock className="w-3 h-3" />
-            Pending
+            Ожидает
           </span>
         );
       case "approved":
         return (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-500">
             <CheckCircle className="w-3 h-3" />
-            Approved
+            Одобрено
           </span>
         );
       case "rejected":
         return (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-500">
             <XCircle className="w-3 h-3" />
-            Rejected
+            Отклонено
           </span>
         );
       case "revoked":
         return (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-orange-500/20 text-orange-500">
             <XCircle className="w-3 h-3" />
-            Revoked
+            Отозвано
           </span>
         );
       default:
@@ -171,7 +171,7 @@ export function AccessRequests() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by offer or publisher..."
+              placeholder="Поиск по офферу или партнёру..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500 font-mono"
@@ -186,7 +186,7 @@ export function AccessRequests() {
               onClick={() => setStatusFilter(null)}
               data-testid="button-filter-all"
             >
-              All
+              Все
             </Button>
             <Button
               variant="outline"
@@ -195,7 +195,7 @@ export function AccessRequests() {
               onClick={() => setStatusFilter('pending')}
               data-testid="button-filter-pending"
             >
-              Pending
+              Ожидают
             </Button>
             <Button
               variant="outline"
@@ -204,7 +204,7 @@ export function AccessRequests() {
               onClick={() => setStatusFilter('approved')}
               data-testid="button-filter-approved"
             >
-              Approved
+              Одобрены
             </Button>
             <Button
               variant="outline"
@@ -213,7 +213,7 @@ export function AccessRequests() {
               onClick={() => setStatusFilter('rejected')}
               data-testid="button-filter-rejected"
             >
-              Rejected
+              Отклонены
             </Button>
           </div>
         </div>
@@ -221,19 +221,19 @@ export function AccessRequests() {
         {filteredRequests.length === 0 ? (
           <div className="text-center py-12">
             <UserPlus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No access requests found</p>
+            <p className="text-muted-foreground">Заявок не найдено</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
-                  <th className="px-4 py-3 font-medium">Date</th>
-                  <th className="px-4 py-3 font-medium">Publisher</th>
-                  <th className="px-4 py-3 font-medium">Offer</th>
-                  <th className="px-4 py-3 font-medium">Message</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  <th className="px-4 py-3 font-medium">Дата</th>
+                  <th className="px-4 py-3 font-medium">Партнёр</th>
+                  <th className="px-4 py-3 font-medium">Оффер</th>
+                  <th className="px-4 py-3 font-medium">Сообщение</th>
+                  <th className="px-4 py-3 font-medium">Статус</th>
+                  <th className="px-4 py-3 font-medium text-right">Действия</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -277,7 +277,7 @@ export function AccessRequests() {
                             data-testid={`button-approve-${req.id}`}
                           >
                             <Check className="w-3 h-3 mr-1" />
-                            Approve
+                            Одобрить
                           </Button>
                           <Button
                             size="sm"
@@ -292,7 +292,7 @@ export function AccessRequests() {
                             data-testid={`button-reject-${req.id}`}
                           >
                             <X className="w-3 h-3 mr-1" />
-                            Reject
+                            Отклонить
                           </Button>
                         </div>
                       )}
@@ -306,7 +306,7 @@ export function AccessRequests() {
                           data-testid={`button-revoke-${req.id}`}
                         >
                           <X className="w-3 h-3 mr-1" />
-                          Revoke
+                          Отозвать
                         </Button>
                       )}
                       {req.status === "revoked" && (
@@ -322,7 +322,7 @@ export function AccessRequests() {
                           data-testid={`button-reapprove-${req.id}`}
                         >
                           <Check className="w-3 h-3 mr-1" />
-                          Re-Approve
+                          Восстановить
                         </Button>
                       )}
                       {req.status === "rejected" && (
