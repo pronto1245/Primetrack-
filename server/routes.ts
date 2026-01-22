@@ -3485,6 +3485,7 @@ export async function registerRoutes(
           id: r.offer.id,
           name: r.offer.name,
           category: r.offer.category,
+          geo: r.offer.geo,
         },
       }));
       

@@ -21,6 +21,7 @@ interface AccessRequestWithDetails {
     id: string;
     name: string;
     category: string;
+    geo: string[];
   };
   publisher: {
     id: string;
@@ -38,6 +39,9 @@ export function AccessRequests() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [approvingRequest, setApprovingRequest] = useState<AccessRequestWithDetails | null>(null);
+  const [selectedGeos, setSelectedGeos] = useState<string[]>([]);
 
   const { data: requests, isLoading, error } = useQuery<AccessRequestWithDetails[]>({
     queryKey: ["/api/advertiser/access-requests"],
@@ -49,11 +53,11 @@ export function AccessRequests() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ requestId, action, reason }: { requestId: string; action: "approve" | "reject" | "revoke"; reason?: string }) => {
+    mutationFn: async ({ requestId, action, reason, approvedGeos }: { requestId: string; action: "approve" | "reject" | "revoke"; reason?: string; approvedGeos?: string[] }) => {
       const res = await fetch(`/api/advertiser/access-requests/${requestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, reason }),
+        body: JSON.stringify({ action, rejectionReason: reason, approvedGeos }),
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update request");
@@ -264,7 +268,11 @@ export function AccessRequests() {
                           <Button
                             size="sm"
                             className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-foreground"
-                            onClick={() => updateMutation.mutate({ requestId: req.id, action: "approve" })}
+                            onClick={() => {
+                              setApprovingRequest(req);
+                              setSelectedGeos([...req.offer.geo]);
+                              setApproveDialogOpen(true);
+                            }}
                             disabled={updateMutation.isPending}
                             data-testid={`button-approve-${req.id}`}
                           >
@@ -305,7 +313,11 @@ export function AccessRequests() {
                         <Button
                           size="sm"
                           className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-foreground"
-                          onClick={() => updateMutation.mutate({ requestId: req.id, action: "approve" })}
+                          onClick={() => {
+                            setApprovingRequest(req);
+                            setSelectedGeos([...req.offer.geo]);
+                            setApproveDialogOpen(true);
+                          }}
                           disabled={updateMutation.isPending}
                           data-testid={`button-reapprove-${req.id}`}
                         >
@@ -369,6 +381,108 @@ export function AccessRequests() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 "Отклонить"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground font-mono">Одобрить заявку</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm text-muted-foreground font-mono mb-3 block">
+              Выберите ГЕО для доступа партнёра
+            </label>
+            <div className="flex items-center gap-2 mb-3">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="text-xs"
+                onClick={() => setSelectedGeos([...(approvingRequest?.offer.geo || [])])}
+                data-testid="button-select-all-geos"
+              >
+                Выбрать все
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="text-xs"
+                onClick={() => setSelectedGeos([])}
+                data-testid="button-deselect-all-geos"
+              >
+                Снять все
+              </Button>
+            </div>
+            <div className="grid grid-cols-4 gap-2 max-h-[200px] overflow-y-auto">
+              {approvingRequest?.offer.geo.map((geo) => (
+                <label
+                  key={geo}
+                  className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer transition-colors ${
+                    selectedGeos.includes(geo)
+                      ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
+                      : "bg-muted border-border text-muted-foreground hover:border-blue-500/30"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedGeos.includes(geo)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedGeos([...selectedGeos, geo]);
+                      } else {
+                        setSelectedGeos(selectedGeos.filter((g) => g !== geo));
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-border"
+                    data-testid={`checkbox-geo-${geo}`}
+                  />
+                  <span className="font-mono text-sm">{geo}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3 font-mono">
+              {selectedGeos.length === approvingRequest?.offer.geo.length
+                ? "Доступ ко всем ГЕО"
+                : selectedGeos.length === 0
+                ? "Доступ ко всем ГЕО (по умолчанию)"
+                : `Доступ к ${selectedGeos.length} из ${approvingRequest?.offer.geo.length} ГЕО`}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setApproveDialogOpen(false)}
+              className="border-border text-muted-foreground"
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={() => {
+                if (approvingRequest) {
+                  const geosToSend = selectedGeos.length === approvingRequest.offer.geo.length || selectedGeos.length === 0
+                    ? undefined
+                    : selectedGeos;
+                  updateMutation.mutate({
+                    requestId: approvingRequest.id,
+                    action: "approve",
+                    approvedGeos: geosToSend,
+                  });
+                  setApproveDialogOpen(false);
+                }
+              }}
+              disabled={updateMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-500 text-foreground"
+              data-testid="button-confirm-approve"
+            >
+              {updateMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Одобрить"
               )}
             </Button>
           </DialogFooter>
