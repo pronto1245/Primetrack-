@@ -851,7 +851,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                           >
                             {offer.landings.map((landing, idx) => (
                               <option key={landing.id} value={idx}>
-                                {landing.geo} — {landing.landingName || `Landing ${idx + 1}`}
+                                {landing.geo} — {landing.landingName || `Landing ${idx + 1}`}{landing.isApproved === false ? ' (недоступен)' : ''}
                               </option>
                             ))}
                           </select>
@@ -863,22 +863,32 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                             Лендинг — {selectedLanding.landingName || selectedLanding.geo}
                           </p>
                           <p className="text-[9px] text-muted-foreground mt-0.5">
-                            Ссылка с вашими sub-параметрами
+                            {selectedLanding.isApproved === false 
+                              ? "Ссылка недоступна — ожидает одобрения"
+                              : "Ссылка с вашими sub-параметрами"}
                           </p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 px-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
-                          onClick={() => copyToClipboard(buildUrlWithSubs(selectedLanding.trackingUrl || selectedLanding.landingUrl), 'preview')}
-                          data-testid="button-copy-preview"
-                        >
-                          {copiedUrl === 'preview' ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                        </Button>
+                        {selectedLanding.isApproved !== false && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                            onClick={() => copyToClipboard(buildUrlWithSubs(selectedLanding.trackingUrl || selectedLanding.landingUrl), 'preview')}
+                            data-testid="button-copy-preview"
+                          >
+                            {copiedUrl === 'preview' ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          </Button>
+                        )}
                       </div>
-                      <p className="text-[11px] text-foreground font-mono break-all leading-relaxed">
-                        {buildUrlWithSubs(selectedLanding.trackingUrl || selectedLanding.landingUrl)}
-                      </p>
+                      {selectedLanding.isApproved === false ? (
+                        <p className="text-[11px] text-orange-400 font-medium">
+                          Ссылка скрыта — ожидает одобрения рекламодателя
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-foreground font-mono break-all leading-relaxed">
+                          {buildUrlWithSubs(selectedLanding.trackingUrl || selectedLanding.landingUrl)}
+                        </p>
+                      )}
                     </div>
                   );
                 })()}
