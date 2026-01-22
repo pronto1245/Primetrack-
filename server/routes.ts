@@ -1619,7 +1619,7 @@ export async function registerRoutes(
         creativeLinks: Array.isArray(rawOfferData.creativeLinks) ? rawOfferData.creativeLinks : [],
       };
       
-      console.log("[POST /api/offers] Creating offer:", sanitizedData.name, "for advertiser:", sanitizedData.advertiserId);
+      console.log("[POST /api/offers] Creating offer:", sanitizedData.name, "for advertiser:", sanitizedData.advertiserId, "currency:", sanitizedData.currency);
       
       // Validate required fields before schema validation
       if (!sanitizedData.geo || sanitizedData.geo.length === 0) {
