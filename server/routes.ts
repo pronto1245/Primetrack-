@@ -3061,6 +3061,65 @@ export async function registerRoutes(
     }
   });
 
+  // Publisher requests additional landings for an offer they already have access to
+  app.post("/api/offers/:id/request-landings", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const offerId = req.params.id;
+      const publisherId = req.session.userId!;
+      const { landingIds } = req.body;
+
+      if (!landingIds || !Array.isArray(landingIds) || landingIds.length === 0) {
+        return res.status(400).json({ message: "landingIds is required and must be a non-empty array" });
+      }
+
+      // Check publisher has access to this offer
+      const access = await storage.getPublisherOffer(offerId, publisherId);
+      if (!access) {
+        return res.status(403).json({ message: "You don't have access to this offer" });
+      }
+
+      // Check if there's already a pending request
+      if (access.requestedLandings && access.requestedLandings.length > 0) {
+        return res.status(400).json({ message: "You already have a pending landing extension request" });
+      }
+
+      // Validate that requested landings exist in the offer
+      const offer = await storage.getOffer(offerId);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+
+      const offerLandingIds = new Set((offer.landings || []).map((l: any) => l.id));
+      const invalidLandings = landingIds.filter((id: string) => !offerLandingIds.has(id));
+      if (invalidLandings.length > 0) {
+        return res.status(400).json({ message: "Some landing IDs are not valid for this offer" });
+      }
+
+      // Filter out already approved landings
+      const approvedSet = new Set(access.approvedLandings || []);
+      const newLandings = landingIds.filter((id: string) => !approvedSet.has(id));
+      if (newLandings.length === 0) {
+        return res.status(400).json({ message: "All requested landings are already approved" });
+      }
+
+      const result = await storage.requestLandingsExtension(offerId, publisherId, newLandings);
+      
+      // Notify advertiser about landing extension request
+      const publisher = await storage.getUser(publisherId);
+      if (publisher) {
+        notificationService.notifyNewMessage(
+          offer.advertiserId,
+          `Партнер ${publisher.username} запросил доступ к дополнительным лендингам для оффера "${offer.name}"`
+        ).catch(console.error);
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("[request-landings] Error:", error);
+      res.status(500).json({ message: "Failed to request landings" });
+    }
+  });
+
   // Publisher's advertisers (for multi-advertiser context switcher)
   app.get("/api/publisher/advertisers", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
     try {
@@ -3944,6 +4003,84 @@ export async function registerRoutes(
     } catch (error) {
       console.error("[partners/offers] Error:", error);
       res.status(500).json({ message: "Failed to update offer access" });
+    }
+  });
+
+  // Approve partner's requested landings extension
+  app.post("/api/advertiser/partners/:publisherId/offers/:offerId/approve-landings", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const { publisherId, offerId } = req.params;
+      
+      // Verify advertiser owns this offer
+      const offer = await storage.getOffer(offerId);
+      if (!offer || offer.advertiserId !== advertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Check if there's a pending request
+      const access = await storage.getPublisherOffer(offerId, publisherId);
+      if (!access || !access.requestedLandings || access.requestedLandings.length === 0) {
+        return res.status(400).json({ message: "No pending landing extension request" });
+      }
+      
+      const result = await storage.approveLandingsExtension(offerId, publisherId);
+      
+      // Notify publisher about approval
+      const publisher = await storage.getUser(publisherId);
+      if (publisher) {
+        notificationService.notifyNewMessage(
+          publisherId,
+          `Ваш запрос на дополнительные лендинги для оффера "${offer.name}" одобрен`
+        ).catch(console.error);
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[approve-landings] Error:", error);
+      res.status(500).json({ message: "Failed to approve landing extension" });
+    }
+  });
+
+  // Reject partner's requested landings extension
+  app.post("/api/advertiser/partners/:publisherId/offers/:offerId/reject-landings", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const { publisherId, offerId } = req.params;
+      
+      // Verify advertiser owns this offer
+      const offer = await storage.getOffer(offerId);
+      if (!offer || offer.advertiserId !== advertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Check if there's a pending request
+      const access = await storage.getPublisherOffer(offerId, publisherId);
+      if (!access || !access.requestedLandings || access.requestedLandings.length === 0) {
+        return res.status(400).json({ message: "No pending landing extension request" });
+      }
+      
+      const result = await storage.rejectLandingsExtension(offerId, publisherId);
+      
+      // Notify publisher about rejection
+      const publisher = await storage.getUser(publisherId);
+      if (publisher) {
+        notificationService.notifyNewMessage(
+          publisherId,
+          `Ваш запрос на дополнительные лендинги для оффера "${offer.name}" отклонен`
+        ).catch(console.error);
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[reject-landings] Error:", error);
+      res.status(500).json({ message: "Failed to reject landing extension" });
     }
   });
 
