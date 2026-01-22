@@ -580,6 +580,7 @@ export const publisherOffers = pgTable("publisher_offers", {
   publisherId: varchar("publisher_id").notNull().references(() => users.id),
   approvedAt: timestamp("approved_at").notNull().defaultNow(),
   approvedGeos: text("approved_geos").array(),
+  approvedLandings: text("approved_landings").array(),
 });
 
 export const insertPublisherOfferSchema = createInsertSchema(publisherOffers).omit({
