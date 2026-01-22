@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Search, Edit, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen, Archive, ArchiveRestore } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -252,20 +253,21 @@ export function AdvertiserOffers({ role }: { role: string }) {
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            <Select value={selectedGeo} onValueChange={setSelectedGeo}>
-              <SelectTrigger className="w-[140px] bg-muted border-border text-foreground font-mono text-xs h-8" data-testid="select-geo">
-                <Globe className="w-3 h-3 mr-1 text-muted-foreground" />
-                <SelectValue placeholder="ГЕО" />
-              </SelectTrigger>
-              <SelectContent className="bg-input border-border max-h-[300px]">
-                <SelectItem value="all" className="text-foreground font-mono text-xs">🌍 Все ГЕО</SelectItem>
-                {allGeos.map(geo => (
-                  <SelectItem key={geo} value={geo} className="text-foreground font-mono text-xs">
-                    {getCountryFlag(geo)} {geo}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={selectedGeo}
+              onValueChange={setSelectedGeo}
+              placeholder="ГЕО"
+              searchPlaceholder="Поиск ГЕО..."
+              className="w-[140px] font-mono text-xs h-8"
+              data-testid="select-geo"
+              options={[
+                { value: "all", label: "🌍 Все ГЕО" },
+                ...allGeos.map(geo => ({
+                  value: geo,
+                  label: `${getCountryFlag(geo)} ${geo}`
+                }))
+              ]}
+            />
 
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[160px] bg-muted border-border text-foreground font-mono text-xs h-8" data-testid="select-category">

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
@@ -231,20 +232,21 @@ export function PublisherOffers({ role }: { role: string }) {
                 </SelectContent>
               </Select>
 
-              <Select value={selectedGeo} onValueChange={setSelectedGeo}>
-                <SelectTrigger className="w-[120px] bg-muted border-border text-foreground font-mono text-xs" data-testid="select-geo">
-                  <Globe className="w-3 h-3 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="ГЕО" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border max-h-[300px]">
-                  <SelectItem value="all" className="font-mono text-xs">🌍 Все ГЕО</SelectItem>
-                  {allGeos.map((geo) => (
-                    <SelectItem key={geo} value={geo} className="font-mono text-xs">
-                      {getCountryFlag(geo)} {geo}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={selectedGeo}
+                onValueChange={setSelectedGeo}
+                placeholder="ГЕО"
+                searchPlaceholder="Поиск ГЕО..."
+                className="w-[120px] font-mono text-xs"
+                data-testid="select-geo"
+                options={[
+                  { value: "all", label: "🌍 Все ГЕО" },
+                  ...allGeos.map(geo => ({
+                    value: geo,
+                    label: `${getCountryFlag(geo)} ${geo}`
+                  }))
+                ]}
+              />
 
               <Select value={selectedSource} onValueChange={setSelectedSource}>
                 <SelectTrigger className="w-[150px] bg-muted border-border text-foreground font-mono text-xs" data-testid="select-source">
