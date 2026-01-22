@@ -1253,8 +1253,32 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
     
+    // Check publisher_offers first
     const access = await this.getPublisherOffer(offerId, publisherId);
-    return !!access;
+    if (access) {
+      return true;
+    }
+    
+    // Fallback: check if there's an approved access request without publisher_offers record
+    // This handles legacy data where approval happened before publisher_offers was created
+    const [approvedRequest] = await db.select()
+      .from(offerAccessRequests)
+      .where(and(
+        eq(offerAccessRequests.offerId, offerId),
+        eq(offerAccessRequests.publisherId, publisherId),
+        eq(offerAccessRequests.status, "approved")
+      ));
+    
+    if (approvedRequest) {
+      // Auto-create missing publisher_offers record
+      await this.createPublisherOffer({
+        offerId,
+        publisherId,
+      });
+      return true;
+    }
+    
+    return false;
   }
 
   // Batch check publisher access to multiple offers - optimized to avoid N+1
