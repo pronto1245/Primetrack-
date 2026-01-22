@@ -3120,9 +3120,15 @@ export async function registerRoutes(
           const offer = await storage.getOffer(po.offerId);
           if (!offer) return null;
           
-          const landings = await storage.getOfferLandings(offer.id);
+          const allLandings = await storage.getOfferLandings(offer.id);
           const { internalCost, ...safeOffer } = offer;
-          const safeLandings = landings.map(({ internalCost, ...rest }) => rest);
+          
+          // Filter landings by approvedLandings if set
+          const filteredLandings = po.approvedLandings && po.approvedLandings.length > 0
+            ? allLandings.filter(l => po.approvedLandings!.includes(l.id))
+            : allLandings;
+          
+          const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => rest);
           
           return { 
             ...safeOffer, 
@@ -3152,7 +3158,12 @@ export async function registerRoutes(
           // Filter by advertiser if specified
           if (advertiser_id && offer.advertiserId !== advertiser_id) return null;
           
-          const landings = await storage.getOfferLandings(offer.id);
+          const allLandings = await storage.getOfferLandings(offer.id);
+          
+          // Filter landings by approvedLandings if set
+          const filteredLandings = po.approvedLandings && po.approvedLandings.length > 0
+            ? allLandings.filter(l => po.approvedLandings!.includes(l.id))
+            : allLandings;
           
           return { 
             id: offer.id,
@@ -3160,7 +3171,7 @@ export async function registerRoutes(
             logoUrl: offer.logoUrl,
             category: offer.category,
             payoutModel: offer.payoutModel,
-            landings: landings.map(l => ({
+            landings: filteredLandings.map(l => ({
               id: l.id,
               offerId: l.offerId,
               geo: l.geo,
