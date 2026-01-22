@@ -10,6 +10,7 @@ import {
   RefreshCw, Loader2, Calendar, Filter, X
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { formatCurrency } from "@/lib/utils";
 
 interface StatsData {
   totalClicks: number;
@@ -324,7 +325,7 @@ export function AdvertiserDashboard() {
               <DollarSign className="w-3 h-3 text-red-400" />
               <span className="text-[10px] uppercase font-medium text-red-400">{t('stats.advertiserCost')}</span>
             </div>
-            <div className="text-lg font-bold font-mono text-red-400">${stats.advertiserCost.toFixed(2)}</div>
+            <div className="text-lg font-bold font-mono text-red-400">{formatCurrency(stats.advertiserCost)}</div>
           </CardContent>
         </Card>
         <Card className="bg-green-500/5 border-green-500/30 hover:border-green-500/50 transition-colors">
@@ -333,7 +334,7 @@ export function AdvertiserDashboard() {
               <DollarSign className="w-3 h-3 text-green-400" />
               <span className="text-[10px] uppercase font-medium text-green-400">{t('stats.publisherPayout')}</span>
             </div>
-            <div className="text-lg font-bold font-mono text-green-400">${stats.publisherPayout.toFixed(2)}</div>
+            <div className="text-lg font-bold font-mono text-green-400">{formatCurrency(stats.publisherPayout)}</div>
           </CardContent>
         </Card>
         <Card className={`${stats.margin >= 0 ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
@@ -342,7 +343,7 @@ export function AdvertiserDashboard() {
               <TrendingUp className={`w-3 h-3 ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`} />
               <span className={`text-[10px] uppercase font-medium ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{t('stats.margin')}</span>
             </div>
-            <div className={`text-lg font-bold font-mono ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>${stats.margin.toFixed(2)}</div>
+            <div className={`text-lg font-bold font-mono ${stats.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(stats.margin)}</div>
           </CardContent>
         </Card>
         <Card className={`${stats.roi >= 0 ? 'bg-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
@@ -471,10 +472,10 @@ export function AdvertiserDashboard() {
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.leads.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.sales.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right text-red-400">${row.advertiserCost.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right text-yellow-400">${row.publisherPayout.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-red-400">{formatCurrency(row.advertiserCost)}</td>
+                      <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(row.publisherPayout)}</td>
                       <td className={`px-4 py-3 text-right ${row.margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        ${row.margin.toFixed(2)}
+                        {formatCurrency(row.margin)}
                       </td>
                       <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
                     </tr>
@@ -521,8 +522,8 @@ export function AdvertiserDashboard() {
                       <td className="px-4 py-3 font-medium text-foreground">{row.publisherName}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.conversions.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right text-red-400">${row.advertiserCost.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right text-yellow-400">${row.publisherPayout.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-red-400">{formatCurrency(row.advertiserCost)}</td>
+                      <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(row.publisherPayout)}</td>
                       <td className="px-4 py-3 text-right text-cyan-400">{row.cr.toFixed(2)}%</td>
                     </tr>
                   ))}

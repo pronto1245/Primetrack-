@@ -24,6 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ExportMenu } from "@/components/ui/export-menu";
+import { formatCurrency } from "@/lib/utils";
 
 const PAYMENT_TYPES = [
   { value: "crypto_usdt_trc20", label: "USDT TRC20", icon: Bitcoin, color: "text-green-500" },
@@ -347,7 +348,7 @@ export function AdvertiserFinance() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">К выплате (pending)</p>
-                <p className="text-xl font-bold text-foreground" data-testid="text-pending-amount">${totalPending.toFixed(2)}</p>
+                <p className="text-xl font-bold text-foreground" data-testid="text-pending-amount">{formatCurrency(totalPending)}</p>
               </div>
             </div>
           </CardContent>
@@ -361,7 +362,7 @@ export function AdvertiserFinance() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Общий долг</p>
-                <p className="text-xl font-bold text-foreground" data-testid="text-total-owed">${totalOwed.toFixed(2)}</p>
+                <p className="text-xl font-bold text-foreground" data-testid="text-total-owed">{formatCurrency(totalOwed)}</p>
               </div>
             </div>
           </CardContent>
@@ -490,20 +491,20 @@ export function AdvertiserFinance() {
                     <Card className="bg-emerald-500/10 border-emerald-500/30">
                       <CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground">Доход</p>
-                        <p className="text-lg font-bold text-emerald-500" data-testid="stat-revenue">${analytics.summary.revenue.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-emerald-500" data-testid="stat-revenue">{formatCurrency(analytics.summary.revenue)}</p>
                       </CardContent>
                     </Card>
                     <Card className="bg-red-500/10 border-red-500/30">
                       <CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground">Выплаты</p>
-                        <p className="text-lg font-bold text-red-500" data-testid="stat-payouts">${analytics.summary.payouts.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-red-500" data-testid="stat-payouts">{formatCurrency(analytics.summary.payouts)}</p>
                       </CardContent>
                     </Card>
                     <Card className={`${analytics.summary.profit >= 0 ? 'bg-blue-500/10 border-blue-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
                       <CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground">Прибыль</p>
                         <p className={`text-lg font-bold ${analytics.summary.profit >= 0 ? 'text-blue-500' : 'text-orange-500'}`} data-testid="stat-profit">
-                          ${analytics.summary.profit.toFixed(2)}
+                          {formatCurrency(analytics.summary.profit)}
                         </p>
                       </CardContent>
                     </Card>
@@ -530,7 +531,7 @@ export function AdvertiserFinance() {
                     <Card className="bg-indigo-500/10 border-indigo-500/30">
                       <CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground">Ср. депозит</p>
-                        <p className="text-lg font-bold text-indigo-500" data-testid="stat-avg">${analytics.summary.avgDepositAmount.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-indigo-500" data-testid="stat-avg">{formatCurrency(analytics.summary.avgDepositAmount)}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -593,8 +594,8 @@ export function AdvertiserFinance() {
                               {analytics.offerBreakdown.map((o) => (
                                 <tr key={o.offerId} className="border-t border-border">
                                   <td className="py-1.5 text-foreground">{o.offerName}</td>
-                                  <td className="text-right text-emerald-500">${o.revenue.toFixed(0)}</td>
-                                  <td className="text-right text-red-500">${o.payouts.toFixed(0)}</td>
+                                  <td className="text-right text-emerald-500">{formatCurrency(o.revenue)}</td>
+                                  <td className="text-right text-red-500">{formatCurrency(o.payouts)}</td>
                                   <td className={`text-right ${o.roiPercent >= 0 ? 'text-purple-500' : 'text-orange-500'}`}>{o.roiPercent.toFixed(0)}%</td>
                                   <td className="text-right text-muted-foreground">{o.ftdCount}</td>
                                 </tr>
@@ -629,8 +630,8 @@ export function AdvertiserFinance() {
                               {analytics.publisherBreakdown.map((p) => (
                                 <tr key={p.publisherId} className="border-t border-border">
                                   <td className="py-1.5 text-foreground">{p.publisherName}</td>
-                                  <td className="text-right text-emerald-500">${p.revenue.toFixed(0)}</td>
-                                  <td className="text-right text-red-500">${p.payouts.toFixed(0)}</td>
+                                  <td className="text-right text-emerald-500">{formatCurrency(p.revenue)}</td>
+                                  <td className="text-right text-red-500">{formatCurrency(p.payouts)}</td>
                                   <td className={`text-right ${p.roiPercent >= 0 ? 'text-purple-500' : 'text-orange-500'}`}>{p.roiPercent.toFixed(0)}%</td>
                                   <td className="text-right text-muted-foreground">{p.ftdCount}</td>
                                 </tr>
@@ -1123,19 +1124,19 @@ export function AdvertiserFinance() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Мин. выплата</span>
-                          <span className="text-foreground">${method.minPayout}</span>
+                          <span className="text-foreground">{formatCurrency(method.minPayout, method.currency)}</span>
                         </div>
                         {method.maxPayout && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Макс. выплата</span>
-                            <span className="text-foreground">${method.maxPayout}</span>
+                            <span className="text-foreground">{formatCurrency(method.maxPayout, method.currency)}</span>
                           </div>
                         )}
                         {(parseFloat(method.feePercent) > 0 || parseFloat(method.feeFixed) > 0) && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Комиссия</span>
                             <span className="text-foreground">
-                              {method.feePercent}% + ${method.feeFixed}
+                              {method.feePercent}% + {formatCurrency(method.feeFixed, method.currency)}
                             </span>
                           </div>
                         )}

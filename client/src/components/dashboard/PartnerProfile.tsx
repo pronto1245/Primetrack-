@@ -13,7 +13,7 @@ import {
   MousePointer, Target, DollarSign, Check, X, Loader2, Settings
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { getCurrencySymbol, getOfferCurrency } from "@/lib/utils";
+import { getCurrencySymbol, getOfferCurrency, formatCurrency } from "@/lib/utils";
 
 interface PartnerProfileProps {
   publisherId: string;
@@ -341,7 +341,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                   <DollarSign className="w-4 h-4" />
                   <span className="text-xs uppercase">Выплаты (USD)</span>
                 </div>
-                <p className="text-2xl font-bold text-emerald-400">${partner.payout.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-emerald-400">{formatCurrency(partner.payout)}</p>
               </div>
             </div>
           </CardContent>

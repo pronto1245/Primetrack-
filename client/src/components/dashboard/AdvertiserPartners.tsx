@@ -13,6 +13,7 @@ import {
   Ban, Play, Pause, Clock, Loader2, Filter, Send, Mail, Phone, Eye
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { formatCurrency } from "@/lib/utils";
 
 interface Partner {
   id: string;
@@ -271,7 +272,7 @@ export function AdvertiserPartners() {
                       <td className="px-4 py-3">{statusBadge(partner.status)}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{partner.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{partner.conversions.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right text-emerald-400 font-mono">${partner.payout.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-emerald-400 font-mono">{formatCurrency(partner.payout)}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/dashboard/advertiser/partner/${partner.publisherId}`}>

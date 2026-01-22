@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { formatCurrency } from "@/lib/utils";
 
 interface PublisherReferralStats {
   publisherId: string;
@@ -167,7 +168,7 @@ export function AdvertiserReferrals() {
             <DollarSign className="w-4 h-4 text-yellow-400" />
             <p className="text-xs text-muted-foreground">Всего выплачено</p>
           </div>
-          <p className="text-xl font-bold text-yellow-400" data-testid="text-total-paid">${totalPaid.toFixed(2)}</p>
+          <p className="text-xl font-bold text-yellow-400" data-testid="text-total-paid">{formatCurrency(totalPaid)}</p>
         </div>
 
         <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
@@ -175,7 +176,7 @@ export function AdvertiserReferrals() {
             <Wallet className="w-4 h-4 text-purple-400" />
             <p className="text-xs text-muted-foreground">Начислено</p>
           </div>
-          <p className="text-xl font-bold text-purple-400" data-testid="text-accrued">${(financialStats?.accrued || 0).toFixed(2)}</p>
+          <p className="text-xl font-bold text-purple-400" data-testid="text-accrued">{formatCurrency(financialStats?.accrued || 0)}</p>
         </div>
 
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
@@ -183,7 +184,7 @@ export function AdvertiserReferrals() {
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <p className="text-xs text-muted-foreground">Выплачено</p>
           </div>
-          <p className="text-xl font-bold text-emerald-400" data-testid="text-paid">${(financialStats?.paid || 0).toFixed(2)}</p>
+          <p className="text-xl font-bold text-emerald-400" data-testid="text-paid">{formatCurrency(financialStats?.paid || 0)}</p>
         </div>
 
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
@@ -191,7 +192,7 @@ export function AdvertiserReferrals() {
             <Clock className="w-4 h-4 text-orange-400" />
             <p className="text-xs text-muted-foreground">Осталось к выплате</p>
           </div>
-          <p className="text-xl font-bold text-orange-400" data-testid="text-pending">${(financialStats?.pending || 0).toFixed(2)}</p>
+          <p className="text-xl font-bold text-orange-400" data-testid="text-pending">{formatCurrency(financialStats?.pending || 0)}</p>
         </div>
       </div>
 

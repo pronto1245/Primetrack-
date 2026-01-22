@@ -6,6 +6,7 @@ import {
   Wallet, CreditCard, Clock, CheckCircle, XCircle, Loader2
 } from "lucide-react";
 import { ExportMenu } from "@/components/ui/export-menu";
+import { formatCurrency } from "@/lib/utils";
 
 interface PlatformStats {
   totalRevenue: number;
@@ -239,7 +240,7 @@ export function AdminFinance() {
                       </td>
                       <td className="py-2 px-3 text-foreground">{request.publisherName || 'N/A'}</td>
                       <td className="py-2 px-3 text-muted-foreground">{request.advertiserName || 'N/A'}</td>
-                      <td className="py-2 px-3 text-emerald-400 font-mono">${request.requestedAmount}</td>
+                      <td className="py-2 px-3 text-emerald-400 font-mono">{formatCurrency(request.requestedAmount)}</td>
                       <td className="py-2 px-3">
                         <Badge variant={
                           request.status === 'paid' ? 'default' :

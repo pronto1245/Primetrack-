@@ -18,6 +18,7 @@ import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { COUNTRIES } from "@/lib/countries";
 import { ExportMenu } from "@/components/ui/export-menu";
 import { apiRequest } from "@/lib/queryClient";
+import { formatCurrency } from "@/lib/utils";
 
 const getCountryFlag = (code: string): string => {
   const codePoints = code
@@ -436,7 +437,7 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
       <Card className="bg-green-500/5 border-green-500/30 hover:border-green-500/50 transition-colors">
         <CardContent className="p-4">
           <div className="text-[10px] uppercase text-green-400 mb-1">{t('stats.publisherPayout') || 'Payout'}</div>
-          <div className="text-xl font-bold text-green-400">${totals.payout.toFixed(2)}</div>
+          <div className="text-xl font-bold text-green-400">{formatCurrency(totals.payout)}</div>
           <div className="text-[12px] text-yellow-400" data-testid="text-ar">AR: {ar.toFixed(2)}%</div>
         </CardContent>
       </Card>
@@ -463,14 +464,14 @@ function SummaryCards({ data, loading, role, t, useClicksSummary = false }: any)
           <Card className="bg-red-500/5 border-red-500/30 hover:border-red-500/50 transition-colors">
             <CardContent className="p-4">
               <div className="text-[10px] uppercase text-red-400 mb-1">{t('stats.advertiserCost') || 'Cost'}</div>
-              <div className="text-xl font-bold text-red-400">${totals.cost.toFixed(2)}</div>
+              <div className="text-xl font-bold text-red-400">{formatCurrency(totals.cost)}</div>
             </CardContent>
           </Card>
           <Card className={`${margin >= 0 ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50' : 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'} transition-colors`}>
             <CardContent className="p-4">
               <div className={`text-[10px] uppercase mb-1 ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{t('stats.margin') || 'Margin'}</div>
               <div className={`text-xl font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                ${margin.toFixed(2)}
+                {formatCurrency(margin)}
               </div>
             </CardContent>
           </Card>
@@ -678,15 +679,15 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                 <td className="px-4 py-3 text-right text-purple-400">{totals.leads}</td>
                 <td className="px-4 py-3 text-right text-orange-400">{totals.sales}</td>
                 <td className="px-4 py-3 text-right text-emerald-400 font-bold">{totals.conversions}</td>
-                <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-emerald-400">{formatCurrency(totals.payout)}</td>
                 <td className="px-4 py-3 text-right text-cyan-400">{cr.toFixed(2)}%</td>
                 <td className="px-4 py-3 text-right text-pink-400">{ar.toFixed(2)}%</td>
-                <td className="px-4 py-3 text-right text-teal-400">${epc.toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-teal-400">{formatCurrency(epc)}</td>
                 {isAdvertiser && (
                   <>
-                    <td className="px-4 py-3 text-right text-red-400">${totals.cost.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right text-red-400">{formatCurrency(totals.cost)}</td>
                     <td className={`px-4 py-3 text-right ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      ${margin.toFixed(2)}
+                      {formatCurrency(margin)}
                     </td>
                     <td className={`px-4 py-3 text-right ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {roi.toFixed(1)}%
@@ -1155,15 +1156,15 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                       <td className="px-4 py-3 text-right text-emerald-400">{row.leads || 0}</td>
                       <td className="px-4 py-3 text-right text-purple-400">{row.sales || 0}</td>
                       <td className="px-4 py-3 text-right text-foreground font-bold">{row.conversions || 0}</td>
-                      <td className="px-4 py-3 text-right text-emerald-400 font-bold">${payout.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-emerald-400 font-bold">{formatCurrency(payout)}</td>
                       <td className="px-4 py-3 text-right text-yellow-400">{cr.toFixed(2)}%</td>
                       <td className="px-4 py-3 text-right text-pink-400">{ar.toFixed(2)}%</td>
-                      <td className="px-4 py-3 text-right text-teal-400">${epc.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-teal-400">{formatCurrency(epc)}</td>
                       {isAdvertiser && (
                         <>
-                          <td className="px-4 py-3 text-right text-blue-400 font-bold">${cost.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right text-blue-400 font-bold">{formatCurrency(cost)}</td>
                           <td className={`px-4 py-3 text-right font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            ${margin.toFixed(2)}
+                            {formatCurrency(margin)}
                           </td>
                           <td className={`px-4 py-3 text-right font-bold ${roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             {roi.toFixed(1)}%
@@ -1184,15 +1185,15 @@ function GroupedTable({ data, loading, role, showFinancials, t }: any) {
                   <td className="px-4 py-3 text-right text-emerald-400">{totals.leads}</td>
                   <td className="px-4 py-3 text-right text-purple-400">{totals.sales}</td>
                   <td className="px-4 py-3 text-right text-foreground">{totals.conversions}</td>
-                  <td className="px-4 py-3 text-right text-emerald-400">${totals.payout.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right text-emerald-400">{formatCurrency(totals.payout)}</td>
                   <td className="px-4 py-3 text-right text-yellow-400">{totalCR.toFixed(2)}%</td>
                   <td className="px-4 py-3 text-right text-pink-400">{totalAR.toFixed(2)}%</td>
-                  <td className="px-4 py-3 text-right text-teal-400">${totalEPC.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right text-teal-400">{formatCurrency(totalEPC)}</td>
                   {isAdvertiser && (
                     <>
-                      <td className="px-4 py-3 text-right text-blue-400">${totals.cost.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right text-blue-400">{formatCurrency(totals.cost)}</td>
                       <td className={`px-4 py-3 text-right ${totalMargin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        ${totalMargin.toFixed(2)}
+                        {formatCurrency(totalMargin)}
                       </td>
                       <td className={`px-4 py-3 text-right ${totalROI >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {totalROI.toFixed(1)}%
