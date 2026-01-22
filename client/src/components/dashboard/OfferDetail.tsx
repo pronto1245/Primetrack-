@@ -364,13 +364,19 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
   );
 }
 
-function RequestLandingsCard({ offerId, landings, onSuccess }: { offerId: string; landings: OfferLandingType[]; onSuccess: () => void }) {
+function RequestLandingsCard({ offerId, landings, requestedLandings, onSuccess }: { 
+  offerId: string; 
+  landings: OfferLandingType[]; 
+  requestedLandings?: string[] | null;
+  onSuccess: () => void 
+}) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
   
   const unavailableLandings = landings.filter(l => l.isApproved === false);
+  const hasPendingRequest = requestedLandings && requestedLandings.length > 0;
   
   const requestLandingsMutation = useMutation({
     mutationFn: async () => {
@@ -407,6 +413,28 @@ function RequestLandingsCard({ offerId, landings, onSuccess }: { offerId: string
 
   if (unavailableLandings.length === 0) {
     return null;
+  }
+  
+  if (hasPendingRequest) {
+    return (
+      <Card className="bg-yellow-500/10 border-yellow-500/30 mt-4">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+              <Clock className="w-4 h-4 text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-yellow-400">
+                Запрос на рассмотрении
+              </p>
+              <p className="text-xs text-yellow-400/70">
+                Ожидайте решения рекламодателя по {requestedLandings.length} лендинг{requestedLandings.length === 1 ? 'у' : requestedLandings.length < 5 ? 'ам' : 'ам'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const toggleLanding = (id: string) => {
@@ -839,6 +867,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <RequestLandingsCard 
                   offerId={offer.id} 
                   landings={offer.landings}
+                  requestedLandings={offer.requestedLandings}
                   onSuccess={() => {}}
                 />
               )}

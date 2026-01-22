@@ -1764,7 +1764,15 @@ export async function registerRoutes(
             isApproved,
           };
         });
-        return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
+        const requestedLandings = normalizePostgresArray(publisherOffer?.requestedLandings);
+        return res.json({ 
+          ...safeOffer, 
+          landings: safeLandings, 
+          hasAccess: true, 
+          accessStatus: 'approved',
+          requestedLandings: requestedLandings || null,
+          extensionRequestedAt: publisherOffer?.extensionRequestedAt || null
+        });
       }
       
       // Для advertiser/admin - полная информация
