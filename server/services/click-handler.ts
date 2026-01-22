@@ -97,7 +97,16 @@ export class ClickHandler {
     const detectedGeo = ipIntel?.country || params.geo;
     
     // Check if GEO matches offer allowed GEOs
-    const isGeoMatch = this.checkGeoMatch(detectedGeo, offer.geo);
+    const isOfferGeoMatch = this.checkGeoMatch(detectedGeo, offer.geo);
+    
+    // Check if publisher has access to this specific GEO
+    const publisherOffer = await storage.getPublisherOffer(params.offerId, params.partnerId);
+    const isPublisherGeoAllowed = !publisherOffer?.approvedGeos || 
+      publisherOffer.approvedGeos.length === 0 || 
+      (detectedGeo ? publisherOffer.approvedGeos.includes(detectedGeo) : true);
+    
+    // Combined GEO match: must match both offer GEO and publisher's approved GEOs
+    const isGeoMatch = isOfferGeoMatch && isPublisherGeoAllowed;
     
     // Check if this click is unique (first from this IP+offer+publisher today)
     const isUnique = await this.checkUniqueness(params.ip, params.offerId, params.partnerId);
