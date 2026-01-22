@@ -2939,6 +2939,10 @@ export async function registerRoutes(
             const offerShortId = formatShortId(offer.shortId, 4, offer.id);
             const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
             
+            // Get approved GEOs for this publisher
+            const publisherOffer = await storage.getPublisherOffer(offer.id, publisherId);
+            const approvedGeos = publisherOffer?.approvedGeos || null;
+            
             const safeLandings = landings.map(({ internalCost, ...rest }) => {
               const landingShortId = formatShortId(rest.shortId, 4, rest.id);
               return {
@@ -2951,7 +2955,8 @@ export async function registerRoutes(
               landings: safeLandings,
               accessStatus: "approved" as const,
               hasAccess: true,
-              partnershipStatus
+              partnershipStatus,
+              approvedGeos
             };
           }
           

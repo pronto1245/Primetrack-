@@ -40,6 +40,7 @@ interface MarketplaceOffer {
   landings: OfferLanding[];
   hasAccess?: boolean;
   accessStatus?: string | null;
+  approvedGeos?: string[] | null;
 }
 
 export function PublisherOffers({ role }: { role: string }) {
@@ -398,17 +399,22 @@ export function PublisherOffers({ role }: { role: string }) {
                     <td className="px-3 py-3 text-muted-foreground">
                       <span className="flex items-center gap-1 flex-wrap">
                         {(() => {
-                          const uniqueGeo = Array.from(new Set(offer.geo));
+                          const allGeos = Array.from(new Set(offer.geo));
+                          const displayGeos = offer.approvedGeos && offer.approvedGeos.length > 0 
+                            ? offer.approvedGeos 
+                            : allGeos;
+                          const isLimited = offer.approvedGeos && offer.approvedGeos.length > 0 && offer.approvedGeos.length < allGeos.length;
                           return (
                             <>
-                              {uniqueGeo.slice(0, 3).map((g, i) => (
-                                <span key={g} className="inline-flex items-center gap-0.5">
+                              {displayGeos.slice(0, 3).map((g, i) => (
+                                <span key={g} className={`inline-flex items-center gap-0.5 ${isLimited ? 'text-yellow-400' : ''}`}>
                                   <span>{getCountryFlag(g)}</span>
                                   <span>{g}</span>
-                                  {i < Math.min(uniqueGeo.length, 3) - 1 && <span>,</span>}
+                                  {i < Math.min(displayGeos.length, 3) - 1 && <span>,</span>}
                                 </span>
                               ))}
-                              {uniqueGeo.length > 3 && <span className="text-muted-foreground">+{uniqueGeo.length - 3}</span>}
+                              {displayGeos.length > 3 && <span className={isLimited ? 'text-yellow-400' : 'text-muted-foreground'}>+{displayGeos.length - 3}</span>}
+                              {isLimited && <span className="text-yellow-500 text-[10px] ml-1" title={`Доступ к ${displayGeos.length} из ${allGeos.length} ГЕО`}>(ограничено)</span>}
                             </>
                           );
                         })()}
