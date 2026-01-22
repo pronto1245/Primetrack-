@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, User, Mail, Phone, Send, Calendar, 
   MousePointer, Target, DollarSign, Check, X, Loader2, Settings
@@ -55,6 +56,7 @@ interface PartnerOffer {
 
 export function PartnerProfile({ publisherId }: PartnerProfileProps) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogAction, setDialogAction] = useState<"grant" | "revoke" | "edit">("grant");
   const [selectedOffer, setSelectedOffer] = useState<PartnerOffer | null>(null);
@@ -82,11 +84,28 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
     mutationFn: async ({ offerId, status, approvedLandings }: { offerId: string; status: string; approvedLandings?: string[] }) => {
       return apiRequest("PUT", `/api/advertiser/partners/${publisherId}/offers/${offerId}`, { status, approvedLandings });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/partners", publisherId, "offers"] });
       setDialogOpen(false);
       setSelectedOffer(null);
       setSelectedLandings([]);
+      
+      const statusMessages: Record<string, string> = {
+        approved: "Доступ выдан",
+        revoked: "Доступ отозван",
+        rejected: "Запрос отклонён"
+      };
+      toast({
+        title: statusMessages[variables.status] || "Успешно",
+        description: "Изменения сохранены"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось обновить доступ",
+        variant: "destructive"
+      });
     }
   });
 
