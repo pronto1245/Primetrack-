@@ -8,7 +8,7 @@ import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { getCountryFlag } from "./CountrySelector";
-import { getCurrencySymbol } from "@/lib/utils";
+import { getCurrencySymbol, getOfferCurrency } from "@/lib/utils";
 
 interface OfferLanding {
   id: string;

@@ -1612,14 +1612,13 @@ export async function registerRoutes(
         capReachedAction: rawOfferData.capReachedAction || "block",
         capRedirectUrl: rawOfferData.capRedirectUrl || null,
         advertiserId: effectiveAdvertiserId,
-        currency: rawOfferData.currency || "USD",
         geo: Array.isArray(rawOfferData.geo) ? rawOfferData.geo.filter((g: string) => g && g.trim()) : [],
         trafficSources: Array.isArray(rawOfferData.trafficSources) ? rawOfferData.trafficSources : [],
         appTypes: Array.isArray(rawOfferData.appTypes) ? rawOfferData.appTypes : [],
         creativeLinks: Array.isArray(rawOfferData.creativeLinks) ? rawOfferData.creativeLinks : [],
       };
       
-      console.log("[POST /api/offers] Creating offer:", sanitizedData.name, "for advertiser:", sanitizedData.advertiserId, "currency:", sanitizedData.currency);
+      console.log("[POST /api/offers] Creating offer:", sanitizedData.name, "for advertiser:", sanitizedData.advertiserId);
       
       // Validate required fields before schema validation
       if (!sanitizedData.geo || sanitizedData.geo.length === 0) {

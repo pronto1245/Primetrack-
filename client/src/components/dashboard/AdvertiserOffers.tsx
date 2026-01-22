@@ -10,7 +10,7 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { getCountryFlag } from "./CountrySelector";
 import { useStaff } from "@/contexts/StaffContext";
-import { getCurrencySymbol } from "@/lib/utils";
+import { getCurrencySymbol, getOfferCurrency } from "@/lib/utils";
 
 interface OfferLanding {
   id: string;
@@ -464,11 +464,11 @@ export function AdvertiserOffers({ role }: { role: string }) {
                       {(() => {
                         const stats = statsMap.get(offer.id);
                         if (!stats || stats.clicks === 0) return "—";
-                        return `${getCurrencySymbol(offer.currency)}${stats.epc?.toFixed(2) || '0.00'}`;
+                        return `${getCurrencySymbol(getOfferCurrency(offer))}${stats.epc?.toFixed(2) || '0.00'}`;
                       })()}
                     </td>
                     <td className="px-4 py-3 text-emerald-400 font-bold" data-testid={`text-payout-${offer.id}`}>
-                      {getOfferPayout(offer) ? `${getCurrencySymbol(offer.currency)}${getOfferPayout(offer)}` : 'N/A'}
+                      {getOfferPayout(offer) ? `${getCurrencySymbol(getOfferCurrency(offer))}${getOfferPayout(offer)}` : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       <span className="flex items-center gap-1 flex-wrap">
@@ -490,7 +490,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-red-400 font-bold" data-testid={`text-cost-${offer.id}`}>
-                      {getOfferInternalCost(offer) ? `${getCurrencySymbol(offer.currency)}${getOfferInternalCost(offer)}` : 'N/A'}
+                      {getOfferInternalCost(offer) ? `${getCurrencySymbol(getOfferCurrency(offer))}${getOfferInternalCost(offer)}` : 'N/A'}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${offer.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-yellow-500/20 text-yellow-500'}`}>

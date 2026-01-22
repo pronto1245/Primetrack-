@@ -27,3 +27,7 @@ export function formatCurrency(amount: number | string | null | undefined, curre
   const symbol = getCurrencySymbol(currency);
   return `${symbol}${num.toFixed(2)}`;
 }
+
+export function getOfferCurrency(offer: { landings?: { currency?: string }[] }): string {
+  return offer.landings?.[0]?.currency || "USD";
+}
