@@ -14,7 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo, useEffect } from "react";
-import { getCurrencySymbol } from "@/lib/utils";
+import { getCurrencySymbol, getOfferCurrency } from "@/lib/utils";
 
 function getCountryFlag(code: string): string {
   const codeMap: Record<string, string> = {
@@ -655,7 +655,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl p-4 border border-emerald-500/20">
                   <div className="text-[10px] uppercase text-emerald-400/70 mb-1 font-medium">Выплата</div>
                   <div className="text-xl font-bold text-emerald-400" data-testid="text-offer-payout">
-                    {getOfferPayoutPrice(offer) ? `${getCurrencySymbol(offer.currency)}${getOfferPayoutPrice(offer)}` : 'N/A'}
+                    {getOfferPayoutPrice(offer) ? `${getCurrencySymbol(getOfferCurrency(offer))}${getOfferPayoutPrice(offer)}` : 'N/A'}
                   </div>
                 </div>
                 <div className="bg-muted rounded-xl p-4 border border-border">
@@ -666,13 +666,13 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                   <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl p-4 border border-red-500/20">
                     <div className="text-[10px] uppercase text-red-400/70 mb-1 font-medium">Internal Cost</div>
                     <div className="text-xl font-bold text-red-400" data-testid="text-internal-cost">
-                      {getOfferCostPrice(offer) ? `${getCurrencySymbol(offer.currency)}${getOfferCostPrice(offer)}` : 'N/A'}
+                      {getOfferCostPrice(offer) ? `${getCurrencySymbol(getOfferCurrency(offer))}${getOfferCostPrice(offer)}` : 'N/A'}
                     </div>
                   </div>
                 )}
                 <div className="bg-muted rounded-xl p-4 border border-border">
                   <div className="text-[10px] uppercase text-muted-foreground mb-1 font-medium">Валюта</div>
-                  <div className="text-xl font-bold text-foreground">{offer.currency}</div>
+                  <div className="text-xl font-bold text-foreground">{getOfferCurrency(offer)}</div>
                 </div>
                 <div className={`rounded-xl p-4 border ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20' : 'bg-muted border-border'}`}>
                   <div className={`text-[10px] uppercase mb-1 font-medium ${offer.holdPeriodDays && offer.holdPeriodDays > 0 ? 'text-yellow-400/70' : 'text-muted-foreground'}`}>

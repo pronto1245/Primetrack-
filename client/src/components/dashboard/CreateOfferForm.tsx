@@ -448,7 +448,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-muted-foreground text-xs font-mono uppercase flex items-center gap-2">
                     <Tag className="w-3 h-3" /> Категория

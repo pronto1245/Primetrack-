@@ -395,7 +395,7 @@ export function PublisherOffers({ role }: { role: string }) {
                       {stat && stat.conversions > 0 ? `${stat.ar?.toFixed(1) || 0}%` : "—"}
                     </td>
                     <td className="px-3 py-3 text-teal-400 font-medium">
-                      {stat && stat.clicks > 0 ? `${getCurrencySymbol(offer.currency)}${stat.epc?.toFixed(2) || '0.00'}` : "—"}
+                      {stat && stat.clicks > 0 ? `${getCurrencySymbol(getOfferCurrency(offer))}${stat.epc?.toFixed(2) || '0.00'}` : "—"}
                     </td>
                     <td className="px-3 py-3 text-muted-foreground">
                       <span className="flex items-center gap-1 flex-wrap">
@@ -422,7 +422,7 @@ export function PublisherOffers({ role }: { role: string }) {
                       </span>
                     </td>
                     <td className="px-3 py-3 text-emerald-400 font-bold">
-                      {getCurrencySymbol(offer.currency)}{maxPayout}
+                      {getCurrencySymbol(getOfferCurrency(offer))}{maxPayout}
                     </td>
                     <td className="px-3 py-3 text-muted-foreground uppercase">
                       {offer.payoutModel}
