@@ -2944,10 +2944,16 @@ export async function registerRoutes(
             const approvedGeos = publisherOffer?.approvedGeos || null;
             const approvedLandings = publisherOffer?.approvedLandings || null;
             
+            console.log(`[marketplace/offers] offer=${offer.id} publisherOffer=`, publisherOffer);
+            console.log(`[marketplace/offers] approvedLandings=`, approvedLandings, `type=${typeof approvedLandings}`);
+            console.log(`[marketplace/offers] allLandings ids=`, allLandings.map(l => l.id));
+            
             // Filter landings by approvedLandings if set
             const filteredLandings = approvedLandings && approvedLandings.length > 0
               ? allLandings.filter(l => approvedLandings.includes(l.id))
               : allLandings;
+            
+            console.log(`[marketplace/offers] filteredLandings count=${filteredLandings.length}`);
             
             const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => {
               const landingShortId = formatShortId(rest.shortId, 4, rest.id);
