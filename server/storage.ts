@@ -2347,17 +2347,26 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async updatePublisherOfferAccess(publisherId: string, offerId: string, status: string): Promise<PublisherOfferAccess | null> {
+  async updatePublisherOfferAccess(publisherId: string, offerId: string, status: string, approvedGeos?: string[] | null): Promise<PublisherOfferAccess | null> {
     if (status === "approved") {
       // Check if already exists
       const existing = await this.getPublisherOfferAccess(publisherId, offerId);
       if (existing) {
+        // Update approvedGeos if provided
+        if (approvedGeos !== undefined) {
+          const [updated] = await db.update(publisherOffers)
+            .set({ approvedGeos })
+            .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)))
+            .returning();
+          return updated;
+        }
         return existing;
       }
       // Create new access
       const [created] = await db.insert(publisherOffers).values({
         publisherId,
-        offerId
+        offerId,
+        approvedGeos: approvedGeos ?? null
       }).returning();
       return created;
     } else if (status === "revoked" || status === "rejected") {
