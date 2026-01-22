@@ -64,13 +64,15 @@ const APP_TYPE_COLORS: Record<string, string> = {
   "Desktop": "bg-indigo-500",
 };
 
-interface OfferLanding {
+interface OfferLandingType {
   id: string;
+  offerId?: string;
   geo: string;
   landingName: string | null;
   landingUrl: string;
   trackingUrl?: string | null;
   partnerPayout: string;
+  internalCost?: string | null;
   currency: string;
   isApproved?: boolean;
 }
@@ -81,13 +83,13 @@ function LandingsGroupedByGeo({
   copyToClipboard,
   buildUrlWithSubs
 }: { 
-  landings: OfferLanding[]; 
+  landings: OfferLandingType[]; 
   copiedUrl: string | null; 
   copyToClipboard: (url: string, id: string) => void;
   buildUrlWithSubs: (url: string) => string;
 }) {
   const groupedByGeo = useMemo(() => {
-    const groups: Record<string, OfferLanding[]> = {};
+    const groups: Record<string, OfferLandingType[]> = {};
     landings.forEach(landing => {
       if (!groups[landing.geo]) {
         groups[landing.geo] = [];
