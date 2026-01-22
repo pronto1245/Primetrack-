@@ -3089,7 +3089,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
 
-      const offerLandingIds = new Set((offer.landings || []).map((l: any) => l.id));
+      const offerLandings = await storage.getOfferLandings(offerId);
+      const offerLandingIds = new Set(offerLandings.map((l) => l.id));
       const invalidLandings = landingIds.filter((id: string) => !offerLandingIds.has(id));
       if (invalidLandings.length > 0) {
         return res.status(400).json({ message: "Some landing IDs are not valid for this offer" });

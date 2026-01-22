@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Globe, DollarSign, Tag, ExternalLink, Copy, 
   Smartphone, Monitor, Share2, FileText, Link2, CheckCircle,
@@ -365,6 +366,7 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
 
 function RequestLandingsCard({ offerId, landings, onSuccess }: { offerId: string; landings: OfferLandingType[]; onSuccess: () => void }) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
   
@@ -389,6 +391,17 @@ function RequestLandingsCard({ offerId, landings, onSuccess }: { offerId: string
       setIsOpen(false);
       setSelectedLandings([]);
       onSuccess();
+      toast({
+        title: "Запрос отправлен",
+        description: "Ожидайте подтверждения от рекламодателя"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось отправить запрос",
+        variant: "destructive"
+      });
     }
   });
 
