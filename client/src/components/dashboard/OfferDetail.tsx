@@ -69,9 +69,10 @@ interface OfferLanding {
   geo: string;
   landingName: string | null;
   landingUrl: string;
-  trackingUrl?: string;
+  trackingUrl?: string | null;
   partnerPayout: string;
   currency: string;
+  isApproved?: boolean;
 }
 
 function LandingsGroupedByGeo({ 
@@ -175,32 +176,42 @@ function LandingsGroupedByGeo({
                       data-testid={`landing-row-${geo}-${index}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-foreground truncate">
+                        <div className="text-sm font-medium text-foreground truncate flex items-center gap-2">
                           {landing.landingName || `Landing ${index + 1}`}
+                          {landing.isApproved === false && (
+                            <Badge variant="outline" className="text-xs text-orange-400 border-orange-400/50">
+                              <Lock className="w-3 h-3 mr-1" />
+                              Недоступен
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground truncate">
-                          {landing.trackingUrl || landing.landingUrl}
+                          {landing.isApproved === false 
+                            ? "Ссылка скрыта — ожидает одобрения рекламодателя"
+                            : (landing.trackingUrl || landing.landingUrl)}
                         </div>
                       </div>
                       <div className="flex items-center gap-3 ml-4">
                         <div className="text-right">
-                          <div className="text-sm font-bold text-emerald-400">
+                          <div className={`text-sm font-bold ${landing.isApproved === false ? 'text-muted-foreground' : 'text-emerald-400'}`}>
                             {getCurrencySymbol(landing.currency || 'USD')}{landing.partnerPayout}
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const baseUrl = landing.trackingUrl || landing.landingUrl;
-                            copyToClipboard(buildUrlWithSubs(baseUrl), landing.id);
-                          }}
-                          data-testid={`button-copy-landing-${geo}-${index}`}
-                        >
-                          {copiedUrl === landing.id ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                        </Button>
+                        {landing.isApproved !== false && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const baseUrl = landing.trackingUrl || landing.landingUrl;
+                              copyToClipboard(buildUrlWithSubs(baseUrl), landing.id);
+                            }}
+                            data-testid={`button-copy-landing-${geo}-${index}`}
+                          >
+                            {copiedUrl === landing.id ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -348,7 +359,7 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
   );
 }
 
-interface OfferLanding {
+interface OfferLandingFull {
   id: string;
   offerId: string;
   geo: string;
@@ -357,6 +368,8 @@ interface OfferLanding {
   partnerPayout: string;
   internalCost: string | null;
   currency: string;
+  trackingUrl?: string | null;
+  isApproved?: boolean;
 }
 
 interface Offer {
@@ -380,7 +393,7 @@ interface Offer {
   creativeLinks: string[];
   trackingUrl: string;
   status: string;
-  landings: OfferLanding[];
+  landings: OfferLandingFull[];
   hasAccess?: boolean;
   accessStatus?: string | null;
 }

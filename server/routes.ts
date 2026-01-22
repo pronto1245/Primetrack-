@@ -1737,30 +1737,31 @@ export async function registerRoutes(
           return res.json({ ...safeOffer, landings: [], hasAccess: false, accessStatus });
         }
         
-        // С доступом - показываем лендинги с tracking URLs (без internalCost)
+        // С доступом - показываем ВСЕ лендинги, trackingUrl только для одобренных
         const allLandings = await storage.getOfferLandings(offer.id);
         const customDomain = await storage.getActiveTrackingDomain(offer.advertiserId);
-        // Always use PLATFORM_DOMAIN for tracking links
         const trackingDomain = customDomain || process.env.PLATFORM_DOMAIN || "primetrack.pro";
         const publisherId = req.session.userId!;
         
-        // Filter landings by approvedLandings
+        // Get approved landings list
         const publisherOffer = await storage.getPublisherOffer(offer.id, publisherId);
         const approvedLandings = normalizePostgresArray(publisherOffer?.approvedLandings);
-        const landings = approvedLandings && approvedLandings.length > 0
-          ? allLandings.filter(l => approvedLandings.includes(l.id))
-          : allLandings;
         
         // Get shortIds for compact tracking URLs
         const publisher = await storage.getUser(publisherId);
         const offerShortId = formatShortId(offer.shortId, 4, offer.id);
         const publisherShortId = formatShortId(publisher?.shortId, 3, publisherId);
         
-        const safeLandings = landings.map(({ internalCost, ...rest }) => {
+        // Show ALL landings, but trackingUrl only for approved ones
+        const safeLandings = allLandings.map(({ internalCost, ...rest }) => {
           const landingShortId = formatShortId(rest.shortId, 4, rest.id);
+          const isApproved = !approvedLandings || approvedLandings.length === 0 || approvedLandings.includes(rest.id);
           return {
             ...rest,
-            trackingUrl: `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`,
+            trackingUrl: isApproved 
+              ? `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`
+              : null,
+            isApproved,
           };
         });
         return res.json({ ...safeOffer, landings: safeLandings, hasAccess: true, accessStatus: 'approved' });
@@ -2967,16 +2968,16 @@ export async function registerRoutes(
             const approvedGeos = normalizePostgresArray(publisherOffer?.approvedGeos);
             const approvedLandings = normalizePostgresArray(publisherOffer?.approvedLandings);
             
-            // Filter landings by approvedLandings if set
-            const filteredLandings = approvedLandings && approvedLandings.length > 0
-              ? allLandings.filter(l => approvedLandings.includes(l.id))
-              : allLandings;
-            
-            const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => {
+            // Show ALL landings, trackingUrl only for approved
+            const safeLandings = allLandings.map(({ internalCost, ...rest }) => {
               const landingShortId = formatShortId(rest.shortId, 4, rest.id);
+              const isApproved = !approvedLandings || approvedLandings.length === 0 || approvedLandings.includes(rest.id);
               return {
                 ...rest,
-                trackingUrl: `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`,
+                trackingUrl: isApproved 
+                  ? `https://${trackingDomain}/click/${offerShortId}/${landingShortId}?partner_id=${publisherShortId}`
+                  : null,
+                isApproved,
               };
             });
             return { 
@@ -3152,13 +3153,12 @@ export async function registerRoutes(
           const allLandings = await storage.getOfferLandings(offer.id);
           const { internalCost, ...safeOffer } = offer;
           
-          // Filter landings by approvedLandings if set
+          // Show ALL landings with isApproved flag
           const approvedLandings = normalizePostgresArray(po.approvedLandings);
-          const filteredLandings = approvedLandings && approvedLandings.length > 0
-            ? allLandings.filter(l => approvedLandings.includes(l.id))
-            : allLandings;
-          
-          const safeLandings = filteredLandings.map(({ internalCost, ...rest }) => rest);
+          const safeLandings = allLandings.map(({ internalCost, ...rest }) => {
+            const isApproved = !approvedLandings || approvedLandings.length === 0 || approvedLandings.includes(rest.id);
+            return { ...rest, isApproved };
+          });
           
           return { 
             ...safeOffer, 
@@ -3190,11 +3190,8 @@ export async function registerRoutes(
           
           const allLandings = await storage.getOfferLandings(offer.id);
           
-          // Filter landings by approvedLandings if set
+          // Show ALL landings with isApproved flag
           const approvedLandings = normalizePostgresArray(po.approvedLandings);
-          const filteredLandings = approvedLandings && approvedLandings.length > 0
-            ? allLandings.filter(l => approvedLandings.includes(l.id))
-            : allLandings;
           
           return { 
             id: offer.id,
@@ -3202,15 +3199,19 @@ export async function registerRoutes(
             logoUrl: offer.logoUrl,
             category: offer.category,
             payoutModel: offer.payoutModel,
-            landings: filteredLandings.map(l => ({
-              id: l.id,
-              offerId: l.offerId,
-              geo: l.geo,
-              landingName: l.landingName,
-              landingUrl: l.landingUrl,
-              partnerPayout: l.partnerPayout,
-              currency: l.currency,
-            })),
+            landings: allLandings.map(l => {
+              const isApproved = !approvedLandings || approvedLandings.length === 0 || approvedLandings.includes(l.id);
+              return {
+                id: l.id,
+                offerId: l.offerId,
+                geo: l.geo,
+                landingName: l.landingName,
+                landingUrl: l.landingUrl,
+                partnerPayout: l.partnerPayout,
+                currency: l.currency,
+                isApproved,
+              };
+            }),
           };
         })
       );
