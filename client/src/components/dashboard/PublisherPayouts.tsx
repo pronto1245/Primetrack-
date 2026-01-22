@@ -19,6 +19,7 @@ import { PublisherInvoices } from "./PublisherInvoices";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
 import { ExportMenu } from "@/components/ui/export-menu";
 
@@ -187,7 +188,7 @@ export function PublisherPayouts() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Доступно к выводу</p>
-                    <p className="text-xl font-bold text-emerald-500" data-testid="text-available-balance">${availableBalance.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-emerald-500" data-testid="text-available-balance">{formatCurrency(availableBalance)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -201,7 +202,7 @@ export function PublisherPayouts() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">В обработке</p>
-                    <p className="text-xl font-bold text-yellow-500" data-testid="text-pending-balance">${pendingBalance.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-yellow-500" data-testid="text-pending-balance">{formatCurrency(pendingBalance)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -215,7 +216,7 @@ export function PublisherPayouts() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">На холде</p>
-                    <p className="text-xl font-bold text-red-400" data-testid="text-hold-balance">${holdBalance.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-red-400" data-testid="text-hold-balance">{formatCurrency(holdBalance)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -229,7 +230,7 @@ export function PublisherPayouts() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Всего выплачено</p>
-                    <p className="text-xl font-bold text-foreground" data-testid="text-total-paid">${totalPaid.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-foreground" data-testid="text-total-paid">{formatCurrency(totalPaid)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -255,7 +256,7 @@ export function PublisherPayouts() {
                 <div className="space-y-4">
                   <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                     <p className="text-sm text-muted-foreground">Доступно к выводу</p>
-                    <p className="text-2xl font-bold text-emerald-500">${availableBalance.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-emerald-500">{formatCurrency(availableBalance)}</p>
                   </div>
 
                   <div>
@@ -512,7 +513,7 @@ export function PublisherPayouts() {
                             {method?.minPayout && (
                               <div className="pt-2 border-t border-white/5">
                                 <p className="text-xs text-muted-foreground">
-                                  Мин. выплата: <span className="text-foreground">${method.minPayout}</span>
+                                  Мин. выплата: <span className="text-foreground">{formatCurrency(method.minPayout, method.currency)}</span>
                                 </p>
                               </div>
                             )}
@@ -561,11 +562,11 @@ export function PublisherPayouts() {
                               </div>
                               <div>
                                 <p className="font-medium text-foreground font-mono">
-                                  ${request.requestedAmount}
+                                  {formatCurrency(request.requestedAmount, request.currency)}
                                   {request.approvedAmount &&
                                     request.approvedAmount !== request.requestedAmount && (
                                       <span className="text-muted-foreground text-sm ml-2">
-                                        (одобрено: ${request.approvedAmount})
+                                        (одобрено: {formatCurrency(request.approvedAmount, request.currency)})
                                       </span>
                                     )}
                                 </p>
@@ -642,13 +643,13 @@ export function PublisherPayouts() {
                               {method?.methodName || payout.currency}
                             </td>
                             <td className="text-right py-3 px-4 font-mono text-foreground">
-                              ${payout.amount}
+                              {formatCurrency(payout.amount, payout.currency)}
                             </td>
                             <td className="text-right py-3 px-4 font-mono text-red-400">
-                              -${payout.feeAmount}
+                              -{formatCurrency(payout.feeAmount, payout.currency)}
                             </td>
                             <td className="text-right py-3 px-4 font-mono text-emerald-500 font-bold">
-                              ${payout.netAmount}
+                              {formatCurrency(payout.netAmount, payout.currency)}
                             </td>
                             <td className="py-3 px-4">
                               <Badge className="bg-emerald-500/20 text-emerald-500">
