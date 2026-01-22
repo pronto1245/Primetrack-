@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { getCurrencySymbol, getOfferCurrency, formatCurrency } from "@/lib/utils";
+import { getCountryFlag } from "./CountrySelector";
 
 interface PartnerProfileProps {
   publisherId: string;
@@ -38,6 +39,7 @@ interface Landing {
   id: string;
   name: string;
   url: string;
+  geo: string;
   currency?: string;
 }
 
@@ -553,9 +555,11 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                           onCheckedChange={() => toggleLanding(landing.id)}
                           data-testid={`checkbox-landing-${landing.id}`}
                         />
+                        <span className="text-lg">{getCountryFlag(landing.geo)}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">
-                            {landing.name}
+                            <span className="font-mono text-xs bg-muted px-1 rounded mr-2">{landing.geo}</span>
+                            {landing.name || "Лендинг"}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {landing.url}
