@@ -57,6 +57,8 @@ interface PartnerOffer {
   revenue: number;
   landings: Landing[];
   approvedLandings: string[] | null;
+  requestedLandings: string[] | null;
+  extensionRequestedAt: string | null;
 }
 
 export function PartnerProfile({ publisherId }: PartnerProfileProps) {
@@ -109,6 +111,46 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
       toast({
         title: "Ошибка",
         description: error.message || "Не удалось обновить доступ",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const approveLandingsExtensionMutation = useMutation({
+    mutationFn: async (offerId: string) => {
+      return apiRequest("POST", `/api/advertiser/partners/${publisherId}/offers/${offerId}/approve-landings`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/partners", publisherId, "offers"] });
+      toast({
+        title: "Запрос одобрен",
+        description: "Дополнительные лендинги добавлены партнёру"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось одобрить запрос",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const rejectLandingsExtensionMutation = useMutation({
+    mutationFn: async (offerId: string) => {
+      return apiRequest("POST", `/api/advertiser/partners/${publisherId}/offers/${offerId}/reject-landings`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/partners", publisherId, "offers"] });
+      toast({
+        title: "Запрос отклонён",
+        description: "Запрос на дополнительные лендинги отклонён"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось отклонить запрос",
         variant: "destructive"
       });
     }
@@ -418,6 +460,39 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                           )}
                           {offer.accessStatus === "approved" && (
                             <>
+                              {offer.requestedLandings && offer.requestedLandings.length > 0 && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          data-testid={`button-approve-landings-${offer.id}`}
+                                          size="sm"
+                                          className="bg-orange-600 hover:bg-orange-700 h-7 text-xs"
+                                          onClick={() => approveLandingsExtensionMutation.mutate(offer.id)}
+                                          disabled={approveLandingsExtensionMutation.isPending || rejectLandingsExtensionMutation.isPending}
+                                        >
+                                          <Check className="w-3 h-3 mr-1" />
+                                          +{offer.requestedLandings.length} ленд.
+                                        </Button>
+                                        <Button
+                                          data-testid={`button-reject-landings-${offer.id}`}
+                                          size="sm"
+                                          variant="outline"
+                                          className="border-orange-500 text-orange-400 hover:bg-orange-500/10 h-7 text-xs px-2"
+                                          onClick={() => rejectLandingsExtensionMutation.mutate(offer.id)}
+                                          disabled={approveLandingsExtensionMutation.isPending || rejectLandingsExtensionMutation.isPending}
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Запрос на {offer.requestedLandings.length} дополнительных лендингов</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
                               {offer.landings.length > 0 && (
                                 <Button
                                   data-testid={`button-edit-${offer.id}`}

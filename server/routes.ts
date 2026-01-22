@@ -3945,7 +3945,9 @@ export async function registerRoutes(
           conversions: stats.conversions,
           revenue: stats.revenue,
           landings: landings.map(l => ({ id: l.id, name: l.landingName, url: l.landingUrl, geo: l.geo })),
-          approvedLandings: access?.approvedLandings || null
+          approvedLandings: access?.approvedLandings || null,
+          requestedLandings: access?.requestedLandings || null,
+          extensionRequestedAt: access?.extensionRequestedAt || null
         };
       }));
       
