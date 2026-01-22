@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { useUpload } from "@/hooks/use-upload";
 import { CountrySelector } from "./CountrySelector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCurrencySymbol } from "@/lib/utils";
 
 const TRAFFIC_SOURCES = ["Facebook", "Google", "TikTok", "UAC", "PPC", "Push", "Native", "Email", "SEO", "Telegram", "Instagram", "YouTube", "Snapchat", "X (Twitter)", "Pinterest", "LinkedIn", "Reddit", "PopUnder", "ClickUnder", "InApp", "SMS", "Viber", "WhatsApp", "ASO"];
 const APP_TYPES = ["PWA", "WebView", "iOS App", "Android App", "APK", "Desktop"];
@@ -803,7 +804,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                         <div className="space-y-1">
                           <Label className="text-muted-foreground text-[10px] font-mono uppercase">Цена партнеру *</Label>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">{getCurrencySymbol(landing.currency)}</span>
                             <Input
                               data-testid={`input-landing-partner-payout-${index}`}
                               className="bg-card border-border text-foreground font-mono h-8 text-sm pl-5"
@@ -818,7 +819,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                         <div className="space-y-1">
                           <Label className="text-muted-foreground text-[10px] font-mono uppercase">Цена для себя</Label>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">{getCurrencySymbol(landing.currency)}</span>
                             <Input
                               data-testid={`input-landing-internal-cost-${index}`}
                               className="bg-card border-border text-foreground font-mono h-8 text-sm pl-5"
@@ -838,7 +839,7 @@ export function CreateOfferForm({ role }: { role: string }) {
                         <div className="space-y-1">
                           <Label className="text-muted-foreground text-[10px] font-mono uppercase">Цена для себя</Label>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">{getCurrencySymbol(landing.currency)}</span>
                             <Input
                               data-testid={`input-landing-internal-cost-${index}`}
                               className="bg-card border-border text-foreground font-mono h-8 text-sm pl-5"
