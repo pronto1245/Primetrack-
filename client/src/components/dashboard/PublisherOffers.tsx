@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone } from "lucide-react";
+import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone, Send, XCircle, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -135,6 +135,27 @@ export function PublisherOffers({ role }: { role: string }) {
     return offer.partnerPayout;
   };
 
+  const queryClient = useQueryClient();
+  
+  const requestAccessMutation = useMutation({
+    mutationFn: async (offerId: string) => {
+      const res = await fetch(`/api/offers/${offerId}/request-access`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({})
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to request access");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/marketplace/offers"], exact: false });
+    }
+  });
+
   const getAccessBadge = (offer: MarketplaceOffer) => {
     if (offer.hasAccess) {
       return (
@@ -148,11 +169,40 @@ export function PublisherOffers({ role }: { role: string }) {
       return (
         <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/20 text-yellow-500">
           <Clock className="w-3 h-3" />
-          Ожидание
+          Ожидает
         </span>
       );
     }
-    return null;
+    if (offer.accessStatus === "rejected") {
+      return (
+        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/20 text-red-500">
+          <XCircle className="w-3 h-3" />
+          Отклонён
+        </span>
+      );
+    }
+    if (offer.accessStatus === "revoked") {
+      return (
+        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-orange-500/20 text-orange-500">
+          <AlertCircle className="w-3 h-3" />
+          Отозван
+        </span>
+      );
+    }
+    return (
+      <button
+        className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 hover:text-blue-400 transition-colors disabled:opacity-50"
+        onClick={(e) => {
+          e.stopPropagation();
+          requestAccessMutation.mutate(offer.id);
+        }}
+        disabled={requestAccessMutation.isPending}
+        data-testid={`button-request-access-${offer.id}`}
+      >
+        <Send className="w-3 h-3" />
+        Запросить
+      </button>
+    );
   };
 
   if (isLoading) {
