@@ -860,18 +860,17 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
             </CardContent>
           </Card>
 
+          {isPublisher && hasAccess && offer.landings && offer.landings.length > 0 && (
+            <RequestLandingsCard 
+              offerId={offer.id} 
+              landings={offer.landings}
+              requestedLandings={offer.requestedLandings}
+              onSuccess={() => {}}
+            />
+          )}
+
           {canSeeLinks && offer.landings && offer.landings.length > 0 && (
-            <>
-              <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
-              {isPublisher && hasAccess && (
-                <RequestLandingsCard 
-                  offerId={offer.id} 
-                  landings={offer.landings}
-                  requestedLandings={offer.requestedLandings}
-                  onSuccess={() => {}}
-                />
-              )}
-            </>
+            <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
           )}
 
           {!canSeeLinks && (
