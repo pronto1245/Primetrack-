@@ -386,10 +386,10 @@ export function PublisherOffers({ role }: { role: string }) {
                   <th className="px-3 py-3 font-medium">AR%</th>
                   <th className="px-3 py-3 font-medium">EPC</th>
                   <th className="px-3 py-3 font-medium">{t('dashboard.offers.geo')}</th>
-                  <th className="px-3 py-3 font-medium">Payout</th>
-                  <th className="px-3 py-3 font-medium">Model</th>
+                  <th className="px-3 py-3 font-medium">Выплата</th>
+                  <th className="px-3 py-3 font-medium">Модель</th>
                   <th className="px-3 py-3 font-medium">Доступ</th>
-                  <th className="px-3 py-3 font-medium text-right">Actions</th>
+                  <th className="px-3 py-3 font-medium text-right">Действия</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -486,7 +486,7 @@ export function PublisherOffers({ role }: { role: string }) {
                       <Link href={`/dashboard/${role}/offer/${offer.id}`}>
                         <Button size="sm" variant="ghost" className="h-7 px-3 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10" data-testid={`button-view-${offer.id}`}>
                           <Eye className="w-3 h-3 mr-1" />
-                          View
+                          Открыть
                         </Button>
                       </Link>
                     </td>
