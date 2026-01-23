@@ -633,10 +633,10 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                         <span className="text-lg">{getCountryFlag(landing.geo)}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">
-                            <span className="font-mono text-xs bg-muted px-1 rounded mr-2">{landing.geo}</span>
-                            {landing.name || "Лендинг"}
+                            {landing.name || `Лендинг ${landing.geo}`}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
+                            <span className="font-mono bg-muted px-1 rounded mr-2">{landing.geo}</span>
                             {landing.url}
                           </p>
                         </div>
