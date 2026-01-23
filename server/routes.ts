@@ -4135,9 +4135,10 @@ export async function registerRoutes(
       // Notify publisher about rejection
       const publisher = await storage.getUser(publisherId);
       if (publisher) {
-        notificationService.notifyNewMessage(
+        notificationService.notifySystemMessage(
           publisherId,
-          `Ваш запрос на дополнительные лендинги для оффера "${offer.name}" отклонен`
+          "Запрос отклонён",
+          `Ваш запрос на дополнительные лендинги для оффера "${offer.name}" отклонён`
         ).catch(console.error);
       }
       
