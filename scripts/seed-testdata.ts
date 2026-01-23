@@ -40,8 +40,8 @@ const OFFERS_CONFIG = [
   {
     name: "Hitnspin | Slot | FB",
     geo: "DE",
-    partnerPayout: 180,
-    internalCost: 210,
+    partnerPayout: 230,
+    internalCost: 280,
     clicks: 18500,
     leads: 5800,
     sales: 620,
@@ -49,8 +49,8 @@ const OFFERS_CONFIG = [
   {
     name: "Vulkan | Slot | FB",
     geo: "PL",
-    partnerPayout: 120,
-    internalCost: 145,
+    partnerPayout: 125,
+    internalCost: 160,
     clicks: 15200,
     leads: 4900,
     sales: 510,
