@@ -1733,8 +1733,14 @@ export async function registerRoutes(
           // Проверяем статус заявки
           const accessRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, req.session.userId!);
           const accessStatus = accessRequest?.status || null;
-          // Без доступа - возвращаем оффер БЕЗ лендингов
-          return res.json({ ...safeOffer, landings: [], hasAccess: false, accessStatus });
+          // Без доступа - показываем лендинги с payout но БЕЗ trackingUrl
+          const allLandings = await storage.getOfferLandings(offer.id);
+          const safeLandings = allLandings.map(({ internalCost, ...rest }) => ({
+            ...rest,
+            trackingUrl: null,  // No tracking URL for unapproved offers
+            isApproved: false,
+          }));
+          return res.json({ ...safeOffer, landings: safeLandings, hasAccess: false, accessStatus });
         }
         
         // С доступом - показываем ВСЕ лендинги, trackingUrl только для одобренных
@@ -2998,9 +3004,17 @@ export async function registerRoutes(
             };
           }
           
+          // For unapproved offers: show landings with payout but WITHOUT trackingUrl
+          const allLandings = await storage.getOfferLandings(offer.id);
+          const safeLandings = allLandings.map(({ internalCost, ...rest }) => ({
+            ...rest,
+            trackingUrl: null,  // No tracking URL for unapproved offers
+            isApproved: false,
+          }));
+          
           return { 
             ...safeOffer, 
-            landings: [],
+            landings: safeLandings,
             accessStatus: existingRequest?.status || null,
             hasAccess: false,
             partnershipStatus
