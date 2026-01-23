@@ -127,10 +127,15 @@ export function PublisherOffers({ role }: { role: string }) {
     });
   }, [offers, searchQuery, selectedCategory, selectedGeo, selectedSource, showMyOffers, selectedAdvertiserId, filterNew, filterTop, filterExclusive, filterPrivate]);
 
-  const getMaxPayout = (offer: MarketplaceOffer) => {
+  const getPayoutRange = (offer: MarketplaceOffer) => {
     if (offer.landings && offer.landings.length > 0) {
-      const max = Math.max(...offer.landings.map(l => parseFloat(l.partnerPayout)));
-      return max.toFixed(2);
+      const payouts = offer.landings.map(l => parseFloat(l.partnerPayout));
+      const min = Math.min(...payouts);
+      const max = Math.max(...payouts);
+      if (min === max) {
+        return max.toFixed(2);
+      }
+      return `${min.toFixed(2)}-${max.toFixed(2)}`;
     }
     return offer.partnerPayout;
   };
@@ -394,7 +399,7 @@ export function PublisherOffers({ role }: { role: string }) {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filteredOffers.map((offer) => {
-                const maxPayout = getMaxPayout(offer);
+                const payoutRange = getPayoutRange(offer);
                 const stat = statsMap.get(offer.id);
                 return (
                   <tr key={offer.id} className="hover:bg-muted transition-colors group" data-testid={`row-offer-${offer.id}`}>
@@ -474,7 +479,7 @@ export function PublisherOffers({ role }: { role: string }) {
                       </span>
                     </td>
                     <td className="px-3 py-3 text-emerald-400 font-bold">
-                      {getCurrencySymbol(getOfferCurrency(offer))}{maxPayout}
+                      {getCurrencySymbol(getOfferCurrency(offer))}{payoutRange}
                     </td>
                     <td className="px-3 py-3 text-muted-foreground uppercase">
                       {offer.payoutModel}
