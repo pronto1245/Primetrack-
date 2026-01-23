@@ -3652,8 +3652,9 @@ export async function registerRoutes(
       
       const result = await Promise.all(extensionRequests.map(async (ext) => {
         const landings = await storage.getOfferLandings(ext.offer.id);
+        const requestedIds = normalizePostgresArray(ext.requestedLandings) || [];
         const requestedLandingDetails = landings
-          .filter(l => ext.requestedLandings.includes(l.id))
+          .filter(l => requestedIds.includes(l.id))
           .map(l => ({
             id: l.id,
             name: l.landingName || `Лендинг ${l.geo}`,

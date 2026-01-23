@@ -54,7 +54,7 @@ import {
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
-import { eq, and, or, desc, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, or, desc, gte, lte, sql, inArray, isNotNull } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { statsCache, buildCacheKey, CACHE_TTL } from "./services/cache-service";
 import { encrypt, decrypt, hasSecret } from "./services/encryption";
@@ -1318,13 +1318,27 @@ export class DatabaseStorage implements IStorage {
       ));
     
     return results
-      .filter(r => r.publisher_offers.requestedLandings && r.publisher_offers.requestedLandings.length > 0)
+      .filter(r => {
+        const landings = this.normalizeArray(r.publisher_offers.requestedLandings);
+        return landings && landings.length > 0;
+      })
       .map(r => ({
         offer: r.offers,
         publisher: r.users,
         access: r.publisher_offers,
-        requestedLandings: r.publisher_offers.requestedLandings || []
+        requestedLandings: this.normalizeArray(r.publisher_offers.requestedLandings) || []
       }));
+  }
+  
+  private normalizeArray(value: any): string[] | null {
+    if (!value) return null;
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      const trimmed = value.replace(/^\{|\}$/g, '');
+      if (!trimmed) return null;
+      return trimmed.split(',').map(s => s.trim());
+    }
+    return null;
   }
 
   async deletePublisherOffer(offerId: string, publisherId: string): Promise<void> {
