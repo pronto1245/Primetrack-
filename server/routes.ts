@@ -3116,8 +3116,9 @@ export async function registerRoutes(
       // Notify advertiser about landing extension request
       const publisher = await storage.getUser(publisherId);
       if (publisher) {
-        notificationService.notifyNewMessage(
+        notificationService.notifySystemMessage(
           offer.advertiserId,
+          "Запрос на расширение",
           `Партнер ${publisher.username} запросил доступ к дополнительным лендингам для оффера "${offer.name}"`
         ).catch(console.error);
       }
@@ -4094,8 +4095,9 @@ export async function registerRoutes(
       // Notify publisher about approval
       const publisher = await storage.getUser(publisherId);
       if (publisher) {
-        notificationService.notifyNewMessage(
+        notificationService.notifySystemMessage(
           publisherId,
+          "Запрос одобрен",
           `Ваш запрос на дополнительные лендинги для оффера "${offer.name}" одобрен`
         ).catch(console.error);
       }
