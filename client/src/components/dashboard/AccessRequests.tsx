@@ -13,6 +13,29 @@ interface Landing {
   id: string;
   name: string;
   geo: string;
+  payout?: string;
+  currency?: string;
+}
+
+interface ExtensionRequest {
+  id: string;
+  offerId: string;
+  publisherId: string;
+  type: "extension";
+  status: string;
+  createdAt: string;
+  offer: {
+    id: string;
+    name: string;
+    category: string;
+    geo: string[];
+  };
+  publisher: {
+    id: string;
+    username: string;
+    email: string;
+  };
+  requestedLandings: Landing[];
 }
 
 interface AccessRequestWithDetails {
@@ -50,6 +73,8 @@ export function AccessRequests() {
   const [approvingRequest, setApprovingRequest] = useState<AccessRequestWithDetails | null>(null);
   const [selectedGeos, setSelectedGeos] = useState<string[]>([]);
   const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
+  const [extensionDialogOpen, setExtensionDialogOpen] = useState(false);
+  const [selectedExtension, setSelectedExtension] = useState<ExtensionRequest | null>(null);
 
   const { data: requests, isLoading, error } = useQuery<AccessRequestWithDetails[]>({
     queryKey: ["/api/advertiser/access-requests"],
@@ -57,6 +82,45 @@ export function AccessRequests() {
       const res = await fetch("/api/advertiser/access-requests", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch access requests");
       return res.json();
+    },
+  });
+
+  const { data: extensionRequests } = useQuery<ExtensionRequest[]>({
+    queryKey: ["/api/advertiser/extension-requests"],
+    queryFn: async () => {
+      const res = await fetch("/api/advertiser/extension-requests", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch extension requests");
+      return res.json();
+    },
+  });
+
+  const extensionMutation = useMutation({
+    mutationFn: async ({ offerId, publisherId, action }: { offerId: string; publisherId: string; action: "approve" | "reject" }) => {
+      const endpoint = action === "approve" 
+        ? `/api/advertiser/partners/${publisherId}/offers/${offerId}/approve-landings`
+        : `/api/advertiser/partners/${publisherId}/offers/${offerId}/reject-landings`;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to process extension request");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/extension-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/access-requests"] });
+      setExtensionDialogOpen(false);
+      toast({
+        title: "Успешно",
+        description: "Запрос на расширение обработан",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обработать запрос",
+        variant: "destructive",
+      });
     },
   });
 
@@ -100,8 +164,10 @@ export function AccessRequests() {
   }, [requests, searchQuery, statusFilter]);
 
   const pendingCount = useMemo(() => {
-    return requests?.filter(r => r.status === "pending").length || 0;
-  }, [requests]);
+    const accessPending = requests?.filter(r => r.status === "pending").length || 0;
+    const extensionPending = extensionRequests?.length || 0;
+    return accessPending + extensionPending;
+  }, [requests, extensionRequests]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -345,6 +411,96 @@ export function AccessRequests() {
           </div>
         )}
       </Card>
+
+      {/* Extension Requests Section */}
+      {extensionRequests && extensionRequests.length > 0 && (
+        <Card className="bg-card border-border mt-6">
+          <div className="p-4 border-b border-border">
+            <h3 className="text-lg font-bold font-mono text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+              Запросы на расширение доступа
+            </h3>
+            <p className="text-muted-foreground text-xs font-mono mt-1">
+              Партнёры запрашивают дополнительные лендинги
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 py-3 font-medium">Дата</th>
+                  <th className="px-4 py-3 font-medium">Партнёр</th>
+                  <th className="px-4 py-3 font-medium">Оффер</th>
+                  <th className="px-4 py-3 font-medium">Запрошенные лендинги</th>
+                  <th className="px-4 py-3 font-medium text-right">Действия</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {extensionRequests.map((ext) => (
+                  <tr key={ext.id} className="hover:bg-muted transition-colors" data-testid={`row-extension-${ext.id}`}>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(ext.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div>
+                        <div className="font-medium text-foreground">{ext.publisher.username}</div>
+                        <div className="text-muted-foreground text-[10px]">{ext.publisher.email}</div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link href={`/dashboard/advertiser/offer/${ext.offerId}`}>
+                        <span className="font-medium text-foreground hover:text-blue-400 transition-colors cursor-pointer">
+                          {ext.offer.name}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="space-y-1">
+                        {ext.requestedLandings.slice(0, 2).map((l) => (
+                          <div key={l.id} className="text-xs">
+                            <span className="font-medium text-foreground">{l.name}</span>
+                            <span className="text-muted-foreground ml-2">{l.geo} — ${l.payout}</span>
+                          </div>
+                        ))}
+                        {ext.requestedLandings.length > 2 && (
+                          <span className="text-muted-foreground text-[10px]">
+                            +{ext.requestedLandings.length - 2} ещё
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-foreground"
+                          onClick={() => extensionMutation.mutate({ offerId: ext.offerId, publisherId: ext.publisherId, action: "approve" })}
+                          disabled={extensionMutation.isPending}
+                          data-testid={`button-approve-extension-${ext.id}`}
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Одобрить
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-3 border-red-500/50 text-red-400 hover:bg-red-500/10"
+                          onClick={() => extensionMutation.mutate({ offerId: ext.offerId, publisherId: ext.publisherId, action: "reject" })}
+                          disabled={extensionMutation.isPending}
+                          data-testid={`button-reject-extension-${ext.id}`}
+                        >
+                          <X className="w-3 h-3 mr-1" />
+                          Отклонить
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent className="bg-card border-border">

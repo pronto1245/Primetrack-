@@ -3639,6 +3639,57 @@ export async function registerRoutes(
     }
   });
 
+  // Get extension requests (publishers requesting additional landings)
+  app.get("/api/advertiser/extension-requests", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      
+      const extensionRequests = await storage.getExtensionRequestsByAdvertiser(advertiserId);
+      
+      const result = await Promise.all(extensionRequests.map(async (ext) => {
+        const landings = await storage.getOfferLandings(ext.offer.id);
+        const requestedLandingDetails = landings
+          .filter(l => ext.requestedLandings.includes(l.id))
+          .map(l => ({
+            id: l.id,
+            name: l.landingName || `Лендинг ${l.geo}`,
+            geo: l.geo,
+            payout: l.partnerPayout,
+            currency: l.currency
+          }));
+        
+        return {
+          id: `ext-${ext.access.id}`,
+          offerId: ext.offer.id,
+          publisherId: ext.publisher.id,
+          type: "extension",
+          status: "pending",
+          createdAt: ext.access.extensionRequestedAt?.toISOString() || new Date().toISOString(),
+          offer: {
+            id: ext.offer.id,
+            name: ext.offer.name,
+            category: ext.offer.category,
+            geo: ext.offer.geo
+          },
+          publisher: {
+            id: ext.publisher.id,
+            username: ext.publisher.username,
+            email: ext.publisher.email
+          },
+          requestedLandings: requestedLandingDetails
+        };
+      }));
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[extension-requests] Error:", error);
+      res.status(500).json({ message: "Failed to fetch extension requests" });
+    }
+  });
+
   // Advertiser approves or rejects access request
   app.put("/api/advertiser/access-requests/:id", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("requests"), async (req: Request, res: Response) => {
     try {

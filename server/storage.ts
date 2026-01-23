@@ -354,6 +354,7 @@ export interface IStorage {
   requestLandingsExtension(offerId: string, publisherId: string, landingIds: string[]): Promise<PublisherOfferAccess | undefined>;
   approveLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
   rejectLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
+  getExtensionRequestsByAdvertiser(advertiserId: string): Promise<{ offer: Offer; publisher: User; access: PublisherOfferAccess; requestedLandings: string[] }[]>;
   deletePublisherOffer(offerId: string, publisherId: string): Promise<void>;
   hasPublisherAccessToOffer(offerId: string, publisherId: string): Promise<boolean>;
   getPublisherAccessMap(offerIds: string[], publisherId: string): Promise<Set<string>>;
@@ -1303,6 +1304,27 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return result;
+  }
+
+  async getExtensionRequestsByAdvertiser(advertiserId: string): Promise<{ offer: Offer; publisher: User; access: PublisherOfferAccess; requestedLandings: string[] }[]> {
+    const results = await db
+      .select()
+      .from(publisherOffers)
+      .innerJoin(offers, eq(publisherOffers.offerId, offers.id))
+      .innerJoin(users, eq(publisherOffers.publisherId, users.id))
+      .where(and(
+        eq(offers.advertiserId, advertiserId),
+        isNotNull(publisherOffers.requestedLandings)
+      ));
+    
+    return results
+      .filter(r => r.publisher_offers.requestedLandings && r.publisher_offers.requestedLandings.length > 0)
+      .map(r => ({
+        offer: r.offers,
+        publisher: r.users,
+        access: r.publisher_offers,
+        requestedLandings: r.publisher_offers.requestedLandings || []
+      }));
   }
 
   async deletePublisherOffer(offerId: string, publisherId: string): Promise<void> {
