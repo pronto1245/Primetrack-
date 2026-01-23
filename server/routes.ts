@@ -3628,7 +3628,7 @@ export async function registerRoutes(
             name: r.offer.name,
             category: r.offer.category,
             geo: r.offer.geo,
-            landings: landings.map(l => ({ id: l.id, name: l.name, geo: l.geo })),
+            landings: landings.map(l => ({ id: l.id, name: l.landingName || `Лендинг ${l.geo}`, geo: l.geo })),
           },
         };
       }));
@@ -3953,7 +3953,7 @@ export async function registerRoutes(
           clicks: stats.clicks,
           conversions: stats.conversions,
           revenue: stats.revenue,
-          landings: landings.map(l => ({ id: l.id, name: l.landingName, url: l.landingUrl, geo: l.geo })),
+          landings: landings.map(l => ({ id: l.id, name: l.landingName || `Лендинг ${l.geo}`, url: l.landingUrl, geo: l.geo, payout: l.partnerPayout, currency: l.currency })),
           approvedLandings: access?.approvedLandings || null,
           requestedLandings: access?.requestedLandings || null,
           extensionRequestedAt: access?.extensionRequestedAt || null
