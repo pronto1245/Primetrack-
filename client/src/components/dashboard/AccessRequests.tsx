@@ -73,8 +73,6 @@ export function AccessRequests() {
   const [approvingRequest, setApprovingRequest] = useState<AccessRequestWithDetails | null>(null);
   const [selectedGeos, setSelectedGeos] = useState<string[]>([]);
   const [selectedLandings, setSelectedLandings] = useState<string[]>([]);
-  const [extensionDialogOpen, setExtensionDialogOpen] = useState(false);
-  const [selectedExtension, setSelectedExtension] = useState<ExtensionRequest | null>(null);
 
   const { data: requests, isLoading, error } = useQuery<AccessRequestWithDetails[]>({
     queryKey: ["/api/advertiser/access-requests"],
@@ -109,7 +107,6 @@ export function AccessRequests() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/extension-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/advertiser/access-requests"] });
-      setExtensionDialogOpen(false);
       toast({
         title: "Успешно",
         description: "Запрос на расширение обработан",
