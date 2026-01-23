@@ -91,7 +91,7 @@ export function SearchableSelect({
         <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg">
           <div className="flex items-center border-b border-border px-3 py-2">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
             <input
