@@ -556,6 +556,8 @@ interface Offer {
   landings: OfferLandingType[];
   hasAccess?: boolean;
   accessStatus?: string | null;
+  requestedLandings?: string[] | null;
+  extensionRequestedAt?: string | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -860,18 +862,17 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
             </CardContent>
           </Card>
 
+          {isPublisher && hasAccess && offer.landings && offer.landings.length > 0 && (
+            <RequestLandingsCard 
+              offerId={offer.id} 
+              landings={offer.landings}
+              requestedLandings={offer.requestedLandings}
+              onSuccess={() => {}}
+            />
+          )}
+
           {canSeeLinks && offer.landings && offer.landings.length > 0 && (
-            <>
-              <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
-              {isPublisher && hasAccess && (
-                <RequestLandingsCard 
-                  offerId={offer.id} 
-                  landings={offer.landings}
-                  requestedLandings={(offer as any).requestedLandings}
-                  onSuccess={() => {}}
-                />
-              )}
-            </>
+            <LandingsGroupedByGeo landings={offer.landings} copiedUrl={copiedUrl} copyToClipboard={copyToClipboard} buildUrlWithSubs={buildUrlWithSubs} />
           )}
 
           {!canSeeLinks && (
