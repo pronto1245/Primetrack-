@@ -2043,10 +2043,10 @@ export async function registerRoutes(
       const publisherPayout = offer.partnerPayout || "0";
 
       // Determine initial status based on hold period
-      let finalStatus = inputStatus || "pending";
+      let finalStatus = inputStatus || "approved";
       let holdUntil: Date | null = null;
       
-      if (offer.holdPeriodDays && offer.holdPeriodDays > 0 && finalStatus === "pending") {
+      if (offer.holdPeriodDays && offer.holdPeriodDays > 0 && finalStatus === "approved") {
         finalStatus = "hold";
         holdUntil = new Date();
         holdUntil.setDate(holdUntil.getDate() + offer.holdPeriodDays);

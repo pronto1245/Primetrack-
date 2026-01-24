@@ -80,7 +80,7 @@ export class Orchestrator {
     } else if (holdUntil || shouldHoldForFraud) {
       conversionStatus = "hold";
     } else {
-      conversionStatus = "pending";
+      conversionStatus = "approved";
     }
     
     const conversionData: InsertConversion = {
