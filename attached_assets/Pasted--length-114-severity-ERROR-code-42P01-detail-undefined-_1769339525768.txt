@@ -1,0 +1,99 @@
+  length: 114,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '514',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+    at wt.set.wt.header (/workspace/dist/index.cjs:53:25029)
+    at wt.send (/workspace/dist/index.cjs:53:20568)
+    at wt.json (/workspace/dist/index.cjs:53:21698)
+    at /workspace/dist/index.cjs:312:1108
+    at Ri.handle_error (/workspace/dist/index.cjs:38:3076)
+    at V (/workspace/dist/index.cjs:38:8413)
+    at /workspace/dist/index.cjs:38:8011
+    at Sa.process_params (/workspace/dist/index.cjs:38:8554)
+    at L (/workspace/dist/index.cjs:38:7937)
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+    at wt.set.wt.header (/workspace/dist/index.cjs:53:25029)
+    at wt.send (/workspace/dist/index.cjs:53:20568)
+    at wt.json (/workspace/dist/index.cjs:53:21698)
+    at /workspace/dist/index.cjs:312:1108
+    at Ri.handle_error (/workspace/dist/index.cjs:38:3076)
+    at V (/workspace/dist/index.cjs:38:8413)
+    at /workspace/dist/index.cjs:38:8011
+    at Sa.process_params (/workspace/dist/index.cjs:38:8554)
+    at L (/workspace/dist/index.cjs:38:7937)
+[CustomDomain] Error resolving domain: error: relation "custom_domains" does not exist
+    at /workspace/dist/index.cjs:70:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /workspace/dist/index.cjs:70:28669
+    at async vb.getCustomDomainByDomain (/workspace/dist/index.cjs:150:1978)
+    at async /workspace/dist/index.cjs:256:67641 {
+  length: 114,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '514',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+[CustomDomain] Error resolving domain: error: relation "custom_domains" does not exist
+    at /workspace/dist/index.cjs:70:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /workspace/dist/index.cjs:70:28669
+    at async vb.getCustomDomainByDomain (/workspace/dist/index.cjs:150:1978)
+    at async /workspace/dist/index.cjs:256:67641 {
+  length: 114,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '514',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Instance created. Preparing to start...
+Image download failure. Image does not exist. Please check your Service configuration.
+Instance stopped.
+Instance created. Preparing to start...
+Image download failure. Image does not exist. Please check your Service configuration.
+Instance stopped.
+Instance created. Preparing to start...
+Image download failure. Image does not exist. Please check your Service configuration.
+Instance created. Preparing to start...
+Instance stopped.
+Instance is stopping.
