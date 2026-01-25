@@ -165,6 +165,21 @@ export function PublisherPostbacks() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
+            <h4 className="font-semibold text-red-400 mb-2 text-sm">Keitaro</h4>
+            <div className="font-mono text-xs text-muted-foreground break-all">
+              https://your-keitaro.com/postback?subid={"{click_id}"}&status={"{status}"}
+            </div>
+          </div>
+          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+            <h4 className="font-semibold text-purple-400 mb-2 text-sm">Binom</h4>
+            <div className="font-mono text-xs text-muted-foreground break-all">
+              https://your-binom.com/postback?clickid={"{click_id}"}&status={"{status}"}
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2 mb-4">
           <div className="space-y-4 p-4 border border-border rounded-lg">
             <div className="flex items-center gap-2 mb-2">
