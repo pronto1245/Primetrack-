@@ -168,15 +168,23 @@ export function PublisherPostbacks() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
             <h4 className="font-semibold text-red-400 mb-2 text-sm">Keitaro</h4>
-            <div className="font-mono text-xs text-muted-foreground break-all">
+            <p className="text-xs text-muted-foreground mb-2">Укажите URL для приёма постбеков:</p>
+            <div className="font-mono text-xs text-muted-foreground break-all mb-2">
               https://your-keitaro.com/postback?subid={"{click_id}"}&status={"{status}"}
             </div>
+            <p className="text-[10px] text-amber-400">
+              В Keitaro: Настройки → S2S Postback URL → укажите этот URL. Параметр subid будет передан как {"{_subid}"}
+            </p>
           </div>
           <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
             <h4 className="font-semibold text-purple-400 mb-2 text-sm">Binom</h4>
-            <div className="font-mono text-xs text-muted-foreground break-all">
+            <p className="text-xs text-muted-foreground mb-2">Укажите URL для приёма постбеков:</p>
+            <div className="font-mono text-xs text-muted-foreground break-all mb-2">
               https://your-binom.com/postback?clickid={"{click_id}"}&status={"{status}"}
             </div>
+            <p className="text-[10px] text-muted-foreground">
+              В Binom: Оффер → Postback URL → укажите этот URL
+            </p>
           </div>
         </div>
 
