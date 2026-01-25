@@ -2,7 +2,7 @@
 
 ## 1. Подготовка кода
 
-### Изменить vite.config.ts
+### 1.1 Изменить vite.config.ts
 
 Убрать Replit-плагины. Заменить файл на:
 
@@ -47,7 +47,7 @@ export default defineConfig({
 });
 ```
 
-### Изменить package.json
+### 1.2 Изменить package.json
 
 Удалить из `devDependencies`:
 ```json
@@ -56,61 +56,116 @@ export default defineConfig({
 "@replit/vite-plugin-runtime-error-modal": "^0.0.4",
 ```
 
+### 1.3 Переустановить зависимости
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### 1.4 Проверить сборку локально
+
+```bash
+npm run build
+```
+
 ## 2. Настройка Neon PostgreSQL
 
-1. Создай проект на neon.tech
+1. Создай проект на [neon.tech](https://neon.tech)
 2. Скопируй `DATABASE_URL` (формат: `postgresql://user:pass@host/db?sslmode=require`)
 
 ## 3. Деплой на Koyeb
 
-### Вариант 1: Через GitHub
+### Вариант 1: Через GitHub (рекомендуется)
 
 1. Залей код на GitHub
 2. В Koyeb → Create App → GitHub
 3. Выбери репозиторий
-4. Build command: `npm run build`
-5. Start command: `npm start`
-6. Port: `5000`
+4. **Build command:** `npm run build`
+5. **Start command:** `npm start`
+6. **Port:** `5000`
+
+> **Важно:** Koyeb автоматически устанавливает переменную `PORT`. Приложение уже настроено использовать `process.env.PORT || "5000"`.
 
 ### Вариант 2: Через Docker
 
-1. Залей код на GitHub
+1. Залей код на GitHub с Dockerfile
 2. В Koyeb → Create App → Docker
-3. Укажи Dockerfile
+3. Укажи путь к Dockerfile: `./Dockerfile`
 
-## 4. Переменные окружения
+## 4. Переменные окружения (ОБЯЗАТЕЛЬНО)
 
 В Koyeb → Settings → Environment Variables добавь:
 
+### Обязательные:
 ```
-DATABASE_URL=postgresql://...
-SESSION_SECRET=твой-секретный-ключ
+DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+SESSION_SECRET=сгенерируй-через-openssl-rand-base64-32
+ENCRYPTION_KEY=сгенерируй-через-openssl-rand-base64-32
+APP_DOMAIN=https://твой-домен.koyeb.app
+PLATFORM_DOMAIN=твой-домен.koyeb.app
 NODE_ENV=production
-PORT=5000
-RESEND_API_KEY=... (если нужен email)
 ```
+
+### Для email уведомлений:
+```
+RESEND_API_KEY=твой-ключ-resend
+```
+
+### Опциональные:
+```
+TELEGRAM_NOTIFY_BOT_TOKEN=токен-бота
+IPINFO_TOKEN=токен-ipinfo
+CORS_ORIGIN=https://твой-домен.koyeb.app
+```
+
+> Полный список переменных смотри в `.env.example`
 
 ## 5. Миграция базы данных
 
-После деплоя запусти миграцию:
+После создания Neon базы, **локально** запусти:
 
 ```bash
-# Локально с новым DATABASE_URL
-DATABASE_URL="postgresql://..." npm run db:push
+# Установи DATABASE_URL для Neon
+export DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+
+# Создай таблицы
+npm run db:push
 ```
 
-## 6. Миграция данных с Replit
+## 6. Миграция данных с Replit (опционально)
 
-Если нужно перенести данные:
+Если нужно перенести существующие данные:
 
 ```bash
-# Экспорт с Replit
+# 1. На Replit: экспорт базы
 pg_dump $DATABASE_URL > backup.sql
 
-# Импорт на Neon
-psql "postgresql://..." < backup.sql
+# 2. Скачай backup.sql
+
+# 3. Локально: импорт в Neon
+psql "postgresql://user:pass@neon-host/db?sslmode=require" < backup.sql
 ```
+
+## 7. Проверка после деплоя
+
+1. Открой URL приложения на Koyeb
+2. Проверь логи в Koyeb Dashboard
+3. Убедись что подключение к базе работает
 
 ## Готово!
 
 Приложение будет доступно по адресу: `https://primetrack-xxx.koyeb.app`
+
+---
+
+## Troubleshooting
+
+### Ошибка "Cannot find module"
+Убедись что удалил Replit плагины из vite.config.ts и package.json
+
+### Ошибка подключения к базе
+Проверь что `?sslmode=require` добавлен в DATABASE_URL
+
+### Приложение не стартует
+Проверь логи в Koyeb → твоё приложение → Logs

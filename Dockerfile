@@ -26,12 +26,14 @@ RUN npm ci --only=production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port
+# Copy server assets (fonts, etc.)
+COPY --from=builder /app/server/assets ./server/assets
+
+# Expose port (Koyeb provides PORT env var)
 EXPOSE 5000
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=5000
 
-# Start the application
+# Start the application (PORT is provided by Koyeb)
 CMD ["node", "dist/index.cjs"]
