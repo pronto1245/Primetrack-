@@ -202,24 +202,6 @@ export function AdvertiserPostbacks() {
           </div>
         </div>
 
-        <div className="bg-muted rounded-lg p-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <Label className="text-xs text-muted-foreground font-mono">Ваш постбек URL</Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => copyToClipboard(universalPostbackUrl)}
-              className="text-muted-foreground hover:text-foreground"
-              data-testid="button-copy-postback-url"
-            >
-              <Copy className="w-4 h-4 mr-1" /> Копировать
-            </Button>
-          </div>
-          <code className="text-sm text-green-400 break-all block font-mono">
-            {universalPostbackUrl}
-          </code>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3">
             <h4 className="font-semibold text-blue-400 mb-2">Поддерживаемые параметры:</h4>
