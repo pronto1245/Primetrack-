@@ -32,6 +32,9 @@ COPY --from=builder /app/dist/public ./dist/public
 # Copy server assets (fonts, etc.)
 COPY --from=builder /app/server/assets ./server/assets
 
+# Copy table.sql for session store
+COPY --from=builder /app/node_modules/connect-pg-simple/table.sql ./dist/table.sql
+
 # Expose port (Koyeb provides PORT env var)
 EXPOSE 5000
 
