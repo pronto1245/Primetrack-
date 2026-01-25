@@ -1,0 +1,93 @@
+vite.config.ts:3:25 - error TS2307: Cannot find module '@tailwindcss/vite' or its corresponding type declarations.
+
+3 import tailwindcss from "@tailwindcss/vite";
+                          ~~~~~~~~~~~~~~~~~~~
+
+vite.config.ts:5:33 - error TS2307: Cannot find module '@replit/vite-plugin-runtime-error-modal' or its corresponding type declarations.
+
+5 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+vite.config.ts:17:24 - error TS2307: Cannot find module '@replit/vite-plugin-cartographer' or its corresponding type declarations.
+
+17           await import("@replit/vite-plugin-cartographer").then((m) =>
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+vite.config.ts:20:24 - error TS2307: Cannot find module '@replit/vite-plugin-dev-banner' or its corresponding type declarations.
+
+20           await import("@replit/vite-plugin-dev-banner").then((m) =>
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Found 93 errors in 27 files.
+
+Errors  Files
+     1  db/index.ts:3
+     9  server/index.ts:1
+     1  server/lib/request-utils.ts:1
+    11  server/middleware/platform-api-key.ts:1
+     1  server/replit_integrations/object_storage/objectStorage.ts:2
+     5  server/replit_integrations/object_storage/routes.ts:1
+     8  server/routes.ts:1
+    22  server/routes/api-v1.ts:1
+     1  server/services/advertiser-finance-service.ts:2
+     1  server/services/aggregation-service.ts:2
+     2  server/services/antifraud-service.ts:4
+     1  server/services/click-handler.ts:3
+     1  server/services/crypto-payout-orchestrator.ts:2
+     1  server/services/domain-service.ts:5
+     1  server/services/funnel-aggregation-service.ts:2
+     1  server/services/invoice-pdf-service.ts:7
+     2  server/services/migration-service.ts:2
+     6  server/services/orchestrator.ts:2
+     1  server/services/platform-webhook-service.ts:3
+     1  server/services/postback-sender.ts:2
+     1  server/services/webhook-service.ts:3
+     1  server/staffAccessMiddleware.ts:1
+     1  server/static.ts:1
+     2  server/storage.ts:54
+     4  server/vite.ts:1
+     2  shared/schema.ts:9
+     5  vite.config.ts:2
+a1@Macbook-pro1 Primetrack- % node dist/index.cjs
+
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/Users/a1/Primetrack-/dist/index.cjs'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+    at node:internal/main/run_main_module:28:49 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v20.19.5
+a1@Macbook-pro1 Primetrack- % npx tsx server/index.ts
+
+Need to install the following packages:
+tsx@4.21.0
+Ok to proceed? (y) y
+
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@shared/schema' imported from /Users/a1/Primetrack-/server/storage.ts
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at nextResolve (node:internal/modules/esm/hooks:864:28)
+    at resolveBase (file:///Users/a1/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769330865545:2:3744)
+    at resolveDirectory (file:///Users/a1/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769330865545:2:4243)
+    at resolveTsPaths (file:///Users/a1/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769330865545:2:4984)
+    at resolve (file:///Users/a1/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769330865545:2:5361)
+    at nextResolve (node:internal/modules/esm/hooks:864:28)
+    at Hooks.resolve (node:internal/modules/esm/hooks:306:30) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.5
+a1@Macbook-pro1 Primetrack- % 
