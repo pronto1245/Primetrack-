@@ -164,6 +164,33 @@ export function PublisherPostbacks() {
             <span><code className="text-emerald-400">{"{geo}"}</code> - Страна</span>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
+            <h4 className="font-semibold text-red-400 mb-2 text-sm">Keitaro</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              Исходящий постбек в вашу систему:
+            </p>
+            <div className="font-mono text-xs text-muted-foreground break-all">
+              https://your-keitaro.com/postback?subid={"{click_id}"}&status={"{status}"}&payout={"{payout}"}
+            </div>
+            <p className="text-[10px] text-amber-400 mt-2">
+              Мы передаём click_id в параметре subid. В Keitaro он сохранится как {"{_subid}"}
+            </p>
+          </div>
+          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+            <h4 className="font-semibold text-purple-400 mb-2 text-sm">Binom</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              Исходящий постбек в вашу систему:
+            </p>
+            <div className="font-mono text-xs text-muted-foreground break-all">
+              https://your-binom.com/postback?clickid={"{click_id}"}&status={"{status}"}&payout={"{payout}"}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Мы передаём click_id в параметре clickid
+            </p>
+          </div>
+        </div>
         
         <div className="grid gap-6 md:grid-cols-2 mb-4">
           <div className="space-y-4 p-4 border border-border rounded-lg">
