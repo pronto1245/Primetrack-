@@ -235,21 +235,6 @@ export function AdvertiserPostbacks() {
           </div>
         </div>
 
-        <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded">
-          <h4 className="font-semibold text-emerald-400 mb-2">Настройка у рекламодателя:</h4>
-          <p className="text-xs text-muted-foreground mb-2">
-            Создайте <strong>два постбека</strong> в системе рекламодателя:
-          </p>
-          <div className="space-y-1 font-mono text-xs">
-            <div className="text-muted-foreground">
-              <span className="text-blue-400">Lead:</span> https://{platformDomain}/api/postback?click_id={"{click_id}"}&status=lead
-            </div>
-            <div className="text-muted-foreground">
-              <span className="text-green-400">Sale:</span> https://{platformDomain}/api/postback?click_id={"{click_id}"}&status=sale&payout={"{payout}"}
-            </div>
-          </div>
-        </div>
-
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
             <h4 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
