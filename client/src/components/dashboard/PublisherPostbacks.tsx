@@ -165,14 +165,21 @@ export function PublisherPostbacks() {
           </div>
         </div>
 
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded mb-4">
-          <h4 className="font-semibold text-red-400 mb-2 text-sm">Keitaro</h4>
-          <div className="font-mono text-xs text-emerald-400 break-all bg-muted p-2 rounded">
-            {window.location.origin}/api/postback?click_id={"{_subid}"}&status={"{status}"}&payout={"{payout}"}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
+            <h4 className="font-semibold text-red-400 mb-1 text-sm">Keitaro</h4>
+            <div className="font-mono text-[11px] text-emerald-400 break-all">
+              {window.location.origin}/api/postback?click_id={"{_subid}"}&status={"{status}"}&payout={"{payout}"}
+            </div>
+            <p className="text-[10px] text-amber-400 mt-1">{"{_subid}"} — входящий параметр</p>
           </div>
-          <p className="text-[10px] text-amber-400 mt-2">
-            {"{_subid}"} с подчёркиванием — входящий параметр subid
-          </p>
+          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+            <h4 className="font-semibold text-purple-400 mb-1 text-sm">Binom</h4>
+            <div className="font-mono text-[11px] text-emerald-400 break-all">
+              {window.location.origin}/api/postback?click_id={"{clickid}"}&status={"{status}"}&payout={"{payout}"}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">{"{clickid}"} — стандартный макрос</p>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 mb-4">
