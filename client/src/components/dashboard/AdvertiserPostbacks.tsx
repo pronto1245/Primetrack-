@@ -282,20 +282,6 @@ export function AdvertiserPostbacks() {
           </div>
         </div>
 
-        <div className="bg-blue-500/10 border-blue-500/20 p-3 rounded mb-4">
-          <h4 className="text-xs font-semibold text-foreground mb-2">Доступные макросы:</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground font-mono">
-            <span><code className="text-blue-400">{"{click_id}"}</code> - ID клика</span>
-            <span><code className="text-blue-400">{"{status}"}</code> - Статус</span>
-            <span><code className="text-blue-400">{"{payout}"}</code> - Выплата</span>
-            <span><code className="text-blue-400">{"{sum}"}</code> - Сумма</span>
-            <span><code className="text-blue-400">{"{offer_id}"}</code> - ID оффера</span>
-            <span><code className="text-blue-400">{"{publisher_id}"}</code> - ID партнёра</span>
-            <span><code className="text-blue-400">{"{sub1}"}</code> - Sub1</span>
-            <span><code className="text-blue-400">{"{geo}"}</code> - Страна</span>
-          </div>
-        </div>
-        
         <div className="grid gap-6 md:grid-cols-2 mb-4">
           <div className="space-y-4 p-4 border border-border rounded-lg">
             <div className="flex items-center gap-2 mb-2">
