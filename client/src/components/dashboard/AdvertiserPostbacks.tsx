@@ -249,6 +249,41 @@ export function AdvertiserPostbacks() {
             </div>
           </div>
         </div>
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
+            <h4 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
+              <span>Keitaro</span>
+            </h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              В настройках оффера/потока укажите постбек:
+            </p>
+            <div className="space-y-1 font-mono text-xs">
+              <div className="text-muted-foreground break-all">
+                https://{platformDomain}/api/postback?click_id={"{_subid}"}&status={"{status}"}&payout={"{payout}"}
+              </div>
+            </div>
+            <p className="text-[10px] text-amber-400 mt-2">
+              Важно: используйте <code className="bg-muted px-1 rounded">{"{_subid}"}</code> (с подчёркиванием) — это входящий GET-параметр, а не внутренний ID Keitaro
+            </p>
+          </div>
+          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+            <h4 className="font-semibold text-purple-400 mb-2 flex items-center gap-2">
+              <span>Binom</span>
+            </h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              В настройках оффера укажите постбек:
+            </p>
+            <div className="space-y-1 font-mono text-xs">
+              <div className="text-muted-foreground break-all">
+                https://{platformDomain}/api/postback?click_id={"{clickid}"}&status={"{status}"}&payout={"{payout}"}
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              <code className="bg-muted px-1 rounded">{"{clickid}"}</code> — стандартный макрос Binom для ID клика
+            </p>
+          </div>
+        </div>
       </Card>
 
       <Card className="bg-card border-border p-6">
