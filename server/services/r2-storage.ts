@@ -52,7 +52,7 @@ export async function uploadToR2(
   return `/${key}`;
 }
 
-export async function getR2UploadUrl(): Promise<{ uploadUrl: string; publicUrl: string }> {
+export async function getR2UploadUrl(contentType?: string): Promise<{ uploadUrl: string; publicUrl: string }> {
   const client = getS3Client();
   const objectId = randomUUID();
   const key = `uploads/${objectId}`;
@@ -60,9 +60,13 @@ export async function getR2UploadUrl(): Promise<{ uploadUrl: string; publicUrl: 
   const command = new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
+    ContentType: contentType || "application/octet-stream",
   });
 
-  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 900 });
+  const uploadUrl = await getSignedUrl(client, command, { 
+    expiresIn: 900,
+    signableHeaders: new Set(["content-type"]),
+  });
   const publicUrl = R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${key}` : `/${key}`;
 
   return { uploadUrl, publicUrl };

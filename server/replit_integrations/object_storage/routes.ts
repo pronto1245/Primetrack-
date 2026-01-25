@@ -17,7 +17,7 @@ export function registerObjectStorageRoutes(app: Express): void {
 
       // Use R2 if configured (Koyeb), otherwise Replit Object Storage
       if (isR2Configured()) {
-        const { uploadUrl, publicUrl } = await getR2UploadUrl();
+        const { uploadUrl, publicUrl } = await getR2UploadUrl(contentType);
         return res.json({
           uploadURL: uploadUrl,
           objectPath: publicUrl,
