@@ -26,6 +26,9 @@ RUN npm ci --only=production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
+# Copy public folder (static assets)
+COPY --from=builder /app/dist/public ./dist/public
+
 # Copy server assets (fonts, etc.)
 COPY --from=builder /app/server/assets ./server/assets
 
