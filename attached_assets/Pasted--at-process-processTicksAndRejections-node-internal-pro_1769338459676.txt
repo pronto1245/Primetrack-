@@ -1,0 +1,97 @@
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async vb.createUser (/workspace/dist/index.cjs:70:35279)
+    at async wZ (/workspace/dist/index.cjs:256:63135)
+    at async jM (/workspace/dist/index.cjs:256:68063)
+    at async /workspace/dist/index.cjs:312:649 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '16',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'regproc.c',
+  line: '911',
+  routine: 'regclassin'
+}
+Node.js v22.15.1
+Application exited with code 1. This usually indicates an application failure. Check that the command used to launch your application is correct.
+Instance stopped.
+Instance created. Preparing to start...
+Starting download for registry01.prod.koyeb.com/k-a60c3e56-c645-4ea8-87e6-40f66296b944/d3d4e4f6-a9a8-4c98-91c4-db5091622651:fb19ec33-cdb8-40d0-b5a8-cc4374a8ea5b
+Download progress:  37% |++------| (69.6 MiB/s)
+Download progress:  37% |++------| (15.0 MiB/s)
+Download complete for registry01.prod.koyeb.com/k-a60c3e56-c645-4ea8-87e6-40f66296b944/d3d4e4f6-a9a8-4c98-91c4-db5091622651:fb19ec33-cdb8-40d0-b5a8-cc4374a8ea5b
+Instance is starting... Waiting for health checks to pass.
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.cjs
+[session] Using PostgreSQL session store
+[session] Cookie config: secure=true, sameSite=none, isReplit=false
+[SETUP] Created admin user. Use /api/reset-admin-password with SETUP_KEY to set password.
+[shortId] Initializing short ID sequences and backfilling data...
+[shortId] Short ID initialization complete
+[seed] Creating default subscription plans...
+[seed] Created 3 subscription plans
+10:38:27 AM [express] serving on port 5000
+[HoldReleaseJob] Starting with interval 300000ms
+[CapsResetService] Checking daily reset for 2026-01-25
+[CapsResetService] Started, checking every minute
+10:38:27 AM [crypto] Crypto payout service ready (per-advertiser keys)
+[CapsResetService] New month detected: 2026-01
+10:38:27 AM [aggregation] Daily stats aggregation completed: 0 rows
+Instance is healthy. All health checks are passing.
+[CustomDomain] Error resolving domain: error: relation "custom_domains" does not exist
+    at /workspace/dist/index.cjs:70:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /workspace/dist/index.cjs:70:28669
+    at async vb.getCustomDomainByDomain (/workspace/dist/index.cjs:150:1978)
+    at async /workspace/dist/index.cjs:256:67641 {
+  length: 114,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '514',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+[HoldReleaseJob] Error processing held conversions: error: relation "conversions" does not exist
+    at /workspace/dist/index.cjs:70:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /workspace/dist/index.cjs:70:28669
+    at async vb.processHoldConversions (/workspace/dist/index.cjs:144:21203)
+    at async cx.run (/workspace/dist/index.cjs:277:64870) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
