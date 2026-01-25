@@ -237,7 +237,11 @@ async function setupAuth(app: Express) {
   // In local development (no Replit), use non-secure cookies
   const useSecureCookies = isProduction || isReplit;
   
-  console.log(`[session] Cookie config: secure=${useSecureCookies}, sameSite=${useSecureCookies ? "none" : "lax"}, isReplit=${isReplit}`);
+  // For Replit we need sameSite=none for iframe/cross-origin
+  // For external deployments (Koyeb, etc) use sameSite=lax for better compatibility
+  const sameSiteValue = isReplit ? "none" as const : "lax" as const;
+  
+  console.log(`[session] Cookie config: secure=${useSecureCookies}, sameSite=${sameSiteValue}, isReplit=${isReplit}`);
   
   app.use(
     session({
@@ -251,7 +255,7 @@ async function setupAuth(app: Express) {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: useSecureCookies,
-        sameSite: useSecureCookies ? "none" as const : "lax" as const,
+        sameSite: sameSiteValue,
         path: "/",
       },
     })
@@ -623,7 +627,7 @@ export async function registerRoutes(
         path: "/",
         httpOnly: true,
         secure: useSecureCookies,
-        sameSite: useSecureCookies ? "none" as const : "lax" as const,
+        sameSite: isReplit ? "none" as const : "lax" as const,
       });
       res.json({ message: "Logged out" });
     });
