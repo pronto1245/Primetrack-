@@ -2327,6 +2327,9 @@ export async function registerRoutes(
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
+      // LOG ALL QUERY PARAMS to see what Keitaro sends
+      console.log(`[CLICK PARAMS] All query params:`, JSON.stringify(req.query));
+      
       // Universal click_id detection - supports all tracker formats
       const effectiveSub1 = (
         sub1 || 
