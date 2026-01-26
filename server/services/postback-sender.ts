@@ -358,7 +358,12 @@ export class PostbackSender {
     
     // Add parameters
     // ВАЖНО: для Keitaro и других трекеров нужен click_id партнёра (sub1), а не внутренний
-    url.searchParams.set(clickIdParam, click.sub1 || click.clickId);
+    if (click.sub1) {
+      url.searchParams.set(clickIdParam, click.sub1);
+    } else {
+      url.searchParams.set(clickIdParam, click.clickId);
+      console.warn(`[PostbackSender] Fallback to internal clickId, sub1 empty. click=${click.id}`);
+    }
     url.searchParams.set(statusParam, mappedStatus);
     url.searchParams.set(payoutParam, conversion.publisherPayout);
     
