@@ -165,20 +165,41 @@ export function PublisherPostbacks() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
-            <h4 className="font-semibold text-red-400 mb-1 text-sm">Keitaro</h4>
-            <div className="font-mono text-[11px] text-emerald-400 break-all">
-              {window.location.origin}/api/postback?click_id={"{_subid}"}&status={"{status}"}&payout={"{payout}"}
+        <div className="space-y-3 mb-4">
+          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded">
+            <h4 className="font-semibold text-blue-400 mb-2 text-sm">Настройка трекера (шаг 1)</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              При создании оффера в вашем трекере добавьте параметр с вашим click_id:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-red-400 font-semibold">Keitaro:</span>
+                <code className="ml-2 text-muted-foreground">subid={"{subid}"}</code>
+              </div>
+              <div>
+                <span className="text-purple-400 font-semibold">Binom:</span>
+                <code className="ml-2 text-muted-foreground">subid={"{clickid}"}</code>
+              </div>
             </div>
-            <p className="text-[10px] text-amber-400 mt-1">{"{_subid}"} — входящий параметр</p>
           </div>
-          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
-            <h4 className="font-semibold text-purple-400 mb-1 text-sm">Binom</h4>
-            <div className="font-mono text-[11px] text-emerald-400 break-all">
-              {window.location.origin}/api/postback?click_id={"{clickid}"}&status={"{status}"}&payout={"{payout}"}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
+              <h4 className="font-semibold text-red-400 mb-1 text-sm">Постбек для Keitaro (шаг 2)</h4>
+              <p className="text-[10px] text-muted-foreground mb-1">Укажите ниже в поле Lead/Sale:</p>
+              <div className="font-mono text-[11px] text-emerald-400 break-all">
+                http://ваш-keitaro/postback?subid={"{sub1}"}&status={"{status}"}&payout={"{payout}"}
+              </div>
+              <p className="text-[10px] text-amber-400 mt-1">{"{sub1}"} — ваш оригинальный subid из Keitaro</p>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{"{clickid}"} — стандартный макрос</p>
+            <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+              <h4 className="font-semibold text-purple-400 mb-1 text-sm">Постбек для Binom (шаг 2)</h4>
+              <p className="text-[10px] text-muted-foreground mb-1">Укажите ниже в поле Lead/Sale:</p>
+              <div className="font-mono text-[11px] text-emerald-400 break-all">
+                http://ваш-binom/postback?clickid={"{sub1}"}&status={"{status}"}&payout={"{payout}"}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">{"{sub1}"} — ваш оригинальный clickid из Binom</p>
+            </div>
           </div>
         </div>
 
@@ -196,7 +217,7 @@ export function PublisherPostbacks() {
             <div>
               <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
               <Input
-                placeholder="https://your-tracker.com/postback?subid={click_id}&status=lead"
+                placeholder="https://your-tracker.com/postback?subid={sub1}&status=lead"
                 value={leadUrl}
                 onChange={(e) => setLeadUrl(e.target.value)}
                 className="bg-muted border-border text-foreground font-mono text-sm"
@@ -230,7 +251,7 @@ export function PublisherPostbacks() {
             <div>
               <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
               <Input
-                placeholder="https://your-tracker.com/postback?subid={click_id}&status=sale"
+                placeholder="https://your-tracker.com/postback?subid={sub1}&status=sale"
                 value={saleUrl}
                 onChange={(e) => setSaleUrl(e.target.value)}
                 className="bg-muted border-border text-foreground font-mono text-sm"
