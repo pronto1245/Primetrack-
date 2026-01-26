@@ -119,6 +119,35 @@ function sanitizeLandingUrl(url: string): string {
 }
 
 // ============================================
+// HELPER: Extract partner click_id from request
+// Uses landing.storeClickIdIn config, fallback to sub1-sub10 list
+// ============================================
+function extractPartnerClickId(query: any, storeClickIdIn?: string): string | undefined {
+  // 1. If storeClickIdIn is configured, use that parameter
+  if (storeClickIdIn && query[storeClickIdIn]) {
+    return query[storeClickIdIn] as string;
+  }
+  
+  // 2. Fallback: check common tracker parameters
+  // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
+  const fallbackParams = [
+    'sub1', 'subid', 'sub_id',
+    'aff_click_id', 'clickid', 'click_id',
+    'aff_sub', 'cnv_id', 'ref_id', 'c',
+    'external_id', 'externalid',
+    'tid', 'cid', 'uid'
+  ];
+  
+  for (const param of fallbackParams) {
+    if (query[param]) {
+      return query[param] as string;
+    }
+  }
+  
+  return undefined;
+}
+
+// ============================================
 // HELPER: Resolve ID (UUID vs shortId)
 // Detects if the ID is a UUID (contains "-" or length > 10) or shortId (numeric)
 // Returns the actual UUID from database
