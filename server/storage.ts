@@ -2518,8 +2518,14 @@ export class DatabaseStorage implements IStorage {
         approvedLandings: approvedLandings ?? null
       }).returning();
       return created;
-    } else if (status === "revoked" || status === "rejected") {
-      // Remove access
+    } else if (status === "revoked") {
+      // Revoke: обновляем ВСЕ approved access requests и удаляем publisher_offers
+      await this.revokeAllAccessRequests(offerId, publisherId);
+      await db.delete(publisherOffers)
+        .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)));
+      return null;
+    } else if (status === "rejected") {
+      // Reject: только удаляем publisher_offers (не трогаем access requests)
       await db.delete(publisherOffers)
         .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)));
       return null;
