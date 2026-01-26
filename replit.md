@@ -47,6 +47,56 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Messaging:** Telegram
 - **Crypto Exchanges:** Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX.
 
+## Click ID Architecture (Архитектура click_id)
+
+### Два типа click_id в системе:
+1. **Внутренний clickId (UUID)** - генерируется PrimeTrack, отправляется рекламодателю
+2. **Партнёрский click_id (sub1)** - приходит от трекера партнёра, возвращается в постбеке партнёру
+
+### Поля в схеме offer_landings:
+- **clickIdParam** - параметр для отправки внутреннего clickId рекламодателю (default: "click_id")
+- **storeClickIdIn** - из какого параметра читать click_id партнёра (default: "sub1")
+
+### Helper-функция extractPartnerClickId():
+Извлекает партнёрский click_id из входящего запроса. Приоритет:
+1. Параметр указанный в storeClickIdIn
+2. Fallback: sub1, subid, aff_click_id, clickid, click_id, и др.
+
+### Полная цепочка:
+```
+1. Партнёр (Keitaro) → PrimeTrack
+   URL: /click/ABC/XYZ?partner_id=PUB&subid=keitaro123
+   → PrimeTrack сохраняет: clickId=UUID, sub1=keitaro123
+
+2. PrimeTrack → Рекламодатель (302 redirect)
+   URL: advertiser.com/landing?click_id=UUID
+
+3. Рекламодатель → PrimeTrack (постбек)
+   URL: /api/postback?click_id=UUID&status=lead
+   → Поиск по clickId или sub1
+
+4. PrimeTrack → Партнёр (постбек)
+   URL: keitaro/postback?subid=keitaro123&status=lead
+   → Используется макрос {sub1}
+```
+
+### Настройка Keitaro (партнёр):
+1. Создать сеть "PrimeTrack"
+2. Параметры для оффера: `subid={subid}`
+3. Постбек: настраивается в PrimeTrack с макросом `{sub1}`
+
+### Постбек рекламодателя → PrimeTrack:
+```
+/api/postback?click_id={click_id}&status=lead
+```
+Где {click_id} - макрос из системы рекламодателя (параметр который он получил)
+
+### Постбек PrimeTrack → Партнёр:
+```
+http://tracker/postback?subid={sub1}&status={status}&payout={payout}
+```
+Где {sub1} - оригинальный click_id партнёра
+
 ## TODO (Запланированные функции)
 
 ### Индивидуальные ставки для партнёров
