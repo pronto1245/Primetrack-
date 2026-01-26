@@ -491,11 +491,22 @@ export async function registerRoutes(
           return res.status(401).json({ message: "Invalid credentials" });
         }
 
+        // Блокировать вход для заблокированных пользователей
+        if (user.status === "blocked") {
+          return res.status(403).json({ message: "Ваш аккаунт заблокирован. Обратитесь к администратору." });
+        }
+
         // Блокировать вход для партнёров без активного рекламодателя
         if (user.role === "publisher") {
           const advertisers = await storage.getAdvertisersForPublisher(user.id);
-          const hasActiveAdvertiser = advertisers.some(a => a.status === "active");
-          if (!hasActiveAdvertiser) {
+          // Проверяем только активные связи (не blocked/paused)
+          const activeRelations = advertisers.filter(a => a.status === "active");
+          if (activeRelations.length === 0) {
+            // Проверяем есть ли заблокированные связи
+            const hasBlockedRelation = advertisers.some(a => a.status === "blocked");
+            if (hasBlockedRelation) {
+              return res.status(403).json({ message: "Ваш аккаунт заблокирован рекламодателем." });
+            }
             return res.status(403).json({ message: "Ваша заявка на рассмотрении. Ожидайте одобрения рекламодателем." });
           }
         }
@@ -594,6 +605,26 @@ export async function registerRoutes(
         return res.status(401).json({ message: "User not found" });
       }
 
+      // Повторная проверка блокировки после 2FA
+      if (user.status === "blocked") {
+        delete req.session.pending2FAUserId;
+        return res.status(403).json({ message: "Ваш аккаунт заблокирован. Обратитесь к администратору." });
+      }
+
+      // Повторная проверка для партнёров
+      if (user.role === "publisher") {
+        const advertisers = await storage.getAdvertisersForPublisher(user.id);
+        const activeRelations = advertisers.filter(a => a.status === "active");
+        if (activeRelations.length === 0) {
+          delete req.session.pending2FAUserId;
+          const hasBlockedRelation = advertisers.some(a => a.status === "blocked");
+          if (hasBlockedRelation) {
+            return res.status(403).json({ message: "Ваш аккаунт заблокирован рекламодателем." });
+          }
+          return res.status(403).json({ message: "Ваша заявка на рассмотрении. Ожидайте одобрения рекламодателем." });
+        }
+      }
+
       // Set session after 2FA verification
       delete req.session.pending2FAUserId;
       req.session.userId = user.id;
@@ -658,6 +689,26 @@ export async function registerRoutes(
     const user = await storage.getUser(req.session.userId);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
+    }
+
+    // Проверка блокировки при восстановлении сессии
+    if (user.status === "blocked") {
+      req.session.destroy(() => {});
+      return res.status(403).json({ message: "Ваш аккаунт заблокирован" });
+    }
+
+    // Проверка для партнёров - заблокированные связи
+    if (user.role === "publisher") {
+      const advertisers = await storage.getAdvertisersForPublisher(user.id);
+      const activeRelations = advertisers.filter(a => a.status === "active");
+      if (activeRelations.length === 0) {
+        req.session.destroy(() => {});
+        const hasBlockedRelation = advertisers.some(a => a.status === "blocked");
+        if (hasBlockedRelation) {
+          return res.status(403).json({ message: "Ваш аккаунт заблокирован рекламодателем" });
+        }
+        return res.status(403).json({ message: "Нет активных рекламодателей" });
+      }
     }
 
     res.json({
@@ -3783,7 +3834,8 @@ export async function registerRoutes(
         res.json({ message: "Access request approved" });
       } else if (action === "revoke") {
         await storage.deletePublisherOffer(request.offerId, request.publisherId);
-        await storage.updateOfferAccessRequest(requestId, { status: "revoked" });
+        // Отзываем ВСЕ access requests от этого партнёра на этот оффер
+        await storage.revokeAllAccessRequests(request.offerId, request.publisherId);
         
         res.json({ message: "Access revoked" });
       } else {

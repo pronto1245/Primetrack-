@@ -344,6 +344,7 @@ export interface IStorage {
   getAccessRequestsByPublisher(publisherId: string): Promise<OfferAccessRequest[]>;
   createOfferAccessRequest(request: InsertOfferAccessRequest): Promise<OfferAccessRequest>;
   updateOfferAccessRequest(id: string, data: Partial<InsertOfferAccessRequest>): Promise<OfferAccessRequest | undefined>;
+  revokeAllAccessRequests(offerId: string, publisherId: string): Promise<void>;
   
   // Publisher Offers (Approved Access)
   getPublisherOffer(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
@@ -1216,6 +1217,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(offerAccessRequests.id, id))
       .returning();
     return result;
+  }
+
+  async revokeAllAccessRequests(offerId: string, publisherId: string): Promise<void> {
+    await db.update(offerAccessRequests)
+      .set({ status: "revoked", updatedAt: new Date() })
+      .where(and(
+        eq(offerAccessRequests.offerId, offerId),
+        eq(offerAccessRequests.publisherId, publisherId),
+        eq(offerAccessRequests.status, "approved")
+      ));
   }
 
   // Publisher Offers (Approved Access)
