@@ -2226,18 +2226,7 @@ export async function registerRoutes(
   app.get("/t/s/:shortCode", async (req: Request, res: Response) => {
     try {
       const { shortCode } = req.params;
-      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
-      
-      // Universal click_id detection - supports all tracker formats
-      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
-      const effectiveSub1 = (
-        sub1 || 
-        req.query.subid || req.query.sub_id ||
-        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
-        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
-        req.query.external_id || req.query.externalid ||
-        req.query.tid || req.query.cid || req.query.uid
-      ) as string;
+      const { sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       // Get split test by short code
       const splitTest = await storage.getSplitTestByShortCode(shortCode);
@@ -2272,16 +2261,21 @@ export async function registerRoutes(
 
       // Determine landing ID - use item's landingId or first available landing
       let landingId = selectedItem.landingId;
-      if (!landingId) {
+      let landing = landingId ? await storage.getOfferLanding(landingId) : null;
+      if (!landing) {
         const landings = await storage.getOfferLandings(offer.id);
         if (landings.length > 0) {
-          landingId = landings[0].id;
+          landing = landings[0];
+          landingId = landing.id;
         }
       }
 
-      if (!landingId) {
+      if (!landingId || !landing) {
         return res.status(404).json({ error: "No active landing for selected offer" });
       }
+
+      // Extract partner click_id using landing config
+      const effectiveSub1 = extractPartnerClickId(req.query, landing.storeClickIdIn);
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
@@ -2358,17 +2352,6 @@ export async function registerRoutes(
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      // Universal click_id detection - supports all tracker formats
-      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
-      const effectiveSub1 = (
-        sub1 || 
-        req.query.subid || req.query.sub_id ||
-        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
-        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
-        req.query.external_id || req.query.externalid ||
-        req.query.tid || req.query.cid || req.query.uid
-      ) as string;
-
       if (!rawPartnerId) {
         return res.status(400).json({ 
           error: "Missing required parameter: partner_id" 
@@ -2392,6 +2375,10 @@ export async function registerRoutes(
       if (!partnerId) {
         return res.status(404).json({ error: "Partner not found" });
       }
+
+      // Get landing for storeClickIdIn config
+      const landing = await storage.getOfferLanding(landingId);
+      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
@@ -2471,18 +2458,7 @@ export async function registerRoutes(
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
-      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
-      
-      // Universal click_id detection - supports all tracker formats
-      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
-      const effectiveSub1 = (
-        sub1 || 
-        req.query.subid || req.query.sub_id ||
-        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
-        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
-        req.query.external_id || req.query.externalid ||
-        req.query.tid || req.query.cid || req.query.uid
-      ) as string;
+      const { sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       if (!rawPartnerId) {
         return res.status(400).json({ 
@@ -2510,6 +2486,10 @@ export async function registerRoutes(
       if (!offer || offer.advertiserId !== req.customDomain.advertiserId) {
         return res.status(404).json({ error: "Offer not found for this domain" });
       }
+
+      // Get landing for storeClickIdIn config
+      const landing = await storage.getOfferLanding(landingId);
+      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
@@ -2589,18 +2569,7 @@ export async function registerRoutes(
       const rawOfferId = (req.query.offer_id || req.query.o) as string;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
       const rawLandingId = req.query.link_id as string;
-      const { geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
-      
-      // Universal click_id detection - supports all tracker formats
-      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
-      const effectiveSub1 = (
-        sub1 || 
-        req.query.subid || req.query.sub_id ||
-        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
-        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
-        req.query.external_id || req.query.externalid ||
-        req.query.tid || req.query.cid || req.query.uid
-      ) as string;
+      const { geo, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       if (!rawOfferId || !rawPartnerId) {
         return res.status(400).json({ 
@@ -2622,13 +2591,18 @@ export async function registerRoutes(
       
       // Resolve landing ID if provided - return 404 if specified but not found
       let landingId: string | undefined;
+      let landing: any = null;
       if (rawLandingId) {
         const resolvedLandingId = await resolveLandingId(rawLandingId);
         if (!resolvedLandingId) {
           return res.status(404).json({ error: "Landing not found" });
         }
         landingId = resolvedLandingId;
+        landing = await storage.getOfferLanding(landingId);
       }
+
+      // Extract partner click_id using landing config (if available)
+      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
