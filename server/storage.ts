@@ -2553,7 +2553,6 @@ export class DatabaseStorage implements IStorage {
             offerId,
             publisherId,
             status: "revoked",
-            requestedLandings: [],
           });
           console.log(`[updatePublisherOfferAccess] Created revoked access request for legacy access`);
         } else if (existingRequest.status !== "revoked") {
