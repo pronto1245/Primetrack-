@@ -1370,7 +1370,13 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
     
-    // Check publisher_offers first
+    // CRITICAL: Check if access was explicitly revoked - this blocks ALL access
+    const accessRequest = await this.getOfferAccessRequest(offerId, publisherId);
+    if (accessRequest?.status === "revoked") {
+      return false;
+    }
+    
+    // Check publisher_offers
     const access = await this.getPublisherOffer(offerId, publisherId);
     if (access) {
       return true;
@@ -1378,15 +1384,7 @@ export class DatabaseStorage implements IStorage {
     
     // Fallback: check if there's an approved access request without publisher_offers record
     // This handles legacy data where approval happened before publisher_offers was created
-    const [approvedRequest] = await db.select()
-      .from(offerAccessRequests)
-      .where(and(
-        eq(offerAccessRequests.offerId, offerId),
-        eq(offerAccessRequests.publisherId, publisherId),
-        eq(offerAccessRequests.status, "approved")
-      ));
-    
-    if (approvedRequest) {
+    if (accessRequest?.status === "approved") {
       // Auto-create missing publisher_offers record with all landings
       const offerLandings = await this.getOfferLandings(offerId);
       const allLandingIds = offerLandings.map(l => l.id);
@@ -1405,6 +1403,17 @@ export class DatabaseStorage implements IStorage {
   async getPublisherAccessMap(offerIds: string[], publisherId: string): Promise<Set<string>> {
     if (offerIds.length === 0) return new Set();
     
+    // Get all revoked access requests for this publisher
+    const revokedRequests = await db.select({ offerId: offerAccessRequests.offerId })
+      .from(offerAccessRequests)
+      .where(and(
+        inArray(offerAccessRequests.offerId, offerIds),
+        eq(offerAccessRequests.publisherId, publisherId),
+        eq(offerAccessRequests.status, "revoked")
+      ));
+    const revokedOfferIds = new Set(revokedRequests.map(r => r.offerId));
+    
+    // Get publisher_offers access
     const accessList = await db.select({ offerId: publisherOffers.offerId })
       .from(publisherOffers)
       .where(and(
@@ -1412,7 +1421,14 @@ export class DatabaseStorage implements IStorage {
         eq(publisherOffers.publisherId, publisherId)
       ));
     
-    return new Set(accessList.map(a => a.offerId));
+    // Filter out revoked offers
+    const result = new Set<string>();
+    for (const a of accessList) {
+      if (!revokedOfferIds.has(a.offerId)) {
+        result.add(a.offerId);
+      }
+    }
+    return result;
   }
 
   // Publisher-Advertiser relationships
@@ -2527,6 +2543,28 @@ export class DatabaseStorage implements IStorage {
       const deleted = await db.delete(publisherOffers)
         .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)))
         .returning();
+      
+      // Если не было записей - создаём revoked access request для legacy доступа
+      if (revokedCount === 0) {
+        const existingRequest = await this.getOfferAccessRequest(offerId, publisherId);
+        if (!existingRequest) {
+          // Создаём новую запись с revoked статусом
+          await db.insert(offerAccessRequests).values({
+            offerId,
+            publisherId,
+            status: "revoked",
+            requestedLandings: [],
+          });
+          console.log(`[updatePublisherOfferAccess] Created revoked access request for legacy access`);
+        } else if (existingRequest.status !== "revoked") {
+          // Обновляем существующую запись на revoked
+          await db.update(offerAccessRequests)
+            .set({ status: "revoked", updatedAt: new Date() })
+            .where(eq(offerAccessRequests.id, existingRequest.id));
+          console.log(`[updatePublisherOfferAccess] Updated existing request to revoked`);
+        }
+      }
+      
       console.log(`[updatePublisherOfferAccess] REVOKE: offerId=${offerId}, publisherId=${publisherId}, revokedRequests=${revokedCount}, deletedOffers=${deleted.length}`);
       return null;
     } else if (status === "rejected") {

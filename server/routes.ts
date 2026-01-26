@@ -4048,15 +4048,24 @@ export async function registerRoutes(
         const stats = await storage.getPublisherOfferStats(publisherId, offer.id);
         const landings = await storage.getOfferLandings(offer.id);
         
+        // Check access request status
+        const accessRequest = await storage.getOfferAccessRequest(offer.id, publisherId);
+        
         // Determine access status:
-        // 1. If has explicit access record -> approved
-        // 2. If has clicks/conversions -> has access (legacy/auto)
-        // 3. Otherwise -> not_requested
+        // 1. If explicitly revoked -> revoked (партнёр НЕ видит ссылки)
+        // 2. If has explicit access record (publisher_offers) -> approved
+        // 3. If has approved access_request -> approved
+        // 4. If has pending access_request -> pending
+        // 5. Otherwise -> not_requested
         let accessStatus = "not_requested";
-        if (access) {
+        if (accessRequest?.status === "revoked") {
+          accessStatus = "revoked";
+        } else if (access) {
           accessStatus = "approved";
-        } else if (stats.clicks > 0 || stats.conversions > 0) {
+        } else if (accessRequest?.status === "approved") {
           accessStatus = "approved";
+        } else if (accessRequest?.status === "pending") {
+          accessStatus = "pending";
         }
         
         // Get payout from offer or first landing
