@@ -4096,8 +4096,21 @@ export async function registerRoutes(
       if (!advertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const { publisherId, offerId } = req.params;
+      const { publisherId: rawPublisherId, offerId: rawOfferId } = req.params;
       const { status, approvedLandings } = req.body;
+      
+      // Resolve IDs (support both UUID and shortId)
+      const offerId = await resolveOfferId(rawOfferId);
+      const publisherId = await resolvePublisherId(rawPublisherId);
+      
+      if (!offerId) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      if (!publisherId) {
+        return res.status(404).json({ message: "Publisher not found" });
+      }
+      
+      console.log(`[partners/offers] Updating access: publisher=${publisherId}, offer=${offerId}, status=${status}`);
       
       if (!["approved", "rejected", "revoked"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });

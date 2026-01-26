@@ -344,7 +344,7 @@ export interface IStorage {
   getAccessRequestsByPublisher(publisherId: string): Promise<OfferAccessRequest[]>;
   createOfferAccessRequest(request: InsertOfferAccessRequest): Promise<OfferAccessRequest>;
   updateOfferAccessRequest(id: string, data: Partial<InsertOfferAccessRequest>): Promise<OfferAccessRequest | undefined>;
-  revokeAllAccessRequests(offerId: string, publisherId: string): Promise<void>;
+  revokeAllAccessRequests(offerId: string, publisherId: string): Promise<number>;
   
   // Publisher Offers (Approved Access)
   getPublisherOffer(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
@@ -1219,14 +1219,17 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async revokeAllAccessRequests(offerId: string, publisherId: string): Promise<void> {
-    await db.update(offerAccessRequests)
+  async revokeAllAccessRequests(offerId: string, publisherId: string): Promise<number> {
+    const result = await db.update(offerAccessRequests)
       .set({ status: "revoked", updatedAt: new Date() })
       .where(and(
         eq(offerAccessRequests.offerId, offerId),
         eq(offerAccessRequests.publisherId, publisherId),
         eq(offerAccessRequests.status, "approved")
-      ));
+      ))
+      .returning();
+    console.log(`[revokeAllAccessRequests] offerId=${offerId}, publisherId=${publisherId}, updated=${result.length} rows`);
+    return result.length;
   }
 
   // Publisher Offers (Approved Access)
@@ -2520,9 +2523,11 @@ export class DatabaseStorage implements IStorage {
       return created;
     } else if (status === "revoked") {
       // Revoke: обновляем ВСЕ approved access requests и удаляем publisher_offers
-      await this.revokeAllAccessRequests(offerId, publisherId);
-      await db.delete(publisherOffers)
-        .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)));
+      const revokedCount = await this.revokeAllAccessRequests(offerId, publisherId);
+      const deleted = await db.delete(publisherOffers)
+        .where(and(eq(publisherOffers.publisherId, publisherId), eq(publisherOffers.offerId, offerId)))
+        .returning();
+      console.log(`[updatePublisherOfferAccess] REVOKE: offerId=${offerId}, publisherId=${publisherId}, revokedRequests=${revokedCount}, deletedOffers=${deleted.length}`);
       return null;
     } else if (status === "rejected") {
       // Reject: только удаляем publisher_offers (не трогаем access requests)
