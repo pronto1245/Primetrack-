@@ -2197,7 +2197,10 @@ export async function registerRoutes(
   app.get("/t/s/:shortCode", async (req: Request, res: Response) => {
     try {
       const { shortCode } = req.params;
-      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      
+      // Map subid to sub1 for Keitaro/Binom/Voluum compatibility (like Scaleo does)
+      const effectiveSub1 = (sub1 || subid) as string;
 
       // Get split test by short code
       const splitTest = await storage.getSplitTestByShortCode(shortCode);
@@ -2269,7 +2272,7 @@ export async function registerRoutes(
         offerId: offer.id,
         landingId,
         partnerId: splitTest.publisherId,
-        sub1: sub1 as string,
+        sub1: effectiveSub1,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
@@ -2316,7 +2319,10 @@ export async function registerRoutes(
   app.get("/click/:offerId/:landingId", async (req: Request, res: Response) => {
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
-      const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { partner_id: rawPartnerId, subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      
+      // Map subid to sub1 for Keitaro/Binom/Voluum compatibility (like Scaleo does)
+      const effectiveSub1 = (sub1 || subid) as string;
 
       if (!rawPartnerId) {
         return res.status(400).json({ 
@@ -2367,7 +2373,7 @@ export async function registerRoutes(
         offerId,
         landingId,
         partnerId,
-        sub1: sub1 as string,
+        sub1: effectiveSub1,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
@@ -2420,7 +2426,10 @@ export async function registerRoutes(
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
-      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      
+      // Map subid to sub1 for Keitaro/Binom/Voluum compatibility (like Scaleo does)
+      const effectiveSub1 = (sub1 || subid) as string;
 
       if (!rawPartnerId) {
         return res.status(400).json({ 
@@ -2475,7 +2484,7 @@ export async function registerRoutes(
         offerId,
         landingId,
         partnerId,
-        sub1: sub1 as string,
+        sub1: effectiveSub1,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
@@ -2527,7 +2536,10 @@ export async function registerRoutes(
       const rawOfferId = (req.query.offer_id || req.query.o) as string;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
       const rawLandingId = req.query.link_id as string;
-      const { geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { geo, subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      
+      // Map subid to sub1 for Keitaro/Binom/Voluum compatibility (like Scaleo does)
+      const effectiveSub1 = (sub1 || subid) as string;
 
       if (!rawOfferId || !rawPartnerId) {
         return res.status(400).json({ 
@@ -2585,7 +2597,7 @@ export async function registerRoutes(
         offerId,
         partnerId,
         landingId,
-        sub1: sub1 as string,
+        sub1: effectiveSub1,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
