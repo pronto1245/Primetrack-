@@ -2200,10 +2200,12 @@ export async function registerRoutes(
       const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
       // Universal click_id detection - supports all tracker formats
+      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
       const effectiveSub1 = (
         sub1 || 
         req.query.subid || req.query.sub_id ||
         req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
         req.query.external_id || req.query.externalid ||
         req.query.tid || req.query.cid || req.query.uid
       ) as string;
@@ -2327,14 +2329,13 @@ export async function registerRoutes(
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      // LOG ALL QUERY PARAMS to see what Keitaro sends
-      console.log(`[CLICK PARAMS] All query params:`, JSON.stringify(req.query));
-      
       // Universal click_id detection - supports all tracker formats
+      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
       const effectiveSub1 = (
         sub1 || 
         req.query.subid || req.query.sub_id ||
         req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
         req.query.external_id || req.query.externalid ||
         req.query.tid || req.query.cid || req.query.uid
       ) as string;
@@ -2444,10 +2445,12 @@ export async function registerRoutes(
       const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
       // Universal click_id detection - supports all tracker formats
+      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
       const effectiveSub1 = (
         sub1 || 
         req.query.subid || req.query.sub_id ||
         req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
         req.query.external_id || req.query.externalid ||
         req.query.tid || req.query.cid || req.query.uid
       ) as string;
@@ -2560,10 +2563,12 @@ export async function registerRoutes(
       const { geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
       // Universal click_id detection - supports all tracker formats
+      // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
       const effectiveSub1 = (
         sub1 || 
         req.query.subid || req.query.sub_id ||
         req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.aff_sub || req.query.cnv_id || req.query.ref_id || req.query.c ||
         req.query.external_id || req.query.externalid ||
         req.query.tid || req.query.cid || req.query.uid
       ) as string;
@@ -2703,7 +2708,12 @@ export async function registerRoutes(
       }
 
       // Find click by click_id - this contains all offer/publisher info
-      const click = await storage.getClickByClickId(clickId);
+      // First try to find by internal clickId (PrimeTrack UUID)
+      // If not found, search by sub1 (partner's external click_id)
+      let click = await storage.getClickByClickId(clickId);
+      if (!click) {
+        click = await storage.getClickBySub1(clickId);
+      }
       if (!click) {
         await storage.createPostbackLog({
           direction: "inbound",
