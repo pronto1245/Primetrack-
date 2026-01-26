@@ -218,24 +218,6 @@ export function AdvertiserPostbacks() {
         </div>
 
         <div className="mt-4 space-y-4">
-          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded">
-            <h4 className="font-semibold text-green-400 mb-2">Универсальный постбек (для вашего сайта/CRM)</h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              При конверсии на вашем сайте отправьте запрос с click_id который получили от PrimeTrack:
-            </p>
-            <div className="space-y-1 font-mono text-xs">
-              <div className="text-muted-foreground break-all">
-                https://{platformDomain}/api/postback?click_id=<span className="text-green-400">UUID_ИЗ_URL</span>&status=lead
-              </div>
-              <div className="text-muted-foreground break-all">
-                https://{platformDomain}/api/postback?click_id=<span className="text-green-400">UUID_ИЗ_URL</span>&status=sale&payout=100
-              </div>
-            </div>
-            <p className="text-[10px] text-amber-400 mt-2">
-              UUID_ИЗ_URL — это click_id который пришёл в параметре при редиректе на ваш сайт (указан в настройках лендинга)
-            </p>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
               <h4 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
