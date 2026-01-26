@@ -271,6 +271,7 @@ export interface IStorage {
   // Clicks
   getClick(id: string): Promise<Click | undefined>;
   getClickByClickId(clickId: string): Promise<Click | undefined>;
+  getClickBySub1(sub1: string): Promise<Click | undefined>;
   getClicksByOffer(offerId: string): Promise<Click[]>;
   getClicksByPublisher(publisherId: string): Promise<Click[]>;
   createClick(click: InsertClick): Promise<Click>;
@@ -927,6 +928,14 @@ export class DatabaseStorage implements IStorage {
 
   async getClickByClickId(clickId: string): Promise<Click | undefined> {
     const [click] = await db.select().from(clicks).where(eq(clicks.clickId, clickId));
+    return click;
+  }
+
+  async getClickBySub1(sub1: string): Promise<Click | undefined> {
+    const [click] = await db.select().from(clicks)
+      .where(eq(clicks.sub1, sub1))
+      .orderBy(desc(clicks.createdAt))
+      .limit(1);
     return click;
   }
 
