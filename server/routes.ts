@@ -2197,10 +2197,16 @@ export async function registerRoutes(
   app.get("/t/s/:shortCode", async (req: Request, res: Response) => {
     try {
       const { shortCode } = req.params;
-      const { aff_click_id, subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      // Map aff_click_id/subid to sub1 for Keitaro/Binom/Voluum/Scaleo compatibility
-      const effectiveSub1 = (sub1 || subid || aff_click_id) as string;
+      // Universal click_id detection - supports all tracker formats
+      const effectiveSub1 = (
+        sub1 || 
+        req.query.subid || req.query.sub_id ||
+        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.external_id || req.query.externalid ||
+        req.query.tid || req.query.cid || req.query.uid
+      ) as string;
 
       // Get split test by short code
       const splitTest = await storage.getSplitTestByShortCode(shortCode);
@@ -2319,10 +2325,16 @@ export async function registerRoutes(
   app.get("/click/:offerId/:landingId", async (req: Request, res: Response) => {
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
-      const { partner_id: rawPartnerId, aff_click_id, subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      // Map aff_click_id/subid to sub1 for Keitaro/Binom/Voluum/Scaleo compatibility
-      const effectiveSub1 = (sub1 || subid || aff_click_id) as string;
+      // Universal click_id detection - supports all tracker formats
+      const effectiveSub1 = (
+        sub1 || 
+        req.query.subid || req.query.sub_id ||
+        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.external_id || req.query.externalid ||
+        req.query.tid || req.query.cid || req.query.uid
+      ) as string;
 
       if (!rawPartnerId) {
         return res.status(400).json({ 
@@ -2426,10 +2438,16 @@ export async function registerRoutes(
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
-      const { aff_click_id, subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      // Map aff_click_id/subid to sub1 for Keitaro/Binom/Voluum/Scaleo compatibility
-      const effectiveSub1 = (sub1 || subid || aff_click_id) as string;
+      // Universal click_id detection - supports all tracker formats
+      const effectiveSub1 = (
+        sub1 || 
+        req.query.subid || req.query.sub_id ||
+        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.external_id || req.query.externalid ||
+        req.query.tid || req.query.cid || req.query.uid
+      ) as string;
 
       if (!rawPartnerId) {
         return res.status(400).json({ 
@@ -2536,10 +2554,16 @@ export async function registerRoutes(
       const rawOfferId = (req.query.offer_id || req.query.o) as string;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
       const rawLandingId = req.query.link_id as string;
-      const { geo, aff_click_id, subid, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      // Map aff_click_id/subid to sub1 for Keitaro/Binom/Voluum/Scaleo compatibility
-      const effectiveSub1 = (sub1 || subid || aff_click_id) as string;
+      // Universal click_id detection - supports all tracker formats
+      const effectiveSub1 = (
+        sub1 || 
+        req.query.subid || req.query.sub_id ||
+        req.query.aff_click_id || req.query.clickid || req.query.click_id ||
+        req.query.external_id || req.query.externalid ||
+        req.query.tid || req.query.cid || req.query.uid
+      ) as string;
 
       if (!rawOfferId || !rawPartnerId) {
         return res.status(400).json({ 
