@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { 
   ArrowRight, Terminal, Cpu, ShieldCheck, Activity, Check, X,
   Zap, Globe, Users, BarChart3, Lock, Clock, Webhook, 
@@ -55,6 +55,12 @@ export default function Home() {
   const [activeDemoTab, setActiveDemoTab] = useState(0);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+  
+  // Parallax scroll effects
+  const { scrollY } = useScroll();
+  const parallaxSlow = useTransform(scrollY, [0, 500], [0, 100]);
+  const parallaxMedium = useTransform(scrollY, [0, 500], [0, 60]);
+  const parallaxFast = useTransform(scrollY, [0, 500], [0, 40]);
 
   const demoTabs = [
     { label: "Дашборд", src: "/demo-videos/дашборд.mp4", icon: BarChart3, color: "emerald", iconColor: "text-emerald-400" },
@@ -225,28 +231,53 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-12 overflow-hidden">
-        {/* Multi-layer gradient background */}
+      <section className="relative pt-20 pb-12 overflow-hidden noise-overlay">
+        {/* Multi-layer gradient background with parallax */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-emerald-500 opacity-20 blur-[150px]"></div>
-        <div className="absolute left-1/4 top-1/4 -z-10 h-[400px] w-[400px] rounded-full bg-blue-500 opacity-10 blur-[120px]"></div>
-        <div className="absolute right-1/4 top-1/3 -z-10 h-[300px] w-[300px] rounded-full bg-purple-500 opacity-10 blur-[100px]"></div>
-        
-        {/* Floating decorative elements */}
         <motion.div 
-          className="absolute left-[10%] top-[20%] w-3 h-3 rounded-full bg-emerald-400/30"
+          className="absolute left-1/2 -translate-x-1/2 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-emerald-500 opacity-20 blur-[150px]"
+          style={{ y: parallaxSlow }}
+        />
+        <motion.div 
+          className="absolute left-1/4 top-1/4 -z-10 h-[400px] w-[400px] rounded-full bg-blue-500 opacity-10 blur-[120px]"
+          style={{ y: parallaxMedium }}
+        />
+        <motion.div 
+          className="absolute right-1/4 top-1/3 -z-10 h-[300px] w-[300px] rounded-full bg-purple-500 opacity-10 blur-[100px]"
+          style={{ y: parallaxFast }}
+        />
+        
+        {/* Floating decorative elements - enhanced */}
+        <motion.div 
+          className="absolute left-[10%] top-[20%] w-3 h-3 rounded-full bg-emerald-400/30 animate-float"
           animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute right-[15%] top-[30%] w-2 h-2 rounded-full bg-blue-400/30"
+          className="absolute right-[15%] top-[30%] w-2 h-2 rounded-full bg-blue-400/30 animate-float-fast"
           animate={{ y: [0, -15, 0], opacity: [0.2, 0.5, 0.2] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
         <motion.div 
-          className="absolute left-[20%] bottom-[40%] w-4 h-4 rounded-full bg-purple-400/20"
+          className="absolute left-[20%] bottom-[40%] w-4 h-4 rounded-full bg-purple-400/20 animate-float-slow"
           animate={{ y: [0, -25, 0], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        {/* Additional floating elements */}
+        <motion.div 
+          className="absolute right-[8%] top-[60%] w-2 h-2 rounded-full bg-cyan-400/25 animate-float"
+          animate={{ y: [0, -18, 0], opacity: [0.2, 0.45, 0.2] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        />
+        <motion.div 
+          className="absolute left-[5%] top-[70%] w-3 h-3 rounded-full bg-pink-400/20 animate-float-slow"
+          animate={{ y: [0, -22, 0], opacity: [0.15, 0.35, 0.15] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+        <motion.div 
+          className="absolute right-[25%] top-[15%] w-1.5 h-1.5 rounded-full bg-amber-400/30 animate-float-fast"
+          animate={{ y: [0, -12, 0], opacity: [0.25, 0.5, 0.25] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
         />
 
         <div className="container px-4 mx-auto relative z-10">
@@ -265,10 +296,10 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-5 leading-[1.1]"
+              className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-5 leading-[1.1] font-display"
             >
               Трекер для{" "}
-              <span className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-blue-400 bg-clip-text text-transparent">
+              <span className="gradient-text">
                 арбитража
               </span>
             </motion.h1>
@@ -451,7 +482,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-4">
             <Badge variant="secondary" className="mb-3">Кому подходит</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Кому подходит {platformName}</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Кому подходит {platformName}</h2>
           </motion.div>
           <motion.div {...fadeInUp} className="text-center mb-10 max-w-2xl mx-auto">
             <p className="text-muted-foreground leading-relaxed">
@@ -463,16 +494,21 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-80px" }}
               transition={{ delay: 0, duration: 0.5 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+              whileHover={{ y: -8, rotateX: 2, rotateY: -2, transition: { duration: 0.3 } }}
+              style={{ transformStyle: "preserve-3d", perspective: 1000 }}
             >
-              <Card className="bg-card border-border h-full hover:border-emerald-500/40 hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.2)] transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-6 shadow-lg">
+              <Card className="bg-card border-border h-full hover:border-emerald-500/40 hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.2)] transition-all duration-300 gradient-border rounded-2xl">
+                <CardContent className="p-8 relative z-10">
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-6 shadow-lg"
+                    whileHover={{ scale: 1.1, rotate: 6 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
                     <TrendingUp className="w-8 h-8 text-emerald-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Арбитражникам</h3>
+                  </motion.div>
+                  <h3 className="text-xl font-bold mb-3 font-display">Арбитражникам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                     Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
                   </p>
@@ -490,16 +526,21 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-80px" }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+              whileHover={{ y: -8, rotateX: 2, rotateY: -2, transition: { duration: 0.3 } }}
+              style={{ transformStyle: "preserve-3d", perspective: 1000 }}
             >
-              <Card className="bg-card border-border h-full hover:border-blue-500/40 hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.2)] transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mb-6 shadow-lg">
+              <Card className="bg-card border-border h-full hover:border-blue-500/40 hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.2)] transition-all duration-300 gradient-border rounded-2xl">
+                <CardContent className="p-8 relative z-10">
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mb-6 shadow-lg"
+                    whileHover={{ scale: 1.1, rotate: 6 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
                     <Users className="w-8 h-8 text-blue-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Командам и медиабаерам</h3>
+                  </motion.div>
+                  <h3 className="text-xl font-bold mb-3 font-display">Командам и медиабаерам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                     {platformName} удобно использовать в команде, когда с трафиком работает несколько человек.
                   </p>
@@ -517,16 +558,21 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-80px" }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+              whileHover={{ y: -8, rotateX: 2, rotateY: -2, transition: { duration: 0.3 } }}
+              style={{ transformStyle: "preserve-3d", perspective: 1000 }}
             >
-              <Card className="bg-card border-border h-full hover:border-purple-500/40 hover:shadow-[0_20px_60px_-15px_rgba(168,85,247,0.2)] transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-6 shadow-lg">
+              <Card className="bg-card border-border h-full hover:border-purple-500/40 hover:shadow-[0_20px_60px_-15px_rgba(168,85,247,0.2)] transition-all duration-300 gradient-border rounded-2xl">
+                <CardContent className="p-8 relative z-10">
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-6 shadow-lg"
+                    whileHover={{ scale: 1.1, rotate: 6 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
                     <Globe className="w-8 h-8 text-purple-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Партнёрским программам</h3>
+                  </motion.div>
+                  <h3 className="text-xl font-bold mb-3 font-display">Партнёрским программам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                     {platformName} подходит для учёта и контроля партнёрского трафика.
                   </p>
@@ -570,7 +616,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-12">
             <Badge variant="secondary" className="mb-3">Преимущества</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold">Почему это удобно в реальной работе</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display">Почему это удобно в реальной работе</h2>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-5">
@@ -669,7 +715,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-3">Возможности</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Всё для управления партнёрками</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Всё для управления партнёрками</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Полный набор инструментов для рекламодателей
             </p>
@@ -691,16 +737,27 @@ export default function Home() {
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: true, margin: "-80px" }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                whileHover={{ 
+                  y: -8, 
+                  rotateX: 2, 
+                  rotateY: -2,
+                  transition: { duration: 0.3 } 
+                }}
+                className="card-3d"
+                style={{ transformStyle: "preserve-3d", perspective: 1000 }}
               >
-                <Card className={`h-full bg-card/50 border-border ${feature.hoverBorder} ${feature.hoverShadow} transition-all duration-300 group`}>
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center ${feature.iconColor} mb-4 group-hover:scale-110 transition-transform shadow-md`}>
+                <Card className={`h-full bg-card/50 border-border ${feature.hoverBorder} ${feature.hoverShadow} transition-all duration-300 group gradient-border rounded-2xl`}>
+                  <CardContent className="p-6 relative z-10">
+                    <motion.div 
+                      className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center ${feature.iconColor} mb-4 shadow-md`}
+                      whileHover={{ scale: 1.15, rotate: 6 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
                       <feature.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                    </motion.div>
+                    <h3 className="text-lg font-bold mb-2 font-display">{feature.title}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
                   </CardContent>
                 </Card>
@@ -715,7 +772,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-12">
             <Badge variant="secondary" className="mb-3">Как это работает</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Начните работу за 5 минут</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Начните работу за 5 минут</h2>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-6">
@@ -826,7 +883,7 @@ export default function Home() {
           <motion.div {...fadeInUp} className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <Badge variant="secondary" className="mb-4">Миграция</Badge>
-              <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Миграция с других трекеров</h2>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Миграция с других трекеров</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Перенесите офферы, кампании, subID и историю конверсий за 10-15 минут. Без остановки трафика.
               </p>
@@ -946,7 +1003,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Отзывы</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Что говорят клиенты, которые реально работают с {platformName}</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Что говорят клиенты, которые реально работают с {platformName}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Не маркетинговые цитаты — а опыт использования
             </p>
@@ -1025,7 +1082,7 @@ export default function Home() {
             <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
               30 дней бесплатно
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Простые и честные тарифы</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Простые и честные тарифы</h2>
             <p className="text-muted-foreground">Никаких скрытых платежей. Безлимитный трафик.</p>
           </div>
 
@@ -1119,7 +1176,7 @@ export default function Home() {
         <div className="container px-4 mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">FAQ</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Часто задаваемые вопросы</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Часто задаваемые вопросы</h2>
           </div>
 
           {(() => {
@@ -1181,7 +1238,7 @@ export default function Home() {
         <div className="container px-4 mx-auto max-w-4xl">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Контакты</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Остались вопросы?</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Остались вопросы?</h2>
             <p className="text-muted-foreground">Напишите нам, и мы ответим в течение 24 часов</p>
           </motion.div>
 
@@ -1288,7 +1345,7 @@ export default function Home() {
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
               <Badge variant="secondary" className="mb-4">Развитие</Badge>
-              <h2 className="text-3xl md:text-5xl font-extrabold mb-3">План развития</h2>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">План развития</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Следите за нашим прогрессом и узнавайте о новых функциях, которые мы разрабатываем
               </p>
@@ -1358,7 +1415,7 @@ export default function Home() {
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
               <Badge variant="secondary" className="mb-4">Новости</Badge>
-              <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Последние обновления</h2>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Последние обновления</h2>
             </motion.div>
 
             {newsLoading ? (
@@ -1444,7 +1501,7 @@ export default function Home() {
         <div className="container px-4 mx-auto text-center">
           <motion.div {...fadeInUp}>
             <Sparkles className="w-12 h-12 mx-auto mb-6 text-emerald-500" />
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Запустить трекинг за 5 минут</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Запустить трекинг за 5 минут</h2>
             <p className="text-muted-foreground mb-4 max-w-xl mx-auto">
               Без карты. Без ограничений на тест. Регистрация за 1 минуту.
             </p>
