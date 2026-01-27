@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tilt3DCard } from "@/components/ui/tilt-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
@@ -496,31 +497,31 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ delay: 0, duration: 0.5 }}
-              whileHover={{ y: -8, rotateX: 2, rotateY: -2, transition: { duration: 0.3 } }}
-              style={{ transformStyle: "preserve-3d", perspective: 1000 }}
             >
-              <Card className="bg-card border-border h-full hover:border-emerald-500/40 hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.2)] transition-all duration-300 gradient-border rounded-2xl">
-                <CardContent className="p-8 relative z-10">
-                  <motion.div 
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-6 shadow-lg"
-                    whileHover={{ scale: 1.1, rotate: 6 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <TrendingUp className="w-8 h-8 text-emerald-400" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold mb-3 font-display">Арбитражникам</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
-                  </p>
-                  <p className="text-muted-foreground text-sm mb-2">Вы получаете:</p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживание кликов, лидов и депозитов</li>
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />детальную статистику по subID (sub1–sub10)</li>
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />быстрый запуск и масштабирование рабочих связок</li>
-                  </ul>
-                  <p className="text-muted-foreground text-sm mt-4">Вся статистика доступна в одном месте, без лишних экранов и отчётов.</p>
-                </CardContent>
-              </Card>
+              <Tilt3DCard className="h-full group" tiltAmount={8}>
+                <Card className="bg-card border-border h-full hover:border-emerald-500/40 hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.2)] transition-all duration-300 gradient-border rounded-2xl">
+                  <CardContent className="p-8 relative z-10">
+                    <motion.div 
+                      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-6 shadow-lg"
+                      whileHover={{ scale: 1.1, rotate: 6 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      <TrendingUp className="w-8 h-8 text-emerald-400" />
+                    </motion.div>
+                    <h3 className="text-xl font-bold mb-3 font-display">Арбитражникам</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                      Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
+                    </p>
+                    <p className="text-muted-foreground text-sm mb-2">Вы получаете:</p>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживание кликов, лидов и депозитов</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />детальную статистику по subID (sub1–sub10)</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />быстрый запуск и масштабирование рабочих связок</li>
+                    </ul>
+                    <p className="text-muted-foreground text-sm mt-4">Вся статистика доступна в одном месте, без лишних экранов и отчётов.</p>
+                  </CardContent>
+                </Card>
+              </Tilt3DCard>
             </motion.div>
 
             <motion.div
@@ -528,19 +529,18 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              whileHover={{ y: -8, rotateX: 2, rotateY: -2, transition: { duration: 0.3 } }}
-              style={{ transformStyle: "preserve-3d", perspective: 1000 }}
             >
-              <Card className="bg-card border-border h-full hover:border-blue-500/40 hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.2)] transition-all duration-300 gradient-border rounded-2xl">
-                <CardContent className="p-8 relative z-10">
-                  <motion.div 
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mb-6 shadow-lg"
-                    whileHover={{ scale: 1.1, rotate: 6 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Users className="w-8 h-8 text-blue-400" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold mb-3 font-display">Командам и медиабаерам</h3>
+              <Tilt3DCard className="h-full group" tiltAmount={8}>
+                <Card className="bg-card border-border h-full hover:border-blue-500/40 hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.2)] transition-all duration-300 gradient-border rounded-2xl">
+                  <CardContent className="p-8 relative z-10">
+                    <motion.div 
+                      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mb-6 shadow-lg"
+                      whileHover={{ scale: 1.1, rotate: 6 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      <Users className="w-8 h-8 text-blue-400" />
+                    </motion.div>
+                    <h3 className="text-xl font-bold mb-3 font-display">Командам и медиабаерам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                     {platformName} удобно использовать в команде, когда с трафиком работает несколько человек.
                   </p>
@@ -550,9 +550,10 @@ export default function Home() {
                     <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />разграничивать доступы между участниками</li>
                     <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />смотреть общую статистику по источникам и кампаниям</li>
                   </ul>
-                  <p className="text-muted-foreground text-sm mt-4">Это упрощает контроль работы команды и даёт прозрачную картину по результатам.</p>
-                </CardContent>
-              </Card>
+                    <p className="text-muted-foreground text-sm mt-4">Это упрощает контроль работы команды и даёт прозрачную картину по результатам.</p>
+                  </CardContent>
+                </Card>
+              </Tilt3DCard>
             </motion.div>
 
             <motion.div
@@ -560,31 +561,31 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              whileHover={{ y: -8, rotateX: 2, rotateY: -2, transition: { duration: 0.3 } }}
-              style={{ transformStyle: "preserve-3d", perspective: 1000 }}
             >
-              <Card className="bg-card border-border h-full hover:border-purple-500/40 hover:shadow-[0_20px_60px_-15px_rgba(168,85,247,0.2)] transition-all duration-300 gradient-border rounded-2xl">
-                <CardContent className="p-8 relative z-10">
-                  <motion.div 
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-6 shadow-lg"
-                    whileHover={{ scale: 1.1, rotate: 6 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Globe className="w-8 h-8 text-purple-400" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold mb-3 font-display">Партнёрским программам</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    {platformName} подходит для учёта и контроля партнёрского трафика.
-                  </p>
-                  <p className="text-muted-foreground text-sm mb-2">Вы можете:</p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживать клики, лиды и конверсии</li>
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />работать со своими офферами и postback</li>
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />контролировать качество трафика и выявлять подозрительную активность</li>
-                  </ul>
-                  <p className="text-muted-foreground text-sm mt-4">Система помогает видеть, откуда приходит трафик и как он конвертируется.</p>
-                </CardContent>
-              </Card>
+              <Tilt3DCard className="h-full group" tiltAmount={8}>
+                <Card className="bg-card border-border h-full hover:border-purple-500/40 hover:shadow-[0_20px_60px_-15px_rgba(168,85,247,0.2)] transition-all duration-300 gradient-border rounded-2xl">
+                  <CardContent className="p-8 relative z-10">
+                    <motion.div 
+                      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-6 shadow-lg"
+                      whileHover={{ scale: 1.1, rotate: 6 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      <Globe className="w-8 h-8 text-purple-400" />
+                    </motion.div>
+                    <h3 className="text-xl font-bold mb-3 font-display">Партнёрским программам</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                      {platformName} подходит для учёта и контроля партнёрского трафика.
+                    </p>
+                    <p className="text-muted-foreground text-sm mb-2">Вы можете:</p>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживать клики, лиды и конверсии</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />работать со своими офферами и postback</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />контролировать качество трафика и выявлять подозрительную активность</li>
+                    </ul>
+                    <p className="text-muted-foreground text-sm mt-4">Система помогает видеть, откуда приходит трафик и как он конвертируется.</p>
+                  </CardContent>
+                </Card>
+              </Tilt3DCard>
             </motion.div>
           </div>
         </div>
