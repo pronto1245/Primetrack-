@@ -1105,7 +1105,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-0 border border-border rounded overflow-hidden">
+          <div className="grid md:grid-cols-3 gap-0 border border-border rounded-xl mt-4">
             {plans.map((plan, i) => {
               const isActive = i === 1;
               const price = isYearly 
@@ -1127,7 +1127,7 @@ export default function Home() {
               ];
               
               return (
-                <div key={plan.id} className={`p-8 ${isActive ? 'bg-secondary relative z-10' : 'bg-background'} border-r border-border last:border-r-0 flex flex-col`}>
+                <div key={plan.id} className={`p-8 ${isActive ? 'bg-secondary relative z-10' : 'bg-background'} border-r border-border last:border-r-0 flex flex-col first:rounded-l-xl last:rounded-r-xl overflow-visible`}>
                   {isActive && <div className="absolute top-0 inset-x-0 h-1 bg-emerald-500" />}
                   {isActive && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600">
