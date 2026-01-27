@@ -591,26 +591,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Not Competitors - Philosophy */}
-      <section className="py-16 border-t border-border bg-muted/30">
-        <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="max-w-3xl mx-auto">
-            <Badge variant="secondary" className="mb-4">Почему не Scaleo / Affise?</Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">Мы не пытались сделать ещё один корпоративный трекер</h2>
-            <div className="space-y-4 text-muted-foreground leading-relaxed">
-              <p>
-                Scaleo и Affise — сильные продукты, но они изначально создавались под большие команды, менеджеров и отчётность.
-              </p>
-              <p>
-                {platformName} появился из практики залива трафика. Нам нужен был простой и стабильный трекер, который не мешает работать, не перегружает интерфейс и не требует долгой настройки перед запуском кампании.
-              </p>
-              <p>
-                Если вы льёте push, gambling или betting, вам важны скорость редиректа, чистая статистика и быстрый доступ к данным. Именно под эти задачи и делался {platformName}.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Advantages - Detailed */}
       <section className="py-16 border-t border-border bg-background">
