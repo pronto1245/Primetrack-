@@ -740,28 +740,22 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
-                whileHover={{ 
-                  y: -8, 
-                  rotateX: 2, 
-                  rotateY: -2,
-                  transition: { duration: 0.3 } 
-                }}
-                className="card-3d"
-                style={{ transformStyle: "preserve-3d", perspective: 1000 }}
               >
-                <Card className={`h-full bg-card/50 border-border ${feature.hoverBorder} ${feature.hoverShadow} transition-all duration-300 group gradient-border rounded-2xl`}>
-                  <CardContent className="p-6 relative z-10">
-                    <motion.div 
-                      className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center ${feature.iconColor} mb-4 shadow-md`}
-                      whileHover={{ scale: 1.15, rotate: 6 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <feature.icon className="w-6 h-6" />
-                    </motion.div>
-                    <h3 className="text-lg font-bold mb-2 font-display">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
-                  </CardContent>
-                </Card>
+                <Tilt3DCard className="h-full group" tiltAmount={6}>
+                  <Card className={`h-full bg-card/50 border-border ${feature.hoverBorder} ${feature.hoverShadow} transition-all duration-300 gradient-border rounded-2xl`}>
+                    <CardContent className="p-6 relative z-10">
+                      <motion.div 
+                        className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center ${feature.iconColor} mb-4 shadow-md`}
+                        whileHover={{ scale: 1.15, rotate: 6 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      >
+                        <feature.icon className="w-6 h-6" />
+                      </motion.div>
+                      <h3 className="text-lg font-bold mb-2 font-display">{feature.title}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                    </CardContent>
+                  </Card>
+                </Tilt3DCard>
               </motion.div>
             ))}
           </div>
