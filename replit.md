@@ -109,6 +109,89 @@ http://tracker/postback?subid={sub1}&status={status}&payout={payout}
 
 ## TODO (Запланированные функции)
 
+### Миграция данных из внешних трекеров (ПОЛНОЕ ТЗ)
+
+**Статус:** НЕ РЕАЛИЗОВАНО (текущая реализация — заглушка)
+
+**Трекеры:** Scaleo, Affilka, Affise, Alanbase (4 штуки)
+
+**Что импортируем:**
+- Офферы (все)
+- Паблишеры (все)  
+- Лендинги (автоматически из данных трекера)
+- Конверсии/клики — НЕТ (чистый лист)
+
+**API эндпоинты трекеров:**
+| Трекер | Офферы | Паблишеры |
+|--------|--------|-----------|
+| Scaleo | `GET /api/v2/network/offers` | `GET /api/v2/network/affiliates` |
+| Affilka | `GET /api/v1/offers` | `GET /api/v1/affiliates` |
+| Affise | `GET /3.0/offers` | `GET /3.0/affiliates` |
+| Alanbase | `GET /api/v1/offers` | `GET /api/v1/affiliates` |
+
+**Маппинг офферов:**
+```
+title/name → name
+description → description (default: "")
+logo_url → logoUrl
+payout → partnerPayout (default: "0.00")
+revenue → internalCost (default: payout)
+currency → currency (default: "USD")
+hold_days → holdPeriodDays (default: 7)
+geo[]/countries[] → geo[] (default: ["WW"])
+vertical/category → category (default: "other")
+traffic_sources[] → trafficSources[]
+status → status (матрица: active→active, иначе→paused)
+caps → dailyCap/monthlyCap/totalCap
+```
+
+**Маппинг лендингов (offer_landings):**
+```
+landing_url → url
+preview_url → previewUrl
+name → name (default: "Default Landing")
+geo[] → наследует от оффера
+payout → наследует от оффера
+```
+
+**Маппинг паблишеров (users):**
+```
+email → email (проверка дубликатов!)
+login/username → username
+status → pending (требует активации)
+password → bcrypt(сгенерированный temp)
+role → "publisher"
++ создаётся связь publisher_advertisers
+```
+
+**Критические требования:**
+1. ✅ UI: показывать только 4 трекера (убрать Voluum/Keitaro, добавить Alanbase)
+2. ✅ Матрица дефолтов для пустых полей (description, category, geo, currency)
+3. ✅ Дедупликация: проверка существующих по name+advertiserId (офферы), email (паблишеры), url+offerId (лендинги)
+4. ✅ Импорт ВСЕХ лендингов оффера (не только первого)
+5. ✅ Пагинация API (цикл по страницам, не только первые 100)
+6. ✅ Preflight-проверка API ключа (тестовый запрос до импорта)
+7. ✅ Детальный лог ошибок (какой оффер не импортировался и почему)
+8. ✅ Импорт паблишеров для Affilka/Affise (сейчас только Scaleo/Alanbase)
+9. ✅ Удалить чекбоксы конверсий/кликов из UI
+10. ✅ Исправить LSP ошибки в migration-service.ts
+
+**Процесс миграции:**
+```
+1. Рекламодатель выбирает трекер
+2. Вводит API URL + API Key
+3. Система проверяет подключение (preflight)
+4. Показывает превью: "Найдено X офферов, Y паблишеров"
+5. Рекламодатель подтверждает
+6. Импорт с прогресс-баром (каждый оффер в отдельной транзакции)
+7. Результат: "Импортировано X/Y офферов, Z/W паблишеров"
+8. Ошибки показываются в детальном логе
+```
+
+**Оценка времени:** ~4-6 часов
+
+---
+
 ### Индивидуальные ставки для партнёров
 **Описание:** Рекламодатель может назначать разные ставки разным партнёрам по одному офферу (например, партнёр A получает $50, партнёр B получает $70 за один и тот же оффер).
 
