@@ -225,60 +225,117 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-16 overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 -z-10 h-[500px] w-[800px] rounded-full bg-emerald-500 opacity-15 blur-[120px]"></div>
+      <section className="relative pt-20 pb-12 overflow-hidden">
+        {/* Multi-layer gradient background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-emerald-500 opacity-20 blur-[150px]"></div>
+        <div className="absolute left-1/4 top-1/4 -z-10 h-[400px] w-[400px] rounded-full bg-blue-500 opacity-10 blur-[120px]"></div>
+        <div className="absolute right-1/4 top-1/3 -z-10 h-[300px] w-[300px] rounded-full bg-purple-500 opacity-10 blur-[100px]"></div>
+        
+        {/* Floating decorative elements */}
+        <motion.div 
+          className="absolute left-[10%] top-[20%] w-3 h-3 rounded-full bg-emerald-400/30"
+          animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute right-[15%] top-[30%] w-2 h-2 rounded-full bg-blue-400/30"
+          animate={{ y: [0, -15, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        <motion.div 
+          className="absolute left-[20%] bottom-[40%] w-4 h-4 rounded-full bg-purple-400/20"
+          animate={{ y: [0, -25, 0], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
 
         <div className="container px-4 mx-auto relative z-10">
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-6"
+            >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               30 дней бесплатно + без карты
-            </div>
+            </motion.div>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight">
-              Трекер для <span className="bg-gradient-to-r from-emerald-400 to-emerald-200 bg-clip-text text-transparent">арбитража</span> гемблы, беттинга и push-трафика
-            </h1>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-5 leading-[1.1]"
+            >
+              Трекер для{" "}
+              <span className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-blue-400 bg-clip-text text-transparent">
+                арбитража
+              </span>
+            </motion.h1>
             
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl leading-relaxed">
-              {platformSettings?.platformDescription || `Запускайте офферы, принимайте клики, лиды и депозиты, передавайте postback в партнёрки и сторонние трекеры. Минимальная задержка редиректа, полная статистика по subID.`}
-            </p>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-lg text-muted-foreground mb-6 max-w-xl leading-relaxed"
+            >
+              {platformSettings?.platformDescription || `Гембла, беттинг, push-трафик. Клики → лиды → депозиты. Postback в любой трекер.`}
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-3 mb-5"
+            >
               <Button 
                 size="lg" 
-                className="h-12 px-8 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-base shadow-[0_0_30px_rgba(16,185,129,0.4)] border border-emerald-500 transition-all"
+                className="group h-14 px-10 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold text-base shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:shadow-[0_0_60px_rgba(16,185,129,0.6)] border border-emerald-400/50 transition-all duration-300 hover:scale-[1.02]"
                 onClick={() => navigate('/register/advertiser')}
                 data-testid="button-hero-register"
               >
                 Начать бесплатно
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="h-12 px-8 rounded-lg border-border hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-base"
+                className="h-14 px-10 rounded-xl border-border/50 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-muted-foreground hover:text-foreground font-semibold text-base transition-all duration-300 hover:scale-[1.02]"
                 onClick={() => scrollToSection('pricing')}
                 data-testid="button-hero-pricing"
               >
                 Смотреть тарифы
               </Button>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
-              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />CPA / RevShare / Hybrid</span>
-              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Postback</span>
-              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />SubID</span>
-              <span className="flex items-center gap-1 text-sm text-muted-foreground"><Check className="w-4 h-4 text-emerald-500" />Антидубль</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="flex flex-wrap justify-center gap-4 mb-10"
+            >
+              {["CPA / RevShare / Hybrid", "Postback", "SubID", "Антидубль"].map((item, i) => (
+                <span key={i} className="flex items-center gap-1.5 text-sm text-muted-foreground/80">
+                  <Check className="w-4 h-4 text-emerald-500" />{item}
+                </span>
+              ))}
+            </motion.div>
           </div>
         </div>
 
-        <div className="w-full max-w-[1200px] mx-auto px-4 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="w-full max-w-[1200px] mx-auto px-4 relative z-10"
+        >
           {/* iMac-style Computer Frame */}
-          <div className="relative">
+          <div className="relative group">
+            {/* Back glow effect */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/20 via-blue-500/10 to-purple-500/20 rounded-[32px] blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+            
             {/* Monitor Body */}
-            <div className="relative rounded-[24px] bg-gradient-to-b from-[#3a3a3c] via-[#2c2c2e] to-[#1c1c1e] p-[3px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8),0_0_80px_rgba(16,185,129,0.12)]">
+            <div className="relative rounded-[24px] bg-gradient-to-b from-[#3a3a3c] via-[#2c2c2e] to-[#1c1c1e] p-[3px] shadow-[0_60px_120px_-20px_rgba(0,0,0,0.9),0_0_100px_rgba(16,185,129,0.15)]">
               <div className="rounded-[22px] bg-gradient-to-b from-[#1a1a1c] to-[#0a0a0a] overflow-hidden">
                 {/* Screen Bezel */}
                 <div className="p-3 md:p-4">
@@ -337,6 +394,9 @@ export default function Home() {
                         playsInline
                         onEnded={handleVideoEnd}
                       />
+                      {/* Screen gloss/reflection overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -349,8 +409,8 @@ export default function Home() {
                    style={{ clipPath: 'polygon(15% 0, 85% 0, 100% 100%, 0% 100%)' }} />
               {/* Stand Base */}
               <div className="w-40 md:w-56 h-2 md:h-3 bg-gradient-to-b from-[#3a3a3c] to-[#2c2c2e] rounded-full shadow-lg" />
-              {/* Base Shadow */}
-              <div className="w-48 md:w-64 h-1 bg-black/20 rounded-full blur-sm -mt-0.5" />
+              {/* Base Shadow - enhanced */}
+              <div className="w-56 md:w-72 h-2 bg-black/30 rounded-full blur-md -mt-1" />
             </div>
           </div>
               
@@ -360,11 +420,11 @@ export default function Home() {
                 key={i}
                 onClick={() => setActiveDemoTab(i)}
                 data-testid={`demo-dot-${i}`}
-                className={`w-2 h-2 rounded-full transition-colors ${i === activeDemoTab ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${i === activeDemoTab ? 'bg-emerald-500 scale-125' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'}`}
               />
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Stats Strip */}
@@ -387,29 +447,30 @@ export default function Home() {
       </section>
 
       {/* Who It's For */}
-      <section className="py-24 bg-background">
+      <section className="py-16 bg-background">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-6">
-            <Badge variant="secondary" className="mb-4">Кому подходит</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Кому подходит {platformName}</h2>
+          <motion.div {...fadeInUp} className="text-center mb-4">
+            <Badge variant="secondary" className="mb-3">Кому подходит</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Кому подходит {platformName}</h2>
           </motion.div>
-          <motion.div {...fadeInUp} className="text-center mb-12 max-w-2xl mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-10 max-w-2xl mx-auto">
             <p className="text-muted-foreground leading-relaxed">
               {platformName} — это рабочий инструмент для тех, кто каждый день заливает трафик и считает деньги. Мы не пытались сделать универсальный сервис «для всех». Он сделан под конкретные задачи.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0, duration: 0.5 }}
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
             >
-              <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+              <Card className="bg-card border-border h-full hover:border-emerald-500/40 hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.2)] transition-all duration-300">
                 <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                    <TrendingUp className="w-7 h-7 text-emerald-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-6 shadow-lg">
+                    <TrendingUp className="w-8 h-8 text-emerald-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Арбитражникам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -431,11 +492,12 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.5 }}
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
             >
-              <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+              <Card className="bg-card border-border h-full hover:border-blue-500/40 hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.2)] transition-all duration-300">
                 <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mb-6">
-                    <Users className="w-7 h-7 text-blue-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mb-6 shadow-lg">
+                    <Users className="w-8 h-8 text-blue-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Командам и медиабаерам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -457,11 +519,12 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.5 }}
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
             >
-              <Card className="bg-card border-border h-full hover:border-emerald-500/30 transition-colors">
+              <Card className="bg-card border-border h-full hover:border-purple-500/40 hover:shadow-[0_20px_60px_-15px_rgba(168,85,247,0.2)] transition-all duration-300">
                 <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
-                    <Globe className="w-7 h-7 text-purple-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-6 shadow-lg">
+                    <Globe className="w-8 h-8 text-purple-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Партнёрским программам</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -482,7 +545,7 @@ export default function Home() {
       </section>
 
       {/* Why Not Competitors - Philosophy */}
-      <section className="py-24 border-t border-border bg-muted/30">
+      <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="max-w-3xl mx-auto">
             <Badge variant="secondary" className="mb-4">Почему не Scaleo / Affise?</Badge>
@@ -503,24 +566,25 @@ export default function Home() {
       </section>
 
       {/* Advantages - Detailed */}
-      <section className="py-24 border-t border-border bg-background">
+      <section className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Преимущества</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold">Почему это удобно в реальной работе</h2>
+          <motion.div {...fadeInUp} className="text-center mb-12">
+            <Badge variant="secondary" className="mb-3">Преимущества</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold">Почему это удобно в реальной работе</h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-4 gap-5">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0, duration: 0.4 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
             >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+              <Card className="h-full bg-card border-border hover:border-amber-500/40 hover:shadow-[0_15px_50px_-12px_rgba(245,158,11,0.2)] transition-all duration-300">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-amber-500/10 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-amber-400" />
+                  <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center shadow-md">
+                    <Zap className="w-6 h-6 text-amber-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Без лишних модулей</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -537,11 +601,12 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.4 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
             >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+              <Card className="h-full bg-card border-border hover:border-cyan-500/40 hover:shadow-[0_15px_50px_-12px_rgba(6,182,212,0.2)] transition-all duration-300">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-cyan-500/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-cyan-400" />
+                  <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center shadow-md">
+                    <Clock className="w-6 h-6 text-cyan-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Быстрый старт</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -558,11 +623,12 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.4 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
             >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+              <Card className="h-full bg-card border-border hover:border-pink-500/40 hover:shadow-[0_15px_50px_-12px_rgba(236,72,153,0.2)] transition-all duration-300">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-pink-500/10 flex items-center justify-center">
-                    <Terminal className="w-5 h-5 text-pink-400" />
+                  <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-500/5 flex items-center justify-center shadow-md">
+                    <Terminal className="w-6 h-6 text-pink-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Простая логика</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -578,11 +644,12 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3, duration: 0.4 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
             >
-              <Card className="h-full bg-card border-border hover:border-emerald-500/30 transition-colors">
+              <Card className="h-full bg-card border-border hover:border-emerald-500/40 hover:shadow-[0_15px_50px_-12px_rgba(16,185,129,0.2)] transition-all duration-300">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center shadow-md">
+                    <TrendingUp className="w-6 h-6 text-emerald-400" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">Заточено под арбитраж</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
@@ -598,48 +665,57 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 border-t border-border bg-background">
+      <section id="features" className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Возможности</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Всё для управления партнёрками</h2>
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-3">Возможности</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Всё для управления партнёрками</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Полный набор инструментов для рекламодателей
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Zap, title: "Мини-трекер под реальный залив", desc: "Лёгкий трекер без перегруза. Клики обрабатываются мгновенно, каждому присваивается уникальный click_id, GEO определяется автоматически.", color: "emerald" },
-              { icon: BarChart3, title: "Понятная статистика", desc: "Статистика по офферам, партнёрам, гео и устройствам — в одном месте. Фильтры помогают быстро понять, что масштабировать, а что отключать.", color: "blue" },
-              { icon: ShieldCheck, title: "Антифрод и контроль качества", desc: "Защита от некачественного трафика: прокси и VPN, подозрительные отпечатки, слишком быстрые или повторяющиеся клики.", color: "red" },
-              { icon: Webhook, title: "Postback и Webhooks", desc: "Автоматическая передача конверсий во внешние системы. Поддержка повторных отправок, логирование и контроль статусов.", color: "purple" },
-              { icon: Users, title: "Командная работа", desc: "Добавляйте менеджеров, аналитиков и финансовых сотрудников. Разграничение прав доступа — каждый видит только то, что ему нужно.", color: "orange" },
-              { icon: Globe, title: "Кастомные домены", desc: "Подключайте свои домены для трекинг-ссылок. SSL-сертификаты выпускаются автоматически через Let's Encrypt — без ручной возни.", color: "cyan" },
-              { icon: CreditCard, title: "Финансы и выплаты", desc: "Учёт балансов, холдов и выплат партнёрам. Поддержка криптовалютных интеграций и прозрачная история операций.", color: "green" },
-              { icon: Bell, title: "Уведомления", desc: "Важные события всегда под рукой: in-app уведомления и Telegram-бот. Клики, конверсии и ошибки — без постоянного обновления страниц.", color: "yellow" },
-              { icon: FileText, title: "Миграция без боли", desc: "Помогаем переехать с Scaleo, Affilka, Affise, Alanbase. Импорт офферов и данных занимает 10–15 минут.", color: "pink" },
+              { icon: Zap, title: "Мини-трекер под реальный залив", desc: "Лёгкий трекер без перегруза. Клики обрабатываются мгновенно, каждому присваивается уникальный click_id, GEO определяется автоматически.", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", hoverBorder: "hover:border-emerald-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(16,185,129,0.2)]" },
+              { icon: BarChart3, title: "Понятная статистика", desc: "Статистика по офферам, партнёрам, гео и устройствам — в одном месте. Фильтры помогают быстро понять, что масштабировать, а что отключать.", iconBg: "bg-blue-500/10", iconColor: "text-blue-500", hoverBorder: "hover:border-blue-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(59,130,246,0.2)]" },
+              { icon: ShieldCheck, title: "Антифрод и контроль качества", desc: "Защита от некачественного трафика: прокси и VPN, подозрительные отпечатки, слишком быстрые или повторяющиеся клики.", iconBg: "bg-red-500/10", iconColor: "text-red-500", hoverBorder: "hover:border-red-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(239,68,68,0.2)]" },
+              { icon: Webhook, title: "Postback и Webhooks", desc: "Автоматическая передача конверсий во внешние системы. Поддержка повторных отправок, логирование и контроль статусов.", iconBg: "bg-purple-500/10", iconColor: "text-purple-500", hoverBorder: "hover:border-purple-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(168,85,247,0.2)]" },
+              { icon: Users, title: "Командная работа", desc: "Добавляйте менеджеров, аналитиков и финансовых сотрудников. Разграничение прав доступа — каждый видит только то, что ему нужно.", iconBg: "bg-orange-500/10", iconColor: "text-orange-500", hoverBorder: "hover:border-orange-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(249,115,22,0.2)]" },
+              { icon: Globe, title: "Кастомные домены", desc: "Подключайте свои домены для трекинг-ссылок. SSL-сертификаты выпускаются автоматически через Let's Encrypt — без ручной возни.", iconBg: "bg-cyan-500/10", iconColor: "text-cyan-500", hoverBorder: "hover:border-cyan-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(6,182,212,0.2)]" },
+              { icon: CreditCard, title: "Финансы и выплаты", desc: "Учёт балансов, холдов и выплат партнёрам. Поддержка криптовалютных интеграций и прозрачная история операций.", iconBg: "bg-green-500/10", iconColor: "text-green-500", hoverBorder: "hover:border-green-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(34,197,94,0.2)]" },
+              { icon: Bell, title: "Уведомления", desc: "Важные события всегда под рукой: in-app уведомления и Telegram-бот. Клики, конверсии и ошибки — без постоянного обновления страниц.", iconBg: "bg-yellow-500/10", iconColor: "text-yellow-500", hoverBorder: "hover:border-yellow-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(234,179,8,0.2)]" },
+              { icon: FileText, title: "Миграция без боли", desc: "Помогаем переехать с Scaleo, Affilka, Affise, Alanbase. Импорт офферов и данных занимает 10–15 минут.", iconBg: "bg-pink-500/10", iconColor: "text-pink-500", hoverBorder: "hover:border-pink-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(236,72,153,0.2)]" },
             ].map((feature, i) => (
-              <Card key={i} className="bg-card/50 border-border hover:border-emerald-500/30 transition-colors group">
-                <CardContent className="p-6">
-                  <div className={`w-10 h-10 bg-${feature.color}-500/10 rounded flex items-center justify-center text-${feature.color}-500 mb-4 group-hover:scale-110 transition-transform`}>
-                    <feature.icon className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05, duration: 0.4 }}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className={`h-full bg-card/50 border-border ${feature.hoverBorder} ${feature.hoverShadow} transition-all duration-300 group`}>
+                  <CardContent className="p-6">
+                    <div className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center ${feature.iconColor} mb-4 group-hover:scale-110 transition-transform shadow-md`}>
+                      <feature.icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-24 border-t border-border bg-muted/30">
+      <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Как это работает</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Начните работу за 5 минут</h2>
+          <motion.div {...fadeInUp} className="text-center mb-12">
+            <Badge variant="secondary" className="mb-3">Как это работает</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Начните работу за 5 минут</h2>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-6">
@@ -745,12 +821,12 @@ export default function Home() {
       </section>
 
       {/* Migration Section */}
-      <section className="py-24 border-t border-border bg-background">
+      <section className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <Badge variant="secondary" className="mb-4">Миграция</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Миграция с других трекеров</h2>
+              <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Миграция с других трекеров</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Перенесите офферы, кампании, subID и историю конверсий за 10-15 минут. Без остановки трафика.
               </p>
@@ -866,11 +942,11 @@ export default function Home() {
       </Dialog>
 
       {/* Testimonials */}
-      <section className="py-24 border-t border-border bg-muted/30">
+      <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Отзывы</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Что говорят клиенты, которые реально работают с {platformName}</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Что говорят клиенты, которые реально работают с {platformName}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Не маркетинговые цитаты — а опыт использования
             </p>
@@ -943,13 +1019,13 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 border-t border-border bg-card/50">
+      <section id="pricing" className="py-16 border-t border-border bg-card/50">
         <div className="container px-4 mx-auto max-w-5xl">
           <div className="text-center mb-8">
             <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
               30 дней бесплатно
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Простые и честные тарифы</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Простые и честные тарифы</h2>
             <p className="text-muted-foreground">Никаких скрытых платежей. Безлимитный трафик.</p>
           </div>
 
@@ -1039,11 +1115,11 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-24 border-t border-border bg-background">
+      <section id="faq" className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">FAQ</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Часто задаваемые вопросы</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Часто задаваемые вопросы</h2>
           </div>
 
           {(() => {
@@ -1101,11 +1177,11 @@ export default function Home() {
       </section>
 
       {/* Contact Form */}
-      <section id="contact" className="py-24 border-t border-border bg-muted/30">
+      <section id="contact" className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto max-w-4xl">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Контакты</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Остались вопросы?</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Остались вопросы?</h2>
             <p className="text-muted-foreground">Напишите нам, и мы ответим в течение 24 часов</p>
           </motion.div>
 
@@ -1175,7 +1251,7 @@ export default function Home() {
       </section>
 
       {/* About Us */}
-      <section className="py-24 border-t border-border bg-background">
+      <section className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <motion.div {...fadeInUp}>
@@ -1208,11 +1284,11 @@ export default function Home() {
       </section>
 
       {/* Roadmap */}
-      <section className="py-24 border-t border-border bg-background">
+      <section className="py-16 border-t border-border bg-background">
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
               <Badge variant="secondary" className="mb-4">Развитие</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">План развития</h2>
+              <h2 className="text-3xl md:text-5xl font-extrabold mb-3">План развития</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Следите за нашим прогрессом и узнавайте о новых функциях, которые мы разрабатываем
               </p>
@@ -1278,11 +1354,11 @@ export default function Home() {
         </section>
 
       {/* Blog/News */}
-      <section className="py-24 border-t border-border bg-background">
+      <section className="py-16 border-t border-border bg-background">
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
               <Badge variant="secondary" className="mb-4">Новости</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Последние обновления</h2>
+              <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Последние обновления</h2>
             </motion.div>
 
             {newsLoading ? (
@@ -1364,11 +1440,11 @@ export default function Home() {
       </Dialog>
 
       {/* CTA Section */}
-      <section className="py-24 border-t border-border bg-gradient-to-b from-emerald-500/5 to-background">
+      <section className="py-16 border-t border-border bg-gradient-to-b from-emerald-500/5 to-background">
         <div className="container px-4 mx-auto text-center">
           <motion.div {...fadeInUp}>
             <Sparkles className="w-12 h-12 mx-auto mb-6 text-emerald-500" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Запустить трекинг за 5 минут</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-3">Запустить трекинг за 5 минут</h2>
             <p className="text-muted-foreground mb-4 max-w-xl mx-auto">
               Без карты. Без ограничений на тест. Регистрация за 1 минуту.
             </p>
