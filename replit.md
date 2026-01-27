@@ -9,8 +9,18 @@ Preferred communication style: Simple, everyday language (Russian).
 ## System Architecture
 
 ### UI/UX
-- **Frontend Technologies:** React, Vite, TailwindCSS, shadcn/ui, wouter.
+- **Frontend Technologies:** React, Vite, TailwindCSS, shadcn/ui, wouter, framer-motion.
 - **User Interface:** Role-based menu filtering ensures tailored user experiences.
+- **Landing Page Design:** Advanced visual effects including:
+  - Accent font (Space Grotesk) via `.font-display` class for headings
+  - Gradient text via `.gradient-text` class on key headings
+  - Noise texture overlay via `.noise-overlay` class on sections
+  - Animated gradient borders via `.gradient-border` class on cards
+  - Parallax scroll effects using `useScroll`/`useTransform` hooks
+  - 3D card transforms (rotateX/rotateY) on hover with perspective
+  - Icon morphing animations (scale/rotate) on hover
+  - Floating decorative elements with varied animation speeds
+  - Scroll-triggered animations with viewport margins ("-80px")
 
 ### Technical Implementations
 - **Authentication:** Email/password (bcrypt), session-based, mandatory TOTP 2FA for active users (QR code setup), admin-initiated 2FA reset.
