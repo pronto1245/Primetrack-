@@ -4335,7 +4335,7 @@ export async function registerRoutes(
         username: p.username, 
         email: p.email,
         shortId: p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-',
-        firstName: p.firstName || null
+        fullName: p.fullName || null
       })));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch publishers" });
@@ -5491,7 +5491,7 @@ export async function registerRoutes(
         username: p.username,
         email: p.email,
         shortId: p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-',
-        firstName: p.firstName || null,
+        fullName: p.fullName || null,
         status: p.status,
         createdAt: p.createdAt,
         advertiserId: p.advertiserId,

@@ -101,7 +101,7 @@ export function Reports({ role }: ReportsProps) {
   });
 
   // Fetch publishers list for filter (advertiser/admin only)
-  const { data: publishers = [] } = useQuery<{ id: string; username: string; email: string; shortId: string }[]>({
+  const { data: publishers = [] } = useQuery<{ id: string; username: string; email: string; shortId: string; fullName?: string | null }[]>({
     queryKey: ["/api/advertiser/publishers", role],
     queryFn: async () => {
       const endpoint = role === "admin" ? "/api/admin/publishers" : "/api/advertiser/publishers";
@@ -260,7 +260,7 @@ export function Reports({ role }: ReportsProps) {
                     { value: "all", label: "Все вебмастера" },
                     ...publishers.map((pub) => ({
                       value: pub.id,
-                      label: pub.shortId ? `${pub.shortId}${pub.firstName ? ` - ${pub.firstName}` : ''}` : '-',
+                      label: pub.shortId ? `${pub.shortId}${pub.fullName ? ` - ${pub.fullName}` : ''}` : '-',
                     })),
                   ]}
                 />
@@ -609,7 +609,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                       </button>
                     </td>
                     <td className="px-4 py-3 text-foreground">{click.offerName || click.offerId}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{click.publisherShortId ? `${click.publisherShortId}${click.publisherFirstName ? ` - ${click.publisherFirstName}` : ''}` : '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.publisherShortId ? `${click.publisherShortId}${click.publisherFullName ? ` - ${click.publisherFullName}` : ''}` : '-'}</td>
                     <td className="px-4 py-3">
                       <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
                         {click.geo || 'N/A'}
@@ -899,7 +899,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                         </span>
                       </td>
                       <td className="px-4 py-3 text-foreground">{conv.offerName || conv.offerId}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{conv.publisherShortId ? `${conv.publisherShortId}${conv.publisherFirstName ? ` - ${conv.publisherFirstName}` : ''}` : '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.publisherShortId ? `${conv.publisherShortId}${conv.publisherFullName ? ` - ${conv.publisherFullName}` : ''}` : '-'}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
                         ${payout.toFixed(2)}
                       </td>

@@ -39,7 +39,7 @@ interface StatsData {
     publisherId: string;
     publisherName: string;
     publisherShortId?: string;
-    publisherFirstName?: string | null;
+    publisherFullName?: string | null;
     clicks: number;
     conversions: number;
     advertiserCost: number;
@@ -522,7 +522,7 @@ export function AdvertiserDashboard() {
                 <tbody className="divide-y divide-white/5">
                   {stats.byPublisher.map((row) => (
                     <tr key={row.publisherId} className="hover:bg-muted transition-colors" data-testid={`row-publisher-${row.publisherId}`}>
-                      <td className="px-4 py-3 font-medium text-foreground">{row.publisherShortId ? `${row.publisherShortId}${row.publisherFirstName ? ` - ${row.publisherFirstName}` : ''}` : '-'}</td>
+                      <td className="px-4 py-3 font-medium text-foreground">{row.publisherShortId ? `${row.publisherShortId}${row.publisherFullName ? ` - ${row.publisherFullName}` : ''}` : '-'}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{row.conversions.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-red-400">{formatCurrency(row.advertiserCost)}</td>
