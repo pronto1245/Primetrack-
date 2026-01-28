@@ -1,0 +1,178 @@
+~/workspace$ gunzip -c backup.sql.gz | psql psql 'postgresql://neondb_owner:****************@ep-late-smoke-agsrbh2u-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+psql: error: connection to server at "helium" (172.31.69.3), port 5432 failed: FATAL:  password authentication failed for user "postgresql://neondb_owner:****************@ep-late-smoke-agsrbh"
+~/workspace$ gunzip -c backup.sql.gz | psql "postgresql://neondb_owner:npg_puP3fDeyZzN7@ep-late-smoke-agsrbh2u-pooler.c-2.eu-central-1.aws.n
+eon.tech/neondb?sslmode=require"
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+SET
+ERROR:  type "click_id_storage" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  type "invoice_status" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  type "postback_direction" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  type "publisher_tracker_type" already exists
+ERROR:  role "postgres" does not exist
+CREATE TYPE
+ERROR:  role "postgres" does not exist
+SET
+SET
+ERROR:  relation "acme_accounts" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "acme_challenges" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "advertiser_settings" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "advertiser_sources" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "advertiser_staff" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "advertiser_subscriptions" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "antifraud_logs" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "antifraud_metrics" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "antifraud_rules" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "clicks" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "conversion_fingerprints" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "conversions" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "crypto_payout_logs" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "crypto_payout_queue" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "custom_domains" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "daily_stats" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "data_migrations" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "exchange_api_keys" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "incoming_postback_configs" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "landings_short_id_seq" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "migration_history" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "news_posts" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "news_reads" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "notifications" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offer_access_requests" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offer_caps_stats" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offer_landing_variants" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offer_landings" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offer_postback_settings" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offers" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "offers_short_id_seq" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "password_reset_tokens" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "payment_methods" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "payout_requests" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "payouts" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "platform_api_key_usage_logs" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "platform_api_keys" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "platform_settings" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "platform_webhook_logs" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "platform_webhooks" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "player_sessions" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "postback_logs" already exists
+ERROR:  role "postgres" does not exist
+CREATE TABLE
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_advertisers" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_balances" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_invoice_items" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_invoices" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_offers" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_postback_endpoints" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_stats_cache" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "publisher_wallets" already exists
+ERROR:  role "postgres" does not exist
+CREATE TABLE
+ERROR:  role "postgres" does not exist
+ERROR:  relation "referral_earnings" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "roadmap_items" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "session" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "split_test_items" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "split_tests" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "subscription_payments" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "subscription_plans" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "support_conversations" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "support_messages" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "user_postback_settings" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "users" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "users_short_id_seq" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "velocity_counters" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "webhook_endpoints" already exists
+ERROR:  role "postgres" does not exist
+ERROR:  relation "webhook_logs" already exists
+ERROR:  role "postgres" does not exist
+COPY 1
+COPY 0
+ERROR:  insert or update on table "advertiser_settings" violates foreign key constraint "advertiser_settings_advertiser_id_users_id_fk"
+DETAIL:  Key (advertiser_id)=(18aa2cda-f743-41e8-a36b-9867b16f5a46) is not present in table "users".
+COPY 0
+ERROR:  duplicate key value violates unique constraint "advertiser_staff_email_unique"
+DETAIL:  Key (email)=(372591@mail.ru) already exists.
+CONTEXT:  COPY advertiser_staff, line 1
+ERROR:  insert or update on table "advertiser_subscriptions" violates foreign key constraint "advertiser_subscriptions_advertiser_id_users_id_fk"
+DETAIL:  Key (advertiser_id)=(18aa2cda-f743-41e8-a36b-9867b16f5a46) is not present in table "users".
+COPY 0
+COPY 0
+ERROR:  insert or update on table "antifraud_rules" violates foreign key constraint "antifraud_rules_advertiser_id_users_id_fk"
+DETAIL:  Key (advertiser_id)=(18aa2cda-f743-41e8-a36b-9867b16f5a46) is not present in table "users".
