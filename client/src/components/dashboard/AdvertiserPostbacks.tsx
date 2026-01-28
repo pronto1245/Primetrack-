@@ -5,14 +5,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Globe, Save, Play, CheckCircle, XCircle, 
   Loader2, ChevronDown, ChevronRight, RefreshCw, AlertCircle,
-  Copy, ArrowDownToLine, ArrowUpFromLine
+  Copy, ArrowDownToLine, ArrowUpFromLine, Eye
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ExportMenu } from "@/components/ui/export-menu";
+
+interface RawClick {
+  id: string;
+  createdAt: string;
+  rawOfferId: string | null;
+  rawLandingId: string | null;
+  rawPartnerId: string | null;
+  resolvedOfferId: string | null;
+  resolvedPublisherId: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  geo: string | null;
+  status: string;
+  rejectReason: string | null;
+  clickId: string | null;
+  offerName: string | null;
+  publisherName: string | null;
+  publisherShortId: string | null;
+  sub1: string | null;
+}
 
 interface PostbackSetting {
   id: string;
@@ -174,6 +195,21 @@ export function AdvertiserPostbacks() {
     );
   }
 
+  const [activeTab, setActiveTab] = useState("outgoing");
+  const [rawClicksPage, setRawClicksPage] = useState(0);
+
+  const { data: rawClicksData, isLoading: rawClicksLoading } = useQuery<{ data: RawClick[]; total: number }>({
+    queryKey: ["/api/advertiser/raw-clicks", rawClicksPage],
+    queryFn: async () => {
+      const res = await fetch(`/api/advertiser/raw-clicks?limit=50&offset=${rawClicksPage * 50}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: activeTab === "incoming",
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -190,6 +226,20 @@ export function AdvertiserPostbacks() {
           <Globe className="w-8 h-8 text-blue-400" />
         </div>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-muted mb-4">
+          <TabsTrigger value="outgoing" className="data-[state=active]:bg-background" data-testid="tab-outgoing">
+            <ArrowUpFromLine className="w-4 h-4 mr-2" />
+            Исходящие
+          </TabsTrigger>
+          <TabsTrigger value="incoming" className="data-[state=active]:bg-background" data-testid="tab-incoming">
+            <ArrowDownToLine className="w-4 h-4 mr-2" />
+            Входящие запросы
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="outgoing" className="space-y-6">
 
       <Card className="bg-card border-border p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -460,6 +510,124 @@ export function AdvertiserPostbacks() {
           </div>
         </Card>
       )}
+
+        </TabsContent>
+
+        <TabsContent value="incoming" className="space-y-6">
+          <Card className="bg-card border-border p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Eye className="w-5 h-5 text-amber-400" />
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Лог входящих запросов</h3>
+                <p className="text-xs text-muted-foreground">
+                  Все HTTP-запросы на отслеживание кликов (для диагностики потерь)
+                </p>
+              </div>
+            </div>
+
+            {rawClicksLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+              </div>
+            ) : rawClicksData?.data && rawClicksData.data.length > 0 ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
+                        <th className="px-4 py-3">Время</th>
+                        <th className="px-4 py-3">Статус</th>
+                        <th className="px-4 py-3">Оффер</th>
+                        <th className="px-4 py-3">Партнёр</th>
+                        <th className="px-4 py-3">GEO</th>
+                        <th className="px-4 py-3">IP</th>
+                        <th className="px-4 py-3">Sub1</th>
+                        <th className="px-4 py-3">Причина</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {rawClicksData.data.map((rc) => (
+                        <tr key={rc.id} className="hover:bg-muted" data-testid={`row-raw-click-${rc.id}`}>
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                            {new Date(rc.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-[10px] px-2 py-0.5 rounded ${
+                              rc.status === 'processed' 
+                                ? 'bg-emerald-500/20 text-emerald-400' 
+                                : rc.status === 'rejected'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-amber-500/20 text-amber-400'
+                            }`}>
+                              {rc.status === 'processed' ? 'OK' : rc.status === 'rejected' ? 'Отклонён' : 'Ожидание'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-foreground">
+                            {rc.offerName || rc.rawOfferId || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-foreground">
+                            {rc.publisherShortId && rc.publisherName 
+                              ? `${rc.publisherShortId} - ${rc.publisherName}`
+                              : rc.rawPartnerId || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {rc.geo || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {rc.ip || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground max-w-[100px] truncate">
+                            {rc.sub1 || '-'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {rc.rejectReason ? (
+                              <span className="text-red-400 text-[10px]">{rc.rejectReason}</span>
+                            ) : rc.clickId ? (
+                              <span className="text-emerald-400 text-[10px]">→ {rc.clickId.slice(0, 8)}...</span>
+                            ) : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Всего: {rawClicksData.total} записей
+                  </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={rawClicksPage === 0}
+                      onClick={() => setRawClicksPage(p => p - 1)}
+                      data-testid="button-prev-page"
+                    >
+                      Назад
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={(rawClicksPage + 1) * 50 >= rawClicksData.total}
+                      onClick={() => setRawClicksPage(p => p + 1)}
+                      data-testid="button-next-page"
+                    >
+                      Вперёд
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Eye className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <p>Нет входящих запросов</p>
+                <p className="text-xs mt-2">Запросы появятся при переходах по трекинг-ссылкам</p>
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
