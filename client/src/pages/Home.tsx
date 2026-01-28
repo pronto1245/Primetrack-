@@ -20,6 +20,52 @@ import {
   CheckCircle2, Circle, Play, MousePointerClick, Timer, Building2
 } from "lucide-react";
 import { useInView } from "framer-motion";
+
+// CountUp animation component (outside Home to preserve state)
+const CountUpValue = ({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) => {
+  const [count, setCount] = React.useState(0);
+  const [done, setDone] = React.useState(false);
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  
+  React.useEffect(() => {
+    if (isInView && !done) {
+      setDone(true);
+      let start = 0;
+      const end = value;
+      const duration = 2000;
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.floor(eased * end);
+        
+        setCount(current);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setCount(end);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [isInView, done, value]);
+  
+  const formatNumber = (num: number) => {
+    if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(0) + "K";
+    return num.toString();
+  };
+  
+  return <span ref={ref}>{prefix}{formatNumber(count)}{suffix}</span>;
+};
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -220,46 +266,6 @@ export default function Home() {
   const platformName = platformSettings?.platformName || t("brand");
   const supportEmail = platformSettings?.supportEmail || "support@example.com";
   
-  // CountUp animation component
-  const CountUpValue = ({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) => {
-    const [count, setCount] = useState(0);
-    const [hasAnimated, setHasAnimated] = useState(false);
-    const ref = React.useRef<HTMLSpanElement>(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
-    
-    useEffect(() => {
-      if (isInView && !hasAnimated) {
-        setHasAnimated(true);
-        const duration = 2000;
-        const steps = 60;
-        const increment = value / steps;
-        let current = 0;
-        let step = 0;
-        
-        const timer = setInterval(() => {
-          step++;
-          current += increment;
-          if (step >= steps || current >= value) {
-            setCount(value);
-            clearInterval(timer);
-          } else {
-            setCount(Math.floor(current));
-          }
-        }, duration / steps);
-        
-        return () => clearInterval(timer);
-      }
-    }, [isInView, hasAnimated]);
-    
-    const formatNumber = (num: number) => {
-      if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
-      if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
-      if (num >= 1000) return (num / 1000).toFixed(0) + "K";
-      return num.toString();
-    };
-    
-    return <span ref={ref}>{prefix}{formatNumber(count)}{suffix}</span>;
-  };
   const supportTelegram = platformSettings?.supportTelegram || "primetrack_support_bot";
   // Normalized handle without @ for URL construction
   const supportTelegramHandle = supportTelegram.replace(/^@/, "");
