@@ -1251,12 +1251,18 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-16 border-t border-border bg-background">
-        <div className="container px-4 mx-auto max-w-6xl">
-          <div className="text-center mb-16">
+      <section id="faq" className="py-20 border-t border-border bg-gradient-to-b from-background via-muted/10 to-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtOS45NDEgMC0xOCA4LjA1OS0xOCAxOHM4LjA1OSAxOCAxOCAxOGM5Ljk0MSAwIDE4LTguMDU5IDE4LTE4cy04LjA1OS0xOC0xOC0xOHptMCAzMmMtNy43MzIgMC0xNC02LjI2OC0xNC0xNHM2LjI2OC0xNCAxNC0xNCAxNCA2LjI2OCAxNCAxNC02LjI2OCAxNC0xNCAxNHoiIGZpbGwtb3BhY2l0eT0iLjAyIiBmaWxsPSIjZmZmIi8+PC9nPjwvc3ZnPg==')] opacity-50" />
+        <div className="container px-4 mx-auto max-w-6xl relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
             <Badge variant="secondary" className="mb-4">FAQ</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Часто задаваемые вопросы</h2>
-          </div>
+          </motion.div>
 
           {(() => {
             const faqItems = [
@@ -1284,26 +1290,58 @@ export default function Home() {
               <div className="grid md:grid-cols-2 gap-6">
                 <Accordion type="single" collapsible className="space-y-3">
                   {leftColumn.map((item, i) => (
-                    <AccordionItem key={i} value={`item-left-${i}`} className="border border-border rounded-lg px-5 bg-card/50">
-                      <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4">
-                        {item.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-sm pb-4">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.05, duration: 0.4 }}
+                    >
+                      <AccordionItem 
+                        value={`item-left-${i}`} 
+                        className="group border border-border/50 rounded-xl bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border hover:shadow-lg transition-all duration-300 overflow-hidden"
+                      >
+                        <div className="flex">
+                          <div className="w-1 bg-gradient-to-b from-emerald-500 to-cyan-500 opacity-0 group-data-[state=open]:opacity-100 transition-opacity duration-300" />
+                          <div className="flex-1 px-5">
+                            <AccordionTrigger className="text-left font-semibold hover:no-underline text-sm py-5 [&[data-state=open]>svg]:rotate-180">
+                              {item.q}
+                            </AccordionTrigger>
+                            <AccordionContent className="text-muted-foreground text-sm pb-5 leading-relaxed">
+                              {item.a}
+                            </AccordionContent>
+                          </div>
+                        </div>
+                      </AccordionItem>
+                    </motion.div>
                   ))}
                 </Accordion>
                 <Accordion type="single" collapsible className="space-y-3">
                   {rightColumn.map((item, i) => (
-                    <AccordionItem key={i} value={`item-right-${i}`} className="border border-border rounded-lg px-5 bg-card/50">
-                      <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4">
-                        {item.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-sm pb-4">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
+                    >
+                      <AccordionItem 
+                        value={`item-right-${i}`} 
+                        className="group border border-border/50 rounded-xl bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border hover:shadow-lg transition-all duration-300 overflow-hidden"
+                      >
+                        <div className="flex">
+                          <div className="w-1 bg-gradient-to-b from-emerald-500 to-cyan-500 opacity-0 group-data-[state=open]:opacity-100 transition-opacity duration-300" />
+                          <div className="flex-1 px-5">
+                            <AccordionTrigger className="text-left font-semibold hover:no-underline text-sm py-5 [&[data-state=open]>svg]:rotate-180">
+                              {item.q}
+                            </AccordionTrigger>
+                            <AccordionContent className="text-muted-foreground text-sm pb-5 leading-relaxed">
+                              {item.a}
+                            </AccordionContent>
+                          </div>
+                        </div>
+                      </AccordionItem>
+                    </motion.div>
                   ))}
                 </Accordion>
               </div>
