@@ -1251,64 +1251,141 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-16 border-t border-border bg-background">
-        <div className="container px-4 mx-auto max-w-6xl">
-          <div className="text-center mb-16">
+      <section id="faq" className="py-20 border-t border-border bg-gradient-to-b from-background to-muted/20">
+        <div className="container px-4 mx-auto max-w-5xl">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
             <Badge variant="secondary" className="mb-4">FAQ</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Часто задаваемые вопросы</h2>
-          </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-4 gradient-text">Часто задаваемые вопросы</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">Ответы на популярные вопросы о платформе</p>
+          </motion.div>
 
           {(() => {
-            const faqItems = [
-              { q: "Кто может зарегистрироваться в системе?", a: "Зарегистрироваться напрямую может только рекламодатель. Партнёры (арбитражники) регистрируются исключительно по персональной ссылке приглашения, которую создаёт рекламодатель в своём кабинете. Это сделано, чтобы рекламодатель контролировал, кто работает с его офферами, и исключить мусорный трафик." },
-              { q: "Как партнёру попасть в систему?", a: "Рекламодатель создаёт ссылку регистрации для партнёров и размещает её на своём сайте или отправляет партнёру напрямую. Других способов регистрации партнёров нет." },
-              { q: "Есть ли отдельные кабинеты для рекламодателя и партнёра?", a: "Да. Рекламодатель создаёт офферы, управляет партнёрами, настраивает постбеки, смотрит аналитику и финансы. Партнёр видит только доступные ему офферы, генерирует ссылки, смотрит свою статистику и доход — не видит других партнёров и данных рекла." },
-              { q: "Видят ли партнёры бренд платформы?", a: "Нет. Платформа работает в white-label режиме. Партнёры видят домен рекламодателя и его оформление. О существовании SaaS-платформы они даже не узнают." },
-              { q: "Что включено в бесплатный период?", a: "30 дней полного доступа ко всем функциям выбранного тарифа. Банковская карта не требуется, никаких автосписаний, можно отменить в любой момент. Вы спокойно тестируете систему в боевых условиях." },
-              { q: "Есть ли лимиты в бесплатном периоде?", a: "Нет. Функционал не урезается, ограничения только по тарифам после окончания trial." },
-              { q: "Как работает трекинг кликов?", a: "При каждом клике система мгновенно генерирует уникальный click_id, определяет GEO, устройство, браузер и сохраняет данные для аналитики и антифрода. Обработка кликов происходит в реальном времени." },
-              { q: "Как работает антифрод?", a: "Антифрод включён по умолчанию. Система анализирует IP-адреса (VPN/proxy/hosting), browser fingerprint, скорость и частоту кликов, подозрительные паттерны поведения. Фродовый трафик автоматически помечается и не учитывается в статистике и выплатах." },
-              { q: "Как работают постбеки?", a: "При каждой конверсии система автоматически отправляет postback (HTTP-запрос) на указанный URL. Поддерживается повторная отправка (retry) при ошибках, лог всех отправленных запросов и тестовый режим для проверки." },
-              { q: "Что если партнёр не использует постбек?", a: "Даже если партнёр не настроил постбек, система всё равно фиксирует клики, учитывает конверсии и считает статистику внутри платформы. Если постбек есть — данные передаются и наружу, и остаются у вас." },
-              { q: "Есть ли API доступ?", a: "Да. API доступен на тарифах Professional и Enterprise. Через API можно получать статистику, управлять офферами, работать с партнёрами и интегрировать внешние сервисы. Документация открывается после регистрации." },
-              { q: "Можно ли подключить свой домен?", a: "Да. Вы можете подключить любой свой домен для работы с партнёрами. SSL-сертификат выпускается автоматически (Let's Encrypt), настройка занимает 5–10 минут, партнёры работают только через ваш домен." },
-              { q: "Поддерживаются ли выплаты в криптовалюте?", a: "Да. Поддерживаются автоматические выплаты через Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX. Доступны холды, история выплат и ручное подтверждение." },
-              { q: "Можно ли добавить команду?", a: "Да. Вы можете добавить менеджеров, аналитиков и финансистов с разными уровнями доступа. Каждый видит только то, что ему разрешено." },
-              { q: "Подходит ли платформа для открытых CPA-сетей?", a: "Нет. Платформа создана для рекламодателей, private / in-house партнёрских программ, агентств и команд. Если вам нужна открытая CPA-сеть с публичной регистрацией — это не наш формат." },
-              { q: "Чем вы отличаетесь от Scaleo, Affise и Affilka?", a: "Проще и быстрее запуск, жёсткий контроль партнёров, встроенный антифрод без доплат, полноценный white-label, фокус на рекла, а не на «маркетплейс офферов»." },
+            const faqCategories = [
+              {
+                name: "Регистрация и доступ",
+                icon: UserPlus,
+                color: "from-emerald-500 to-cyan-500",
+                items: [
+                  { q: "Кто может зарегистрироваться в системе?", a: "Зарегистрироваться напрямую может только рекламодатель. Партнёры (арбитражники) регистрируются исключительно по персональной ссылке приглашения, которую создаёт рекламодатель в своём кабинете. Это сделано, чтобы рекламодатель контролировал, кто работает с его офферами, и исключить мусорный трафик." },
+                  { q: "Как партнёру попасть в систему?", a: "Рекламодатель создаёт ссылку регистрации для партнёров и размещает её на своём сайте или отправляет партнёру напрямую. Других способов регистрации партнёров нет." },
+                  { q: "Есть ли отдельные кабинеты для рекламодателя и партнёра?", a: "Да. Рекламодатель создаёт офферы, управляет партнёрами, настраивает постбеки, смотрит аналитику и финансы. Партнёр видит только доступные ему офферы, генерирует ссылки, смотрит свою статистику и доход — не видит других партнёров и данных рекла." },
+                  { q: "Видят ли партнёры бренд платформы?", a: "Нет. Платформа работает в white-label режиме. Партнёры видят домен рекламодателя и его оформление. О существовании SaaS-платформы они даже не узнают." },
+                ]
+              },
+              {
+                name: "Тарифы и оплата",
+                icon: CreditCard,
+                color: "from-violet-500 to-purple-500",
+                items: [
+                  { q: "Что включено в бесплатный период?", a: "30 дней полного доступа ко всем функциям выбранного тарифа. Банковская карта не требуется, никаких автосписаний, можно отменить в любой момент. Вы спокойно тестируете систему в боевых условиях." },
+                  { q: "Есть ли лимиты в бесплатном периоде?", a: "Нет. Функционал не урезается, ограничения только по тарифам после окончания trial." },
+                  { q: "Поддерживаются ли выплаты в криптовалюте?", a: "Да. Поддерживаются автоматические выплаты через Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX. Доступны холды, история выплат и ручное подтверждение." },
+                ]
+              },
+              {
+                name: "Трекинг и аналитика",
+                icon: BarChart3,
+                color: "from-blue-500 to-cyan-500",
+                items: [
+                  { q: "Как работает трекинг кликов?", a: "При каждом клике система мгновенно генерирует уникальный click_id, определяет GEO, устройство, браузер и сохраняет данные для аналитики и антифрода. Обработка кликов происходит в реальном времени." },
+                  { q: "Как работает антифрод?", a: "Антифрод включён по умолчанию. Система анализирует IP-адреса (VPN/proxy/hosting), browser fingerprint, скорость и частоту кликов, подозрительные паттерны поведения. Фродовый трафик автоматически помечается и не учитывается в статистике и выплатах." },
+                  { q: "Как работают постбеки?", a: "При каждой конверсии система автоматически отправляет postback (HTTP-запрос) на указанный URL. Поддерживается повторная отправка (retry) при ошибках, лог всех отправленных запросов и тестовый режим для проверки." },
+                  { q: "Что если партнёр не использует постбек?", a: "Даже если партнёр не настроил постбек, система всё равно фиксирует клики, учитывает конверсии и считает статистику внутри платформы. Если постбек есть — данные передаются и наружу, и остаются у вас." },
+                ]
+              },
+              {
+                name: "Настройка и интеграции",
+                icon: Settings,
+                color: "from-orange-500 to-amber-500",
+                items: [
+                  { q: "Есть ли API доступ?", a: "Да. API доступен на тарифах Professional и Enterprise. Через API можно получать статистику, управлять офферами, работать с партнёрами и интегрировать внешние сервисы. Документация открывается после регистрации." },
+                  { q: "Можно ли подключить свой домен?", a: "Да. Вы можете подключить любой свой домен для работы с партнёрами. SSL-сертификат выпускается автоматически (Let's Encrypt), настройка занимает 5–10 минут, партнёры работают только через ваш домен." },
+                  { q: "Можно ли добавить команду?", a: "Да. Вы можете добавить менеджеров, аналитиков и финансистов с разными уровнями доступа. Каждый видит только то, что ему разрешено." },
+                  { q: "Подходит ли платформа для открытых CPA-сетей?", a: "Нет. Платформа создана для рекламодателей, private / in-house партнёрских программ, агентств и команд. Если вам нужна открытая CPA-сеть с публичной регистрацией — это не наш формат." },
+                  { q: "Чем вы отличаетесь от Scaleo, Affise и Affilka?", a: "Проще и быстрее запуск, жёсткий контроль партнёров, встроенный антифрод без доплат, полноценный white-label, фокус на рекла, а не на «маркетплейс офферов»." },
+                ]
+              },
             ];
-            const half = Math.ceil(faqItems.length / 2);
-            const leftColumn = faqItems.slice(0, half);
-            const rightColumn = faqItems.slice(half);
+            
             return (
-              <div className="grid md:grid-cols-2 gap-6">
-                <Accordion type="single" collapsible className="space-y-3">
-                  {leftColumn.map((item, i) => (
-                    <AccordionItem key={i} value={`item-left-${i}`} className="border border-border rounded-lg px-5 bg-card/50">
-                      <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4">
-                        {item.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-sm pb-4">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                <Accordion type="single" collapsible className="space-y-3">
-                  {rightColumn.map((item, i) => (
-                    <AccordionItem key={i} value={`item-right-${i}`} className="border border-border rounded-lg px-5 bg-card/50">
-                      <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4">
-                        {item.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-sm pb-4">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+              <div className="space-y-6">
+                {faqCategories.map((category, catIdx) => (
+                  <motion.div
+                    key={catIdx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: catIdx * 0.1 }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-2 rounded-lg bg-gradient-to-br ${category.color}`}>
+                        <category.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-lg">{category.name}</h3>
+                    </div>
+                    
+                    <Accordion type="single" collapsible className="space-y-2">
+                      {category.items.map((item, i) => (
+                        <AccordionItem 
+                          key={i} 
+                          value={`cat-${catIdx}-item-${i}`} 
+                          className="group border-0 rounded-xl bg-card/50 hover:bg-card/80 transition-all duration-300 overflow-hidden"
+                        >
+                          <div className="flex">
+                            <div className={`w-1 bg-gradient-to-b ${category.color} opacity-0 group-data-[state=open]:opacity-100 transition-opacity`} />
+                            <div className="flex-1">
+                              <AccordionTrigger className="text-left font-medium hover:no-underline text-sm py-4 px-5 gap-4">
+                                <div className="flex items-center gap-3">
+                                  <span className={`text-xs font-mono bg-gradient-to-r ${category.color} bg-clip-text text-transparent`}>
+                                    {String(i + 1).padStart(2, '0')}
+                                  </span>
+                                  <span>{item.q}</span>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="text-muted-foreground text-sm pb-4 px-5 pl-14">
+                                {item.a}
+                              </AccordionContent>
+                            </div>
+                          </div>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </motion.div>
+                ))}
               </div>
             );
           })()}
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-12 text-center"
+          >
+            <div className="inline-flex items-center gap-4 px-6 py-4 rounded-2xl bg-gradient-to-r from-muted/50 to-muted/30 border border-border/50">
+              <div className="p-2 rounded-full bg-emerald-500/10">
+                <MessageCircle className="h-5 w-5 text-emerald-500" />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-sm">Не нашли ответ?</p>
+                <p className="text-xs text-muted-foreground">Напишите нам — ответим в течение 24 часов</p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => scrollToSection('contact')}
+                className="ml-2"
+              >
+                Связаться
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
 
