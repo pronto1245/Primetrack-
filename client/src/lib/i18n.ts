@@ -410,7 +410,13 @@ const resources = {
         },
         contactForm: {
           sending: "Sending...",
-          writeUs: "Or email us:"
+          writeUs: "Or email us:",
+          namePlaceholder: "John Doe",
+          messagePlaceholder: "Describe your question or request..."
+        },
+        news: {
+          title: "Latest Updates",
+          readMore: "Read more"
         },
         description: {
           tagline: "Affiliate platform for advertisers and publishers",
@@ -431,9 +437,6 @@ const resources = {
           savings: "Save 20%",
           perMonth: "/mo",
           perYear: "/yr"
-        },
-        news: {
-          readMore: "Read more"
         },
         whoFor: {
           title: "Who is {{platform}} for",
@@ -1057,7 +1060,13 @@ const resources = {
         },
         contactForm: {
           sending: "Отправка...",
-          writeUs: "Или напишите нам:"
+          writeUs: "Или напишите нам:",
+          namePlaceholder: "Иван Петров",
+          messagePlaceholder: "Опишите ваш вопрос или запрос..."
+        },
+        news: {
+          title: "Последние обновления",
+          readMore: "Подробнее"
         },
         description: {
           tagline: "Партнёрская платформа для рекламодателей и издателей",
@@ -1078,9 +1087,6 @@ const resources = {
           savings: "Экономия 20%",
           perMonth: "/мес",
           perYear: "/год"
-        },
-        news: {
-          readMore: "Читать далее"
         },
         whoFor: {
           title: "Кому подходит {{platform}}",
