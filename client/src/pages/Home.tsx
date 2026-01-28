@@ -17,7 +17,8 @@ import {
   CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle,
   UserPlus, Settings, TrendingUp, Send, Star, Quote, Newspaper,
   ChevronRight, Sparkles, Map, Rocket, Code, Loader2,
-  CheckCircle2, Circle, Play, MousePointerClick, Timer, Building2
+  CheckCircle2, Circle, Play, MousePointerClick, Timer, Building2,
+  Plus, Minus
 } from "lucide-react";
 import { useInView } from "framer-motion";
 
@@ -1287,63 +1288,73 @@ export default function Home() {
             const leftColumn = faqItems.slice(0, half);
             const rightColumn = faqItems.slice(half);
             return (
-              <div className="grid md:grid-cols-2 gap-6">
-                <Accordion type="single" collapsible className="space-y-3">
-                  {leftColumn.map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 15 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.05, duration: 0.4 }}
-                    >
-                      <AccordionItem 
-                        value={`item-left-${i}`} 
-                        className="group border border-border/50 rounded-xl bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border hover:shadow-lg transition-all duration-300 overflow-hidden"
+              <div className="p-6 md:p-8 rounded-2xl bg-card/20 backdrop-blur-md border border-white/10 shadow-xl">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Accordion type="single" collapsible className="space-y-3">
+                    {leftColumn.map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.05, duration: 0.4 }}
                       >
-                        <div className="flex">
-                          <div className="w-1 bg-gradient-to-b from-emerald-500 to-cyan-500 opacity-0 group-data-[state=open]:opacity-100 transition-opacity duration-300" />
-                          <div className="flex-1 px-5">
-                            <AccordionTrigger className="text-left font-semibold hover:no-underline text-sm py-5 [&[data-state=open]>svg]:rotate-180">
-                              {item.q}
-                            </AccordionTrigger>
-                            <AccordionContent className="text-muted-foreground text-sm pb-5 leading-relaxed">
-                              {item.a}
-                            </AccordionContent>
+                        <AccordionItem 
+                          value={`item-left-${i}`} 
+                          className="group border border-border/50 rounded-xl bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border transition-all duration-300 overflow-hidden data-[state=open]:shadow-[0_0_25px_rgba(16,185,129,0.15)] data-[state=open]:scale-[1.02] data-[state=open]:border-emerald-500/30"
+                        >
+                          <div className="flex">
+                            <div className="w-1 bg-gradient-to-b from-emerald-500 to-cyan-500 opacity-0 group-data-[state=open]:opacity-100 transition-opacity duration-300" />
+                            <div className="flex-1 px-5">
+                              <AccordionTrigger className="text-left font-semibold hover:no-underline text-base py-5 [&>svg]:hidden gap-4">
+                                <span className="flex-1">{item.q}</span>
+                                <div className="relative w-5 h-5 shrink-0">
+                                  <Plus className="absolute inset-0 h-5 w-5 text-emerald-500 transition-all duration-300 group-data-[state=open]:opacity-0 group-data-[state=open]:rotate-90" />
+                                  <Minus className="absolute inset-0 h-5 w-5 text-emerald-500 transition-all duration-300 opacity-0 group-data-[state=open]:opacity-100" />
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="text-muted-foreground text-sm pb-5 leading-relaxed">
+                                {item.a}
+                              </AccordionContent>
+                            </div>
                           </div>
-                        </div>
-                      </AccordionItem>
-                    </motion.div>
-                  ))}
-                </Accordion>
-                <Accordion type="single" collapsible className="space-y-3">
-                  {rightColumn.map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 15 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
-                    >
-                      <AccordionItem 
-                        value={`item-right-${i}`} 
-                        className="group border border-border/50 rounded-xl bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border hover:shadow-lg transition-all duration-300 overflow-hidden"
+                        </AccordionItem>
+                      </motion.div>
+                    ))}
+                  </Accordion>
+                  <Accordion type="single" collapsible className="space-y-3">
+                    {rightColumn.map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
                       >
-                        <div className="flex">
-                          <div className="w-1 bg-gradient-to-b from-emerald-500 to-cyan-500 opacity-0 group-data-[state=open]:opacity-100 transition-opacity duration-300" />
-                          <div className="flex-1 px-5">
-                            <AccordionTrigger className="text-left font-semibold hover:no-underline text-sm py-5 [&[data-state=open]>svg]:rotate-180">
-                              {item.q}
-                            </AccordionTrigger>
-                            <AccordionContent className="text-muted-foreground text-sm pb-5 leading-relaxed">
-                              {item.a}
-                            </AccordionContent>
+                        <AccordionItem 
+                          value={`item-right-${i}`} 
+                          className="group border border-border/50 rounded-xl bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border transition-all duration-300 overflow-hidden data-[state=open]:shadow-[0_0_25px_rgba(16,185,129,0.15)] data-[state=open]:scale-[1.02] data-[state=open]:border-emerald-500/30"
+                        >
+                          <div className="flex">
+                            <div className="w-1 bg-gradient-to-b from-emerald-500 to-cyan-500 opacity-0 group-data-[state=open]:opacity-100 transition-opacity duration-300" />
+                            <div className="flex-1 px-5">
+                              <AccordionTrigger className="text-left font-semibold hover:no-underline text-base py-5 [&>svg]:hidden gap-4">
+                                <span className="flex-1">{item.q}</span>
+                                <div className="relative w-5 h-5 shrink-0">
+                                  <Plus className="absolute inset-0 h-5 w-5 text-emerald-500 transition-all duration-300 group-data-[state=open]:opacity-0 group-data-[state=open]:rotate-90" />
+                                  <Minus className="absolute inset-0 h-5 w-5 text-emerald-500 transition-all duration-300 opacity-0 group-data-[state=open]:opacity-100" />
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="text-muted-foreground text-sm pb-5 leading-relaxed">
+                                {item.a}
+                              </AccordionContent>
+                            </div>
                           </div>
-                        </div>
-                      </AccordionItem>
-                    </motion.div>
-                  ))}
-                </Accordion>
+                        </AccordionItem>
+                      </motion.div>
+                    ))}
+                  </Accordion>
+                </div>
               </div>
             );
           })()}
