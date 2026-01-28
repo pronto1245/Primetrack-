@@ -536,15 +536,6 @@ const resources = {
           title: "Everything for managing affiliate programs",
           subtitle: "Full toolkit for advertisers"
         },
-        howItWorks: {
-          title: "Get started in 5 minutes",
-          steps: {
-            register: { title: "Register", desc: "Create an account, verify email. No card required." },
-            createOffer: { title: "Create Offer", desc: "Add tracking link, configure payouts and GEO." },
-            invitePartners: { title: "Invite Partners", desc: "Generate registration links for affiliates." },
-            trackResults: { title: "Track Results", desc: "Watch real-time clicks and conversions." }
-          }
-        },
         migration: {
           title: "Migration from other trackers",
           subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping traffic.",
@@ -572,10 +563,6 @@ const resources = {
           team: "Team",
           customDomain: "Custom domain",
           popular: "Popular"
-        },
-        contactForm: {
-          namePlaceholder: "John Doe",
-          messagePlaceholder: "Describe your question or request..."
         },
         faq: {
           title: "Frequently Asked Questions",
@@ -632,31 +619,12 @@ const resources = {
           title: "Development Plan",
           subtitle: "Follow our progress and learn about new features we're developing"
         },
-        news: {
-          title: "Latest Updates"
-        },
         cta: {
           title: "Launch tracking in 5 minutes",
           subtitle1: "No card. No test limits. Registration in 1 minute.",
           subtitle2: "Join hundreds of advertisers already using {{platform}}",
           register: "Create free account",
           login: "Log in"
-        },
-        footerNav: {
-          navigation: "Navigation",
-          features: "Advantages",
-          pricing: "Pricing",
-          faq: "FAQ",
-          contact: "Contacts",
-          capabilities: "Capabilities",
-          clickTracking: "Click Tracking",
-          postbackIntegration: "Postback Integration",
-          antifraudSystem: "Anti-Fraud System",
-          detailedStats: "Detailed Statistics",
-          account: "Account",
-          register: "Register",
-          login: "Login",
-          support: "Support"
         }
       }
     }
@@ -1215,20 +1183,6 @@ const resources = {
           title: "Всё для управления партнёрками",
           subtitle: "Полный набор инструментов для рекламодателей"
         },
-        howItWorks: {
-          title: "Начните работу за 5 минут",
-          steps: {
-            register: { title: "Регистрация", desc: "Создайте аккаунт, подтвердите email. Карта не нужна." },
-            createOffer: { title: "Создайте оффер", desc: "Добавьте ссылку трекинга, настройте выплаты и ГЕО." },
-            invitePartners: { title: "Пригласите партнёров", desc: "Сгенерируйте ссылки регистрации для вебов." },
-            trackResults: { title: "Следите за результатами", desc: "Смотрите клики и конверсии в реальном времени." }
-          }
-        },
-        migration: {
-          title: "Миграция с других трекеров",
-          subtitle: "Перенесите офферы, кампании, subID и историю конверсий за 10-15 минут. Без остановки трафика.",
-          features: { dataTypes: "Типы данных", importMethods: "Способы импорта", support: "Поддержка" }
-        },
         testimonials: {
           title: "Что говорят клиенты, которые реально работают с {{platform}}",
           subtitle: "Не маркетинговые цитаты — а опыт использования",
@@ -1251,10 +1205,6 @@ const resources = {
           team: "Команда",
           customDomain: "Кастомный домен",
           popular: "Популярный"
-        },
-        contactForm: {
-          namePlaceholder: "Иван Петров",
-          messagePlaceholder: "Опишите ваш вопрос или запрос..."
         },
         faq: {
           title: "Часто задаваемые вопросы",
@@ -1311,31 +1261,12 @@ const resources = {
           title: "План развития",
           subtitle: "Следите за нашим прогрессом и узнавайте о новых функциях, которые мы разрабатываем"
         },
-        news: {
-          title: "Последние обновления"
-        },
         cta: {
           title: "Запустить трекинг за 5 минут",
           subtitle1: "Без карты. Без ограничений на тест. Регистрация за 1 минуту.",
           subtitle2: "Присоединяйтесь к сотням рекламодателей, которые уже используют {{platform}}",
           register: "Создать аккаунт бесплатно",
           login: "Войти в аккаунт"
-        },
-        footerNav: {
-          navigation: "Навигация",
-          features: "Преимущества",
-          pricing: "Тарифы",
-          faq: "FAQ",
-          contact: "Контакты",
-          capabilities: "Возможности",
-          clickTracking: "Отслеживание кликов",
-          postbackIntegration: "Postback интеграция",
-          antifraudSystem: "Антифрод система",
-          detailedStats: "Детальная статистика",
-          account: "Аккаунт",
-          register: "Регистрация",
-          login: "Вход",
-          support: "Поддержка"
         }
       }
     }
