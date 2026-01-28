@@ -1260,8 +1260,7 @@ export default function Home() {
             className="text-center mb-12"
           >
             <Badge variant="secondary" className="mb-4">FAQ</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-4 gradient-text">Часто задаваемые вопросы</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">Ответы на популярные вопросы о платформе</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3 gradient-text">Часто задаваемые вопросы</h2>
           </motion.div>
 
           {(() => {
