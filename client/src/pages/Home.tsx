@@ -17,8 +17,9 @@ import {
   CreditCard, Bell, FileText, ArrowUpRight, Mail, MessageCircle,
   UserPlus, Settings, TrendingUp, Send, Star, Quote, Newspaper,
   ChevronRight, Sparkles, Map, Rocket, Code, Loader2,
-  CheckCircle2, Circle, Play
+  CheckCircle2, Circle, Play, MousePointerClick, Timer, Building2
 } from "lucide-react";
+import { useInView } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -218,6 +219,43 @@ export default function Home() {
 
   const platformName = platformSettings?.platformName || t("brand");
   const supportEmail = platformSettings?.supportEmail || "support@example.com";
+  
+  // CountUp animation component
+  const CountUpValue = ({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) => {
+    const [count, setCount] = useState(0);
+    const ref = React.useRef<HTMLSpanElement>(null);
+    const isInView = useInView(ref, { once: true, margin: "-100px" });
+    
+    useEffect(() => {
+      if (isInView) {
+        const duration = 2000;
+        const steps = 60;
+        const increment = value / steps;
+        let current = 0;
+        
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= value) {
+            setCount(value);
+            clearInterval(timer);
+          } else {
+            setCount(Math.floor(current));
+          }
+        }, duration / steps);
+        
+        return () => clearInterval(timer);
+      }
+    }, [isInView, value]);
+    
+    const formatNumber = (num: number) => {
+      if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+      if (num >= 1000) return (num / 1000).toFixed(0) + "K";
+      return num.toString();
+    };
+    
+    return <span ref={ref}>{prefix}{formatNumber(count)}{suffix}</span>;
+  };
   const supportTelegram = platformSettings?.supportTelegram || "primetrack_support_bot";
   // Normalized handle without @ for URL construction
   const supportTelegramHandle = supportTelegram.replace(/^@/, "");
@@ -460,19 +498,75 @@ export default function Home() {
       </section>
 
       {/* Stats Strip */}
-      <section className="border-b border-border bg-muted/50">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+      <section className="border-y border-border/50 bg-gradient-to-r from-background via-muted/30 to-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 via-transparent to-transparent" />
+        <div className="container mx-auto relative">
+          <div className="grid grid-cols-2 md:grid-cols-4">
             {[
-              { label: "Кликов обработано", value: "1.2B+" },
-              { label: "Доступность", value: "99.99%" },
-              { label: "Скорость отклика", value: "< 5ms" },
-              { label: "Рекламодателей", value: "500+" },
+              { 
+                label: "Кликов обработано", 
+                numValue: 1200000000,
+                suffix: "+",
+                icon: MousePointerClick,
+                color: "from-emerald-400 to-cyan-400"
+              },
+              { 
+                label: "Доступность", 
+                displayValue: "99.99%",
+                icon: Activity,
+                color: "from-green-400 to-emerald-400",
+                isLive: true
+              },
+              { 
+                label: "Скорость отклика", 
+                displayValue: "< 5ms",
+                icon: Timer,
+                color: "from-cyan-400 to-blue-400"
+              },
+              { 
+                label: "Рекламодателей", 
+                numValue: 500,
+                suffix: "+",
+                icon: Building2,
+                color: "from-violet-400 to-purple-400"
+              },
             ].map((stat, i) => (
-              <div key={i} className="py-6 px-4 text-center hover:bg-muted transition-colors">
-                <div className="text-2xl md:text-3xl font-mono font-bold text-foreground mb-1">{stat.value}</div>
-                <div className="text-xs font-mono text-emerald-500/70 uppercase tracking-widest">{stat.label}</div>
-              </div>
+              <motion.div 
+                key={i} 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                className="group relative py-8 px-4 text-center transition-all duration-300 hover:bg-muted/50"
+              >
+                {i < 3 && <div className="absolute right-0 top-1/2 -translate-y-1/2 h-12 w-px bg-gradient-to-b from-transparent via-border to-transparent hidden md:block" />}
+                
+                <div className="flex flex-col items-center gap-3">
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${stat.color} bg-opacity-10 group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className="h-5 w-5 text-white/90" />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {stat.isLive && (
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                      </span>
+                    )}
+                    <div className={`text-3xl md:text-4xl font-bold font-mono bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                      {stat.numValue ? (
+                        <CountUpValue value={stat.numValue} suffix={stat.suffix} />
+                      ) : (
+                        stat.displayValue
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {stat.label}
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
