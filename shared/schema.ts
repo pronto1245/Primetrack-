@@ -24,7 +24,6 @@ export const users = pgTable("users", {
   contactType: text("contact_type"), 
   contactValue: text("contact_value"),
   fullName: text("full_name"),
-  firstName: text("first_name"),
   
   // 2FA Settings
   twoFactorEnabled: boolean("two_factor_enabled").default(false),

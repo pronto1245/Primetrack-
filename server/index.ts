@@ -41,14 +41,6 @@ export function log(message: string, source = "express") {
 }
 
 (async () => {
-  // Auto-migration: ensure first_name column exists
-  try {
-    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT`);
-    console.log("[migration] first_name column ensured");
-  } catch (e) {
-    console.log("[migration] first_name migration skipped or already exists");
-  }
-
   // CRITICAL: Register routes FIRST (includes session middleware)
   // before any middleware that overrides res.json/res.end
   await registerRoutes(httpServer, app);
