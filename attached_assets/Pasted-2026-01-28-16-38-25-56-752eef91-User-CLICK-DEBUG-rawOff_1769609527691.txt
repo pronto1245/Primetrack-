@@ -1,0 +1,100 @@
+2026-01-28 16:38:25.56
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+2026-01-28 16:38:25.63
+752eef91
+User
+[CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+2026-01-28 16:38:25.94
+752eef91
+User
+[buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=ecf0239c-4d09-4959-a40d-7870dafe080c, clickIdParam=external_id
+2026-01-28 16:38:25.94
+752eef91
+User
+[buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=ecf0239c-4d09-4959-a40d-7870dafe080c, clickIdReplaced=false
+2026-01-28 16:38:27.71
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+2026-01-28 16:38:27.77
+752eef91
+User
+[CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+2026-01-28 16:38:28.09
+752eef91
+User
+[buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=509f61ae-e347-4c09-9682-0fd78c0653be, clickIdParam=external_id
+2026-01-28 16:38:28.09
+752eef91
+User
+[buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=509f61ae-e347-4c09-9682-0fd78c0653be, clickIdReplaced=false
+2026-01-28 16:38:40.86
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+2026-01-28 16:38:40.93
+752eef91
+User
+[CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+2026-01-28 16:38:41.27
+752eef91
+User
+[buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=5957621c-19b2-4566-b104-ee1dbc230e04, clickIdParam=external_id
+2026-01-28 16:38:41.27
+752eef91
+User
+[buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=5957621c-19b2-4566-b104-ee1dbc230e04, clickIdReplaced=false
+2026-01-28 16:38:50.98
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+2026-01-28 16:38:51.04
+752eef91
+User
+[CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+2026-01-28 16:38:51.38
+752eef91
+User
+[buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=39a80311-e140-40e2-b71d-78becd3c0661, clickIdParam=external_id
+2026-01-28 16:38:51.38
+752eef91
+User
+[buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=39a80311-e140-40e2-b71d-78becd3c0661, clickIdReplaced=false
+2026-01-28 16:38:59.72
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+2026-01-28 16:38:59.78
+752eef91
+User
+[CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+2026-01-28 16:39:00.11
+752eef91
+User
+[buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=06833bb1-783e-407b-b276-c0a81400b0f8, clickIdReplaced=false
+2026-01-28 16:39:00.11
+752eef91
+User
+[buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=06833bb1-783e-407b-b276-c0a81400b0f8, clickIdParam=external_id
+2026-01-28 16:39:05.55
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+2026-01-28 16:39:05.62
+752eef91
+User
+[CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+2026-01-28 16:39:05.96
+752eef91
+User
+[buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=a9f0211b-b8cf-40ef-8f94-91ff361f7d2f, clickIdReplaced=false
+2026-01-28 16:39:05.96
+752eef91
+User
+[buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=a9f0211b-b8cf-40ef-8f94-91ff361f7d2f, clickIdParam=external_id
+2026-01-28 16:39:06.21
+752eef91
+User
+[CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
