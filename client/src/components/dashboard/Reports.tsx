@@ -101,7 +101,7 @@ export function Reports({ role }: ReportsProps) {
   });
 
   // Fetch publishers list for filter (advertiser/admin only)
-  const { data: publishers = [] } = useQuery<{ id: string; username: string; email: string }[]>({
+  const { data: publishers = [] } = useQuery<{ id: string; username: string; email: string; shortId: string }[]>({
     queryKey: ["/api/advertiser/publishers", role],
     queryFn: async () => {
       const endpoint = role === "admin" ? "/api/admin/publishers" : "/api/advertiser/publishers";
@@ -260,7 +260,7 @@ export function Reports({ role }: ReportsProps) {
                     { value: "all", label: "Все вебмастера" },
                     ...publishers.map((pub) => ({
                       value: pub.id,
-                      label: pub.username || pub.email,
+                      label: pub.shortId || '-',
                     })),
                   ]}
                 />

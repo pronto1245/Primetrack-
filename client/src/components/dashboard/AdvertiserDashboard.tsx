@@ -64,6 +64,7 @@ interface Publisher {
   id: string;
   username: string;
   email: string;
+  shortId: string;
 }
 
 interface Offer {
@@ -265,7 +266,7 @@ export function AdvertiserDashboard() {
                   <SelectContent className="bg-input border-border">
                     <SelectItem value="all">{t('dashboard.publishers.all')}</SelectItem>
                     {publishers.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.username}</SelectItem>
+                      <SelectItem key={p.id} value={p.id}>{p.shortId || '-'}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
