@@ -143,26 +143,26 @@ export default function Home() {
   const fallbackNews = [
     {
       id: "1",
-      title: "Новая система антифрода 2.0",
-      category: "Обновление",
-      shortDescription: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
-      body: "Мы рады представить обновлённую систему антифрода версии 2.0! Теперь платформа использует алгоритмы машинного обучения для анализа паттернов трафика в реальном времени. Система способна выявлять: бот-трафик и автоматизированные клики, прокси и VPN соединения, подозрительные fingerprints устройств, аномальные паттерны поведения пользователей.",
+      title: t('fallbackNews.news1.title'),
+      category: t('fallbackNews.news1.category'),
+      shortDescription: t('fallbackNews.news1.shortDesc'),
+      body: t('fallbackNews.news1.body'),
       createdAt: "2026-01-15T00:00:00Z"
     },
     {
       id: "2",
-      title: "Интеграция с Binance Pay",
-      category: "Интеграция",
-      shortDescription: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
-      body: "Мы интегрировали Binance Pay для быстрых и безкомиссионных выплат партнёрам! Теперь вы можете: отправлять выплаты в USDT, BTC, ETH и других криптовалютах, экономить на комиссиях за переводы, получать мгновенное подтверждение транзакций.",
+      title: t('fallbackNews.news2.title'),
+      category: t('fallbackNews.news2.category'),
+      shortDescription: t('fallbackNews.news2.shortDesc'),
+      body: t('fallbackNews.news2.body'),
       createdAt: "2026-01-10T00:00:00Z"
     },
     {
       id: "3",
-      title: "Telegram бот для уведомлений",
-      category: "Фича",
-      shortDescription: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
-      body: "Представляем нового Telegram бота для уведомлений! Подключите бота к своему аккаунту и получайте мгновенные уведомления о: новых лидах и продажах, запросах на выплату от партнёров, важных системных событиях.",
+      title: t('fallbackNews.news3.title'),
+      category: t('fallbackNews.news3.category'),
+      shortDescription: t('fallbackNews.news3.shortDesc'),
+      body: t('fallbackNews.news3.body'),
       createdAt: "2026-01-05T00:00:00Z"
     }
   ];
@@ -170,22 +170,22 @@ export default function Home() {
   const fallbackRoadmap = [
     {
       id: "1",
-      title: "Интеграция AI-антифрода",
-      description: "Машинное обучение для определения фродового трафика в реальном времени",
+      title: t('fallbackRoadmap.item1.title'),
+      description: t('fallbackRoadmap.item1.desc'),
       quarter: "Q1 2026",
       status: "in_progress"
     },
     {
       id: "2",
-      title: "Мобильное приложение",
-      description: "Нативные приложения для iOS и Android с push-уведомлениями",
+      title: t('fallbackRoadmap.item2.title'),
+      description: t('fallbackRoadmap.item2.desc'),
       quarter: "Q2 2026",
       status: "planned"
     },
     {
       id: "3",
-      title: "Расширенная аналитика",
-      description: "Дашборды с детальной статистикой и прогнозами на основе ML",
+      title: t('fallbackRoadmap.item3.title'),
+      description: t('fallbackRoadmap.item3.desc'),
       quarter: "Q3 2026",
       status: "planned"
     }
@@ -212,10 +212,10 @@ export default function Home() {
   const displayRoadmap = normalizedRoadmap.length > 0 ? normalizedRoadmap : fallbackRoadmap;
 
   const categoryIcons: Record<string, any> = {
-    "Обновление": ShieldCheck,
-    "Интеграция": CreditCard,
-    "Фича": Bell,
-    "Новость": Newspaper,
+    [t('categoryLabels.update')]: ShieldCheck,
+    [t('categoryLabels.integration')]: CreditCard,
+    [t('categoryLabels.feature')]: Bell,
+    [t('categoryLabels.news')]: Newspaper,
   };
 
   const getNewsIcon = (category: string) => categoryIcons[category] || Newspaper;
@@ -270,7 +270,7 @@ export default function Home() {
   const supportTelegram = platformSettings?.supportTelegram || "primetrack_support_bot";
   // Normalized handle without @ for URL construction
   const supportTelegramHandle = supportTelegram.replace(/^@/, "");
-  const copyrightText = platformSettings?.copyrightText || `© ${new Date().getFullYear()} ${platformName}. Все права защищены.`;
+  const copyrightText = platformSettings?.copyrightText || t('copyright', { year: new Date().getFullYear(), name: platformName });
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -385,7 +385,7 @@ export default function Home() {
                 onClick={() => scrollToSection('pricing')}
                 data-testid="button-hero-pricing"
               >
-                Смотреть тарифы
+                {t('landing.whoFor.viewPricing')}
               </Button>
             </motion.div>
 
@@ -592,7 +592,7 @@ export default function Home() {
           </motion.div>
           <motion.div {...fadeInUp} className="text-center mb-10 max-w-2xl mx-auto">
             <p className="text-muted-foreground leading-relaxed">
-              {platformName} — это рабочий инструмент для тех, кто каждый день заливает трафик и считает деньги. Мы не пытались сделать универсальный сервис «для всех». Он сделан под конкретные задачи.
+              {t('landing.whoFor.intro', { platform: platformName })}
             </p>
           </motion.div>
 
@@ -613,17 +613,17 @@ export default function Home() {
                     >
                       <TrendingUp className="w-8 h-8 text-emerald-400" />
                     </motion.div>
-                    <h3 className="text-xl font-bold mb-3 font-display">Арбитражникам</h3>
+                    <h3 className="text-xl font-bold mb-3 font-display">{t('landing.whoFor.affiliates.title')}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {platformName} позволяет контролировать каждый этап — от клика до депозита.
+                      {t('landing.whoFor.affiliates.desc', { platform: platformName })}
                     </p>
-                    <p className="text-muted-foreground text-sm mb-2">Вы получаете:</p>
+                    <p className="text-muted-foreground text-sm mb-2">{t('landing.whoFor.affiliates.youGet')}</p>
                     <ul className="space-y-2">
-                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживание кликов, лидов и депозитов</li>
-                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />детальную статистику по subID (sub1–sub10)</li>
-                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />быстрый запуск и масштабирование рабочих связок</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.affiliates.item1')}</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.affiliates.item2')}</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.affiliates.item3')}</li>
                     </ul>
-                    <p className="text-muted-foreground text-sm mt-4">Вся статистика доступна в одном месте, без лишних экранов и отчётов.</p>
+                    <p className="text-muted-foreground text-sm mt-4">{t('landing.whoFor.affiliates.footer')}</p>
                   </CardContent>
                 </Card>
               </Tilt3DCard>
@@ -645,17 +645,17 @@ export default function Home() {
                     >
                       <Users className="w-8 h-8 text-blue-400" />
                     </motion.div>
-                    <h3 className="text-xl font-bold mb-3 font-display">Командам и медиабаерам</h3>
+                    <h3 className="text-xl font-bold mb-3 font-display">{t('landing.whoFor.teams.title')}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    {platformName} удобно использовать в команде, когда с трафиком работает несколько человек.
+                    {t('landing.whoFor.teams.desc', { platform: platformName })}
                   </p>
-                  <p className="text-muted-foreground text-sm mb-2">Платформа позволяет:</p>
+                  <p className="text-muted-foreground text-sm mb-2">{t('landing.whoFor.teams.platformAllows')}</p>
                   <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />создавать несколько аккаунтов и проектов</li>
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />разграничивать доступы между участниками</li>
-                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />смотреть общую статистику по источникам и кампаниям</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.teams.item1')}</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.teams.item2')}</li>
+                    <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.teams.item3')}</li>
                   </ul>
-                    <p className="text-muted-foreground text-sm mt-4">Это упрощает контроль работы команды и даёт прозрачную картину по результатам.</p>
+                    <p className="text-muted-foreground text-sm mt-4">{t('landing.whoFor.teams.footer')}</p>
                   </CardContent>
                 </Card>
               </Tilt3DCard>
@@ -677,17 +677,17 @@ export default function Home() {
                     >
                       <Globe className="w-8 h-8 text-purple-400" />
                     </motion.div>
-                    <h3 className="text-xl font-bold mb-3 font-display">Партнёрским программам</h3>
+                    <h3 className="text-xl font-bold mb-3 font-display">{t('landing.whoFor.partners.title')}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      {platformName} подходит для учёта и контроля партнёрского трафика.
+                      {t('landing.whoFor.partners.desc', { platform: platformName })}
                     </p>
-                    <p className="text-muted-foreground text-sm mb-2">Вы можете:</p>
+                    <p className="text-muted-foreground text-sm mb-2">{t('landing.whoFor.partners.youCan')}</p>
                     <ul className="space-y-2">
-                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />отслеживать клики, лиды и конверсии</li>
-                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />работать со своими офферами и postback</li>
-                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />контролировать качество трафика и выявлять подозрительную активность</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.partners.item1')}</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.partners.item2')}</li>
+                      <li className="flex items-start gap-2 text-muted-foreground text-sm"><Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />{t('landing.whoFor.partners.item3')}</li>
                     </ul>
-                    <p className="text-muted-foreground text-sm mt-4">Система помогает видеть, откуда приходит трафик и как он конвертируется.</p>
+                    <p className="text-muted-foreground text-sm mt-4">{t('landing.whoFor.partners.footer')}</p>
                   </CardContent>
                 </Card>
               </Tilt3DCard>
@@ -718,11 +718,11 @@ export default function Home() {
                   <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center shadow-md">
                     <Zap className="w-6 h-6 text-amber-400" />
                   </div>
-                  <h3 className="text-lg font-bold mb-3">Без лишних модулей</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.advantages.cards.noModules.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>В большинстве трекеров много функций, которые выглядят полезно на демо, но в реальном заливе не используются.</p>
-                    <p>В {platformName} мы оставили только то, что действительно нужно каждый день: офферы, кампании, subID, postback, статистику и фильтры.</p>
-                    <p>Нет CRM-логики, сложных ролей и многоуровневых сценариев — только трекинг и контроль трафика.</p>
+                    <p>{t('landing.advantages.cards.noModules.p1')}</p>
+                    <p>{t('landing.advantages.cards.noModules.p2', { platform: platformName })}</p>
+                    <p>{t('landing.advantages.cards.noModules.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -740,11 +740,11 @@ export default function Home() {
                   <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center shadow-md">
                     <Clock className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <h3 className="text-lg font-bold mb-3">Быстрый старт</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.advantages.cards.quickStart.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>Мы сознательно убрали сложный онбординг.</p>
-                    <p>После регистрации вы сразу можете создать оффер, сгенерировать ссылку и начать лить трафик. В среднем на первый запуск уходит не больше 5 минут.</p>
-                    <p>Никаких обязательных интеграций и долгих предварительных настроек.</p>
+                    <p>{t('landing.advantages.cards.quickStart.p1')}</p>
+                    <p>{t('landing.advantages.cards.quickStart.p2')}</p>
+                    <p>{t('landing.advantages.cards.quickStart.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -762,10 +762,10 @@ export default function Home() {
                   <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-500/5 flex items-center justify-center shadow-md">
                     <Terminal className="w-6 h-6 text-pink-400" />
                   </div>
-                  <h3 className="text-lg font-bold mb-3">Простая логика</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.advantages.cards.simpleLogic.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>Интерфейс сделан так, чтобы в нём не нужно было разбираться. Все основные действия находятся там, где их ожидаешь увидеть.</p>
-                    <p>Если вы уже работали с трекерами, {platformName} будет понятен с первого входа — без обучения и чтения документации.</p>
+                    <p>{t('landing.advantages.cards.simpleLogic.p1')}</p>
+                    <p>{t('landing.advantages.cards.simpleLogic.p2', { platform: platformName })}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -783,11 +783,11 @@ export default function Home() {
                   <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center shadow-md">
                     <TrendingUp className="w-6 h-6 text-emerald-400" />
                   </div>
-                  <h3 className="text-lg font-bold mb-3">Заточено под арбитраж</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.advantages.cards.affiliate.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>{platformName} разрабатывался под реальные сценарии залива трафика.</p>
-                    <p>Мы ориентируемся на push-источники, gambling и betting-офферы, работу с CPA и RevShare моделями.</p>
-                    <p>Система корректно принимает и передаёт postback, поддерживает работу с subID и даёт полную картину по кампаниям.</p>
+                    <p>{t('landing.advantages.cards.affiliate.p1', { platform: platformName })}</p>
+                    <p>{t('landing.advantages.cards.affiliate.p2')}</p>
+                    <p>{t('landing.advantages.cards.affiliate.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -809,15 +809,15 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Zap, title: "Мини-трекер под реальный залив", desc: "Лёгкий трекер без перегруза. Клики обрабатываются мгновенно, каждому присваивается уникальный click_id, GEO определяется автоматически.", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", hoverBorder: "hover:border-emerald-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(16,185,129,0.2)]" },
-              { icon: BarChart3, title: "Понятная статистика", desc: "Статистика по офферам, партнёрам, гео и устройствам — в одном месте. Фильтры помогают быстро понять, что масштабировать, а что отключать.", iconBg: "bg-blue-500/10", iconColor: "text-blue-500", hoverBorder: "hover:border-blue-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(59,130,246,0.2)]" },
-              { icon: ShieldCheck, title: "Антифрод и контроль качества", desc: "Защита от некачественного трафика: прокси и VPN, подозрительные отпечатки, слишком быстрые или повторяющиеся клики.", iconBg: "bg-red-500/10", iconColor: "text-red-500", hoverBorder: "hover:border-red-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(239,68,68,0.2)]" },
-              { icon: Webhook, title: "Postback и Webhooks", desc: "Автоматическая передача конверсий во внешние системы. Поддержка повторных отправок, логирование и контроль статусов.", iconBg: "bg-purple-500/10", iconColor: "text-purple-500", hoverBorder: "hover:border-purple-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(168,85,247,0.2)]" },
-              { icon: Users, title: "Командная работа", desc: "Добавляйте менеджеров, аналитиков и финансовых сотрудников. Разграничение прав доступа — каждый видит только то, что ему нужно.", iconBg: "bg-orange-500/10", iconColor: "text-orange-500", hoverBorder: "hover:border-orange-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(249,115,22,0.2)]" },
-              { icon: Globe, title: "Кастомные домены", desc: "Подключайте свои домены для трекинг-ссылок. SSL-сертификаты выпускаются автоматически через Let's Encrypt — без ручной возни.", iconBg: "bg-cyan-500/10", iconColor: "text-cyan-500", hoverBorder: "hover:border-cyan-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(6,182,212,0.2)]" },
-              { icon: CreditCard, title: "Финансы и выплаты", desc: "Учёт балансов, холдов и выплат партнёрам. Поддержка криптовалютных интеграций и прозрачная история операций.", iconBg: "bg-green-500/10", iconColor: "text-green-500", hoverBorder: "hover:border-green-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(34,197,94,0.2)]" },
-              { icon: Bell, title: "Уведомления", desc: "Важные события всегда под рукой: in-app уведомления и Telegram-бот. Клики, конверсии и ошибки — без постоянного обновления страниц.", iconBg: "bg-yellow-500/10", iconColor: "text-yellow-500", hoverBorder: "hover:border-yellow-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(234,179,8,0.2)]" },
-              { icon: FileText, title: "Миграция без боли", desc: "Помогаем переехать с Scaleo, Affilka, Affise, Alanbase. Импорт офферов и данных занимает 10–15 минут.", iconBg: "bg-pink-500/10", iconColor: "text-pink-500", hoverBorder: "hover:border-pink-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(236,72,153,0.2)]" },
+              { icon: Zap, key: "miniTracker", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", hoverBorder: "hover:border-emerald-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(16,185,129,0.2)]" },
+              { icon: BarChart3, key: "statistics", iconBg: "bg-blue-500/10", iconColor: "text-blue-500", hoverBorder: "hover:border-blue-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(59,130,246,0.2)]" },
+              { icon: ShieldCheck, key: "antifraud", iconBg: "bg-red-500/10", iconColor: "text-red-500", hoverBorder: "hover:border-red-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(239,68,68,0.2)]" },
+              { icon: Webhook, key: "postback", iconBg: "bg-purple-500/10", iconColor: "text-purple-500", hoverBorder: "hover:border-purple-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(168,85,247,0.2)]" },
+              { icon: Users, key: "teamwork", iconBg: "bg-orange-500/10", iconColor: "text-orange-500", hoverBorder: "hover:border-orange-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(249,115,22,0.2)]" },
+              { icon: Globe, key: "customDomains", iconBg: "bg-cyan-500/10", iconColor: "text-cyan-500", hoverBorder: "hover:border-cyan-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(6,182,212,0.2)]" },
+              { icon: CreditCard, key: "finance", iconBg: "bg-green-500/10", iconColor: "text-green-500", hoverBorder: "hover:border-green-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(34,197,94,0.2)]" },
+              { icon: Bell, key: "notifications", iconBg: "bg-yellow-500/10", iconColor: "text-yellow-500", hoverBorder: "hover:border-yellow-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(234,179,8,0.2)]" },
+              { icon: FileText, key: "migration", iconBg: "bg-pink-500/10", iconColor: "text-pink-500", hoverBorder: "hover:border-pink-500/40", hoverShadow: "hover:shadow-[0_15px_50px_-12px_rgba(236,72,153,0.2)]" },
             ].map((feature, i) => (
               <motion.div
                 key={i}
@@ -836,8 +836,8 @@ export default function Home() {
                       >
                         <feature.icon className="w-6 h-6" />
                       </motion.div>
-                      <h3 className="text-lg font-bold mb-2 font-display">{feature.title}</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                      <h3 className="text-lg font-bold mb-2 font-display">{t(`features.cards.${feature.key}.title`)}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{t(`features.cards.${feature.key}.desc`)}</p>
                     </CardContent>
                   </Card>
                 </Tilt3DCard>
@@ -868,11 +868,11 @@ export default function Home() {
                     <UserPlus className="w-5 h-5 text-blue-400" />
                   </div>
                   <div className="text-xs font-mono text-blue-400 mb-2">01</div>
-                  <h3 className="text-lg font-bold mb-3">Регистрация</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.howItWorks.steps.registration.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>Создаёте аккаунт в {platformName} и сразу попадаете в рабочий кабинет.</p>
-                    <p>Без подтверждения по звонку, без менеджеров и без обязательной привязки карты.</p>
-                    <p>Регистрация занимает не больше минуты.</p>
+                    <p>{t('landing.howItWorks.steps.registration.p1', { platform: platformName })}</p>
+                    <p>{t('landing.howItWorks.steps.registration.p2')}</p>
+                    <p>{t('landing.howItWorks.steps.registration.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -890,11 +890,11 @@ export default function Home() {
                     <Settings className="w-5 h-5 text-purple-400" />
                   </div>
                   <div className="text-xs font-mono text-purple-400 mb-2">02</div>
-                  <h3 className="text-lg font-bold mb-3">Создание оффера</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.howItWorks.steps.createOffer.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>Добавляете оффер, указываете лендинги и модель выплат.</p>
-                    <p>Настраиваете postback, параметры subID и другие нужные опции.</p>
-                    <p>После сохранения система сразу генерирует трекинговую ссылку.</p>
+                    <p>{t('landing.howItWorks.steps.createOffer.p1')}</p>
+                    <p>{t('landing.howItWorks.steps.createOffer.p2')}</p>
+                    <p>{t('landing.howItWorks.steps.createOffer.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -912,11 +912,11 @@ export default function Home() {
                     <Users className="w-5 h-5 text-amber-400" />
                   </div>
                   <div className="text-xs font-mono text-amber-400 mb-2">03</div>
-                  <h3 className="text-lg font-bold mb-3">Привлечение партнёров</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.howItWorks.steps.attractPartners.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>Передаёте партнёрам или медиабаерам готовую ссылку.</p>
-                    <p>Каждый клик и конверсия автоматически фиксируются в статистике.</p>
-                    <p>Вы видите, откуда пришёл трафик и по каким источникам он работает лучше.</p>
+                    <p>{t('landing.howItWorks.steps.attractPartners.p1')}</p>
+                    <p>{t('landing.howItWorks.steps.attractPartners.p2')}</p>
+                    <p>{t('landing.howItWorks.steps.attractPartners.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -934,11 +934,11 @@ export default function Home() {
                     <TrendingUp className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div className="text-xs font-mono text-emerald-400 mb-2">04</div>
-                  <h3 className="text-lg font-bold mb-3">Отслеживание результатов</h3>
+                  <h3 className="text-lg font-bold mb-3">{t('landing.howItWorks.steps.trackResults.title')}</h3>
                   <div className="text-muted-foreground text-sm leading-relaxed space-y-2">
-                    <p>В реальном времени отслеживаете клики, лиды и продажи.</p>
-                    <p>Фильтруете статистику по офферам, кампаниям и subID.</p>
-                    <p>Контролируете качество трафика и эффективность источников.</p>
+                    <p>{t('landing.howItWorks.steps.trackResults.p1')}</p>
+                    <p>{t('landing.howItWorks.steps.trackResults.p2')}</p>
+                    <p>{t('landing.howItWorks.steps.trackResults.p3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -950,8 +950,7 @@ export default function Home() {
             className="text-center mt-12 max-w-2xl mx-auto"
           >
             <p className="text-muted-foreground leading-relaxed">
-              Никаких сложных сценариев и лишних настроек.<br />
-              Вы создаёте оффер, льёте трафик и сразу видите результат.
+              {t('landing.howItWorks.subtitle')}
             </p>
           </motion.div>
         </div>
@@ -984,7 +983,7 @@ export default function Home() {
                 onClick={() => setShowMigrationModal(true)}
                 data-testid="button-migration-details"
               >
-                Подробнее о миграции
+                {t('landing.migrationSection.moreAbout')}
                 <ChevronRight className="ml-1 w-4 h-4" />
               </Button>
               <Button 
@@ -1004,20 +1003,20 @@ export default function Home() {
       <Dialog open={showMigrationModal} onOpenChange={setShowMigrationModal}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl">Миграция с других трекеров</DialogTitle>
+            <DialogTitle className="text-xl">{t('landing.migrationModal.title')}</DialogTitle>
           </DialogHeader>
           <div className="text-muted-foreground leading-relaxed space-y-6 mt-4">
             <div>
               <p>
-                Переезд с одного трекера на другой почти всегда выглядит болезненно: нужно заново создавать офферы, переносить кампании, следить, чтобы не сломалась статистика.
+                {t('landing.migrationModal.intro1')}
               </p>
               <p className="mt-2">
-                {platformName} позволяет перенести основные данные из популярных трекеров и продолжить работу без ручного пересоздания структуры.
+                {t('landing.migrationModal.intro2', { platform: platformName })}
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">С каких платформ можно переехать</h4>
+              <h4 className="font-semibold text-foreground mb-2">{t('landing.migrationModal.platformsTitle')}</h4>
               <div className="grid grid-cols-2 gap-2">
                 {["Scaleo", "Affilka", "Affise", "Alanbase"].map((p) => (
                   <div key={p} className="flex items-center gap-2">
@@ -1093,30 +1092,30 @@ export default function Home() {
             {[
               {
                 name: "MediaBuy Pro",
-                role: "Рекламодатель / media buying команда",
+                role: t('landing.testimonials.items.t1.role'),
                 avatar: "mediabuy",
-                text: "Переехали со Scaleo, потому что устали от перегруженного интерфейса. Здесь проще контролировать трафик и быстрее видно, где фрод. По деньгам — реально стали терять меньше на мусорном трафике.",
+                text: t('landing.testimonials.items.t1.text'),
                 rating: 5
               },
               {
                 name: "TrafficLab", 
-                role: "CPA-сеть",
+                role: t('landing.testimonials.items.t2.role'),
                 avatar: "trafficlab",
-                text: "Постбеки настроили с первого раза, без танцев с бубном. Саппорт на связи и не отмахивается — это редкость. Пока используем не все функции, но для текущих задач хватает.",
+                text: t('landing.testimonials.items.t2.text'),
                 rating: 5
               },
               {
                 name: "LeadGen Network",
-                role: "Партнёрская программа",
+                role: t('landing.testimonials.items.t3.role'),
                 avatar: "leadgen", 
-                text: "Искали решение под white-label, чтобы не городить свой трекер. Подключили домен, настроили офферы — партнёры работают как с нашей платформой. Для старта и масштабирования — то, что нужно.",
+                text: t('landing.testimonials.items.t3.text'),
                 rating: 5
               },
               {
-                name: "Анонимный пользователь",
-                role: "Арбитражная команда",
+                name: t('landing.testimonials.items.t4.name'),
+                role: t('landing.testimonials.items.t4.role'),
                 avatar: "anon2024", 
-                text: "Есть моменты, которые ещё допиливаются, но команда быстро реагирует. Нам важнее, что продукт развивается и можно напрямую влиять на фичи.",
+                text: t('landing.testimonials.items.t4.text'),
                 rating: 4
               }
             ].map((testimonial, i) => (
@@ -1193,17 +1192,17 @@ export default function Home() {
                 : parseFloat(plan.monthlyPrice).toFixed(0);
               
               const features = [
-                { label: plan.maxPartners ? `До ${plan.maxPartners} партнёров` : "Безлимит партнёров", included: true },
-                { label: "Безлимит офферов", included: true },
-                { label: "Постбеки", included: plan.hasPostbacks },
-                { label: "Статистика", included: true },
-                { label: "Финансы", included: true },
-                { label: "Антифрод", included: plan.hasAntifraud },
-                { label: "Новости", included: plan.hasNews },
-                { label: "Команда", included: plan.hasTeam },
+                { label: plan.maxPartners ? t('landing.pricingFeatures.maxPartners', { count: plan.maxPartners }) : t('landing.pricingFeatures.unlimitedPartners'), included: true },
+                { label: t('landing.pricingFeatures.unlimitedOffers'), included: true },
+                { label: t('landing.pricingFeatures.postbacks'), included: plan.hasPostbacks },
+                { label: t('landing.pricingFeatures.statistics'), included: true },
+                { label: t('landing.pricingFeatures.finance'), included: true },
+                { label: t('landing.pricingFeatures.antifraud'), included: plan.hasAntifraud },
+                { label: t('landing.pricingFeatures.news'), included: plan.hasNews },
+                { label: t('landing.pricingFeatures.team'), included: plan.hasTeam },
                 { label: "Webhooks", included: plan.hasWebhooks },
-                { label: "Кастомный домен", included: plan.hasCustomDomain },
-                { label: "API доступ", included: plan.hasApiAccess },
+                { label: t('landing.pricingFeatures.customDomain'), included: plan.hasCustomDomain },
+                { label: "API", included: plan.hasApiAccess },
               ];
               
               return (
@@ -1211,7 +1210,7 @@ export default function Home() {
                   {isActive && <div className="absolute top-0 inset-x-0 h-1 bg-emerald-500" />}
                   {isActive && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600">
-                      Популярный
+                      {t('landing.pricingFeatures.popular')}
                     </Badge>
                   )}
                   <h3 className="text-lg font-mono font-medium text-muted-foreground mb-2">{plan.name}</h3>
@@ -1378,7 +1377,7 @@ export default function Home() {
                     <div>
                       <label className="block text-sm font-medium mb-2">{t('landing.contact.form.name')}</label>
                       <Input
-                        placeholder="Иван Петров"
+                        placeholder={t('landing.contactForm.namePlaceholder')}
                         value={contactForm.name}
                         onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                         required
@@ -1400,7 +1399,7 @@ export default function Home() {
                   <div>
                     <label className="block text-sm font-medium mb-2">{t('landing.contact.form.message')}</label>
                     <Textarea
-                      placeholder="Опишите ваш вопрос или запрос..."
+                      placeholder={t('landing.contactForm.messagePlaceholder')}
                       rows={5}
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
@@ -1410,7 +1409,7 @@ export default function Home() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      Или напишите нам: {supportEmail && <a href={`mailto:${supportEmail}`} className="text-emerald-500 hover:underline">{supportEmail}</a>}
+                      {t('landing.contactForm.writeUs')} {supportEmail && <a href={`mailto:${supportEmail}`} className="text-emerald-500 hover:underline">{supportEmail}</a>}
                     </div>
                     <Button 
                       type="submit" 
@@ -1419,7 +1418,7 @@ export default function Home() {
                       data-testid="button-contact-submit"
                     >
                       {isSubmitting ? (
-                        <>Отправка...</>
+                        <>{t('landing.contactForm.sending')}</>
                       ) : (
                         <>
                           <Send className="w-4 h-4 mr-2" />
@@ -1446,7 +1445,7 @@ export default function Home() {
                 {t('landing.aboutUs.description')}
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Регулярно обновляем, поддержка живая — отвечаем по делу, не боты.
+                {t('landing.description.liveSupport')}
               </p>
               <div className="flex justify-center gap-6 mt-8">
                 {supportEmail && (
@@ -1520,8 +1519,8 @@ export default function Home() {
                                   item.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-500' :
                                   'bg-muted text-muted-foreground'
                                 }`}>
-                                  {item.status === 'completed' ? 'Завершено' :
-                                   item.status === 'in_progress' ? 'В работе' : 'Запланировано'}
+                                  {item.status === 'completed' ? t('roadmapStatus.completed') :
+                                   item.status === 'in_progress' ? t('roadmapStatus.inProgress') : t('roadmapStatus.planned')}
                                 </span>
                               </div>
                               <p className="text-muted-foreground">{item.description}</p>
@@ -1666,7 +1665,7 @@ export default function Home() {
             <div>
               <div className="text-xl font-bold text-foreground mb-4">{platformName}</div>
               <p className="text-sm text-muted-foreground mb-4">
-                Партнёрская платформа для рекламодателей и издателей
+                {t('landing.description.tagline')}
               </p>
               <div className="flex gap-4">
                 {supportEmail && (
@@ -1683,31 +1682,31 @@ export default function Home() {
             </div>
             
             <div>
-              <div className="font-medium text-foreground mb-4">Навигация</div>
+              <div className="font-medium text-foreground mb-4">{t('landing.footerNav.navigation')}</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => scrollToSection('features')} className="hover:text-foreground transition-colors">Преимущества</button></li>
-                <li><button onClick={() => scrollToSection('pricing')} className="hover:text-foreground transition-colors">Тарифы</button></li>
+                <li><button onClick={() => scrollToSection('features')} className="hover:text-foreground transition-colors">{t('landing.footerNav.advantages')}</button></li>
+                <li><button onClick={() => scrollToSection('pricing')} className="hover:text-foreground transition-colors">{t('landing.footerNav.pricing')}</button></li>
                 <li><button onClick={() => scrollToSection('faq')} className="hover:text-foreground transition-colors">FAQ</button></li>
-                <li><button onClick={() => scrollToSection('contact')} className="hover:text-foreground transition-colors">Контакты</button></li>
+                <li><button onClick={() => scrollToSection('contact')} className="hover:text-foreground transition-colors">{t('landing.footerNav.contacts')}</button></li>
               </ul>
             </div>
             
             <div>
-              <div className="font-medium text-foreground mb-4">Возможности</div>
+              <div className="font-medium text-foreground mb-4">{t('landing.footerNav.features')}</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><span className="hover:text-foreground transition-colors cursor-default">Отслеживание кликов</span></li>
-                <li><span className="hover:text-foreground transition-colors cursor-default">Postback интеграция</span></li>
-                <li><span className="hover:text-foreground transition-colors cursor-default">Антифрод система</span></li>
-                <li><span className="hover:text-foreground transition-colors cursor-default">Детальная статистика</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">{t('landing.footerNav.clickTracking')}</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">{t('landing.footerNav.postbackIntegration')}</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">{t('landing.footerNav.antifraudSystem')}</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-default">{t('landing.footerNav.detailedStats')}</span></li>
               </ul>
             </div>
             
             <div>
-              <div className="font-medium text-foreground mb-4">Аккаунт</div>
+              <div className="font-medium text-foreground mb-4">{t('landing.footerNav.account')}</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => navigate('/register/advertiser')} className="hover:text-foreground transition-colors">Регистрация</button></li>
-                <li><button onClick={() => navigate('/login')} className="hover:text-foreground transition-colors">Вход</button></li>
-                {supportEmail && <li><a href={`mailto:${supportEmail}`} className="hover:text-foreground transition-colors">Поддержка</a></li>}
+                <li><button onClick={() => navigate('/register/advertiser')} className="hover:text-foreground transition-colors">{t('landing.footerNav.registration')}</button></li>
+                <li><button onClick={() => navigate('/login')} className="hover:text-foreground transition-colors">{t('landing.footerNav.login')}</button></li>
+                {supportEmail && <li><a href={`mailto:${supportEmail}`} className="hover:text-foreground transition-colors">{t('landing.footerNav.support')}</a></li>}
                 {supportTelegramHandle && <li><a href={`https://t.me/${supportTelegramHandle}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Telegram</a></li>}
               </ul>
             </div>

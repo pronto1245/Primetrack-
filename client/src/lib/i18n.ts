@@ -60,8 +60,56 @@ const resources = {
         integration: {
           title: "100+ Integrations",
           desc: "Pre-configured templates for all major traffic sources and affiliate networks."
+        },
+        cards: {
+          miniTracker: { title: "Mini-tracker for real traffic", desc: "Lightweight tracker without overload. Clicks are processed instantly, each gets a unique click_id, GEO is detected automatically." },
+          statistics: { title: "Clear statistics", desc: "Statistics by offers, partners, geo and devices — in one place. Filters help you quickly understand what to scale and what to disable." },
+          antifraud: { title: "Anti-fraud and quality control", desc: "Protection from low-quality traffic: proxies and VPNs, suspicious fingerprints, too fast or repeated clicks." },
+          postback: { title: "Postback and Webhooks", desc: "Automatic conversion sending to external systems. Support for retries, logging and status monitoring." },
+          teamwork: { title: "Teamwork", desc: "Add managers, analysts and finance staff. Access control — everyone sees only what they need." },
+          customDomains: { title: "Custom domains", desc: "Connect your domains for tracking links. SSL certificates are issued automatically via Let's Encrypt — no manual hassle." },
+          finance: { title: "Finance and payouts", desc: "Balance tracking, holds and partner payouts. Crypto integration support and transparent transaction history." },
+          notifications: { title: "Notifications", desc: "Important events always at hand: in-app notifications and Telegram bot. Clicks, conversions and errors — without constantly refreshing pages." },
+          migration: { title: "Painless migration", desc: "We help you move from Scaleo, Affilka, Affise, Alanbase. Importing offers and data takes 10-15 minutes." }
         }
       },
+      categoryLabels: {
+        update: "Update",
+        integration: "Integration",
+        feature: "Feature",
+        news: "News"
+      },
+      fallbackNews: {
+        news1: {
+          title: "New anti-fraud system 2.0",
+          category: "Update",
+          shortDesc: "Added machine learning for even more accurate fraud traffic detection.",
+          body: "We are pleased to present the updated anti-fraud system version 2.0! The platform now uses machine learning algorithms to analyze traffic patterns in real time. The system can detect: bot traffic and automated clicks, proxy and VPN connections, suspicious device fingerprints, abnormal user behavior patterns."
+        },
+        news2: {
+          title: "Binance Pay integration",
+          category: "Integration",
+          shortDesc: "Now you can pay partners directly via Binance Pay without fees.",
+          body: "We have integrated Binance Pay for fast and fee-free partner payouts! Now you can: send payouts in USDT, BTC, ETH and other cryptocurrencies, save on transfer fees, get instant transaction confirmations."
+        },
+        news3: {
+          title: "Telegram bot for notifications",
+          category: "Feature",
+          shortDesc: "Get instant conversion notifications right in Telegram.",
+          body: "Introducing the new Telegram notification bot! Connect the bot to your account and receive instant notifications about: new leads and sales, payout requests from partners, important system events."
+        }
+      },
+      fallbackRoadmap: {
+        item1: { title: "AI anti-fraud integration", desc: "Machine learning for real-time fraud traffic detection" },
+        item2: { title: "Mobile app", desc: "Native iOS and Android apps with push notifications" },
+        item3: { title: "Advanced analytics", desc: "Dashboards with detailed statistics and ML-based forecasts" }
+      },
+      roadmapStatus: {
+        completed: "Completed",
+        inProgress: "In progress",
+        planned: "Planned"
+      },
+      copyright: "© {{year}} {{name}}. All rights reserved.",
       pricing: {
         title: "Simple, Transparent Pricing",
         subtitle: "No hidden fees. No traffic limits on self-hosted plans.",
@@ -336,7 +384,37 @@ const resources = {
           minutes: "10-15 minutes",
           otherTracker: "Using a different tracker? Contact support — we'll help with the format.",
           securityNote: "All data is transmitted over an encrypted connection. Original files are not stored after import.",
-          startMigration: "Start migration"
+          startMigration: "Start migration",
+          moreAbout: "More about migration"
+        },
+        migrationModal: {
+          title: "Migration from other trackers",
+          intro1: "Moving from one tracker to another almost always seems painful: you need to recreate offers, transfer campaigns, make sure statistics don't break.",
+          intro2: "{{platform}} allows you to transfer basic data from popular trackers and continue working without manually recreating the structure.",
+          platformsTitle: "Which platforms you can migrate from"
+        },
+        footerNav: {
+          navigation: "Navigation",
+          features: "Features",
+          account: "Account",
+          advantages: "Advantages",
+          pricing: "Pricing",
+          contacts: "Contacts",
+          clickTracking: "Click tracking",
+          postbackIntegration: "Postback integration",
+          antifraudSystem: "Anti-fraud system",
+          detailedStats: "Detailed statistics",
+          registration: "Registration",
+          login: "Login",
+          support: "Support"
+        },
+        contactForm: {
+          sending: "Sending...",
+          writeUs: "Or email us:"
+        },
+        description: {
+          tagline: "Affiliate platform for advertisers and publishers",
+          liveSupport: "We update regularly, support is live — we answer properly, no bots."
         },
         hero: {
           title1: "Tracker for",
@@ -350,11 +428,45 @@ const resources = {
           subtitle: "No hidden fees. Unlimited traffic.",
           monthly: "Monthly",
           yearly: "Yearly",
-          savings: "Save 20%"
+          savings: "Save 20%",
+          perMonth: "/mo",
+          perYear: "/yr"
+        },
+        news: {
+          readMore: "Read more"
         },
         whoFor: {
           title: "Who is {{platform}} for",
-          subtitle: "Platform for advertisers who want to control, analyze and scale their affiliate programs."
+          subtitle: "Platform for advertisers who want to control, analyze and scale their affiliate programs.",
+          intro: "{{platform}} is a working tool for those who drive traffic every day and count money. We didn't try to make a universal service \"for everyone\". It's made for specific tasks.",
+          viewPricing: "View pricing",
+          affiliates: {
+            title: "For affiliates",
+            desc: "If you drive traffic yourself and need to see the real picture by sources, {{platform}} lets you control every stage — from click to deposit.",
+            youGet: "You get:",
+            item1: "tracking clicks, leads and deposits",
+            item2: "detailed statistics by subID (sub1–sub10)",
+            item3: "quick launch and scaling of working funnels",
+            footer: "All statistics available in one place, without extra screens and reports."
+          },
+          teams: {
+            title: "For teams and media buyers",
+            desc: "{{platform}} is convenient for teams when multiple people work with traffic.",
+            platformAllows: "The platform allows you to:",
+            item1: "create multiple accounts and projects",
+            item2: "separate access between team members",
+            item3: "view overall statistics by sources and campaigns",
+            footer: "This simplifies team control and gives a transparent picture of results."
+          },
+          partners: {
+            title: "For affiliate programs",
+            desc: "{{platform}} is suitable for tracking and controlling affiliate traffic.",
+            youCan: "You can:",
+            item1: "track clicks, leads and conversions",
+            item2: "work with your offers and postback",
+            item3: "control traffic quality and detect suspicious activity",
+            footer: "The system helps you see where traffic comes from and how it converts."
+          }
         },
         advantages: {
           title: "Why it's convenient in real work",
@@ -363,6 +475,61 @@ const resources = {
             speed: { title: "Instant Setup", desc: "Registration in 1 minute. First offer in 5 minutes. No approvals or waiting — start working right away." },
             analytics: { title: "Deep Analytics", desc: "Every click, every conversion, every sub. Slice data by any parameter — find what works." },
             antifraud: { title: "Built-in Anti-Fraud", desc: "Automatic detection of bots, proxies, click-spam. Protect your budget and advertiser's reputation." }
+          },
+          cards: {
+            noModules: {
+              title: "No unnecessary modules",
+              p1: "Most trackers have many features that look useful in demos but aren't used in real work.",
+              p2: "In {{platform}} we kept only what's really needed every day: offers, campaigns, subID, postback, statistics and filters.",
+              p3: "No CRM logic, complex roles and multi-level scenarios — just tracking and traffic control."
+            },
+            quickStart: {
+              title: "Quick start",
+              p1: "We deliberately removed complex onboarding.",
+              p2: "After registration, you can immediately create an offer, generate a link and start driving traffic. On average, the first launch takes no more than 5 minutes.",
+              p3: "No mandatory integrations and long preliminary settings."
+            },
+            simpleLogic: {
+              title: "Simple logic",
+              p1: "The interface is designed so you don't need to figure it out. All main actions are where you expect to find them.",
+              p2: "If you've worked with trackers before, {{platform}} will be clear from the first login — without training and reading documentation."
+            },
+            affiliate: {
+              title: "Built for affiliate marketing",
+              p1: "{{platform}} was developed for real traffic scenarios.",
+              p2: "We focus on push sources, gambling and betting offers, working with CPA and RevShare models.",
+              p3: "The system correctly receives and sends postback, supports work with subID and gives a complete picture of campaigns."
+            }
+          }
+        },
+        howItWorks: {
+          title: "How it works",
+          subtitle: "No complex scenarios and unnecessary settings. You create an offer, drive traffic and immediately see the result.",
+          steps: {
+            registration: {
+              title: "Registration",
+              p1: "You create an account in {{platform}} and immediately get into the working dashboard.",
+              p2: "No phone confirmation, no managers and no mandatory card binding.",
+              p3: "Registration takes no more than a minute."
+            },
+            createOffer: {
+              title: "Creating an offer",
+              p1: "You add an offer, specify landings and payout model.",
+              p2: "You configure postback, subID parameters and other needed options.",
+              p3: "After saving, the system immediately generates a tracking link."
+            },
+            attractPartners: {
+              title: "Attracting partners",
+              p1: "You give partners or media buyers the ready link.",
+              p2: "Every click and conversion is automatically recorded in statistics.",
+              p3: "You see where the traffic came from and which sources work better."
+            },
+            trackResults: {
+              title: "Tracking results",
+              p1: "In real time you track clicks, leads and sales.",
+              p2: "You filter statistics by offers, campaigns and subID.",
+              p3: "You control traffic quality and source efficiency."
+            }
           }
         },
         features: {
@@ -385,7 +552,30 @@ const resources = {
         },
         testimonials: {
           title: "What clients who actually work with {{platform}} say",
-          subtitle: "Not marketing quotes — real usage experience"
+          subtitle: "Not marketing quotes — real usage experience",
+          items: {
+            t1: { role: "Advertiser / media buying team", text: "We moved from Scaleo because we were tired of the overloaded interface. Here it's easier to control traffic and faster to see where the fraud is. In terms of money — we really started losing less on junk traffic." },
+            t2: { role: "CPA network", text: "Set up postbacks on the first try, no hassle. Support is responsive and doesn't brush you off — that's rare. We don't use all the features yet, but enough for current tasks." },
+            t3: { role: "Affiliate program", text: "We were looking for a white-label solution so we don't have to build our own tracker. Connected a domain, set up offers — partners work as if it's our platform. For starting and scaling — exactly what we needed." },
+            t4: { name: "Anonymous user", role: "Affiliate team", text: "There are things still being polished, but the team responds quickly. What's more important to us is that the product is developing and we can directly influence features." }
+          }
+        },
+        pricingFeatures: {
+          maxPartners: "Up to {{count}} partners",
+          unlimitedPartners: "Unlimited partners",
+          unlimitedOffers: "Unlimited offers",
+          postbacks: "Postbacks",
+          statistics: "Statistics",
+          finance: "Finance",
+          antifraud: "Anti-fraud",
+          news: "News",
+          team: "Team",
+          customDomain: "Custom domain",
+          popular: "Popular"
+        },
+        contactForm: {
+          namePlaceholder: "John Doe",
+          messagePlaceholder: "Describe your question or request..."
         },
         faq: {
           title: "Frequently Asked Questions",
@@ -529,8 +719,56 @@ const resources = {
         integration: {
           title: "100+ Интеграций",
           desc: "Готовые шаблоны для всех популярных источников трафика и партнерских сетей."
+        },
+        cards: {
+          miniTracker: { title: "Мини-трекер под реальный залив", desc: "Лёгкий трекер без перегруза. Клики обрабатываются мгновенно, каждому присваивается уникальный click_id, GEO определяется автоматически." },
+          statistics: { title: "Понятная статистика", desc: "Статистика по офферам, партнёрам, гео и устройствам — в одном месте. Фильтры помогают быстро понять, что масштабировать, а что отключать." },
+          antifraud: { title: "Антифрод и контроль качества", desc: "Защита от некачественного трафика: прокси и VPN, подозрительные отпечатки, слишком быстрые или повторяющиеся клики." },
+          postback: { title: "Postback и Webhooks", desc: "Автоматическая передача конверсий во внешние системы. Поддержка повторных отправок, логирование и контроль статусов." },
+          teamwork: { title: "Командная работа", desc: "Добавляйте менеджеров, аналитиков и финансовых сотрудников. Разграничение прав доступа — каждый видит только то, что ему нужно." },
+          customDomains: { title: "Кастомные домены", desc: "Подключайте свои домены для трекинг-ссылок. SSL-сертификаты выпускаются автоматически через Let's Encrypt — без ручной возни." },
+          finance: { title: "Финансы и выплаты", desc: "Учёт балансов, холдов и выплат партнёрам. Поддержка криптовалютных интеграций и прозрачная история операций." },
+          notifications: { title: "Уведомления", desc: "Важные события всегда под рукой: in-app уведомления и Telegram-бот. Клики, конверсии и ошибки — без постоянного обновления страниц." },
+          migration: { title: "Миграция без боли", desc: "Помогаем переехать с Scaleo, Affilka, Affise, Alanbase. Импорт офферов и данных занимает 10–15 минут." }
         }
       },
+      categoryLabels: {
+        update: "Обновление",
+        integration: "Интеграция",
+        feature: "Фича",
+        news: "Новость"
+      },
+      fallbackNews: {
+        news1: {
+          title: "Новая система антифрода 2.0",
+          category: "Обновление",
+          shortDesc: "Добавили машинное обучение для ещё более точного определения фродового трафика.",
+          body: "Мы рады представить обновлённую систему антифрода версии 2.0! Теперь платформа использует алгоритмы машинного обучения для анализа паттернов трафика в реальном времени. Система способна выявлять: бот-трафик и автоматизированные клики, прокси и VPN соединения, подозрительные fingerprints устройств, аномальные паттерны поведения пользователей."
+        },
+        news2: {
+          title: "Интеграция с Binance Pay",
+          category: "Интеграция",
+          shortDesc: "Теперь можно выплачивать партнёрам напрямую через Binance Pay без комиссий.",
+          body: "Мы интегрировали Binance Pay для быстрых и безкомиссионных выплат партнёрам! Теперь вы можете: отправлять выплаты в USDT, BTC, ETH и других криптовалютах, экономить на комиссиях за переводы, получать мгновенное подтверждение транзакций."
+        },
+        news3: {
+          title: "Telegram бот для уведомлений",
+          category: "Фича",
+          shortDesc: "Получайте мгновенные уведомления о конверсиях прямо в Telegram.",
+          body: "Представляем нового Telegram бота для уведомлений! Подключите бота к своему аккаунту и получайте мгновенные уведомления о: новых лидах и продажах, запросах на выплату от партнёров, важных системных событиях."
+        }
+      },
+      fallbackRoadmap: {
+        item1: { title: "Интеграция AI-антифрода", desc: "Машинное обучение для определения фродового трафика в реальном времени" },
+        item2: { title: "Мобильное приложение", desc: "Нативные приложения для iOS и Android с push-уведомлениями" },
+        item3: { title: "Расширенная аналитика", desc: "Дашборды с детальной статистикой и прогнозами на основе ML" }
+      },
+      roadmapStatus: {
+        completed: "Завершено",
+        inProgress: "В работе",
+        planned: "Запланировано"
+      },
+      copyright: "© {{year}} {{name}}. Все права защищены.",
       pricing: {
         title: "Простые и честные тарифы",
         subtitle: "Никаких скрытых платежей. Безлимитный трафик на self-hosted решениях.",
@@ -825,7 +1063,37 @@ const resources = {
           minutes: "10-15 минут",
           otherTracker: "Используете другой трекер? Напишите в поддержку — подскажем формат.",
           securityNote: "Все данные передаются по зашифрованному соединению. Исходные файлы не сохраняются после импорта.",
-          startMigration: "Начать миграцию"
+          startMigration: "Начать миграцию",
+          moreAbout: "Подробнее о миграции"
+        },
+        migrationModal: {
+          title: "Миграция с других трекеров",
+          intro1: "Переезд с одного трекера на другой почти всегда выглядит болезненно: нужно заново создавать офферы, переносить кампании, следить, чтобы не сломалась статистика.",
+          intro2: "{{platform}} позволяет перенести основные данные из популярных трекеров и продолжить работу без ручного пересоздания структуры.",
+          platformsTitle: "С каких платформ можно переехать"
+        },
+        footerNav: {
+          navigation: "Навигация",
+          features: "Возможности",
+          account: "Аккаунт",
+          advantages: "Преимущества",
+          pricing: "Тарифы",
+          contacts: "Контакты",
+          clickTracking: "Отслеживание кликов",
+          postbackIntegration: "Postback интеграция",
+          antifraudSystem: "Антифрод система",
+          detailedStats: "Детальная статистика",
+          registration: "Регистрация",
+          login: "Вход",
+          support: "Поддержка"
+        },
+        contactForm: {
+          sending: "Отправка...",
+          writeUs: "Или напишите нам:"
+        },
+        description: {
+          tagline: "Партнёрская платформа для рекламодателей и издателей",
+          liveSupport: "Регулярно обновляем, поддержка живая — отвечаем по делу, не боты."
         },
         hero: {
           title1: "Трекер для",
@@ -839,11 +1107,45 @@ const resources = {
           subtitle: "Никаких скрытых платежей. Безлимитный трафик.",
           monthly: "Ежемесячно",
           yearly: "Ежегодно",
-          savings: "Экономия 20%"
+          savings: "Экономия 20%",
+          perMonth: "/мес",
+          perYear: "/год"
+        },
+        news: {
+          readMore: "Читать далее"
         },
         whoFor: {
           title: "Кому подходит {{platform}}",
-          subtitle: "Платформа для рекламодателей, которые хотят контролировать, анализировать и масштабировать партнёрские программы."
+          subtitle: "Платформа для рекламодателей, которые хотят контролировать, анализировать и масштабировать партнёрские программы.",
+          intro: "{{platform}} — это рабочий инструмент для тех, кто каждый день заливает трафик и считает деньги. Мы не пытались сделать универсальный сервис «для всех». Он сделан под конкретные задачи.",
+          viewPricing: "Смотреть тарифы",
+          affiliates: {
+            title: "Арбитражникам",
+            desc: "Если вы льёте трафик сами и вам важно видеть реальную картину по источникам, {{platform}} позволяет контролировать каждый этап — от клика до депозита.",
+            youGet: "Вы получаете:",
+            item1: "отслеживание кликов, лидов и депозитов",
+            item2: "детальную статистику по subID (sub1–sub10)",
+            item3: "быстрый запуск и масштабирование рабочих связок",
+            footer: "Вся статистика доступна в одном месте, без лишних экранов и отчётов."
+          },
+          teams: {
+            title: "Командам и медиабаерам",
+            desc: "{{platform}} удобно использовать в команде, когда с трафиком работает несколько человек.",
+            platformAllows: "Платформа позволяет:",
+            item1: "создавать несколько аккаунтов и проектов",
+            item2: "разграничивать доступы между участниками",
+            item3: "смотреть общую статистику по источникам и кампаниям",
+            footer: "Это упрощает контроль работы команды и даёт прозрачную картину по результатам."
+          },
+          partners: {
+            title: "Партнёрским программам",
+            desc: "{{platform}} подходит для учёта и контроля партнёрского трафика.",
+            youCan: "Вы можете:",
+            item1: "отслеживать клики, лиды и конверсии",
+            item2: "работать со своими офферами и postback",
+            item3: "контролировать качество трафика и выявлять подозрительную активность",
+            footer: "Система помогает видеть, откуда приходит трафик и как он конвертируется."
+          }
         },
         advantages: {
           title: "Почему это удобно в реальной работе",
@@ -852,6 +1154,61 @@ const resources = {
             speed: { title: "Мгновенный старт", desc: "Регистрация за 1 минуту. Первый оффер за 5 минут. Без согласований и ожиданий — просто работаете." },
             analytics: { title: "Глубокая аналитика", desc: "Каждый клик, каждая конверсия, каждый sub. Нарезайте данные по любым параметрам — находите, что работает." },
             antifraud: { title: "Встроенный антифрод", desc: "Автоматическое определение ботов, прокси, click-spam. Защита бюджета и репутации рекла." }
+          },
+          cards: {
+            noModules: {
+              title: "Без лишних модулей",
+              p1: "В большинстве трекеров много функций, которые выглядят полезно на демо, но в реальном заливе не используются.",
+              p2: "В {{platform}} мы оставили только то, что действительно нужно каждый день: офферы, кампании, subID, postback, статистику и фильтры.",
+              p3: "Нет CRM-логики, сложных ролей и многоуровневых сценариев — только трекинг и контроль трафика."
+            },
+            quickStart: {
+              title: "Быстрый старт",
+              p1: "Мы сознательно убрали сложный онбординг.",
+              p2: "После регистрации вы сразу можете создать оффер, сгенерировать ссылку и начать лить трафик. В среднем на первый запуск уходит не больше 5 минут.",
+              p3: "Никаких обязательных интеграций и долгих предварительных настроек."
+            },
+            simpleLogic: {
+              title: "Простая логика",
+              p1: "Интерфейс сделан так, чтобы в нём не нужно было разбираться. Все основные действия находятся там, где их ожидаешь увидеть.",
+              p2: "Если вы уже работали с трекерами, {{platform}} будет понятен с первого входа — без обучения и чтения документации."
+            },
+            affiliate: {
+              title: "Заточено под арбитраж",
+              p1: "{{platform}} разрабатывался под реальные сценарии залива трафика.",
+              p2: "Мы ориентируемся на push-источники, gambling и betting-офферы, работу с CPA и RevShare моделями.",
+              p3: "Система корректно принимает и передаёт postback, поддерживает работу с subID и даёт полную картину по кампаниям."
+            }
+          }
+        },
+        howItWorks: {
+          title: "Как это работает",
+          subtitle: "Никаких сложных сценариев и лишних настроек. Вы создаёте оффер, льёте трафик и сразу видите результат.",
+          steps: {
+            registration: {
+              title: "Регистрация",
+              p1: "Создаёте аккаунт в {{platform}} и сразу попадаете в рабочий кабинет.",
+              p2: "Без подтверждения по звонку, без менеджеров и без обязательной привязки карты.",
+              p3: "Регистрация занимает не больше минуты."
+            },
+            createOffer: {
+              title: "Создание оффера",
+              p1: "Добавляете оффер, указываете лендинги и модель выплат.",
+              p2: "Настраиваете postback, параметры subID и другие нужные опции.",
+              p3: "После сохранения система сразу генерирует трекинговую ссылку."
+            },
+            attractPartners: {
+              title: "Привлечение партнёров",
+              p1: "Передаёте партнёрам или медиабаерам готовую ссылку.",
+              p2: "Каждый клик и конверсия автоматически фиксируются в статистике.",
+              p3: "Вы видите, откуда пришёл трафик и по каким источникам он работает лучше."
+            },
+            trackResults: {
+              title: "Отслеживание результатов",
+              p1: "В реальном времени отслеживаете клики, лиды и продажи.",
+              p2: "Фильтруете статистику по офферам, кампаниям и subID.",
+              p3: "Контролируете качество трафика и эффективность источников."
+            }
           }
         },
         features: {
@@ -874,7 +1231,30 @@ const resources = {
         },
         testimonials: {
           title: "Что говорят клиенты, которые реально работают с {{platform}}",
-          subtitle: "Не маркетинговые цитаты — а опыт использования"
+          subtitle: "Не маркетинговые цитаты — а опыт использования",
+          items: {
+            t1: { role: "Рекламодатель / media buying команда", text: "Переехали со Scaleo, потому что устали от перегруженного интерфейса. Здесь проще контролировать трафик и быстрее видно, где фрод. По деньгам — реально стали терять меньше на мусорном трафике." },
+            t2: { role: "CPA-сеть", text: "Постбеки настроили с первого раза, без танцев с бубном. Саппорт на связи и не отмахивается — это редкость. Пока используем не все функции, но для текущих задач хватает." },
+            t3: { role: "Партнёрская программа", text: "Искали решение под white-label, чтобы не городить свой трекер. Подключили домен, настроили офферы — партнёры работают как с нашей платформой. Для старта и масштабирования — то, что нужно." },
+            t4: { name: "Анонимный пользователь", role: "Арбитражная команда", text: "Есть моменты, которые ещё допиливаются, но команда быстро реагирует. Нам важнее, что продукт развивается и можно напрямую влиять на фичи." }
+          }
+        },
+        pricingFeatures: {
+          maxPartners: "До {{count}} партнёров",
+          unlimitedPartners: "Безлимит партнёров",
+          unlimitedOffers: "Безлимит офферов",
+          postbacks: "Постбеки",
+          statistics: "Статистика",
+          finance: "Финансы",
+          antifraud: "Антифрод",
+          news: "Новости",
+          team: "Команда",
+          customDomain: "Кастомный домен",
+          popular: "Популярный"
+        },
+        contactForm: {
+          namePlaceholder: "Иван Петров",
+          messagePlaceholder: "Опишите ваш вопрос или запрос..."
         },
         faq: {
           title: "Часто задаваемые вопросы",
