@@ -4330,7 +4330,12 @@ export async function registerRoutes(
   app.get("/api/advertiser/publishers", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
       const publishers = await storage.getPublishersForAdvertiser(req.session.userId!);
-      res.json(publishers.map(p => ({ id: p.id, username: p.username, email: p.email })));
+      res.json(publishers.map(p => ({ 
+        id: p.id, 
+        username: p.username, 
+        email: p.email,
+        shortId: p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-'
+      })));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch publishers" });
     }
@@ -5484,6 +5489,7 @@ export async function registerRoutes(
         id: p.id,
         username: p.username,
         email: p.email,
+        shortId: p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-',
         status: p.status,
         createdAt: p.createdAt,
         advertiserId: p.advertiserId,
