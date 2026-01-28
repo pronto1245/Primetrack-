@@ -4731,6 +4731,54 @@ export async function registerRoutes(
     }
   });
 
+  // Get raw clicks (incoming requests log) for advertiser
+  app.get("/api/advertiser/raw-clicks", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { dateFrom, dateTo, offerId, publisherId, status, limit, offset } = req.query;
+      
+      const filters: any = {
+        limit: limit ? parseInt(limit as string) : 50,
+        offset: offset ? parseInt(offset as string) : 0,
+      };
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (offerId) filters.offerId = offerId as string;
+      if (publisherId) filters.publisherId = publisherId as string;
+      if (status) filters.status = status as string;
+
+      const result = await storage.getRawClicksForAdvertiser(req.session.userId!, filters);
+      
+      // Enrich with offer/publisher names
+      const enrichedData = await Promise.all(result.data.map(async (rc) => {
+        let offerName = null;
+        let publisherName = null;
+        let publisherShortId = null;
+        
+        if (rc.resolvedOfferId) {
+          const offer = await storage.getOffer(rc.resolvedOfferId);
+          offerName = offer?.name;
+        }
+        if (rc.resolvedPublisherId) {
+          const publisher = await storage.getUser(rc.resolvedPublisherId);
+          publisherName = publisher?.fullName || publisher?.username;
+          publisherShortId = publisher?.shortId != null ? publisher.shortId.toString().padStart(3, '0') : null;
+        }
+        
+        return {
+          ...rc,
+          offerName,
+          publisherName,
+          publisherShortId,
+        };
+      }));
+      
+      res.json({ data: enrichedData, total: result.total });
+    } catch (error) {
+      console.error("Error fetching raw clicks:", error);
+      res.status(500).json({ message: "Failed to fetch raw clicks" });
+    }
+  });
+
   // Export stats to CSV
   app.get("/api/advertiser/export/csv", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
     try {
@@ -5248,6 +5296,44 @@ export async function registerRoutes(
       res.json(enrichedClicks);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch clicks" });
+    }
+  });
+
+  // Get raw clicks (incoming requests log) for publisher
+  app.get("/api/publisher/raw-clicks", requireAuth, requireRole("publisher"), async (req: Request, res: Response) => {
+    try {
+      const { dateFrom, dateTo, offerId, status, limit, offset } = req.query;
+      
+      const filters: any = {
+        limit: limit ? parseInt(limit as string) : 50,
+        offset: offset ? parseInt(offset as string) : 0,
+      };
+      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+      if (dateTo) filters.dateTo = new Date(dateTo as string);
+      if (offerId) filters.offerId = offerId as string;
+      if (status) filters.status = status as string;
+
+      const result = await storage.getRawClicksForPublisher(req.session.userId!, filters);
+      
+      // Enrich with offer names
+      const enrichedData = await Promise.all(result.data.map(async (rc) => {
+        let offerName = null;
+        
+        if (rc.resolvedOfferId) {
+          const offer = await storage.getOffer(rc.resolvedOfferId);
+          offerName = offer?.name;
+        }
+        
+        return {
+          ...rc,
+          offerName,
+        };
+      }));
+      
+      res.json({ data: enrichedData, total: result.total });
+    } catch (error) {
+      console.error("Error fetching raw clicks:", error);
+      res.status(500).json({ message: "Failed to fetch raw clicks" });
     }
   });
 
