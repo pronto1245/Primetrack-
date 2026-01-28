@@ -1,0 +1,27 @@
+2026-01-28 14:45:56  
+[ClickContext]
+Starting pipeline
+Possible IP headers: x-forwarded-for: 79.116.219.134, 79.116.219.134; cf-connecting-ip: 79.116.219.134; x-real-ip: Empty
+Requested: https://ugurli.xyz/qLTbF4?external_id=4ec15a4d-497d-4fe4-a824-f0088c50966d&sub_id_1=%7Bsub_id_1%7D&sub_id_2=%7Bsub_id_2%7D&sub_id_3=%7Bsub_id_3%7D&sub_id_4=%7Bsub_id_4%7D&sub_id_5=%7Bsub_id_5%7D&sub_id_6=%7Bsub_id_6%7D&sub_id_7=%7Bsub_id_7%7D&sub_id_8=%7Bsub_id_8%7D&campaign_id=%7B%7Bcampaign.id%7D%7D&sub_id_10=120237656649880590&adset_id=%7B%7Badset.id%7D%7D&ad_id=%7B%7Bad.id%7D%7D&utm_campaign=%7B%7Bcampaign.name%7D%7D&adset_name=%7B%7Badset.name%7D%7D&ad_name=%7B%7Bad.name%7D%7D&utm_placement=%7B%7Bplacement%7D%7D&utm_source=%7B%7Bsite_source_name%7D%7D
+Searching campaign
+Param alias matched utm_source -> source
+Param alias matched campaign_id -> sub_id_10
+Param alias matched adset_id -> sub_id_11
+Param alias matched ad_id -> sub_id_12
+Param alias matched utm_campaign -> sub_id_13
+Param alias matched adset_name -> sub_id_14
+Param alias matched ad_name -> sub_id_15
+Param alias matched utm_placement -> sub_id_16
+Param alias matched utm_source -> sub_id_17
+Processing campaign 7483
+Checking flow #14581
+Stream #14581 contains no filters. Passed.
+Binding stream for 28800000 seconds
+No landings
+Binding offer for 28800000 seconds
+Offer #587 is chosen
+Offer #587 has been selected earlier (Stream #14581 offer selection is before_click), loading it
+Executing action "http"
+Saving clicks: 1
+[Pipeline execution time] 0 seconds, 1975 RPM, 0 queries, 19MB (+0MB)
+User info: {"SubID":"6aonqm2oqah5","IP":"79.116.219.134","UserAgent":"Mozilla\/5.0 (Linux; Android 10; K) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/144.0.0.0 Mobile Safari\/537.36","Language":"ES","Source":"{{site_source_name}}","referer":"https:\/\/ugurli.site\/","Country":"ES","Region":"ES_MD","City":"San Sebastian de los Reyes","Carrier":"Digi Spain Telecom S.L.","Connection Type":"Wifi","Isp":"Digi Spain Telecom S.L.","OS":"Android","Browser":"Chrome Mobile","Device model":"","Device type":"mobile","Is mobile":"yes","Is bot":"no","Is proxy":"no","Is unique in campaign":"yes","Is unique in stream":"yes"}
