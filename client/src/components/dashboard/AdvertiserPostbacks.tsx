@@ -187,14 +187,6 @@ export function AdvertiserPostbacks() {
   const platformDomain = window.location.host;
   const universalPostbackUrl = `https://${platformDomain}/api/postback?click_id={click_id}&status={status}&payout={payout}`;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   const [activeTab, setActiveTab] = useState("outgoing");
   const [rawClicksPage, setRawClicksPage] = useState(0);
 
@@ -209,6 +201,14 @@ export function AdvertiserPostbacks() {
     },
     enabled: activeTab === "incoming",
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
