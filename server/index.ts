@@ -7,6 +7,8 @@ import { postbackSender } from "./services/postback-sender";
 import { holdReleaseJob } from "./services/hold-release-job";
 import { capsResetService } from "./services/caps-reset-service";
 import { aggregationService } from "./services/aggregation-service";
+import { db } from "../db";
+import { sql } from "drizzle-orm";
 
 const app = express();
 const httpServer = createServer(app);
@@ -41,8 +43,6 @@ export function log(message: string, source = "express") {
 (async () => {
   // Auto-migration: ensure first_name column exists
   try {
-    const { db } = await import("./db");
-    const { sql } = await import("drizzle-orm");
     await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT`);
     console.log("[migration] first_name column ensured");
   } catch (e) {
