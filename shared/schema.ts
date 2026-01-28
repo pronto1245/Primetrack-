@@ -288,6 +288,66 @@ export type InsertClick = z.infer<typeof insertClickSchema>;
 export type Click = typeof clicks.$inferSelect;
 
 // ============================================
+// RAW CLICKS - Log ALL incoming HTTP requests before validation
+// Used for diagnosing click loss between external trackers and PrimeTrack
+// ============================================
+export const rawClicks = pgTable("raw_clicks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  
+  // Raw incoming parameters (before resolution)
+  rawOfferId: text("raw_offer_id"),
+  rawLandingId: text("raw_landing_id"),
+  rawPartnerId: text("raw_partner_id"),
+  
+  // Resolved entities (after lookup)
+  resolvedOfferId: varchar("resolved_offer_id").references(() => offers.id),
+  resolvedLandingId: varchar("resolved_landing_id").references(() => offerLandings.id),
+  resolvedPublisherId: varchar("resolved_publisher_id").references(() => users.id),
+  advertiserId: varchar("advertiser_id").references(() => users.id),
+  
+  // Request metadata
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  referer: text("referer"),
+  path: text("path"),
+  rawQuery: text("raw_query"),
+  geo: text("geo"),
+  
+  // Sub parameters
+  sub1: text("sub1"),
+  sub2: text("sub2"),
+  sub3: text("sub3"),
+  sub4: text("sub4"),
+  sub5: text("sub5"),
+  sub6: text("sub6"),
+  sub7: text("sub7"),
+  sub8: text("sub8"),
+  sub9: text("sub9"),
+  sub10: text("sub10"),
+  
+  // Processing status
+  status: text("status").notNull().default("pending"), // pending, processed, rejected
+  rejectReason: text("reject_reason"), // offer_not_found, offer_inactive, cap_reached, no_landing, partner_not_found, etc.
+  
+  // Link to created click (if successful)
+  clickId: varchar("click_id").references(() => clicks.id),
+}, (table) => ({
+  createdAtIdx: index("raw_clicks_created_at_idx").on(table.createdAt),
+  advertiserDateIdx: index("raw_clicks_advertiser_date_idx").on(table.advertiserId, table.createdAt),
+  publisherDateIdx: index("raw_clicks_publisher_date_idx").on(table.resolvedPublisherId, table.createdAt),
+  statusIdx: index("raw_clicks_status_idx").on(table.status),
+}));
+
+export const insertRawClickSchema = createInsertSchema(rawClicks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRawClick = z.infer<typeof insertRawClickSchema>;
+export type RawClick = typeof rawClicks.$inferSelect;
+
+// ============================================
 // CONVERSIONS (ORCHESTRATOR CORE)
 // All conversions are recorded HERE first, then optional postback
 // ============================================
