@@ -1,0 +1,100 @@
+: Resolving deltas: 100% (111/111), completed with 11 local objects.
+remote: error: Trace: 1eba060ce48f442adf4598fa1581fbfbfcaee2dad89f569d87cac7cd98e1efbc
+remote: error: See https://gh.io/lfs for more information.
+remote: error: File backup.sql is 150.67 MB; this exceeds GitHub's file size limit of 100.00 MB
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
+To https://github.com/pronto1245/Primetrack-.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/pronto1245/Primetrack-.git'
+~/workspace$ git stash
+git log --oneline -20
+No local changes to save
+e5293d4 (HEAD -> main, gitsafe-backup/main) Saved progress at the end of the loop
+247259d Migrate production database to the new hosting environment
+3e66411 Update social media preview image
+cb512a8 Fix error that occurs when trying to load user data
+72e3da9 Resolve database import errors and improve application stability
+3305038 Update image used for social media sharing previews
+8d2421e Fix issues when importing data into a new database
+02a295d Compress database backup file for easier download
+7996b22 Saved progress at the end of the loop
+b7591c8 Published your App
+4730f9d Add distinct colors to navigation tabs for postback requests
+220075b Published your App
+0374165 Published your App
+e274cfc Adjust deployment settings for virtual machines and server resources
+deef681 Publish the affiliate tracker to a reserved virtual machine environment
+c4564fa Update deployment settings and guide users on database configuration
+c010e1f Add and update site preview images
+d55d67e Add option to change deployment type to Reserved VM
+4e190d0 Add a user interface for viewing incoming click requests
+03a60a1 Update deployment settings to improve application availability
+~/workspace$ git reset --hard 3e66411
+git push --force
+HEAD is now at 3e66411 Update social media preview image
+Enumerating objects: 157, done.
+Counting objects: 100% (157/157), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (143/143), done.
+Writing objects: 100% (143/143), 54.55 MiB | 4.52 MiB/s, done.
+Total 143 (delta 108), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (108/108), completed with 11 local objects.
+remote: error: Trace: 469965e0c2228d1ec791e07cda9f82c503410be0499b282e02f93e0c68037876
+remote: error: See https://gh.io/lfs for more information.
+remote: error: File backup.sql is 150.67 MB; this exceeds GitHub's file size limit of 100.00 MB
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
+To https://github.com/pronto1245/Primetrack-.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/pronto1245/Primetrack-.git'
+~/workspace$ git log --all --full-history -- backup.sql
+commit b967c9b4ba34d8aebcf668cd70645afceafa8846 (replit-agent)
+Merge: f89d709 e5293d4
+Author: joycethomas1907 <49700463-joycethomas1907@users.noreply.replit.com>
+Date:   Wed Jan 28 17:35:41 2026 +0000
+
+    Saved progress at the end of the loop
+    
+    Replit-Commit-Author: Agent
+    Replit-Commit-Session-Id: 38a0e534-0c0d-4d31-a9f1-d134acbbb64d
+    Replit-Commit-Checkpoint-Type: full_checkpoint
+    Replit-Commit-Event-Id: 8385c918-690b-43b2-b605-fc6dd0ea11e0
+    Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/24b37059-5b12-44cb-b70b-19a2dcb6cd9e/38a0e534-0c0d-4d31-a9f1-d134acbbb64d/ttr6m5b
+    Replit-Helium-Checkpoint-Created: true
+
+commit e5293d40ab2562e18b2bac0a26be45a66512a9fc (gitsafe-backup/main)
+Author: joycethomas1907 <49700463-joycethomas1907@users.noreply.replit.com>
+Date:   Wed Jan 28 17:35:41 2026 +0000
+
+    Saved progress at the end of the loop
+    
+    Replit-Commit-Author: Agent
+    Replit-Commit-Session-Id: 38a0e534-0c0d-4d31-a9f1-d134acbbb64d
+    Replit-Commit-Checkpoint-Type: full_checkpoint
+    Replit-Commit-Event-Id: 8385c918-690b-43b2-b605-fc6dd0ea11e0
+    Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/24b37059-5b12-44cb-b70b-19a2dcb6cd9e/38a0e534-0c0d-4d31-a9f1-d134acbbb64d/ttr6m5b
+    Replit-Helium-Checkpoint-Created: true
+
+commit 329e6f17a7e793ce14c59e8ad714a3e52ccbefed
+Merge: 74d4ad2 7996b22
+Author: joycethomas1907 <49700463-joycethomas1907@users.noreply.replit.com>
+Date:   Wed Jan 28 16:27:54 2026 +0000
+
+    Saved progress at the end of the loop
+    
+    Replit-Commit-Author: Agent
+    Replit-Commit-Session-Id: 38a0e534-0c0d-4d31-a9f1-d134acbbb64d
+    Replit-Commit-Checkpoint-Type: full_checkpoint
+    Replit-Commit-Event-Id: 42a300fb-83f2-4784-9353-3d3a57718434
+    Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/24b37059-5b12-44cb-b70b-19a2dcb6cd9e/38a0e534-0c0d-4d31-a9f1-d134acbbb64d/ov04ctC
+    Replit-Helium-Checkpoint-Created: true
+
+commit 7996b2224733a4b2f1370189dee6135a598cb6bb
+Author: joycethomas1907 <49700463-joycethomas1907@users.noreply.replit.com>
+Date:   Wed Jan 28 16:27:53 2026 +0000
+
+    Saved progress at the end of the loop
+    
+    Replit-Commit-Author: Agent
+    Replit-Commit-Session-Id: 38a0e534-0c0d-4d31-a9f1-d134acbbb64d
+    Replit-Commit-Checkpoint-Type: full_checkpoint
+:
