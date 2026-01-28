@@ -3,6 +3,7 @@ import {
   type Offer, type InsertOffer, offers,
   type OfferLanding, type InsertOfferLanding, offerLandings,
   type Click, type InsertClick, clicks,
+  type RawClick, type InsertRawClick, rawClicks,
   type Conversion, type InsertConversion, conversions,
   type PostbackLog, type InsertPostbackLog, postbackLogs,
   type AdvertiserSettings, type InsertAdvertiserSettings, advertiserSettings,
@@ -6300,6 +6301,128 @@ export class DatabaseStorage implements IStorage {
       .returning({ id: advertiserSources.id });
     
     return result.length > 0;
+  }
+
+  // ============================================
+  // RAW CLICKS - Incoming request logging
+  // ============================================
+
+  async createRawClick(data: InsertRawClick): Promise<RawClick> {
+    const [rawClick] = await db.insert(rawClicks).values(data).returning();
+    return rawClick;
+  }
+
+  async updateRawClickStatus(
+    id: string, 
+    status: string, 
+    rejectReason?: string,
+    clickId?: string,
+    resolvedData?: {
+      resolvedOfferId?: string;
+      resolvedLandingId?: string;
+      resolvedPublisherId?: string;
+      advertiserId?: string;
+    }
+  ): Promise<void> {
+    const updateData: Record<string, any> = { status };
+    if (rejectReason) updateData.rejectReason = rejectReason;
+    if (clickId) updateData.clickId = clickId;
+    if (resolvedData) {
+      if (resolvedData.resolvedOfferId) updateData.resolvedOfferId = resolvedData.resolvedOfferId;
+      if (resolvedData.resolvedLandingId) updateData.resolvedLandingId = resolvedData.resolvedLandingId;
+      if (resolvedData.resolvedPublisherId) updateData.resolvedPublisherId = resolvedData.resolvedPublisherId;
+      if (resolvedData.advertiserId) updateData.advertiserId = resolvedData.advertiserId;
+    }
+    
+    await db.update(rawClicks).set(updateData).where(eq(rawClicks.id, id));
+  }
+
+  async getRawClicksForAdvertiser(
+    advertiserId: string,
+    filters: {
+      offerId?: string;
+      publisherId?: string;
+      status?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<{ data: RawClick[]; total: number }> {
+    const conditions = [eq(rawClicks.advertiserId, advertiserId)];
+    
+    if (filters.offerId) {
+      conditions.push(eq(rawClicks.resolvedOfferId, filters.offerId));
+    }
+    if (filters.publisherId) {
+      conditions.push(eq(rawClicks.resolvedPublisherId, filters.publisherId));
+    }
+    if (filters.status) {
+      conditions.push(eq(rawClicks.status, filters.status));
+    }
+    if (filters.dateFrom) {
+      conditions.push(gte(rawClicks.createdAt, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      conditions.push(lte(rawClicks.createdAt, filters.dateTo));
+    }
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rawClicks)
+      .where(and(...conditions));
+
+    const data = await db
+      .select()
+      .from(rawClicks)
+      .where(and(...conditions))
+      .orderBy(desc(rawClicks.createdAt))
+      .limit(filters.limit || 50)
+      .offset(filters.offset || 0);
+
+    return { data, total: countResult?.count || 0 };
+  }
+
+  async getRawClicksForPublisher(
+    publisherId: string,
+    filters: {
+      offerId?: string;
+      status?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<{ data: RawClick[]; total: number }> {
+    const conditions = [eq(rawClicks.resolvedPublisherId, publisherId)];
+    
+    if (filters.offerId) {
+      conditions.push(eq(rawClicks.resolvedOfferId, filters.offerId));
+    }
+    if (filters.status) {
+      conditions.push(eq(rawClicks.status, filters.status));
+    }
+    if (filters.dateFrom) {
+      conditions.push(gte(rawClicks.createdAt, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      conditions.push(lte(rawClicks.createdAt, filters.dateTo));
+    }
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rawClicks)
+      .where(and(...conditions));
+
+    const data = await db
+      .select()
+      .from(rawClicks)
+      .where(and(...conditions))
+      .orderBy(desc(rawClicks.createdAt))
+      .limit(filters.limit || 50)
+      .offset(filters.offset || 0);
+
+    return { data, total: countResult?.count || 0 };
   }
 }
 
