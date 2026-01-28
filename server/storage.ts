@@ -1813,10 +1813,11 @@ export class DatabaseStorage implements IStorage {
     
     // Batch fetch all publisher names and shortIds in one query
     const publisherUsers = allPublisherIds.size > 0
-      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId }).from(users).where(inArray(users.id, Array.from(allPublisherIds)))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId, firstName: users.firstName }).from(users).where(inArray(users.id, Array.from(allPublisherIds)))
       : [];
     const publisherNameMap = new Map(publisherUsers.map(u => [u.id, u.username]));
     const publisherShortIdMap = new Map(publisherUsers.map(u => [u.id, u.shortId != null ? u.shortId.toString().padStart(3, '0') : '-']));
+    const publisherFirstNameMap = new Map(publisherUsers.map(u => [u.id, u.firstName || null]));
 
     const clicksByPubMap = new Map(clicksByPublisher.map(c => [c.publisherId, c.clicks || 0]));
     const convsByPubMap = new Map(convsByPublisher.map(c => [c.publisherId, c]));
@@ -1828,6 +1829,7 @@ export class DatabaseStorage implements IStorage {
         publisherId,
         publisherName: publisherNameMap.get(publisherId) || 'Unknown',
         publisherShortId: publisherShortIdMap.get(publisherId) || '-',
+        publisherFirstName: publisherFirstNameMap.get(publisherId) || null,
         clicks: pubClicks,
         conversions: conv?.conversions || 0,
         advertiserCost: conv?.advertiserCost || 0,
@@ -2898,15 +2900,17 @@ export class DatabaseStorage implements IStorage {
     // Enrich with publisher names and shortIds
     const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
     const publishersData = publisherIds.length > 0 
-      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId }).from(users).where(inArray(users.id, publisherIds))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId, firstName: users.firstName }).from(users).where(inArray(users.id, publisherIds))
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
     const publisherShortIdMap = new Map(publishersData.map(p => [p.id, p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-']));
+    const publisherFirstNameMap = new Map(publishersData.map(p => [p.id, p.firstName || null]));
     
     const enrichedClicks = paginatedClicks.map(click => ({
       ...click,
       publisherName: publisherMap.get(click.publisherId) || click.publisherId,
-      publisherShortId: publisherShortIdMap.get(click.publisherId) || '-'
+      publisherShortId: publisherShortIdMap.get(click.publisherId) || '-',
+      publisherFirstName: publisherFirstNameMap.get(click.publisherId) || null
     }));
     
     // Note: allClicks is deprecated for performance reasons - use getClicksReportOptimized or streaming export
@@ -3112,10 +3116,11 @@ export class DatabaseStorage implements IStorage {
     // Get publisher names and shortIds with single query
     const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
     const publishersData = publisherIds.length > 0 
-      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId }).from(users).where(inArray(users.id, publisherIds))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId, firstName: users.firstName }).from(users).where(inArray(users.id, publisherIds))
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
     const publisherShortIdMap = new Map(publishersData.map(p => [p.id, p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-']));
+    const publisherFirstNameMap = new Map(publishersData.map(p => [p.id, p.firstName || null]));
     
     // Step 5: Build conversions map by clickId
     const conversionsByClickId = new Map<string, any[]>();
@@ -3149,6 +3154,7 @@ export class DatabaseStorage implements IStorage {
         offerName: offerMap.get(click.offerId) || click.offerId,
         publisherName: publisherMap.get(click.publisherId) || click.publisherId,
         publisherShortId: publisherShortIdMap.get(click.publisherId) || '-',
+        publisherFirstName: publisherFirstNameMap.get(click.publisherId) || null,
         isUnique: click.isUnique ?? true,
         hasConversion,
         clicks: 1,

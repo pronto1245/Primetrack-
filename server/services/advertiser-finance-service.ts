@@ -32,6 +32,8 @@ interface OfferBreakdown {
 interface PublisherBreakdown {
   publisherId: string;
   publisherName: string;
+  publisherShortId?: string;
+  publisherFirstName?: string | null;
   revenue: number;
   payouts: number;
   profit: number;
@@ -239,12 +241,18 @@ export class AdvertiserFinanceService {
     
     const publisherIds = revenueByPublisher.map(r => r.publisherId).filter(Boolean);
     const publisherNames = new Map<string, string>();
+    const publisherShortIds = new Map<string, string>();
+    const publisherFirstNames = new Map<string, string | null>();
     
     if (publisherIds.length > 0) {
-      const publishers = await db.select({ id: users.id, username: users.username, companyName: users.companyName })
+      const publishers = await db.select({ id: users.id, username: users.username, companyName: users.companyName, shortId: users.shortId, firstName: users.firstName })
         .from(users)
         .where(sql`${users.id} IN (${sql.join(publisherIds.map(id => sql`${id}`), sql`, `)})`);
-      publishers.forEach(p => publisherNames.set(p.id, p.companyName || p.username));
+      publishers.forEach(p => {
+        publisherNames.set(p.id, p.companyName || p.username);
+        publisherShortIds.set(p.id, p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-');
+        publisherFirstNames.set(p.id, p.firstName || null);
+      });
     }
     
     const payoutConditions: any[] = [eq(payouts.advertiserId, advertiserId)];
@@ -273,6 +281,8 @@ export class AdvertiserFinanceService {
         return {
           publisherId: r.publisherId!,
           publisherName: publisherNames.get(r.publisherId!) || r.publisherId!,
+          publisherShortId: publisherShortIds.get(r.publisherId!) || '-',
+          publisherFirstName: publisherFirstNames.get(r.publisherId!) || null,
           revenue,
           payouts: payout,
           profit,

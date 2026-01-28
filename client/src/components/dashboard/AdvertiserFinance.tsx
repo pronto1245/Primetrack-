@@ -101,7 +101,7 @@ export function AdvertiserFinance() {
     summary: { revenue: number; payouts: number; profit: number; roiPercent: number; totalFtd: number; totalRepeatDeposits: number; avgDepositAmount: number };
     trend: { periodStart: string; revenue: number; payouts: number; profit: number }[];
     offerBreakdown: { offerId: string; offerName: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
-    publisherBreakdown: { publisherId: string; publisherName: string; publisherShortId?: string; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
+    publisherBreakdown: { publisherId: string; publisherName: string; publisherShortId?: string; publisherFirstName?: string | null; revenue: number; payouts: number; profit: number; roiPercent: number; ftdCount: number }[];
   }>({
     queryKey: [`/api/advertiser/finance/analytics?dateFrom=${analyticsDateFrom}&dateTo=${analyticsDateTo}&interval=${analyticsInterval}`],
     retry: false,
@@ -629,7 +629,7 @@ export function AdvertiserFinance() {
                             <tbody>
                               {analytics.publisherBreakdown.map((p) => (
                                 <tr key={p.publisherId} className="border-t border-border">
-                                  <td className="py-1.5 text-foreground">{p.publisherShortId || '-'}</td>
+                                  <td className="py-1.5 text-foreground">{p.publisherShortId ? `${p.publisherShortId}${p.publisherFirstName ? ` - ${p.publisherFirstName}` : ''}` : '-'}</td>
                                   <td className="text-right text-emerald-500">{formatCurrency(p.revenue)}</td>
                                   <td className="text-right text-red-500">{formatCurrency(p.payouts)}</td>
                                   <td className={`text-right ${p.roiPercent >= 0 ? 'text-purple-500' : 'text-orange-500'}`}>{p.roiPercent.toFixed(0)}%</td>
@@ -718,7 +718,7 @@ export function AdvertiserFinance() {
                             {request.publisherName?.slice(0, 2).toUpperCase() || "??"}
                           </div>
                           <div>
-                            <p className="font-medium text-foreground" data-testid={`text-publisher-name-${request.id}`}>{request.publisherShortId || '-'}</p>
+                            <p className="font-medium text-foreground" data-testid={`text-publisher-name-${request.id}`}>{request.publisherShortId ? `${request.publisherShortId}${request.publisherFirstName ? ` - ${request.publisherFirstName}` : ''}` : '-'}</p>
                             <p className="text-xs text-muted-foreground">{request.publisherEmail}</p>
                             <p className="text-sm text-muted-foreground">
                               Запрошено: <span className="text-foreground font-mono" data-testid={`text-request-amount-${request.id}`}>${request.requestedAmount}</span>
@@ -1182,7 +1182,7 @@ export function AdvertiserFinance() {
                         {new Date(payout.createdAt).toLocaleDateString()}
                       </td>
                       <td className="py-3 px-4 text-foreground">
-                        {payout.publisherShortId || '-'}
+                        {payout.publisherShortId ? `${payout.publisherShortId}${payout.publisherFirstName ? ` - ${payout.publisherFirstName}` : ''}` : '-'}
                       </td>
                       <td className="py-3 px-4">
                         <Badge
