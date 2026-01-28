@@ -2895,16 +2895,18 @@ export class DatabaseStorage implements IStorage {
       ? await db.select().from(clicks).where(whereCondition).orderBy(desc(clicks.createdAt)).limit(limit).offset(offset)
       : await db.select().from(clicks).orderBy(desc(clicks.createdAt)).limit(limit).offset(offset);
     
-    // Enrich with publisher names
+    // Enrich with publisher names and shortIds
     const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
     const publishersData = publisherIds.length > 0 
-      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, publisherIds))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId }).from(users).where(inArray(users.id, publisherIds))
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
+    const publisherShortIdMap = new Map(publishersData.map(p => [p.id, p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-']));
     
     const enrichedClicks = paginatedClicks.map(click => ({
       ...click,
-      publisherName: publisherMap.get(click.publisherId) || click.publisherId
+      publisherName: publisherMap.get(click.publisherId) || click.publisherId,
+      publisherShortId: publisherShortIdMap.get(click.publisherId) || '-'
     }));
     
     // Note: allClicks is deprecated for performance reasons - use getClicksReportOptimized or streaming export
@@ -3107,12 +3109,13 @@ export class DatabaseStorage implements IStorage {
       }
     });
     
-    // Get publisher names with single query
+    // Get publisher names and shortIds with single query
     const publisherIds = Array.from(new Set(paginatedClicks.map(c => c.publisherId)));
     const publishersData = publisherIds.length > 0 
-      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, publisherIds))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId }).from(users).where(inArray(users.id, publisherIds))
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
+    const publisherShortIdMap = new Map(publishersData.map(p => [p.id, p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-']));
     
     // Step 5: Build conversions map by clickId
     const conversionsByClickId = new Map<string, any[]>();
@@ -3145,6 +3148,7 @@ export class DatabaseStorage implements IStorage {
         ...click,
         offerName: offerMap.get(click.offerId) || click.offerId,
         publisherName: publisherMap.get(click.publisherId) || click.publisherId,
+        publisherShortId: publisherShortIdMap.get(click.publisherId) || '-',
         isUnique: click.isUnique ?? true,
         hasConversion,
         clicks: 1,
