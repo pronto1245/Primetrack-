@@ -223,19 +223,23 @@ export default function Home() {
   // CountUp animation component
   const CountUpValue = ({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) => {
     const [count, setCount] = useState(0);
+    const [hasAnimated, setHasAnimated] = useState(false);
     const ref = React.useRef<HTMLSpanElement>(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
     
     useEffect(() => {
-      if (isInView) {
+      if (isInView && !hasAnimated) {
+        setHasAnimated(true);
         const duration = 2000;
         const steps = 60;
         const increment = value / steps;
         let current = 0;
+        let step = 0;
         
         const timer = setInterval(() => {
+          step++;
           current += increment;
-          if (current >= value) {
+          if (step >= steps || current >= value) {
             setCount(value);
             clearInterval(timer);
           } else {
@@ -245,7 +249,7 @@ export default function Home() {
         
         return () => clearInterval(timer);
       }
-    }, [isInView, value]);
+    }, [isInView, hasAnimated]);
     
     const formatNumber = (num: number) => {
       if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
