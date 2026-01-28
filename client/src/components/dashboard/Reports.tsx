@@ -260,7 +260,7 @@ export function Reports({ role }: ReportsProps) {
                     { value: "all", label: "Все вебмастера" },
                     ...publishers.map((pub) => ({
                       value: pub.id,
-                      label: pub.shortId ? `${pub.shortId} - ${pub.username || pub.email}` : '-',
+                      label: pub.shortId || '-',
                     })),
                   ]}
                 />
