@@ -291,6 +291,53 @@ const resources = {
           freeTrial: "30 days free",
           freeTrialFull: "30 days free + no card"
         },
+        demoTabs: {
+          dashboard: "Dashboard",
+          offers: "Offers",
+          createOffer: "Create Offer",
+          statistics: "Statistics",
+          finance: "Finance",
+          team: "Team",
+          antifraud: "Anti-Fraud"
+        },
+        fallbacks: {
+          noTitle: "No title",
+          news: "News",
+          offersSettings: "Offers and their settings",
+          update: "Update",
+          integration: "Integration",
+          feature: "Feature"
+        },
+        stats: {
+          clicksProcessed: "Clicks processed",
+          availability: "Availability",
+          responseTime: "Response time",
+          advertisers: "Advertisers"
+        },
+        heroTags: {
+          cpaRevshare: "CPA / RevShare / Hybrid",
+          postback: "Postback",
+          subid: "SubID",
+          antiDuplicate: "Anti-duplicate"
+        },
+        migrationSection: {
+          whatTransfers: "What transfers",
+          campaigns: "Campaigns and traffic sources",
+          subidParams: "SubID parameters",
+          conversions: "Conversions and their statuses",
+          howProcess: "How the process works",
+          step1: "Choose the tracker you want to migrate from",
+          step2: "Export data or connect API",
+          step3: "Upload file or provide access",
+          step4: "Check field mapping",
+          step5: "Start import",
+          importMethods: "Import methods",
+          importTime: "Import time",
+          minutes: "10-15 minutes",
+          otherTracker: "Using a different tracker? Contact support — we'll help with the format.",
+          securityNote: "All data is transmitted over an encrypted connection. Original files are not stored after import.",
+          startMigration: "Start migration"
+        },
         hero: {
           title1: "Tracker for",
           title2: "affiliate marketing",
@@ -732,6 +779,53 @@ const resources = {
           news: "Новости",
           freeTrial: "30 дней бесплатно",
           freeTrialFull: "30 дней бесплатно + без карты"
+        },
+        demoTabs: {
+          dashboard: "Дашборд",
+          offers: "Офферы",
+          createOffer: "Создание оффера",
+          statistics: "Статистика",
+          finance: "Финансы",
+          team: "Команда",
+          antifraud: "Антифрод"
+        },
+        fallbacks: {
+          noTitle: "Без заголовка",
+          news: "Новость",
+          offersSettings: "Офферы и их настройки",
+          update: "Обновление",
+          integration: "Интеграция",
+          feature: "Фича"
+        },
+        stats: {
+          clicksProcessed: "Кликов обработано",
+          availability: "Доступность",
+          responseTime: "Скорость отклика",
+          advertisers: "Рекламодателей"
+        },
+        heroTags: {
+          cpaRevshare: "CPA / RevShare / Hybrid",
+          postback: "Postback",
+          subid: "SubID",
+          antiDuplicate: "Антидубль"
+        },
+        migrationSection: {
+          whatTransfers: "Что переносится",
+          campaigns: "Кампании и источники трафика",
+          subidParams: "Параметры subID",
+          conversions: "Конверсии и их статусы",
+          howProcess: "Как проходит процесс",
+          step1: "Выбираете трекер, с которого хотите перенести данные",
+          step2: "Экспортируете данные или подключаете API",
+          step3: "Загружаете файл или указываете доступы",
+          step4: "Проверяете сопоставление полей",
+          step5: "Запускаете импорт",
+          importMethods: "Способы импорта",
+          importTime: "Время импорта",
+          minutes: "10-15 минут",
+          otherTracker: "Используете другой трекер? Напишите в поддержку — подскажем формат.",
+          securityNote: "Все данные передаются по зашифрованному соединению. Исходные файлы не сохраняются после импорта.",
+          startMigration: "Начать миграцию"
         },
         hero: {
           title1: "Трекер для",

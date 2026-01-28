@@ -112,13 +112,13 @@ export default function Home() {
   const parallaxFast = useTransform(scrollY, [0, 500], [0, 40]);
 
   const demoTabs = [
-    { label: "Дашборд", src: "/demo-videos/дашборд.mp4", icon: BarChart3, color: "emerald", iconColor: "text-emerald-400" },
-    { label: "Офферы", src: "/demo-videos/офферы_.mp4", icon: FileText, color: "blue", iconColor: "text-blue-400" },
-    { label: "Создание оффера", src: "/demo-videos/создание_оффера.mp4", icon: Settings, color: "purple", iconColor: "text-purple-400" },
-    { label: "Статистика", src: "/demo-videos/статитстика.mp4", icon: TrendingUp, color: "cyan", iconColor: "text-cyan-400" },
-    { label: "Финансы", src: "/demo-videos/финансы.mp4", icon: CreditCard, color: "amber", iconColor: "text-amber-400" },
-    { label: "Команда", src: "/demo-videos/команда.mp4", icon: Users, color: "pink", iconColor: "text-pink-400" },
-    { label: "Антифрод", src: "/demo-videos/антифрод.mp4", icon: ShieldCheck, color: "red", iconColor: "text-red-400" },
+    { label: t('landing.demoTabs.dashboard'), src: "/demo-videos/дашборд.mp4", icon: BarChart3, color: "emerald", iconColor: "text-emerald-400" },
+    { label: t('landing.demoTabs.offers'), src: "/demo-videos/офферы_.mp4", icon: FileText, color: "blue", iconColor: "text-blue-400" },
+    { label: t('landing.demoTabs.createOffer'), src: "/demo-videos/создание_оффера.mp4", icon: Settings, color: "purple", iconColor: "text-purple-400" },
+    { label: t('landing.demoTabs.statistics'), src: "/demo-videos/статитстика.mp4", icon: TrendingUp, color: "cyan", iconColor: "text-cyan-400" },
+    { label: t('landing.demoTabs.finance'), src: "/demo-videos/финансы.mp4", icon: CreditCard, color: "amber", iconColor: "text-amber-400" },
+    { label: t('landing.demoTabs.team'), src: "/demo-videos/команда.mp4", icon: Users, color: "pink", iconColor: "text-pink-400" },
+    { label: t('landing.demoTabs.antifraud'), src: "/demo-videos/антифрод.mp4", icon: ShieldCheck, color: "red", iconColor: "text-red-400" },
   ];
 
   const handleVideoEnd = () => {
@@ -193,8 +193,8 @@ export default function Home() {
 
   const normalizedNews = (publicNews || []).map((post: any) => ({
     id: post.id || `news-${Math.random()}`,
-    title: post.title || 'Без заголовка',
-    category: post.category || 'Новость',
+    title: post.title || t('landing.fallbacks.noTitle'),
+    category: post.category || t('landing.fallbacks.news'),
     shortDescription: post.shortDescription || post.body?.substring(0, 150) || '',
     body: post.body || '',
     createdAt: post.createdAt || post.publishedAt || new Date().toISOString(),
@@ -202,7 +202,7 @@ export default function Home() {
   
   const normalizedRoadmap = (publicRoadmap || []).map((item: any) => ({
     id: item.id || `roadmap-${Math.random()}`,
-    title: item.title || 'Без заголовка',
+    title: item.title || t('landing.fallbacks.noTitle'),
     description: item.description || '',
     quarter: item.quarter || 'TBD',
     status: item.status || 'planned',
@@ -360,7 +360,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-lg text-muted-foreground mb-6 max-w-xl leading-relaxed"
             >
-              {platformSettings?.platformDescription || `Гембла, беттинг, push-трафик. Клики → лиды → депозиты. Postback в любой трекер.`}
+              {platformSettings?.platformDescription || t('landing.hero.subtitle')}
             </motion.p>
 
             <motion.div 
@@ -395,7 +395,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="flex flex-wrap justify-center gap-4 mb-10"
             >
-              {["CPA / RevShare / Hybrid", "Postback", "SubID", "Антидубль"].map((item, i) => (
+              {[t('landing.heroTags.cpaRevshare'), t('landing.heroTags.postback'), t('landing.heroTags.subid'), t('landing.heroTags.antiDuplicate')].map((item, i) => (
                 <span key={i} className="flex items-center gap-1.5 text-sm text-muted-foreground/80">
                   <Check className="w-4 h-4 text-emerald-500" />{item}
                 </span>
@@ -515,27 +515,27 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4">
             {[
               { 
-                label: "Кликов обработано", 
+                label: t('landing.stats.clicksProcessed'), 
                 numValue: 1200000000,
                 suffix: "+",
                 icon: MousePointerClick,
                 color: "from-emerald-400 to-cyan-400"
               },
               { 
-                label: "Доступность", 
+                label: t('landing.stats.availability'), 
                 displayValue: "99.99%",
                 icon: Activity,
                 color: "from-green-400 to-emerald-400",
                 isLive: true
               },
               { 
-                label: "Скорость отклика", 
+                label: t('landing.stats.responseTime'), 
                 displayValue: "< 5ms",
                 icon: Timer,
                 color: "from-cyan-400 to-blue-400"
               },
               { 
-                label: "Рекламодателей", 
+                label: t('landing.stats.advertisers'), 
                 numValue: 500,
                 suffix: "+",
                 icon: Building2,
@@ -992,7 +992,7 @@ export default function Home() {
                 className="bg-emerald-600 hover:bg-emerald-500"
                 data-testid="button-migration-register"
               >
-                Начать миграцию
+                {t('landing.migrationSection.startMigration')}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
@@ -1026,43 +1026,43 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <p className="text-sm mt-2">Используете другой трекер? Напишите в поддержку — подскажем формат.</p>
+              <p className="text-sm mt-2">{t('landing.migrationSection.otherTracker')}</p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">Что переносится</h4>
+              <h4 className="font-semibold text-foreground mb-2">{t('landing.migrationSection.whatTransfers')}</h4>
               <ul className="space-y-1">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Офферы и их настройки</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Кампании и источники трафика</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Параметры subID</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />Конверсии и их статусы</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />{t('landing.fallbacks.offersSettings')}</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />{t('landing.migrationSection.campaigns')}</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />{t('landing.migrationSection.subidParams')}</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />{t('landing.migrationSection.conversions')}</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">Как проходит процесс</h4>
+              <h4 className="font-semibold text-foreground mb-2">{t('landing.migrationSection.howProcess')}</h4>
               <ol className="list-decimal list-inside space-y-1 text-sm">
-                <li>Выбираете трекер, с которого хотите перенести данные</li>
-                <li>Экспортируете данные или подключаете API</li>
-                <li>Загружаете файл или указываете доступы</li>
-                <li>Проверяете сопоставление полей</li>
-                <li>Запускаете импорт</li>
+                <li>{t('landing.migrationSection.step1')}</li>
+                <li>{t('landing.migrationSection.step2')}</li>
+                <li>{t('landing.migrationSection.step3')}</li>
+                <li>{t('landing.migrationSection.step4')}</li>
+                <li>{t('landing.migrationSection.step5')}</li>
               </ol>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="p-3 rounded bg-muted/50">
-                <div className="font-medium text-foreground">Способы импорта</div>
+                <div className="font-medium text-foreground">{t('landing.migrationSection.importMethods')}</div>
                 <div>CSV, JSON, API</div>
               </div>
               <div className="p-3 rounded bg-muted/50">
-                <div className="font-medium text-foreground">Время импорта</div>
-                <div>10-15 минут</div>
+                <div className="font-medium text-foreground">{t('landing.migrationSection.importTime')}</div>
+                <div>{t('landing.migrationSection.minutes')}</div>
               </div>
             </div>
 
             <div className="text-sm border-t border-border pt-4">
-              <p>Все данные передаются по зашифрованному соединению. Исходные файлы не сохраняются после импорта.</p>
+              <p>{t('landing.migrationSection.securityNote')}</p>
             </div>
 
             <div className="flex justify-center pt-2">
@@ -1070,7 +1070,7 @@ export default function Home() {
                 onClick={() => { setShowMigrationModal(false); navigate('/register/advertiser'); }}
                 className="bg-emerald-600 hover:bg-emerald-500"
               >
-                Начать миграцию
+                {t('landing.migrationSection.startMigration')}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
@@ -1572,7 +1572,7 @@ export default function Home() {
                               <IconComponent className="w-5 h-5 text-emerald-500" />
                             </div>
                             <div>
-                              <div className="text-xs text-emerald-500 font-mono">{post.category || 'Новость'}</div>
+                              <div className="text-xs text-emerald-500 font-mono">{post.category || t('landing.fallbacks.news')}</div>
                               <div className="text-xs text-muted-foreground">
                                 {post.createdAt ? new Date(post.createdAt).toLocaleDateString('ru-RU') : ''}
                               </div>
@@ -1607,7 +1607,7 @@ export default function Home() {
                     })()}
                   </div>
                   <div>
-                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category || 'Новость'}</div>
+                    <div className="text-xs text-emerald-500 font-mono">{selectedNews.category || t('landing.fallbacks.news')}</div>
                     <div className="text-xs text-muted-foreground">
                       {selectedNews.createdAt ? new Date(selectedNews.createdAt).toLocaleDateString('ru-RU') : ''}
                     </div>
