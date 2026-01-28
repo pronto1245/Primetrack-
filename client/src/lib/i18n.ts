@@ -9,7 +9,10 @@ const resources = {
         features: "Features",
         pricing: "Pricing",
         integrations: "Integrations",
-        login: "Log In",
+        apiDocs: "API Documentation",
+        login: "LOG IN",
+        start: "START",
+        loginSystem: "LOG IN TO SYSTEM",
         dashboard: "Dashboard",
         getStarted: "Start Free Trial",
         exit: "Exit Demo"
@@ -639,7 +642,10 @@ const resources = {
         features: "Возможности",
         pricing: "Тарифы",
         integrations: "Интеграции",
-        login: "ВХОД",
+        apiDocs: "API Документация",
+        login: "ВОЙТИ",
+        start: "НАЧАТЬ",
+        loginSystem: "ВОЙТИ В СИСТЕМУ",
         dashboard: "Личный кабинет",
         getStarted: "НАЧАТЬ БЕСПЛАТНО",
         exit: "ВЫХОД"

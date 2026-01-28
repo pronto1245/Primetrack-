@@ -55,9 +55,9 @@ export function Navbar() {
 
         {/* Desktop Menu - Minimal */}
         <div className="hidden md:flex items-center gap-8 text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest">
-          <a href="#features" className="hover:text-foreground transition-colors">Возможности</a>
-          <a href="#pricing" className="hover:text-foreground transition-colors">Тарифы</a>
-          <a href="#" className="hover:text-foreground transition-colors">API Документация</a>
+          <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
+          <a href="#pricing" className="hover:text-foreground transition-colors">{t('nav.pricing')}</a>
+          <a href="#" className="hover:text-foreground transition-colors">{t('nav.apiDocs')}</a>
         </div>
 
         {/* Actions */}
@@ -81,13 +81,13 @@ export function Navbar() {
 
           <Link href="/login">
             <Button variant="ghost" size="sm" className="h-8 text-xs font-mono text-foreground hover:bg-muted">
-              ВОЙТИ
+              {t('nav.login')}
             </Button>
           </Link>
           
           <Link href="/register/advertiser">
             <Button size="sm" className="h-8 bg-white text-black hover:bg-muted text-xs font-bold font-mono px-4 rounded-sm">
-               НАЧАТЬ <ArrowRight className="w-3 h-3 ml-2" />
+               {t('nav.start')} <ArrowRight className="w-3 h-3 ml-2" />
             </Button>
           </Link>
         </div>
@@ -103,10 +103,10 @@ export function Navbar() {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-b border-border p-4 shadow-xl flex flex-col gap-4">
-          <a href="#features" className="text-sm font-mono text-muted-foreground py-2">Возможности</a>
-          <a href="#pricing" className="text-sm font-mono text-muted-foreground py-2">Тарифы</a>
+          <a href="#features" className="text-sm font-mono text-muted-foreground py-2">{t('nav.features')}</a>
+          <a href="#pricing" className="text-sm font-mono text-muted-foreground py-2">{t('nav.pricing')}</a>
           <Link href="/login">
-            <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-foreground font-mono">ВОЙТИ В СИСТЕМУ</Button>
+            <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-foreground font-mono">{t('nav.loginSystem')}</Button>
           </Link>
         </div>
       )}
