@@ -229,11 +229,11 @@ export function AdvertiserPostbacks() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-muted mb-4">
-          <TabsTrigger value="outgoing" className="data-[state=active]:bg-background" data-testid="tab-outgoing">
+          <TabsTrigger value="outgoing" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400" data-testid="tab-outgoing">
             <ArrowUpFromLine className="w-4 h-4 mr-2" />
             Исходящие
           </TabsTrigger>
-          <TabsTrigger value="incoming" className="data-[state=active]:bg-background" data-testid="tab-incoming">
+          <TabsTrigger value="incoming" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400" data-testid="tab-incoming">
             <ArrowDownToLine className="w-4 h-4 mr-2" />
             Входящие запросы
           </TabsTrigger>
