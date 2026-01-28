@@ -1,0 +1,108 @@
+-- PostgreSQL database dump
+--
+
+\restrict wjsVVoM4Ryl5QDasELokOIFAXonh5UdkvzNO7FsBg4CHb9CJ4Ps55JdII9zcHTE
+
+-- Dumped from database version 16.10
+-- Dumped by pg_dump version 16.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: click_id_storage; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.click_id_storage AS ENUM (
+    'click_id',
+    'sub1',
+    'sub2',
+    'sub3',
+    'sub4',
+    'sub5',
+    'sub6',
+    'sub7',
+    'sub8',
+    'sub9',
+    'sub10'
+);
+
+
+ALTER TYPE public.click_id_storage OWNER TO postgres;
+
+--
+-- Name: invoice_status; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.invoice_status AS ENUM (
+    'draft',
+    'issued',
+    'paid',
+    'cancelled'
+);
+
+
+~/workspace$ git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --force --index-filter 'git rm -rf --cached --ignore-unmatch backup.sql backup_prod.sql' --prune-empty --tag-name-filter cat -- --all
+git push origin --force --all
+Enumerating objects: 9785, done.
+Counting objects: 100% (9785/9785), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (9681/9681), done.
+Writing objects: 100% (9785/9785), done.
+Total 9785 (delta 8100), reused 1332 (delta 0), pack-reused 0 (from 0)
+Rewrite 7996b2224733a4b2f1370189dee6135a598cb6bb (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 329e6f17a7e793ce14c59e8ad714a3e52ccbefed (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 02a295d54564ca320719f3bfbec4fcbe21406a2e (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite ca172a51b636c4c100131195808305ab6106bf9d (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 8d2421ef91ea605941ad033eaaa6609efc921acf (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 43ae4fbc1c168db0dc6629ed38b2edb6a69d9aff (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 3305038fc7b7795a222e2df5302ea8aee8520e70 (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 95cdc2918e8eac9f5af749afa58e2bbc4a3198b0 (3024/3065) (111 seconds passed, remaining 1 predicted)    rm 'backup.sql'
+Rewrite 72e3da9cd74a1ffdb14ab7a09151def85fb17871 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite df97d8007242b334633b152f45c4b3cd7bdd0669 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite cb512a8cb397b4d597bed6ab346cfbb0f76ff5dc (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite 887416785600d10f3dbcbc6aa948144b6994f69f (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite 3e664115d1a8b4cbb32cc035940534a951d540c5 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite 6a30c9bf82071a53ca9ab58345ee6d64a84a9013 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite 247259dc2a38dc523c58249e38b17e72036599b4 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+rm 'backup_prod.sql'
+Rewrite f89d70965924830455eac12adfd22aab2a96256d (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+rm 'backup_prod.sql'
+Rewrite cb22c05463fc58bc3ce1770afe0ad540aa0cb6a0 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite f2bd49b2859a4d6fce3e6cf418f04c23ccaf1c0e (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite 54a69b5824bacdd69fdfab1a2f771f15ed4c24c6 (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+Rewrite 00d242d919a0bb0798093deb8d9dd94878090f6b (3052/3065) (112 seconds passed, remaining 0 predicted)    rm 'backup.sql'
+
+WARNING: Ref 'refs/heads/main' is unchanged
+WARNING: Ref 'refs/heads/replit-agent' is unchanged
+WARNING: Ref 'refs/notes/commits' is unchanged
+Ref 'refs/remotes/gitsafe-backup/main' was rewritten
+Ref 'refs/remotes/origin/main' was rewritten
+WARNING: Ref 'refs/remotes/origin/main' is unchanged
+WARNING: Ref 'refs/replit/agent-ledger' is unchanged
+Enumerating objects: 3209, done.
+Counting objects: 100% (3149/3149), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (862/862), done.
+Writing objects: 100% (3111/3111), 55.45 MiB | 5.90 MiB/s, done.
+Total 3111 (delta 1030), reused 1382 (delta 838), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1030/1030), completed with 11 local objects.
+remote: error: Trace: 55ed5bff05d87dec52a162bd9bf0d4b570794d7fcbfdef14bedc036ff419643a
+remote: error: See https://gh.io/lfs for more information.
+remote: error: File backup.sql is 150.67 MB; this exceeds GitHub's file size limit of 100.00 MB
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
+To https://github.com/pronto1245/Primetrack-.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+ ! [remote rejected] replit-agent -> replit-agent (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/pronto1245/Primetrack-.git'
+~/workspace$ 
