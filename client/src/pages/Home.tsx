@@ -587,7 +587,7 @@ export default function Home() {
       <section className="py-16 bg-background">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-4">
-            <Badge variant="secondary" className="mb-3">Кому подходит</Badge>
+            <Badge variant="secondary" className="mb-3 bg-violet-500/10 text-violet-400 border-violet-500/20">Кому подходит</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Кому подходит {platformName}</h2>
           </motion.div>
           <motion.div {...fadeInUp} className="text-center mb-10 max-w-2xl mx-auto">
@@ -701,7 +701,7 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3">Преимущества</Badge>
+            <Badge variant="secondary" className="mb-3 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Преимущества</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display">Почему это удобно в реальной работе</h2>
           </motion.div>
 
@@ -800,7 +800,7 @@ export default function Home() {
       <section id="features" className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3">Возможности</Badge>
+            <Badge variant="secondary" className="mb-3 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Возможности</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Всё для управления партнёрками</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Полный набор инструментов для рекламодателей
@@ -851,7 +851,7 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3">Как это работает</Badge>
+            <Badge variant="secondary" className="mb-3 bg-orange-500/10 text-orange-400 border-orange-500/20">Как это работает</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Начните работу за 5 минут</h2>
           </motion.div>
 
@@ -962,7 +962,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
-              <Badge variant="secondary" className="mb-4">Миграция</Badge>
+              <Badge variant="secondary" className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">Миграция</Badge>
               <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Миграция с других трекеров</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Перенесите офферы, кампании, subID и историю конверсий за 10-15 минут. Без остановки трафика.
@@ -1082,7 +1082,7 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Отзывы</Badge>
+            <Badge variant="secondary" className="mb-4 bg-amber-500/10 text-amber-400 border-amber-500/20">Отзывы</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Что говорят клиенты, которые реально работают с {platformName}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Не маркетинговые цитаты — а опыт использования
@@ -1261,7 +1261,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="secondary" className="mb-4">FAQ</Badge>
+            <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">FAQ</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Часто задаваемые вопросы</h2>
           </motion.div>
 
@@ -1365,7 +1365,7 @@ export default function Home() {
       <section id="contact" className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto max-w-4xl">
           <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Контакты</Badge>
+            <Badge variant="secondary" className="mb-4 bg-rose-500/10 text-rose-400 border-rose-500/20">Контакты</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Остались вопросы?</h2>
             <p className="text-muted-foreground">Напишите нам, и мы ответим в течение 24 часов</p>
           </motion.div>
@@ -1440,7 +1440,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <motion.div {...fadeInUp}>
-              <Badge variant="secondary" className="mb-4">О нас</Badge>
+              <Badge variant="secondary" className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">О нас</Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{platformName}</h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
                 Трекер для арбитражников от арбитражников. Сами льём push и гемблу — знаем что нужно на практике. 
@@ -1472,7 +1472,7 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-background">
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
-              <Badge variant="secondary" className="mb-4">Развитие</Badge>
+              <Badge variant="secondary" className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Развитие</Badge>
               <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">План развития</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Следите за нашим прогрессом и узнавайте о новых функциях, которые мы разрабатываем
@@ -1542,7 +1542,7 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-background">
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
-              <Badge variant="secondary" className="mb-4">Новости</Badge>
+              <Badge variant="secondary" className="mb-4 bg-sky-500/10 text-sky-400 border-sky-500/20">Новости</Badge>
               <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Последние обновления</h2>
             </motion.div>
 
