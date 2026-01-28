@@ -1215,11 +1215,11 @@ export default function Home() {
                   )}
                   <h3 className="text-lg font-mono font-medium text-muted-foreground mb-2">{plan.name}</h3>
                   <div className="text-4xl font-bold text-foreground mb-2">
-                    ${price}<span className="text-sm font-normal text-muted-foreground">/мес</span>
+                    ${price}<span className="text-sm font-normal text-muted-foreground">{t('landing.pricing.perMonth')}</span>
                   </div>
                   {isYearly && (
                     <p className="text-xs text-emerald-400 mb-6">
-                      ${parseFloat(plan.yearlyPrice).toFixed(0)}/год
+                      ${parseFloat(plan.yearlyPrice).toFixed(0)}{t('landing.pricing.perYear')}
                     </p>
                   )}
                   {!isYearly && <div className="mb-6" />}
@@ -1580,7 +1580,7 @@ export default function Home() {
                           <h3 className="text-lg font-bold mb-2 group-hover:text-emerald-400 transition-colors">{post.title}</h3>
                           <p className="text-muted-foreground text-sm leading-relaxed">{post.shortDescription || post.body?.substring(0, 120) + '...'}</p>
                           <div className="mt-4 flex items-center text-sm text-emerald-500 font-medium">
-                            Читать далее <ChevronRight className="w-4 h-4 ml-1" />
+                            {t('landing.news.readMore')} <ChevronRight className="w-4 h-4 ml-1" />
                           </div>
                         </CardContent>
                       </Card>
