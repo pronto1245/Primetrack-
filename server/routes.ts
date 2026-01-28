@@ -2348,38 +2348,12 @@ export async function registerRoutes(
   // Format: /click/:offerId/:landingId?partner_id=XXX&sub1=...
   // Supports both UUID and shortId (e.g. /click/1/1?partner_id=1 or /click/uuid/uuid?partner_id=uuid)
   app.get("/click/:offerId/:landingId", async (req: Request, res: Response) => {
+    let rawClickId: string | null = null;
+    
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const { partner_id: rawPartnerId, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
       
-      if (!rawPartnerId) {
-        return res.status(400).json({ 
-          error: "Missing required parameter: partner_id" 
-        });
-      }
-
-      // Resolve shortId or UUID to actual UUIDs
-      console.log(`[CLICK DEBUG] rawOfferId=${rawOfferId}, rawLandingId=${rawLandingId}, rawPartnerId=${rawPartnerId}`);
-      const offerId = await resolveOfferId(rawOfferId);
-      const landingId = await resolveLandingId(rawLandingId);
-      const partnerId = await resolvePublisherId(rawPartnerId as string);
-      console.log(`[CLICK DEBUG] resolved offerId=${offerId}, landingId=${landingId}, partnerId=${partnerId}`);
-
-      if (!offerId) {
-        console.log(`[CLICK DEBUG] Offer not found for rawOfferId=${rawOfferId}`);
-        return res.status(404).json({ error: "Offer not found" });
-      }
-      if (!landingId) {
-        return res.status(404).json({ error: "Landing not found" });
-      }
-      if (!partnerId) {
-        return res.status(404).json({ error: "Partner not found" });
-      }
-
-      // Get landing for storeClickIdIn config
-      const landing = await storage.getOfferLanding(landingId);
-      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
-
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
                  "unknown";
@@ -2400,6 +2374,73 @@ export async function registerRoutes(
       if (!geoCode) {
         geoCode = "XX";
       }
+
+      // Create raw_click record immediately
+      const rawClick = await storage.createRawClick({
+        rawOfferId,
+        rawLandingId,
+        rawPartnerId: rawPartnerId as string || null,
+        ip,
+        userAgent,
+        referer,
+        path: req.path,
+        rawQuery: JSON.stringify(req.query),
+        geo: geoCode,
+        sub1: sub1 as string,
+        sub2: sub2 as string,
+        sub3: sub3 as string,
+        sub4: sub4 as string,
+        sub5: sub5 as string,
+        sub6: sub6 as string,
+        sub7: sub7 as string,
+        sub8: sub8 as string,
+        sub9: sub9 as string,
+        sub10: sub10 as string,
+        status: "pending",
+      });
+      rawClickId = rawClick.id;
+      
+      if (!rawPartnerId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", "missing_partner_id");
+        return res.status(400).json({ 
+          error: "Missing required parameter: partner_id" 
+        });
+      }
+
+      // Resolve shortId or UUID to actual UUIDs
+      console.log(`[CLICK DEBUG] rawOfferId=${rawOfferId}, rawLandingId=${rawLandingId}, rawPartnerId=${rawPartnerId}`);
+      const offerId = await resolveOfferId(rawOfferId);
+      const landingId = await resolveLandingId(rawLandingId);
+      const partnerId = await resolvePublisherId(rawPartnerId as string);
+      console.log(`[CLICK DEBUG] resolved offerId=${offerId}, landingId=${landingId}, partnerId=${partnerId}`);
+
+      // Get offer for advertiser ID
+      const offer = offerId ? await storage.getOffer(offerId) : null;
+
+      if (!offerId) {
+        console.log(`[CLICK DEBUG] Offer not found for rawOfferId=${rawOfferId}`);
+        await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found");
+        return res.status(404).json({ error: "Offer not found" });
+      }
+      if (!landingId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", "landing_not_found", undefined, {
+          resolvedOfferId: offerId,
+          advertiserId: offer?.advertiserId,
+        });
+        return res.status(404).json({ error: "Landing not found" });
+      }
+      if (!partnerId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", "partner_not_found", undefined, {
+          resolvedOfferId: offerId,
+          resolvedLandingId: landingId,
+          advertiserId: offer?.advertiserId,
+        });
+        return res.status(404).json({ error: "Partner not found" });
+      }
+
+      // Get landing for storeClickIdIn config
+      const landing = await storage.getOfferLanding(landingId);
+      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
       const result = await clickHandler.processClick({
         offerId,
@@ -2424,6 +2465,14 @@ export async function registerRoutes(
       });
 
       if (result.isBlocked) {
+        const rejectReason = result.capReached ? "cap_reached" : "fraud_blocked";
+        await storage.updateRawClickStatus(rawClickId, "rejected", rejectReason, undefined, {
+          resolvedOfferId: offerId,
+          resolvedLandingId: landingId,
+          resolvedPublisherId: partnerId,
+          advertiserId: offer?.advertiserId,
+        });
+        
         if (result.capReached) {
           return res.status(410).json({ 
             error: "Offer cap reached", 
@@ -2437,9 +2486,20 @@ export async function registerRoutes(
         });
       }
 
+      // Success - update raw_click with processed status and click_id
+      await storage.updateRawClickStatus(rawClickId, "processed", undefined, result.clickId, {
+        resolvedOfferId: offerId,
+        resolvedLandingId: landingId,
+        resolvedPublisherId: partnerId,
+        advertiserId: offer?.advertiserId,
+      });
+
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
+      if (rawClickId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`).catch(() => {});
+      }
       res.status(400).json({ 
         error: error.message || "Failed to process click" 
       });
@@ -2564,45 +2624,14 @@ export async function registerRoutes(
   // Usage: /api/click?offer_id=XXX&partner_id=YYY or /api/click?o=1&a=1&link_id=1
   // Supports both UUID and shortId
   app.get("/api/click", async (req: Request, res: Response) => {
+    let rawClickId: string | null = null;
+    
     try {
       // Support both naming conventions: offer_id/partner_id OR o/a/link_id (Scaleo style)
       const rawOfferId = (req.query.offer_id || req.query.o) as string;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
       const rawLandingId = req.query.link_id as string;
-      const { geo, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
-
-      if (!rawOfferId || !rawPartnerId) {
-        return res.status(400).json({ 
-          error: "Missing required parameters", 
-          required: ["offer_id (or o)", "partner_id (or a)"] 
-        });
-      }
-
-      // Resolve shortId or UUID to actual UUIDs
-      const offerId = await resolveOfferId(rawOfferId);
-      const partnerId = await resolvePublisherId(rawPartnerId);
-
-      if (!offerId) {
-        return res.status(404).json({ error: "Offer not found" });
-      }
-      if (!partnerId) {
-        return res.status(404).json({ error: "Partner not found" });
-      }
-      
-      // Resolve landing ID if provided - return 404 if specified but not found
-      let landingId: string | undefined;
-      let landing: any = null;
-      if (rawLandingId) {
-        const resolvedLandingId = await resolveLandingId(rawLandingId);
-        if (!resolvedLandingId) {
-          return res.status(404).json({ error: "Landing not found" });
-        }
-        landingId = resolvedLandingId;
-        landing = await storage.getOfferLanding(landingId);
-      }
-
-      // Extract partner click_id using landing config (if available)
-      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
+      const { geo, sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
@@ -2625,8 +2654,80 @@ export async function registerRoutes(
       
       // Final fallback for localhost/private IPs that can't be geolocated
       if (!geoCode) {
-        geoCode = "XX"; // Unknown/unidentified country code
+        geoCode = "XX";
       }
+
+      // Create raw_click record immediately
+      const rawClick = await storage.createRawClick({
+        rawOfferId: rawOfferId || null,
+        rawLandingId: rawLandingId || null,
+        rawPartnerId: rawPartnerId || null,
+        ip,
+        userAgent,
+        referer,
+        path: req.path,
+        rawQuery: JSON.stringify(req.query),
+        geo: geoCode,
+        sub1: sub1 as string,
+        sub2: sub2 as string,
+        sub3: sub3 as string,
+        sub4: sub4 as string,
+        sub5: sub5 as string,
+        sub6: sub6 as string,
+        sub7: sub7 as string,
+        sub8: sub8 as string,
+        sub9: sub9 as string,
+        sub10: sub10 as string,
+        status: "pending",
+      });
+      rawClickId = rawClick.id;
+
+      if (!rawOfferId || !rawPartnerId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", "missing_required_params");
+        return res.status(400).json({ 
+          error: "Missing required parameters", 
+          required: ["offer_id (or o)", "partner_id (or a)"] 
+        });
+      }
+
+      // Resolve shortId or UUID to actual UUIDs
+      const offerId = await resolveOfferId(rawOfferId);
+      const partnerId = await resolvePublisherId(rawPartnerId);
+
+      // Get offer for advertiser ID
+      const offer = offerId ? await storage.getOffer(offerId) : null;
+
+      if (!offerId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found");
+        return res.status(404).json({ error: "Offer not found" });
+      }
+      if (!partnerId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", "partner_not_found", undefined, {
+          resolvedOfferId: offerId,
+          advertiserId: offer?.advertiserId,
+        });
+        return res.status(404).json({ error: "Partner not found" });
+      }
+      
+      // Resolve landing ID if provided - return 404 if specified but not found
+      let landingId: string | undefined;
+      let landing: any = null;
+      if (rawLandingId) {
+        const resolvedLandingId = await resolveLandingId(rawLandingId);
+        if (!resolvedLandingId) {
+          await storage.updateRawClickStatus(rawClickId, "rejected", "landing_not_found", undefined, {
+            resolvedOfferId: offerId,
+            resolvedPublisherId: partnerId,
+            advertiserId: offer?.advertiserId,
+          });
+          return res.status(404).json({ error: "Landing not found" });
+        }
+        landingId = resolvedLandingId;
+        landing = await storage.getOfferLanding(landingId);
+      }
+
+      // Extract partner click_id using landing config (if available)
+      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
       const result = await clickHandler.processClick({
         offerId,
@@ -2651,6 +2752,14 @@ export async function registerRoutes(
       });
 
       if (result.isBlocked) {
+        const rejectReason = result.capReached ? "cap_reached" : "fraud_blocked";
+        await storage.updateRawClickStatus(rawClickId, "rejected", rejectReason, undefined, {
+          resolvedOfferId: offerId,
+          resolvedLandingId: landingId,
+          resolvedPublisherId: partnerId,
+          advertiserId: offer?.advertiserId,
+        });
+        
         if (result.capReached) {
           return res.status(410).json({ 
             error: "Offer cap reached", 
@@ -2664,9 +2773,20 @@ export async function registerRoutes(
         });
       }
 
+      // Success - update raw_click with processed status and click_id
+      await storage.updateRawClickStatus(rawClickId, "processed", undefined, result.clickId, {
+        resolvedOfferId: offerId,
+        resolvedLandingId: landingId,
+        resolvedPublisherId: partnerId,
+        advertiserId: offer?.advertiserId,
+      });
+
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
+      if (rawClickId) {
+        await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`).catch(() => {});
+      }
       res.status(400).json({ 
         error: error.message || "Failed to process click" 
       });
