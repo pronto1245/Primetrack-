@@ -238,7 +238,7 @@ export default function Home() {
     e.preventDefault();
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    toast({ title: t('landing.contact.form.success'), description: t('landing.contact.form.successDesc') });
+    toast({ title: "Сообщение отправлено!", description: "Мы свяжемся с вами в ближайшее время." });
     setContactForm({ name: '', email: '', message: '' });
     setIsSubmitting(false);
   };
@@ -339,7 +339,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-6"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              {t('landing.badges.freeTrialFull')}
+              30 дней бесплатно + без карты
             </motion.div>
             
             <motion.h1 
@@ -348,9 +348,9 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-5 leading-[1.1] font-display"
             >
-              {t('landing.hero.title1')}{" "}
+              Трекер для{" "}
               <span className="gradient-text">
-                {t('landing.hero.title2')}
+                арбитража
               </span>
             </motion.h1>
             
@@ -375,7 +375,7 @@ export default function Home() {
                 onClick={() => navigate('/register/advertiser')}
                 data-testid="button-hero-register"
               >
-                {t('landing.hero.cta')}
+                Начать бесплатно
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
@@ -587,8 +587,8 @@ export default function Home() {
       <section className="py-16 bg-background">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-4">
-            <Badge variant="secondary" className="mb-3 bg-violet-500/10 text-violet-400 border-violet-500/20">{t('landing.badges.whoFor')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.whoFor.title', { platform: platformName })}</h2>
+            <Badge variant="secondary" className="mb-3 bg-violet-500/10 text-violet-400 border-violet-500/20">Кому подходит</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Кому подходит {platformName}</h2>
           </motion.div>
           <motion.div {...fadeInUp} className="text-center mb-10 max-w-2xl mx-auto">
             <p className="text-muted-foreground leading-relaxed">
@@ -701,8 +701,8 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">{t('landing.badges.advantages')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display">{t('landing.advantages.title')}</h2>
+            <Badge variant="secondary" className="mb-3 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Преимущества</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display">Почему это удобно в реальной работе</h2>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-5">
@@ -800,10 +800,10 @@ export default function Home() {
       <section id="features" className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
           <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">{t('landing.badges.features')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.features.title')}</h2>
+            <Badge variant="secondary" className="mb-3 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Возможности</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Всё для управления партнёрками</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              {t('landing.features.subtitle')}
+              Полный набор инструментов для рекламодателей
             </p>
           </div>
 
@@ -851,8 +851,8 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3 bg-orange-500/10 text-orange-400 border-orange-500/20">{t('landing.badges.howItWorks')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.howItWorks.title')}</h2>
+            <Badge variant="secondary" className="mb-3 bg-orange-500/10 text-orange-400 border-orange-500/20">Как это работает</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Начните работу за 5 минут</h2>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-6">
@@ -962,10 +962,10 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
-              <Badge variant="secondary" className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">{t('landing.badges.migration')}</Badge>
-              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.migration.title')}</h2>
+              <Badge variant="secondary" className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">Миграция</Badge>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Миграция с других трекеров</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t('landing.migration.subtitle')}
+                Перенесите офферы, кампании, subID и историю конверсий за 10-15 минут. Без остановки трафика.
               </p>
             </div>
 
@@ -1082,10 +1082,10 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto">
           <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4 bg-amber-500/10 text-amber-400 border-amber-500/20">{t('landing.badges.testimonials')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.testimonials.title', { platform: platformName })}</h2>
+            <Badge variant="secondary" className="mb-4 bg-amber-500/10 text-amber-400 border-amber-500/20">Отзывы</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Что говорят клиенты, которые реально работают с {platformName}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              {t('landing.testimonials.subtitle')}
+              Не маркетинговые цитаты — а опыт использования
             </p>
           </motion.div>
 
@@ -1160,15 +1160,15 @@ export default function Home() {
         <div className="container px-4 mx-auto max-w-5xl">
           <div className="text-center mb-8">
             <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-              {t('landing.badges.freeTrial')}
+              30 дней бесплатно
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.pricing.title')}</h2>
-            <p className="text-muted-foreground">{t('landing.pricing.subtitle')}</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Простые и честные тарифы</h2>
+            <p className="text-muted-foreground">Никаких скрытых платежей. Безлимитный трафик.</p>
           </div>
 
           <div className="flex items-center justify-center gap-4 mb-12">
             <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              {t('landing.pricing.monthly')}
+              Ежемесячно
             </span>
             <Switch
               checked={isYearly}
@@ -1176,7 +1176,7 @@ export default function Home() {
               data-testid="switch-billing-cycle"
             />
             <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              {t('landing.pricing.yearly')}
+              Ежегодно
             </span>
             {isYearly && (
               <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white">
@@ -1242,7 +1242,7 @@ export default function Home() {
                     onClick={() => navigate(`/register/advertiser?plan=${plan.id}&billing=${isYearly ? 'yearly' : 'monthly'}`)}
                     data-testid={`button-plan-${plan.name.toLowerCase()}`}
                   >
-                    {t('landing.hero.cta')}
+                    Начать бесплатно
                   </Button>
                 </div>
               );
@@ -1261,28 +1261,28 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">{t('landing.badges.faq')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.faq.title')}</h2>
+            <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">FAQ</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Часто задаваемые вопросы</h2>
           </motion.div>
 
           {(() => {
             const faqItems = [
-              { q: t('landing.faq.q1'), a: t('landing.faq.a1') },
-              { q: t('landing.faq.q2'), a: t('landing.faq.a2') },
-              { q: t('landing.faq.q3'), a: t('landing.faq.a3') },
-              { q: t('landing.faq.q4'), a: t('landing.faq.a4') },
-              { q: t('landing.faq.q5'), a: t('landing.faq.a5') },
-              { q: t('landing.faq.q6'), a: t('landing.faq.a6') },
-              { q: t('landing.faq.q7'), a: t('landing.faq.a7') },
-              { q: t('landing.faq.q8'), a: t('landing.faq.a8') },
-              { q: t('landing.faq.q9'), a: t('landing.faq.a9') },
-              { q: t('landing.faq.q10'), a: t('landing.faq.a10') },
-              { q: t('landing.faq.q11'), a: t('landing.faq.a11') },
-              { q: t('landing.faq.q12'), a: t('landing.faq.a12') },
-              { q: t('landing.faq.q13'), a: t('landing.faq.a13') },
-              { q: t('landing.faq.q14'), a: t('landing.faq.a14') },
-              { q: t('landing.faq.q15'), a: t('landing.faq.a15') },
-              { q: t('landing.faq.q16'), a: t('landing.faq.a16') },
+              { q: "Кто может зарегистрироваться в системе?", a: "Зарегистрироваться напрямую может только рекламодатель. Партнёры (арбитражники) регистрируются исключительно по персональной ссылке приглашения, которую создаёт рекламодатель в своём кабинете. Это сделано, чтобы рекламодатель контролировал, кто работает с его офферами, и исключить мусорный трафик." },
+              { q: "Как партнёру попасть в систему?", a: "Рекламодатель создаёт ссылку регистрации для партнёров и размещает её на своём сайте или отправляет партнёру напрямую. Других способов регистрации партнёров нет." },
+              { q: "Есть ли отдельные кабинеты для рекламодателя и партнёра?", a: "Да. Рекламодатель создаёт офферы, управляет партнёрами, настраивает постбеки, смотрит аналитику и финансы. Партнёр видит только доступные ему офферы, генерирует ссылки, смотрит свою статистику и доход — не видит других партнёров и данных рекла." },
+              { q: "Видят ли партнёры бренд платформы?", a: "Нет. Платформа работает в white-label режиме. Партнёры видят домен рекламодателя и его оформление. О существовании SaaS-платформы они даже не узнают." },
+              { q: "Что включено в бесплатный период?", a: "30 дней полного доступа ко всем функциям выбранного тарифа. Банковская карта не требуется, никаких автосписаний, можно отменить в любой момент. Вы спокойно тестируете систему в боевых условиях." },
+              { q: "Есть ли лимиты в бесплатном периоде?", a: "Нет. Функционал не урезается, ограничения только по тарифам после окончания trial." },
+              { q: "Как работает трекинг кликов?", a: "При каждом клике система мгновенно генерирует уникальный click_id, определяет GEO, устройство, браузер и сохраняет данные для аналитики и антифрода. Обработка кликов происходит в реальном времени." },
+              { q: "Как работает антифрод?", a: "Антифрод включён по умолчанию. Система анализирует IP-адреса (VPN/proxy/hosting), browser fingerprint, скорость и частоту кликов, подозрительные паттерны поведения. Фродовый трафик автоматически помечается и не учитывается в статистике и выплатах." },
+              { q: "Как работают постбеки?", a: "При каждой конверсии система автоматически отправляет postback (HTTP-запрос) на указанный URL. Поддерживается повторная отправка (retry) при ошибках, лог всех отправленных запросов и тестовый режим для проверки." },
+              { q: "Что если партнёр не использует постбек?", a: "Даже если партнёр не настроил постбек, система всё равно фиксирует клики, учитывает конверсии и считает статистику внутри платформы. Если постбек есть — данные передаются и наружу, и остаются у вас." },
+              { q: "Есть ли API доступ?", a: "Да. API доступен на тарифах Professional и Enterprise. Через API можно получать статистику, управлять офферами, работать с партнёрами и интегрировать внешние сервисы. Документация открывается после регистрации." },
+              { q: "Можно ли подключить свой домен?", a: "Да. Вы можете подключить любой свой домен для работы с партнёрами. SSL-сертификат выпускается автоматически (Let's Encrypt), настройка занимает 5–10 минут, партнёры работают только через ваш домен." },
+              { q: "Поддерживаются ли выплаты в криптовалюте?", a: "Да. Поддерживаются автоматические выплаты через Binance, Bybit, Kraken, Coinbase, EXMO, MEXC, OKX. Доступны холды, история выплат и ручное подтверждение." },
+              { q: "Можно ли добавить команду?", a: "Да. Вы можете добавить менеджеров, аналитиков и финансистов с разными уровнями доступа. Каждый видит только то, что ему разрешено." },
+              { q: "Подходит ли платформа для открытых CPA-сетей?", a: "Нет. Платформа создана для рекламодателей, private / in-house партнёрских программ, агентств и команд. Если вам нужна открытая CPA-сеть с публичной регистрацией — это не наш формат." },
+              { q: "Чем вы отличаетесь от Scaleo, Affise и Affilka?", a: "Проще и быстрее запуск, жёсткий контроль партнёров, встроенный антифрод без доплат, полноценный white-label, фокус на рекла, а не на «маркетплейс офферов»." },
             ];
             const half = Math.ceil(faqItems.length / 2);
             const leftColumn = faqItems.slice(0, half);
@@ -1365,9 +1365,9 @@ export default function Home() {
       <section id="contact" className="py-16 border-t border-border bg-muted/30">
         <div className="container px-4 mx-auto max-w-4xl">
           <motion.div {...fadeInUp} className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4 bg-rose-500/10 text-rose-400 border-rose-500/20">{t('landing.badges.contact')}</Badge>
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.contact.title')}</h2>
-            <p className="text-muted-foreground">{t('landing.contact.subtitle')}</p>
+            <Badge variant="secondary" className="mb-4 bg-rose-500/10 text-rose-400 border-rose-500/20">Контакты</Badge>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Остались вопросы?</h2>
+            <p className="text-muted-foreground">Напишите нам, и мы ответим в течение 24 часов</p>
           </motion.div>
 
           <motion.div {...fadeInUp}>
@@ -1376,7 +1376,7 @@ export default function Home() {
                 <form onSubmit={handleContactSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium mb-2">{t('landing.contact.form.name')}</label>
+                      <label className="block text-sm font-medium mb-2">Ваше имя</label>
                       <Input
                         placeholder="Иван Петров"
                         value={contactForm.name}
@@ -1386,7 +1386,7 @@ export default function Home() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">{t('landing.contact.form.email')}</label>
+                      <label className="block text-sm font-medium mb-2">Email</label>
                       <Input
                         type="email"
                         placeholder="ivan@example.com"
@@ -1398,7 +1398,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">{t('landing.contact.form.message')}</label>
+                    <label className="block text-sm font-medium mb-2">Сообщение</label>
                     <Textarea
                       placeholder="Опишите ваш вопрос или запрос..."
                       rows={5}
@@ -1423,7 +1423,7 @@ export default function Home() {
                       ) : (
                         <>
                           <Send className="w-4 h-4 mr-2" />
-                          {t('landing.contact.form.submit')}
+                          Отправить сообщение
                         </>
                       )}
                     </Button>
@@ -1440,10 +1440,11 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <motion.div {...fadeInUp}>
-              <Badge variant="secondary" className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">{t('landing.badges.aboutUs')}</Badge>
+              <Badge variant="secondary" className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">О нас</Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{platformName}</h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                {t('landing.aboutUs.description')}
+                Трекер для арбитражников от арбитражников. Сами льём push и гемблу — знаем что нужно на практике. 
+                Никаких лишних модулей и корпоративной мишуры. Запустился, настроил постбеки, работаешь.
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Регулярно обновляем, поддержка живая — отвечаем по делу, не боты.
@@ -1471,10 +1472,10 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-background">
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
-              <Badge variant="secondary" className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">{t('landing.badges.roadmap')}</Badge>
-              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.roadmap.title')}</h2>
+              <Badge variant="secondary" className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Развитие</Badge>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">План развития</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t('landing.roadmap.subtitle')}
+                Следите за нашим прогрессом и узнавайте о новых функциях, которые мы разрабатываем
               </p>
             </motion.div>
 
@@ -1541,8 +1542,8 @@ export default function Home() {
       <section className="py-16 border-t border-border bg-background">
           <div className="container px-4 mx-auto">
             <motion.div {...fadeInUp} className="text-center mb-16">
-              <Badge variant="secondary" className="mb-4 bg-sky-500/10 text-sky-400 border-sky-500/20">{t('landing.badges.news')}</Badge>
-              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.news.title')}</h2>
+              <Badge variant="secondary" className="mb-4 bg-sky-500/10 text-sky-400 border-sky-500/20">Новости</Badge>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Последние обновления</h2>
             </motion.div>
 
             {newsLoading ? (
@@ -1628,12 +1629,12 @@ export default function Home() {
         <div className="container px-4 mx-auto text-center">
           <motion.div {...fadeInUp}>
             <Sparkles className="w-12 h-12 mx-auto mb-6 text-emerald-500" />
-            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">{t('landing.cta.title')}</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold font-display mb-3">Запустить трекинг за 5 минут</h2>
             <p className="text-muted-foreground mb-4 max-w-xl mx-auto">
-              {t('landing.cta.subtitle1')}
+              Без карты. Без ограничений на тест. Регистрация за 1 минуту.
             </p>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              {t('landing.cta.subtitle2', { platform: platformName })}
+              Присоединяйтесь к сотням рекламодателей, которые уже используют {platformName}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -1642,7 +1643,7 @@ export default function Home() {
                 onClick={() => navigate('/register/advertiser')}
                 data-testid="button-cta-register"
               >
-                {t('landing.cta.register')}
+                Создать аккаунт бесплатно
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 
@@ -1652,7 +1653,7 @@ export default function Home() {
                 onClick={() => navigate('/login')}
                 data-testid="button-cta-login"
               >
-                {t('landing.cta.login')}
+                Войти в аккаунт
               </Button>
             </div>
           </motion.div>
