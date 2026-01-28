@@ -609,7 +609,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                       </button>
                     </td>
                     <td className="px-4 py-3 text-foreground">{click.offerName || click.offerId}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{click.publisherName || click.publisherId || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{click.publisherShortId || '-'}</td>
                     <td className="px-4 py-3">
                       <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
                         {click.geo || 'N/A'}
@@ -899,7 +899,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                         </span>
                       </td>
                       <td className="px-4 py-3 text-foreground">{conv.offerName || conv.offerId}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{conv.publisherName || conv.publisherId || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{conv.publisherShortId || '-'}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
                         ${payout.toFixed(2)}
                       </td>

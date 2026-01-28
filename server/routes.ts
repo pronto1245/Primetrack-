@@ -4471,6 +4471,7 @@ export async function registerRoutes(
         offerName: c.offer.name,
         publisherId: c.publisherId,
         publisherName: c.publisher.username,
+        publisherShortId: c.publisher.shortId != null ? c.publisher.shortId.toString().padStart(3, '0') : '-',
         conversionType: c.conversionType,
         advertiserCost: c.advertiserCost,
         publisherPayout: c.publisherPayout,
@@ -4576,6 +4577,7 @@ export async function registerRoutes(
           offerName: c.offer.name,
           publisherId: c.publisherId,
           publisherName: c.publisher.username,
+          publisherShortId: c.publisher.shortId != null ? c.publisher.shortId.toString().padStart(3, '0') : '-',
           ip: c.ip,
           geo: c.geo,
           userAgent: c.userAgent,
@@ -6024,6 +6026,7 @@ export async function registerRoutes(
           balances.push({
             publisherId: pub.publisherId,
             publisherName: user.username,
+            publisherShortId: user.shortId != null ? user.shortId.toString().padStart(3, '0') : '-',
             publisherEmail: user.email,
             ...balance
           });
@@ -6115,6 +6118,7 @@ export async function registerRoutes(
       const enrichedRequests = requests.map(req => ({
         ...req,
         publisherName: req.publisher.username,
+        publisherShortId: req.publisher.shortId != null ? req.publisher.shortId.toString().padStart(3, '0') : '-',
         publisherEmail: req.publisher.email,
         walletAddress: req.wallet.walletAddress,
         walletAccountName: req.wallet.accountName,
@@ -6211,7 +6215,11 @@ export async function registerRoutes(
     try {
       const userId = req.session.userId!;
       const payoutsList = await storage.getPayoutsByAdvertiser(userId);
-      res.json(payoutsList);
+      const enrichedPayouts = payoutsList.map(p => ({
+        ...p,
+        publisherShortId: p.publisher.shortId != null ? p.publisher.shortId.toString().padStart(3, '0') : '-'
+      }));
+      res.json(enrichedPayouts);
     } catch (error: any) {
       console.error("Get payouts error:", error);
       res.status(500).json({ message: "Failed to fetch payouts" });

@@ -148,6 +148,7 @@ export interface AdvertiserStatsResult {
   byPublisher: Array<{
     publisherId: string;
     publisherName: string;
+    publisherShortId: string;
     clicks: number;
     conversions: number;
     advertiserCost: number;
@@ -1810,11 +1811,12 @@ export class DatabaseStorage implements IStorage {
       ...convsByPublisher.map(c => c.publisherId)
     ]);
     
-    // Batch fetch all publisher names in one query
+    // Batch fetch all publisher names and shortIds in one query
     const publisherUsers = allPublisherIds.size > 0
-      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, Array.from(allPublisherIds)))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId }).from(users).where(inArray(users.id, Array.from(allPublisherIds)))
       : [];
     const publisherNameMap = new Map(publisherUsers.map(u => [u.id, u.username]));
+    const publisherShortIdMap = new Map(publisherUsers.map(u => [u.id, u.shortId != null ? u.shortId.toString().padStart(3, '0') : '-']));
 
     const clicksByPubMap = new Map(clicksByPublisher.map(c => [c.publisherId, c.clicks || 0]));
     const convsByPubMap = new Map(convsByPublisher.map(c => [c.publisherId, c]));
@@ -1825,6 +1827,7 @@ export class DatabaseStorage implements IStorage {
       return {
         publisherId,
         publisherName: publisherNameMap.get(publisherId) || 'Unknown',
+        publisherShortId: publisherShortIdMap.get(publisherId) || '-',
         clicks: pubClicks,
         conversions: conv?.conversions || 0,
         advertiserCost: conv?.advertiserCost || 0,

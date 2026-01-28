@@ -35,6 +35,9 @@ export class Orchestrator {
       throw new Error("Offer not found");
     }
     
+    const publisher = await storage.getUser(click.publisherId);
+    const publisherShortId = publisher?.shortId != null ? publisher.shortId.toString().padStart(3, '0') : '-';
+    
     const landings = await storage.getOfferLandings(click.offerId);
     const landing = click.landingId 
       ? landings.find(l => l.id === click.landingId)
@@ -212,7 +215,7 @@ export class Orchestrator {
         isSuspicious ? "Новый лид! ⚠️ Подозрение на фрод" : "Новый лид!",
         {
           Оффер: offerName,
-          Партнёр: click.publisherId.slice(0, 8),
+          Партнёр: publisherShortId,
           Стоимость: `$${advertiserCost.toFixed(2)}`,
           ГЕО: geo || "—",
           ...fraudNote,
@@ -236,7 +239,7 @@ export class Orchestrator {
         isSuspicious ? "Новая продажа! ⚠️ Подозрение на фрод" : "Новая продажа!",
         {
           Оффер: offerName,
-          Партнёр: click.publisherId.slice(0, 8),
+          Партнёр: publisherShortId,
           Сумма: event.sum ? `$${event.sum.toFixed(2)}` : "—",
           Стоимость: `$${advertiserCost.toFixed(2)}`,
           ГЕО: geo || "—",
