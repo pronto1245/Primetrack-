@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Globe, CheckCircle, XCircle, Loader2, RefreshCw, Search, Copy, 
-  ArrowDownToLine, ArrowUpFromLine, Play 
+  ArrowDownToLine, ArrowUpFromLine, Play, ChevronRight, ChevronDown, Eye 
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ExportMenu } from "@/components/ui/export-menu";
+import { ClickFlowTimeline, type ClickFlowStage } from "@/components/ClickFlowTimeline";
 
 interface PostbackLog {
   id: string;
@@ -22,6 +24,31 @@ interface PostbackLog {
   retryCount: number;
   recipientType: string;
   createdAt: string;
+}
+
+interface RawClick {
+  id: string;
+  rawOfferId: string | null;
+  rawPartnerId: string | null;
+  offerId: string | null;
+  publisherId: string | null;
+  clickId: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  geo: string | null;
+  sub1: string | null;
+  sub2: string | null;
+  sub3: string | null;
+  sub4: string | null;
+  sub5: string | null;
+  status: string;
+  rejectReason: string | null;
+  checkStage: string | null;
+  redirectUrl: string | null;
+  createdAt: string;
+  offerName?: string;
+  publisherName?: string;
+  publisherShortId?: string;
 }
 
 export function AdminPostbacks() {
