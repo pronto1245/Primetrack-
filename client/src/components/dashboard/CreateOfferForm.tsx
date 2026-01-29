@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { ArrowLeft, Save, Plus, Trash2, Globe, DollarSign, Tag, Link as LinkIcon, Smartphone, Megaphone, FileText, Upload, Image, Loader2, Copy, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
@@ -393,12 +394,10 @@ export function CreateOfferForm({ role }: { role: string }) {
               
               <div className="space-y-2">
                 <Label className="text-muted-foreground text-xs font-mono uppercase">Описание оффера *</Label>
-                <Textarea 
-                  data-testid="input-offer-description"
-                  className="bg-background border-border text-foreground font-mono min-h-[100px] focus:border-blue-500" 
-                  placeholder="Подробное описание оффера, условия, особенности..."
+                <RichTextEditor
                   value={formData.description}
-                  onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+                  placeholder="Подробное описание оффера, условия, особенности..."
                 />
               </div>
 

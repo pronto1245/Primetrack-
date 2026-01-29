@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -795,12 +796,11 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 <h3 className="text-xs font-bold uppercase text-muted-foreground mb-2">Описание</h3>
                 {offer.description ? (
                   <div>
-                    <p 
-                      className={`text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`} 
+                    <div 
+                      className={`text-muted-foreground text-sm leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground [&_h1]:text-xl [&_h1]:font-bold [&_h2]:text-lg [&_h2]:font-bold [&_h3]:text-base [&_h3]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`} 
                       data-testid="text-offer-description"
-                    >
-                      {offer.description}
-                    </p>
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(offer.description) }}
+                    />
                     {offer.description.length > 200 && (
                       <button
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
