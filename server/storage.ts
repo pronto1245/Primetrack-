@@ -374,6 +374,34 @@ export interface IStorage {
   createClick(click: InsertClick): Promise<Click>;
   findClickByIpOfferPublisherToday(ip: string, offerId: string, publisherId: string): Promise<Click | undefined>;
   
+  // Raw Clicks
+  getRawClicksAll(filters: {
+    offerId?: string;
+    publisherId?: string;
+    status?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: RawClick[]; total: number }>;
+  getRawClicksForAdvertiser(advertiserId: string, filters: {
+    offerId?: string;
+    publisherId?: string;
+    status?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: RawClick[]; total: number }>;
+  getRawClicksForPublisher(publisherId: string, filters: {
+    offerId?: string;
+    status?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: RawClick[]; total: number }>;
+  
   // Conversions
   getConversion(id: string): Promise<Conversion | undefined>;
   getConversionsByOffer(offerId: string): Promise<Conversion[]>;
