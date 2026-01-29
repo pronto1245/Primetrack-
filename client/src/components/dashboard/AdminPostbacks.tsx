@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { ExportMenu } from "@/components/ui/export-menu";
-import { ClickFlowTimeline, type ClickFlowStage } from "@/components/ClickFlowTimeline";
+import { ClickFlowTimeline, buildClickFlowStages } from "@/components/ClickFlowTimeline";
 
 interface PostbackLog {
   id: string;
@@ -59,10 +59,35 @@ export function AdminPostbacks() {
   const [testMethod, setTestMethod] = useState("GET");
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
+  const [expandedRawClicks, setExpandedRawClicks] = useState<Set<string>>(new Set());
+  const [rawClicksPage, setRawClicksPage] = useState(0);
 
   const { data: logs, isLoading, refetch } = useQuery<PostbackLog[]>({
     queryKey: ["/api/admin/postback-logs"],
   });
+
+  const { data: rawClicksData, isLoading: rawClicksLoading } = useQuery<{ data: RawClick[]; total: number }>({
+    queryKey: ["/api/advertiser/raw-clicks", rawClicksPage],
+    queryFn: async () => {
+      const res = await fetch(`/api/advertiser/raw-clicks?limit=50&offset=${rawClicksPage * 50}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch raw clicks");
+      return res.json();
+    },
+  });
+
+  const toggleRawClickExpand = (id: string) => {
+    setExpandedRawClicks(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const filteredLogs = logs?.filter(log => {
     if (statusFilter === "success" && !log.success) return false;
@@ -355,6 +380,154 @@ export function AdminPostbacks() {
             </tbody>
           </table>
         </div>
+      </Card>
+
+      {/* Raw Clicks Section with Click-flow Timeline */}
+      <Card className="bg-card border-border p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Eye className="w-5 h-5 text-amber-400" />
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Лог входящих запросов</h3>
+            <p className="text-xs text-muted-foreground">
+              Все HTTP-запросы на отслеживание кликов (для диагностики потерь)
+            </p>
+          </div>
+        </div>
+
+        {rawClicksLoading ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          </div>
+        ) : rawClicksData?.data && rawClicksData.data.length > 0 ? (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
+                    <th className="px-2 py-3 w-8"></th>
+                    <th className="px-4 py-3">Время</th>
+                    <th className="px-4 py-3">Статус</th>
+                    <th className="px-4 py-3">Оффер</th>
+                    <th className="px-4 py-3">Партнёр</th>
+                    <th className="px-4 py-3">GEO</th>
+                    <th className="px-4 py-3">IP</th>
+                    <th className="px-4 py-3">Sub1</th>
+                    <th className="px-4 py-3">Этап</th>
+                    <th className="px-4 py-3">Причина</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {rawClicksData.data.map((rc) => (
+                    <React.Fragment key={rc.id}>
+                      <tr className="hover:bg-muted" data-testid={`row-raw-click-${rc.id}`}>
+                        <td className="px-2 py-3">
+                          <button
+                            onClick={() => toggleRawClickExpand(rc.id)}
+                            className="text-muted-foreground hover:text-foreground p-1"
+                            data-testid={`button-expand-click-${rc.id}`}
+                          >
+                            {expandedRawClicks.has(rc.id) ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                          {new Date(rc.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] px-2 py-0.5 rounded ${
+                            rc.status === 'processed' 
+                              ? 'bg-emerald-500/20 text-emerald-400' 
+                              : rc.status === 'rejected'
+                              ? 'bg-red-500/20 text-red-400'
+                              : 'bg-amber-500/20 text-amber-400'
+                          }`}>
+                            {rc.status === 'processed' ? 'OK' : rc.status === 'rejected' ? 'Отклонён' : 'Ожидание'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground">
+                          {rc.offerName || rc.rawOfferId || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-foreground">
+                          {rc.publisherShortId && rc.publisherName 
+                            ? `${rc.publisherShortId} - ${rc.publisherName}`
+                            : rc.rawPartnerId || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {rc.geo || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {rc.ip || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground max-w-[100px] truncate">
+                          {rc.sub1 || '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {rc.checkStage ? (
+                            <span className={`text-[10px] px-2 py-0.5 rounded ${
+                              rc.checkStage === 'redirect' 
+                                ? 'bg-emerald-500/20 text-emerald-400' 
+                                : 'bg-amber-500/20 text-amber-400'
+                            }`}>
+                              {rc.checkStage}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {rc.rejectReason ? (
+                            <span className="text-red-400 text-[10px]">{rc.rejectReason}</span>
+                          ) : rc.clickId ? (
+                            <span className="text-emerald-400 text-[10px]">→ {rc.clickId.slice(0, 8)}...</span>
+                          ) : '-'}
+                        </td>
+                      </tr>
+                      {expandedRawClicks.has(rc.id) && (
+                        <tr className="bg-muted/30" data-testid={`row-click-flow-${rc.id}`}>
+                          <td colSpan={10} className="px-6 py-4">
+                            <div className="max-w-md">
+                              <h4 className="text-sm font-medium mb-3">Путь клика</h4>
+                              <ClickFlowTimeline stages={buildClickFlowStages(rc)} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                Всего: {rawClicksData.total} записей
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={rawClicksPage === 0}
+                  onClick={() => setRawClicksPage(p => p - 1)}
+                  data-testid="button-prev-page-raw"
+                >
+                  Назад
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={(rawClicksPage + 1) * 50 >= rawClicksData.total}
+                  onClick={() => setRawClicksPage(p => p + 1)}
+                  data-testid="button-next-page-raw"
+                >
+                  Далее
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="text-center text-muted-foreground py-8">Нет данных о входящих запросах</p>
+        )}
       </Card>
     </div>
   );
