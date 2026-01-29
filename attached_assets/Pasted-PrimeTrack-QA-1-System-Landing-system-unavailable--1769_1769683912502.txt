@@ -1,0 +1,73 @@
+PrimeTrack – QA Чеклист
+1️⃣ System Landing (/system/unavailable)
+Шаг	Действие	Ожидаемый результат	Примечание
+1	Открыть /system/unavailable?lang=en	Белая страница, нейтральный текст, EN	Проверить отсутствие слов Offer/Blocked/Error/Fraud/Cap
+2	Подставить lang=es, pt, de, ru, fr, it, pl, tr, ja, ko, zh, ar, hi, th, vi, id, nl, sv, uk	Страница на соответствующем языке	fallback EN для неизвестных языков
+3	Переход из клика с ошибкой (offer not found, landing missing, fraud, cap, geo mismatch)	302 редирект на /system/unavailable?lang=xx	Redirect должен всегда срабатывать, без ошибок 4xx/5xx
+4	Проверить fallback	GEO вне мапы → lang=en	Для непредвиденных GEO
+2️⃣ GEO→Language resolver
+Шаг	Действие	Ожидаемый результат	Примечание
+1	Симулировать клик с GEO: BR, MX, ES, DE, FR, JP, KR, RU, IT, PL, TR, TH, VN, ID, NL, SE, UK	Язык определяется по маппингу GEO → lang	Проверить, что язык соответствует таблице
+2	Симулировать клик с GEO не в списке	Язык fallback → en	Логирование нового GEO для расширения мапы
+3	Проверить, что checkStage.geo сохраняет правильное GEO	raw_clicks.geo = переданный GEO	
+3️⃣ Click Handler / Redirect
+Шаг	Действие	Ожидаемый результат	Примечание
+1	Клик на несуществующий оффер	Клик записан в DB, status=rejected/error, редирект на /system/unavailable?lang=xx	Проверить запись в raw_clicks
+2	Клик на оффер с капом	status=rejected, редирект на cap page или /system/unavailable	
+3	Клик заблокирован fraud	status=blocked, redirect на /system/unavailable	redirectUrl не пустой
+4	Клик валидный	status=valid, redirect на landing	Postback должен отработать корректно
+5	Проверка всех этапов checkStage	offer/landing/fraud/cap/geo/redirect	Проверить все комбинации
+4️⃣ checkStage tracking
+Шаг	Действие	Ожидаемый результат
+1	Клик на несуществующий оффер	checkStage.offer = ❌, остальные этапы сохраняются
+2	Клик заблокирован fraud	checkStage.fraud = ✅ blocked, остальные этапы корректно
+3	Клик с капом	checkStage.cap = ✅ reached, остальные этапы
+4	Валидный клик	Все checkStage = ✅
+5️⃣ Click-flow Timeline UI (AdvertiserPostbacks)
+Шаг	Действие	Ожидаемый результат
+1	Открыть AdvertiserPostbacks → таблицу raw_clicks	Новая колонка «Этап» отображает checkStage
+2	Expand/collapse клика	Timeline раскрывается/сворачивается, показывает offer/landing/fraud/cap/geo/redirect
+3	Клик с error/rejected/blocked	Timeline корректно показывает статус каждого этапа
+4	Валидный клик	Timeline показывает все этапы ✅ и финальный статус valid
+5	Проверить корректность отображения языка	Timeline / system landing → язык соответствует GEO
+6️⃣ Языки & GEO Coverage
+
+Список языков для проверки:
+
+en, es, pt, de, ru, fr, it, pl, tr, ja, ko, zh, ar, hi, th, vi, id, nl, sv, uk
+
+Список GEO для проверки (минимум 50 стран):
+
+LATAM: BR, MX, AR, CL, CO, PE, VE, EC, BO, PY, UY
+
+Europe: ES, DE, FR, IT, PL, TR, NL, SE, UK, AT, BE, CH
+
+CIS: RU, KZ, UA, BY, AM, KG
+
+Asia: JP, KR, TH, VN, ID, IN, PH, SG, MY, HK
+
+Middle East: AE, SA, EG, IQ, IL
+
+Africa: ZA, NG, KE, EG
+
+Oceania: AU, NZ
+
+В каждом GEO → проверяем редирект на system landing при ошибке и корректный язык
+
+7️⃣ Итоговые проверки
+
+ Все клики записываются в raw_clicks, даже при ошибках
+
+ status = valid / blocked / rejected / error верно
+
+ checkStage корректно сохраняется
+
+ Click-flow Timeline UI соответствует checkStage
+
+ System Landing отображается на правильном языке
+
+ 302 редирект всегда срабатывает
+
+ Postbacks для валидных кликов корректно отправляются
+
+ Новые GEO логируются при fallback language
