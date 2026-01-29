@@ -2952,35 +2952,36 @@ export class DatabaseStorage implements IStorage {
   }> {
     const conditions: any[] = [];
     
-    // Handle free text search - filter by offer name
+    // Handle free text search - search by clickId, id, ip, sub1, sub2 OR offer name
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
+      const searchPattern = `%${searchLower}%`;
+      
+      // Search by click fields OR offer name using SQL OR
+      // First get matching offer IDs
       const matchingOffers = await db.select({ id: offers.id }).from(offers)
-        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
+        .where(sql`LOWER(${offers.name}) LIKE ${searchPattern}`);
       const matchingOfferIds = matchingOffers.map(o => o.id);
-      if (matchingOfferIds.length === 0) {
-        return { 
-          clicks: [], 
-          total: 0, 
-          page, 
-          limit, 
-          summary: { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 }
-        };
+      
+      // Build OR condition: clickId/id/ip/sub1/sub2 ILIKE search OR offerId IN matchingOfferIds
+      const searchConditions: any[] = [
+        sql`LOWER(${clicks.clickId}) LIKE ${searchPattern}`,
+        sql`LOWER(${clicks.id}) LIKE ${searchPattern}`,
+        sql`LOWER(${clicks.ip}) LIKE ${searchPattern}`,
+        sql`LOWER(${clicks.sub1}) LIKE ${searchPattern}`,
+        sql`LOWER(${clicks.sub2}) LIKE ${searchPattern}`,
+      ];
+      
+      if (matchingOfferIds.length > 0) {
+        searchConditions.push(inArray(clicks.offerId, matchingOfferIds));
       }
+      
+      // Combine all search conditions with OR
+      conditions.push(or(...searchConditions));
+      
+      // Still apply offerIds filter if provided (role-based access)
       if (filters.offerIds?.length) {
-        const intersection = filters.offerIds.filter((id: string) => matchingOfferIds.includes(id));
-        if (intersection.length === 0) {
-          return { 
-            clicks: [], 
-            total: 0, 
-            page, 
-            limit, 
-            summary: { clicks: 0, uniqueClicks: 0, conversions: 0, approvedConversions: 0, payableConversions: 0, approvedPayableConversions: 0, leads: 0, sales: 0, payout: 0, advertiserCost: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0 }
-        };
-        }
-        conditions.push(inArray(clicks.offerId, intersection));
-      } else {
-        conditions.push(inArray(clicks.offerId, matchingOfferIds));
+        conditions.push(inArray(clicks.offerId, filters.offerIds));
       }
     } else if (filters.offerIds?.length) {
       conditions.push(inArray(clicks.offerId, filters.offerIds));
