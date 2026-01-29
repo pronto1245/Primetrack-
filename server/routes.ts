@@ -2404,13 +2404,16 @@ export async function registerRoutes(
 
       if (!offerId) {
         console.log(`[CLICK DEBUG] Offer not found for rawOfferId=${rawOfferId}`);
-        await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found");
+        await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found", undefined, {
+          checkStage: "offer",
+        });
         return res.status(404).json({ error: "Offer not found" });
       }
       if (!landingId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "landing_not_found", undefined, {
           resolvedOfferId: offerId,
           advertiserId: offer?.advertiserId,
+          checkStage: "landing",
         });
         return res.status(404).json({ error: "Landing not found" });
       }
@@ -2419,6 +2422,7 @@ export async function registerRoutes(
           resolvedOfferId: offerId,
           resolvedLandingId: landingId,
           advertiserId: offer?.advertiserId,
+          checkStage: "landing",
         });
         return res.status(404).json({ error: "Partner not found" });
       }
@@ -2451,21 +2455,27 @@ export async function registerRoutes(
 
       const rawClickStatus = result.isBlocked ? "rejected" : "processed";
       const rejectReason = result.isBlocked ? (result.capReached ? "cap_reached" : "fraud_blocked") : undefined;
+      const checkStage = result.isBlocked 
+        ? (result.capReached ? "cap" : "fraud")
+        : "redirect";
       await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.id, {
         resolvedOfferId: offerId,
         resolvedLandingId: landingId,
         resolvedPublisherId: partnerId,
         advertiserId: offer?.advertiserId,
+        checkStage,
       });
 
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
       if (rawClickId) {
-        await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`).catch(() => {});
+        await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`, undefined, {
+          checkStage: "click",
+        }).catch(() => {});
       }
       // Always redirect, never return HTTP errors for clicks
-      res.redirect(302, "/stub?error=click_error");
+      res.redirect(302, "/system/unavailable?lang=en");
     }
   });
 
@@ -2701,21 +2711,27 @@ export async function registerRoutes(
 
       const rawClickStatus = result.isBlocked ? "rejected" : "processed";
       const rejectReason = result.isBlocked ? (result.capReached ? "cap_reached" : "fraud_blocked") : undefined;
+      const checkStage = result.isBlocked 
+        ? (result.capReached ? "cap" : "fraud")
+        : "redirect";
       await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.id, {
         resolvedOfferId: offerId,
         resolvedLandingId: landingId,
         resolvedPublisherId: partnerId,
         advertiserId: offer?.advertiserId,
+        checkStage,
       });
 
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
       if (rawClickId) {
-        await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`).catch(() => {});
+        await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`, undefined, {
+          checkStage: "click",
+        }).catch(() => {});
       }
       // Always redirect, never return HTTP errors for clicks
-      res.redirect(302, "/stub?error=api_click_error");
+      res.redirect(302, "/system/unavailable?lang=en");
     }
   });
 

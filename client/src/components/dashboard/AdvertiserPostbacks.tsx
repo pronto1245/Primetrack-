@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ExportMenu } from "@/components/ui/export-menu";
+import { ClickFlowTimeline, buildClickFlowStages } from "@/components/ClickFlowTimeline";
 
 interface RawClick {
   id: string;
@@ -22,12 +24,14 @@ interface RawClick {
   rawLandingId: string | null;
   rawPartnerId: string | null;
   resolvedOfferId: string | null;
+  resolvedLandingId: string | null;
   resolvedPublisherId: string | null;
   ip: string | null;
   userAgent: string | null;
   geo: string | null;
   status: string;
   rejectReason: string | null;
+  checkStage: string | null;
   clickId: string | null;
   offerName: string | null;
   publisherName: string | null;
@@ -189,6 +193,19 @@ export function AdvertiserPostbacks() {
 
   const [activeTab, setActiveTab] = useState("outgoing");
   const [rawClicksPage, setRawClicksPage] = useState(0);
+  const [expandedRawClicks, setExpandedRawClicks] = useState<Set<string>>(new Set());
+  
+  const toggleRawClickExpand = (id: string) => {
+    setExpandedRawClicks(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const { data: rawClicksData, isLoading: rawClicksLoading } = useQuery<{ data: RawClick[]; total: number }>({
     queryKey: ["/api/advertiser/raw-clicks", rawClicksPage],
@@ -535,6 +552,7 @@ export function AdvertiserPostbacks() {
                   <table className="w-full text-left text-xs font-mono">
                     <thead>
                       <tr className="border-b border-white/5 bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
+                        <th className="px-2 py-3 w-8"></th>
                         <th className="px-4 py-3">Время</th>
                         <th className="px-4 py-3">Статус</th>
                         <th className="px-4 py-3">Оффер</th>
@@ -542,34 +560,49 @@ export function AdvertiserPostbacks() {
                         <th className="px-4 py-3">GEO</th>
                         <th className="px-4 py-3">IP</th>
                         <th className="px-4 py-3">Sub1</th>
+                        <th className="px-4 py-3">Этап</th>
                         <th className="px-4 py-3">Причина</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {rawClicksData.data.map((rc) => (
-                        <tr key={rc.id} className="hover:bg-muted" data-testid={`row-raw-click-${rc.id}`}>
-                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                            {new Date(rc.createdAt).toLocaleString()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`text-[10px] px-2 py-0.5 rounded ${
-                              rc.status === 'processed' 
-                                ? 'bg-emerald-500/20 text-emerald-400' 
-                                : rc.status === 'rejected'
-                                ? 'bg-red-500/20 text-red-400'
-                                : 'bg-amber-500/20 text-amber-400'
-                            }`}>
-                              {rc.status === 'processed' ? 'OK' : rc.status === 'rejected' ? 'Отклонён' : 'Ожидание'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-foreground">
-                            {rc.offerName || rc.rawOfferId || '-'}
-                          </td>
-                          <td className="px-4 py-3 text-foreground">
-                            {rc.publisherShortId && rc.publisherName 
-                              ? `${rc.publisherShortId} - ${rc.publisherName}`
-                              : rc.rawPartnerId || '-'}
-                          </td>
+                        <React.Fragment key={rc.id}>
+                          <tr className="hover:bg-muted" data-testid={`row-raw-click-${rc.id}`}>
+                            <td className="px-2 py-3">
+                              <button
+                                onClick={() => toggleRawClickExpand(rc.id)}
+                                className="text-muted-foreground hover:text-foreground p-1"
+                                data-testid={`button-expand-click-${rc.id}`}
+                              >
+                                {expandedRawClicks.has(rc.id) ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </button>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                              {new Date(rc.createdAt).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`text-[10px] px-2 py-0.5 rounded ${
+                                rc.status === 'processed' 
+                                  ? 'bg-emerald-500/20 text-emerald-400' 
+                                  : rc.status === 'rejected'
+                                  ? 'bg-red-500/20 text-red-400'
+                                  : 'bg-amber-500/20 text-amber-400'
+                              }`}>
+                                {rc.status === 'processed' ? 'OK' : rc.status === 'rejected' ? 'Отклонён' : 'Ожидание'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-foreground">
+                              {rc.offerName || rc.rawOfferId || '-'}
+                            </td>
+                            <td className="px-4 py-3 text-foreground">
+                              {rc.publisherShortId && rc.publisherName 
+                                ? `${rc.publisherShortId} - ${rc.publisherName}`
+                                : rc.rawPartnerId || '-'}
+                            </td>
                           <td className="px-4 py-3 text-muted-foreground">
                             {rc.geo || '-'}
                           </td>
@@ -580,13 +613,35 @@ export function AdvertiserPostbacks() {
                             {rc.sub1 || '-'}
                           </td>
                           <td className="px-4 py-3">
-                            {rc.rejectReason ? (
-                              <span className="text-red-400 text-[10px]">{rc.rejectReason}</span>
-                            ) : rc.clickId ? (
-                              <span className="text-emerald-400 text-[10px]">→ {rc.clickId.slice(0, 8)}...</span>
+                            {rc.checkStage ? (
+                              <span className={`text-[10px] px-2 py-0.5 rounded ${
+                                rc.checkStage === 'redirect' 
+                                  ? 'bg-emerald-500/20 text-emerald-400' 
+                                  : 'bg-amber-500/20 text-amber-400'
+                              }`}>
+                                {rc.checkStage}
+                              </span>
                             ) : '-'}
                           </td>
-                        </tr>
+                            <td className="px-4 py-3">
+                              {rc.rejectReason ? (
+                                <span className="text-red-400 text-[10px]">{rc.rejectReason}</span>
+                              ) : rc.clickId ? (
+                                <span className="text-emerald-400 text-[10px]">→ {rc.clickId.slice(0, 8)}...</span>
+                              ) : '-'}
+                            </td>
+                          </tr>
+                          {expandedRawClicks.has(rc.id) && (
+                            <tr className="bg-muted/30" data-testid={`row-click-flow-${rc.id}`}>
+                              <td colSpan={10} className="px-6 py-4">
+                                <div className="max-w-md">
+                                  <h4 className="text-sm font-medium mb-3">Путь клика</h4>
+                                  <ClickFlowTimeline stages={buildClickFlowStages(rc)} />
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>

@@ -7,7 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { StaffProvider } from "@/contexts/StaffContext";
 import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
-import StubPage from "@/pages/StubPage";
 import SystemUnavailable from "@/pages/SystemUnavailable";
 import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard";
@@ -69,7 +68,6 @@ function Router() {
       <Route path="/dashboard/:role/*" component={Dashboard} />
       <Route path="/notifications" component={NotificationsPage} />
       <Route path="/pricing" component={Pricing} />
-      <Route path="/stub" component={StubPage} />
       <Route path="/system/unavailable" component={SystemUnavailable} />
       <Route component={NotFound} />
     </Switch>

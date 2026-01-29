@@ -127,6 +127,7 @@ export const offers = pgTable("offers", {
   
   // Targeting
   geo: text("geo").array().notNull(),
+  language: text("language"), // Landing page language for GEO localization fallback (es, en, pt, de, ru)
   category: text("category").notNull(),
   
   // Traffic Sources (Facebook, Google, TikTok, UAC, PPC, etc.)
@@ -333,6 +334,7 @@ export const rawClicks = pgTable("raw_clicks", {
   // Processing status
   status: text("status").notNull().default("pending"), // pending, processed, rejected
   rejectReason: text("reject_reason"), // offer_not_found, offer_inactive, cap_reached, no_landing, partner_not_found, etc.
+  checkStage: text("check_stage"), // offer, landing, fraud, cap, geo - последний успешный этап проверки
   
   // Link to created click (if successful)
   clickId: varchar("click_id").references(() => clicks.id),

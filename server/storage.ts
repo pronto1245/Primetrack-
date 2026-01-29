@@ -6459,6 +6459,7 @@ export class DatabaseStorage implements IStorage {
       resolvedLandingId?: string;
       resolvedPublisherId?: string;
       advertiserId?: string;
+      checkStage?: string;
     }
   ): Promise<void> {
     const updateData: Record<string, any> = { status };
@@ -6469,6 +6470,7 @@ export class DatabaseStorage implements IStorage {
       if (resolvedData.resolvedLandingId) updateData.resolvedLandingId = resolvedData.resolvedLandingId;
       if (resolvedData.resolvedPublisherId) updateData.resolvedPublisherId = resolvedData.resolvedPublisherId;
       if (resolvedData.advertiserId) updateData.advertiserId = resolvedData.advertiserId;
+      if (resolvedData.checkStage) updateData.checkStage = resolvedData.checkStage;
     }
     
     await db.update(rawClicks).set(updateData).where(eq(rawClicks.id, id));

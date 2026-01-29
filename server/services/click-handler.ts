@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 import { antiFraudService, type FraudSignals } from "./antifraud-service";
+import { resolveLanguage } from "./geo-language";
 
 interface ClickParams {
   offerId: string;
@@ -40,7 +41,7 @@ interface ClickResult {
   capReached?: boolean;
 }
 
-const FALLBACK_STUB_URL = "/stub";
+const buildSystemUnavailableUrl = (lang: string): string => `/system/unavailable?lang=${lang}`;
 
 interface ParsedUA {
   device: string;
@@ -156,7 +157,8 @@ export class ClickHandler {
     }
     
     const clickIdParam = landing?.clickIdParam || "click_id";
-    let redirectUrl = FALLBACK_STUB_URL;
+    const lang = resolveLanguage(offer?.language, detectedGeo);
+    let redirectUrl = buildSystemUnavailableUrl(lang);
     
     if (landing && !isBlocked) {
       redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params, clickIdParam);
