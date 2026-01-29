@@ -2324,9 +2324,8 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Split test click handler error:", error);
-      res.status(400).json({ 
-        error: error.message || "Failed to process split test click" 
-      });
+      // Always redirect, never return HTTP errors for clicks
+      res.redirect(302, "/stub?error=split_test_error");
     }
   });
 
@@ -2465,9 +2464,8 @@ export async function registerRoutes(
       if (rawClickId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`).catch(() => {});
       }
-      res.status(400).json({ 
-        error: error.message || "Failed to process click" 
-      });
+      // Always redirect, never return HTTP errors for clicks
+      res.redirect(302, "/stub?error=click_error");
     }
   });
 
@@ -2563,9 +2561,8 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("[CustomDomain] Click handler error:", error);
-      res.status(400).json({ 
-        error: error.message || "Failed to process click" 
-      });
+      // Always redirect, never return HTTP errors for clicks
+      res.redirect(302, "/stub?error=custom_domain_error");
     }
   });
 
@@ -2717,9 +2714,8 @@ export async function registerRoutes(
       if (rawClickId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`).catch(() => {});
       }
-      res.status(400).json({ 
-        error: error.message || "Failed to process click" 
-      });
+      // Always redirect, never return HTTP errors for clicks
+      res.redirect(302, "/stub?error=api_click_error");
     }
   });
 
