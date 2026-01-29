@@ -1,0 +1,125 @@
+1️⃣ Модификация интерфейса ClickResult
+
+Файл: server/services/click-handler.ts
+
+interface ClickResult {
+  clickId: string;
+  redirectUrl: string;          // ВСЕГДА заполнен (stub если ошибка)
+  fraudScore: number;
+  isBlocked: boolean;
+  status: "valid" | "blocked" | "rejected" | "error";
+  errorReason?: 
+    | "offer_not_found" 
+    | "offer_inactive" 
+    | "no_landing" 
+    | "fraud_block" 
+    | "cap_reached" 
+    | "geo_mismatch";
+}
+
+2️⃣ Убрать все throw из processClick()
+
+Было:
+
+if (!offer) throw Error("Offer not found");
+if (offer.status !== "active") throw Error("Offer is not active");
+if (!landing) throw Error("No landing available");
+
+
+Стало:
+
+if (!offer) errorReason = "offer_not_found";
+else if (offer.status !== "active") errorReason = "offer_inactive";
+else if (!landing) errorReason = "no_landing";
+
+3️⃣ Порядок выполнения processClick()
+
+Парсинг параметров запроса
+
+Генерация clickId (crypto.randomUUID())
+
+Проверки → только установка errorReason
+
+ВСЕГДА createClick()
+
+Формирование redirectUrl (stub если errorReason)
+
+Return ClickResult
+
+4️⃣ Fallback URL (stub page)
+const FALLBACK_STUB_URL = "/stub"; // или внешняя white page
+
+const finalRedirectUrl = errorReason 
+  ? (offer?.capRedirectUrl || FALLBACK_STUB_URL)
+  : redirectUrl;
+
+5️⃣ Модификация схемы InsertClick
+
+Файл: shared/schema.ts
+
+status: text("status").default("valid"),  // valid | blocked | rejected | error
+errorReason: text("error_reason"),        // nullable
+
+6️⃣ Обновление createClick()
+
+Файл: server/storage.ts
+
+Убедиться, что метод принимает новые поля:
+
+status,
+errorReason
+
+7️⃣ Обновить отчёты / статистику
+Метрика	Описание
+clicks_total	Все INSERT'ы
+clicks_valid	status = "valid"
+clicks_blocked	status = "blocked"
+clicks_rejected	status = "rejected"
+clicks_error	status = "error"
+8️⃣ Создать Stub Page
+
+Файл: client/src/pages/StubPage.tsx
+
+Белый фон
+
+Сообщение: "Offer unavailable"
+
+Без редиректов
+
+9️⃣ Тестирование
+
+Проверить все сценарии:
+
+Оффер не найден → клик записан, status = error, redirect → stub
+
+Оффер неактивен → клик записан, status = rejected, redirect → stub
+
+Лендинг не найден → клик записан, status = error, redirect → stub
+
+Fraud ≥ 80 → клик записан, status = blocked, redirect → stub
+
+Cap reached → клик записан, status = rejected, redirect → cap page
+
+🔄 Порядок внедрения
+
+Схема БД (shared/schema.ts)
+
+Storage (server/storage.ts)
+
+Оркестратор (server/services/click-handler.ts)
+
+Stub page (client/src/pages/StubPage.tsx)
+
+Отчёты / метрики
+
+Тестирование
+
+💡 После этих изменений:
+
+Keitaro = PrimeTrack (цифры сходятся)
+
+Пропавшие клики исчезнут
+
+Доверие партнёров растёт
+
+Архитектура теперь по стандарту SaaS (как Scaleo / Voluum)
