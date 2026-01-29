@@ -4050,12 +4050,45 @@ export class DatabaseStorage implements IStorage {
     await db.delete(offerPostbackSettings).where(eq(offerPostbackSettings.offerId, offerId));
   }
   
-  // Extended Postback Logs
+  // Extended Postback Logs with proper filtering for role-based access control
   async getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; limit?: number }): Promise<PostbackLog[]> {
-    let conditions = [];
+    const conditions: any[] = [];
     
-    // Note: postbackLogs table has conversionId reference, we need to join to filter
+    // Direct field filters
+    if (filters.publisherId) {
+      conditions.push(eq(postbackLogs.publisherId, filters.publisherId));
+    }
+    
+    if (filters.offerId) {
+      conditions.push(eq(postbackLogs.offerId, filters.offerId));
+    }
+    
+    if (filters.status) {
+      conditions.push(eq(postbackLogs.status, filters.status));
+    }
+    
+    // For advertiserId, we need to filter by offers belonging to this advertiser
+    if (filters.advertiserId) {
+      // Get all offer IDs for this advertiser
+      const advertiserOffers = await db.select({ id: offers.id })
+        .from(offers)
+        .where(eq(offers.advertiserId, filters.advertiserId));
+      
+      const advertiserOfferIds = advertiserOffers.map(o => o.id);
+      
+      if (advertiserOfferIds.length === 0) {
+        // Advertiser has no offers, return empty
+        return [];
+      }
+      
+      conditions.push(inArray(postbackLogs.offerId, advertiserOfferIds));
+    }
+    
+    // Build and execute query with conditions
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
     const logs = await db.select().from(postbackLogs)
+      .where(whereClause)
       .orderBy(desc(postbackLogs.createdAt))
       .limit(filters.limit || 100);
     

@@ -3499,8 +3499,8 @@ export async function registerRoutes(
       // Get per-offer postback settings
       const offerSettings = await storage.getOfferPostbackSettingsByAdvertiser(advertiserId);
       
-      // Get postback logs
-      const logs = await storage.getPostbackLogs({ limit: 50 });
+      // Get postback logs for this advertiser only
+      const logs = await storage.getPostbackLogs({ advertiserId, limit: 50 });
       
       res.json({
         globalSettings: advertiserSettings ? {
