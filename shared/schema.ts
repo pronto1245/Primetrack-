@@ -271,6 +271,10 @@ export const clicks = pgTable("clicks", {
   // Redirect info
   redirectUrl: text("redirect_url"),
   
+  // Click status for tracking all requests (valid, blocked, rejected, error)
+  status: text("status").default("valid"), // valid | blocked | rejected | error
+  errorReason: text("error_reason"), // offer_not_found | offer_inactive | no_landing | fraud_block | cap_reached | geo_mismatch
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => ({
   // Performance indexes for reports and stats queries
