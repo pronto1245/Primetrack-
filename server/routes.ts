@@ -2451,7 +2451,7 @@ export async function registerRoutes(
 
       const rawClickStatus = result.isBlocked ? "rejected" : "processed";
       const rejectReason = result.isBlocked ? (result.capReached ? "cap_reached" : "fraud_blocked") : undefined;
-      await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.clickId, {
+      await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.id, {
         resolvedOfferId: offerId,
         resolvedLandingId: landingId,
         resolvedPublisherId: partnerId,
@@ -2701,7 +2701,7 @@ export async function registerRoutes(
 
       const rawClickStatus = result.isBlocked ? "rejected" : "processed";
       const rejectReason = result.isBlocked ? (result.capReached ? "cap_reached" : "fraud_blocked") : undefined;
-      await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.clickId, {
+      await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.id, {
         resolvedOfferId: offerId,
         resolvedLandingId: landingId,
         resolvedPublisherId: partnerId,

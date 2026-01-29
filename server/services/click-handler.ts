@@ -30,7 +30,8 @@ type ClickStatus = "valid" | "blocked" | "rejected" | "error";
 type ClickErrorReason = "offer_not_found" | "offer_inactive" | "no_landing" | "fraud_block" | "cap_reached" | "geo_mismatch";
 
 interface ClickResult {
-  clickId: string;
+  id: string;  // Primary key of clicks table (for FK references)
+  clickId: string;  // Unique click_id field (for external tracking)
   redirectUrl: string;
   fraudScore: number;
   isBlocked: boolean;
@@ -241,6 +242,7 @@ export class ClickHandler {
     }
     
     return {
+      id: savedClick.id,
       clickId,
       redirectUrl,
       fraudScore: antifraudResult.fraudScore,
