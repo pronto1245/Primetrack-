@@ -9619,6 +9619,7 @@ export async function registerRoutes(
             const searchLower = (search as string).toLowerCase();
             clickRows = clickRows.filter((c: any) => 
               c.id?.toLowerCase().includes(searchLower) ||
+              c.clickId?.toLowerCase().includes(searchLower) ||
               c.ip?.toLowerCase().includes(searchLower) ||
               c.sub1?.toLowerCase().includes(searchLower) ||
               c.sub2?.toLowerCase().includes(searchLower) ||
