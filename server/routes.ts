@@ -4688,7 +4688,11 @@ export async function registerRoutes(
       if (publisherId) filters.publisherId = publisherId as string;
       if (status) filters.status = status as string;
 
-      const result = await storage.getRawClicksForAdvertiser(req.session.userId!, filters);
+      // Admin sees all raw clicks, advertiser sees only their own
+      const user = await storage.getUser(req.session.userId!);
+      const result = user?.role === 'admin' 
+        ? await storage.getRawClicksAll(filters)
+        : await storage.getRawClicksForAdvertiser(req.session.userId!, filters);
       
       // Enrich with offer/publisher names
       const enrichedData = await Promise.all(result.data.map(async (rc) => {

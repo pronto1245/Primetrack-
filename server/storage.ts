@@ -55,7 +55,7 @@ import {
 } from "@shared/schema";
 import crypto from "crypto";
 import { db } from "../db";
-import { eq, and, or, desc, gte, lte, sql, inArray, isNotNull } from "drizzle-orm";
+import { eq, and, or, desc, gte, lte, sql, inArray, isNotNull, SQL } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { statsCache, buildCacheKey, CACHE_TTL } from "./services/cache-service";
 import { encrypt, decrypt, hasSecret } from "./services/encryption";
@@ -6515,6 +6515,53 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(rawClicks)
       .where(and(...conditions))
+      .orderBy(desc(rawClicks.createdAt))
+      .limit(filters.limit || 50)
+      .offset(filters.offset || 0);
+
+    return { data, total: countResult?.count || 0 };
+  }
+
+  async getRawClicksAll(
+    filters: {
+      offerId?: string;
+      publisherId?: string;
+      status?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<{ data: RawClick[]; total: number }> {
+    const conditions: SQL[] = [];
+    
+    if (filters.offerId) {
+      conditions.push(eq(rawClicks.resolvedOfferId, filters.offerId));
+    }
+    if (filters.publisherId) {
+      conditions.push(eq(rawClicks.resolvedPublisherId, filters.publisherId));
+    }
+    if (filters.status) {
+      conditions.push(eq(rawClicks.status, filters.status));
+    }
+    if (filters.dateFrom) {
+      conditions.push(gte(rawClicks.createdAt, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      conditions.push(lte(rawClicks.createdAt, filters.dateTo));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rawClicks)
+      .where(whereClause);
+
+    const data = await db
+      .select()
+      .from(rawClicks)
+      .where(whereClause)
       .orderBy(desc(rawClicks.createdAt))
       .limit(filters.limit || 50)
       .offset(filters.offset || 0);
