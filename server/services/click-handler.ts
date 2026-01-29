@@ -3,7 +3,7 @@ import { storage } from "../storage";
 import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 import { antiFraudService, type FraudSignals } from "./antifraud-service";
-import { resolveLanguage } from "./geo-language";
+import { resolveLanguage, logClickMetric } from "./geo-language";
 
 interface ClickParams {
   offerId: string;
@@ -242,6 +242,9 @@ export class ClickHandler {
     if (offer && (suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow")) {
       this.notifySuspiciousTraffic(offer.advertiserId, params.offerId, clickId, suspiciousAnalysis.reasons);
     }
+    
+    // Log click metric for valid/blocked clicks
+    logClickMetric(status, detectedGeo || 'XX', errorReason);
     
     return {
       id: savedClick.id,

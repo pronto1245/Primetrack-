@@ -15,7 +15,7 @@ import { ClickHandler } from "./services/click-handler";
 import { Orchestrator } from "./services/orchestrator";
 import { notificationService } from "./services/notification-service";
 import { totpService } from "./services/totp-service";
-import { geoToLanguage } from "./services/geo-language";
+import { geoToLanguage, logClickMetric, logAlert } from "./services/geo-language";
 import geoip from "geoip-lite";
 import { resolveRequestHost, resolveRequestOrigin, setWorkerSecret } from "./lib/request-utils";
 import { requireStaffWriteAccess } from "./staffAccessMiddleware";
@@ -2325,6 +2325,8 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Split test click handler error:", error);
+      logAlert('critical', 'Split test click handler error', { error: error.message });
+      logClickMetric('error', 'XX', 'split_test_error');
       // Always redirect, never return HTTP errors for clicks
       res.redirect(302, "/stub?error=split_test_error");
     }
@@ -2390,6 +2392,7 @@ export async function registerRoutes(
       
       if (!rawPartnerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "missing_partner_id");
+        logClickMetric('rejected', geoCode, 'missing_partner_id');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2409,6 +2412,7 @@ export async function registerRoutes(
         await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found", undefined, {
           checkStage: "offer",
         });
+        logClickMetric('rejected', geoCode, 'offer_not_found');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2418,6 +2422,7 @@ export async function registerRoutes(
           advertiserId: offer?.advertiserId,
           checkStage: "landing",
         });
+        logClickMetric('rejected', geoCode, 'landing_not_found');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2428,6 +2433,7 @@ export async function registerRoutes(
           advertiserId: offer?.advertiserId,
           checkStage: "landing",
         });
+        logClickMetric('rejected', geoCode, 'partner_not_found');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2474,13 +2480,16 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
+      logAlert('critical', 'Path-based click handler error', { error: error.message, rawOfferId, rawLandingId });
+      logClickMetric('error', geoCode || 'XX', 'click_handler_error');
       if (rawClickId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`, undefined, {
           checkStage: "click",
         }).catch(() => {});
       }
       // Always redirect, never return HTTP errors for clicks
-      res.redirect(302, "/system/unavailable?lang=en");
+      const lang = geoToLanguage(geoCode) || 'en';
+      res.redirect(302, `/system/unavailable?lang=${lang}`);
     }
   });
 
@@ -2576,8 +2585,11 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("[CustomDomain] Click handler error:", error);
+      logAlert('critical', 'Custom domain click handler error', { error: error.message, domain: req.customDomain?.domain });
+      logClickMetric('error', geoCode || 'XX', 'custom_domain_error');
       // Always redirect, never return HTTP errors for clicks
-      res.redirect(302, "/stub?error=custom_domain_error");
+      const lang = geoToLanguage(geoCode) || 'en';
+      res.redirect(302, `/system/unavailable?lang=${lang}`);
     }
   });
 
@@ -2647,6 +2659,7 @@ export async function registerRoutes(
 
       if (!rawOfferId || !rawPartnerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "missing_required_params");
+        logClickMetric('rejected', geoCode, 'missing_required_params');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2660,6 +2673,7 @@ export async function registerRoutes(
 
       if (!offerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found");
+        logClickMetric('rejected', geoCode, 'offer_not_found');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2668,6 +2682,7 @@ export async function registerRoutes(
           resolvedOfferId: offerId,
           advertiserId: offer?.advertiserId,
         });
+        logClickMetric('rejected', geoCode, 'partner_not_found');
         const lang = geoToLanguage(geoCode) || 'en';
         return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
@@ -2683,6 +2698,7 @@ export async function registerRoutes(
             resolvedPublisherId: partnerId,
             advertiserId: offer?.advertiserId,
           });
+          logClickMetric('rejected', geoCode, 'landing_not_found');
           const lang = geoToLanguage(geoCode) || 'en';
           return res.redirect(302, `/system/unavailable?lang=${lang}`);
         }
@@ -2731,13 +2747,16 @@ export async function registerRoutes(
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Click handler error:", error);
+      logAlert('critical', 'API click handler error', { error: error.message, offerId, partnerId });
+      logClickMetric('error', geoCode || 'XX', 'api_click_handler_error');
       if (rawClickId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", `error: ${error.message}`, undefined, {
           checkStage: "click",
         }).catch(() => {});
       }
       // Always redirect, never return HTTP errors for clicks
-      res.redirect(302, "/system/unavailable?lang=en");
+      const lang = geoToLanguage(geoCode) || 'en';
+      res.redirect(302, `/system/unavailable?lang=${lang}`);
     }
   });
 
