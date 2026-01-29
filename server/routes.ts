@@ -9735,20 +9735,25 @@ export async function registerRoutes(
         }
         
         case "postback-logs": {
-          let logs: any[] = [];
+          // Build filters for storage - move all filtering to SQL layer
+          const logsFilters: { advertiserId?: string; publisherId?: string; direction?: string; limit?: number } = { limit: 10000 };
           
-          if (role === "admin") {
-            logs = await storage.getPostbackLogs({});
-          } else if (role === "advertiser") {
+          if (role === "advertiser") {
             const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
-            logs = await storage.getPostbackLogs({ advertiserId: effectiveAdvertiserId || undefined });
+            if (effectiveAdvertiserId) logsFilters.advertiserId = effectiveAdvertiserId;
           } else if (role === "publisher") {
-            logs = await storage.getPostbackLogs({ publisherId: userId });
+            logsFilters.publisherId = userId;
+          }
+          // Admin: no filters, gets all logs
+          
+          // Apply direction filter at SQL level
+          if (direction && direction !== "all") {
+            logsFilters.direction = direction as string;
           }
           
-          if (direction && direction !== "all") {
-            logs = logs.filter((l: any) => l.direction === direction);
-          }
+          let logs = await storage.getPostbackLogs(logsFilters);
+          
+          // Status filter for success/failed (uses 'success' boolean field, not 'status' string)
           if (status === "success") {
             logs = logs.filter((l: any) => l.success);
           } else if (status === "failed") {

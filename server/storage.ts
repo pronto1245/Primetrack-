@@ -555,7 +555,7 @@ export interface IStorage {
   deleteOfferPostbackSetting(offerId: string): Promise<void>;
   
   // Postback Logs Extended
-  getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; limit?: number }): Promise<PostbackLog[]>;
+  getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; direction?: string; limit?: number }): Promise<PostbackLog[]>;
   updatePostbackLog(id: string, data: Partial<InsertPostbackLog>): Promise<PostbackLog | undefined>;
   
   // User Postback Settings (universal for all roles)
@@ -4051,7 +4051,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Extended Postback Logs with proper filtering for role-based access control
-  async getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; limit?: number }): Promise<PostbackLog[]> {
+  async getPostbackLogs(filters: { advertiserId?: string; offerId?: string; publisherId?: string; status?: string; direction?: string; limit?: number }): Promise<PostbackLog[]> {
     const conditions: any[] = [];
     
     // Direct field filters
@@ -4065,6 +4065,10 @@ export class DatabaseStorage implements IStorage {
     
     if (filters.status) {
       conditions.push(eq(postbackLogs.status, filters.status));
+    }
+    
+    if (filters.direction) {
+      conditions.push(eq(postbackLogs.direction, filters.direction));
     }
     
     // For advertiserId, we need to filter by offers belonging to this advertiser
@@ -4084,15 +4088,22 @@ export class DatabaseStorage implements IStorage {
       conditions.push(inArray(postbackLogs.offerId, advertiserOfferIds));
     }
     
-    // Build and execute query with conditions
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    // Build and execute query - conditionally apply WHERE only when filters exist
+    const limitValue = filters.limit || 100;
     
-    const logs = await db.select().from(postbackLogs)
-      .where(whereClause)
-      .orderBy(desc(postbackLogs.createdAt))
-      .limit(filters.limit || 100);
-    
-    return logs;
+    if (conditions.length > 0) {
+      const logs = await db.select().from(postbackLogs)
+        .where(and(...conditions))
+        .orderBy(desc(postbackLogs.createdAt))
+        .limit(limitValue);
+      return logs;
+    } else {
+      // Admin path - no filters, return all logs
+      const logs = await db.select().from(postbackLogs)
+        .orderBy(desc(postbackLogs.createdAt))
+        .limit(limitValue);
+      return logs;
+    }
   }
   
   async updatePostbackLog(id: string, data: Partial<InsertPostbackLog>): Promise<PostbackLog | undefined> {
