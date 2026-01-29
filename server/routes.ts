@@ -9610,22 +9610,10 @@ export async function registerRoutes(
           if (geo) queryFilters.geo = geo as string;
           if (device) queryFilters.device = device as string;
           if (dateMode) queryFilters.dateMode = dateMode as string;
+          if (search) queryFilters.search = search as string; // Pass search to storage for SQL-based filtering
           
           const result = await storage.getClicksReport(queryFilters, undefined, 1, 10000);
-          let clickRows = result.clicks;
-          
-          // Apply search filter client-side if provided
-          if (search) {
-            const searchLower = (search as string).toLowerCase();
-            clickRows = clickRows.filter((c: any) => 
-              c.id?.toLowerCase().includes(searchLower) ||
-              c.clickId?.toLowerCase().includes(searchLower) ||
-              c.ip?.toLowerCase().includes(searchLower) ||
-              c.sub1?.toLowerCase().includes(searchLower) ||
-              c.sub2?.toLowerCase().includes(searchLower) ||
-              c.userAgent?.toLowerCase().includes(searchLower)
-            );
-          }
+          const clickRows = result.clicks;
           
           rows = clickRows.map((c: any) => ({
             ...c,
@@ -9660,19 +9648,10 @@ export async function registerRoutes(
           if (dateFrom) queryFilters.dateFrom = new Date(dateFrom as string);
           if (dateTo) queryFilters.dateTo = new Date(dateTo as string);
           if (status) queryFilters.status = status as string;
+          if (search) queryFilters.search = search as string; // Pass search to storage for SQL-based filtering
           
           const result = await storage.getConversionsReport(queryFilters, undefined, 1, 10000);
-          let convRows = result.conversions;
-          
-          // Apply search filter if provided
-          if (search) {
-            const searchLower = (search as string).toLowerCase();
-            convRows = convRows.filter((c: any) => 
-              c.id?.toLowerCase().includes(searchLower) ||
-              c.clickId?.toLowerCase().includes(searchLower) ||
-              c.externalId?.toLowerCase().includes(searchLower)
-            );
-          }
+          const convRows = result.conversions;
           
           rows = convRows.map((c: any) => ({
             ...c,

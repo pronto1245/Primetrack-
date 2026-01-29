@@ -2902,24 +2902,27 @@ export class DatabaseStorage implements IStorage {
   async getClicksReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ clicks: any[]; total: number; page: number; limit: number; allClicks?: any[] }> {
     const conditions: any[] = [];
     
-    // Handle free text search - filter by offer name
+    // Handle free text search - search across ALL click fields using centralized helper
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const matchingOffers = await db.select({ id: offers.id }).from(offers)
-        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
-      const matchingOfferIds = matchingOffers.map(o => o.id);
-      if (matchingOfferIds.length === 0) {
-        return { clicks: [], total: 0, page, limit };
+      const { clickFieldConditions, matchingOfferIds, matchingPublisherIds } = 
+        await buildClicksSearchConditions(filters.search);
+      
+      // Build OR condition: any click field match OR offer name match OR publisher match
+      const searchConditions: any[] = [...clickFieldConditions];
+      
+      if (matchingOfferIds.length > 0) {
+        searchConditions.push(inArray(clicks.offerId, matchingOfferIds));
       }
-      // Combine with existing offerIds filter if any
+      if (matchingPublisherIds.length > 0) {
+        searchConditions.push(inArray(clicks.publisherId, matchingPublisherIds));
+      }
+      
+      // Combine all search conditions with OR
+      conditions.push(or(...searchConditions));
+      
+      // Still apply offerIds filter if provided (role-based access)
       if (filters.offerIds?.length) {
-        const intersection = filters.offerIds.filter((id: string) => matchingOfferIds.includes(id));
-        if (intersection.length === 0) {
-          return { clicks: [], total: 0, page, limit };
-        }
-        conditions.push(inArray(clicks.offerId, intersection));
-      } else {
-        conditions.push(inArray(clicks.offerId, matchingOfferIds));
+        conditions.push(inArray(clicks.offerId, filters.offerIds));
       }
     } else if (filters.offerIds?.length) {
       conditions.push(inArray(clicks.offerId, filters.offerIds));
@@ -3047,28 +3050,19 @@ export class DatabaseStorage implements IStorage {
   }> {
     const conditions: any[] = [];
     
-    // Handle free text search - search by clickId, id, ip, sub1, sub2 OR offer name
+    // Handle free text search - search across ALL click fields using centralized helper
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const searchPattern = `%${searchLower}%`;
+      const { clickFieldConditions, matchingOfferIds, matchingPublisherIds } = 
+        await buildClicksSearchConditions(filters.search);
       
-      // Search by click fields OR offer name using SQL OR
-      // First get matching offer IDs
-      const matchingOffers = await db.select({ id: offers.id }).from(offers)
-        .where(sql`LOWER(${offers.name}) LIKE ${searchPattern}`);
-      const matchingOfferIds = matchingOffers.map(o => o.id);
-      
-      // Build OR condition: clickId/id/ip/sub1/sub2 ILIKE search OR offerId IN matchingOfferIds
-      const searchConditions: any[] = [
-        sql`LOWER(${clicks.clickId}) LIKE ${searchPattern}`,
-        sql`LOWER(${clicks.id}) LIKE ${searchPattern}`,
-        sql`LOWER(${clicks.ip}) LIKE ${searchPattern}`,
-        sql`LOWER(${clicks.sub1}) LIKE ${searchPattern}`,
-        sql`LOWER(${clicks.sub2}) LIKE ${searchPattern}`,
-      ];
+      // Build OR condition: any click field match OR offer name match OR publisher match
+      const searchConditions: any[] = [...clickFieldConditions];
       
       if (matchingOfferIds.length > 0) {
         searchConditions.push(inArray(clicks.offerId, matchingOfferIds));
+      }
+      if (matchingPublisherIds.length > 0) {
+        searchConditions.push(inArray(clicks.publisherId, matchingPublisherIds));
       }
       
       // Combine all search conditions with OR
@@ -3379,24 +3373,27 @@ export class DatabaseStorage implements IStorage {
   async getConversionsReport(filters: any, groupBy?: string, page: number = 1, limit: number = 50): Promise<{ conversions: any[]; total: number; page: number; limit: number }> {
     const conditions: any[] = [];
     
-    // Handle free text search - filter by offer name
+    // Handle free text search - search across ALL conversion fields using centralized helper
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const matchingOffers = await db.select({ id: offers.id }).from(offers)
-        .where(sql`LOWER(${offers.name}) LIKE ${`%${searchLower}%`}`);
-      const matchingOfferIds = matchingOffers.map(o => o.id);
-      if (matchingOfferIds.length === 0) {
-        return { conversions: [], total: 0, page, limit };
+      const { conversionFieldConditions, matchingOfferIds, matchingPublisherIds } = 
+        await buildConversionsSearchConditions(filters.search);
+      
+      // Build OR condition: any conversion field match OR offer name match OR publisher match
+      const searchConditions: any[] = [...conversionFieldConditions];
+      
+      if (matchingOfferIds.length > 0) {
+        searchConditions.push(inArray(conversions.offerId, matchingOfferIds));
       }
-      // Combine with existing offerIds filter if any
+      if (matchingPublisherIds.length > 0) {
+        searchConditions.push(inArray(conversions.publisherId, matchingPublisherIds));
+      }
+      
+      // Combine all search conditions with OR
+      conditions.push(or(...searchConditions));
+      
+      // Still apply offerIds filter if provided (role-based access)
       if (filters.offerIds?.length) {
-        const intersection = filters.offerIds.filter((id: string) => matchingOfferIds.includes(id));
-        if (intersection.length === 0) {
-          return { conversions: [], total: 0, page, limit };
-        }
-        conditions.push(inArray(conversions.offerId, intersection));
-      } else {
-        conditions.push(inArray(conversions.offerId, matchingOfferIds));
+        conditions.push(inArray(conversions.offerId, filters.offerIds));
       }
     } else if (filters.offerIds?.length) {
       conditions.push(inArray(conversions.offerId, filters.offerIds));
