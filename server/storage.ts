@@ -108,6 +108,101 @@ export function isPayableConversion(publisherPayout: string | number): boolean {
   return parseFloat(String(publisherPayout || '0')) > 0;
 }
 
+/**
+ * Build SQL search conditions for clicks table
+ * Searches across: clickId, id, ip, geo, device, os, browser, sub1-5, userAgent
+ * Plus offer name and publisher name via IDs
+ * Returns: { condition: SQL OR condition, matchingOfferIds, matchingPublisherIds }
+ */
+export async function buildClicksSearchConditions(searchTerm: string): Promise<{
+  clickFieldConditions: any[];
+  matchingOfferIds: string[];
+  matchingPublisherIds: string[];
+}> {
+  const searchPattern = `%${searchTerm.toLowerCase()}%`;
+  
+  // Search in click fields directly
+  const clickFieldConditions: any[] = [
+    sql`LOWER(${clicks.clickId}) LIKE ${searchPattern}`,
+    sql`LOWER(${clicks.id}) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.ip}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.geo}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.device}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.os}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.browser}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.sub1}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.sub2}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.sub3}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.sub4}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.sub5}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.userAgent}, '')) LIKE ${searchPattern}`,
+  ];
+  
+  // Search offers by name
+  const matchingOffers = await db.select({ id: offers.id }).from(offers)
+    .where(sql`LOWER(${offers.name}) LIKE ${searchPattern}`);
+  const matchingOfferIds = matchingOffers.map(o => o.id);
+  
+  // Search publishers by username, fullName, or shortId
+  const matchingPublishers = await db.select({ id: users.id }).from(users)
+    .where(and(
+      eq(users.role, 'publisher'),
+      or(
+        sql`LOWER(${users.username}) LIKE ${searchPattern}`,
+        sql`LOWER(COALESCE(${users.fullName}, '')) LIKE ${searchPattern}`,
+        sql`CAST(${users.shortId} AS TEXT) LIKE ${searchPattern}`
+      )
+    ));
+  const matchingPublisherIds = matchingPublishers.map(p => p.id);
+  
+  return { clickFieldConditions, matchingOfferIds, matchingPublisherIds };
+}
+
+/**
+ * Build SQL search conditions for conversions table
+ * Searches across: externalId, clickId, id, plus offer name and publisher name via IDs
+ * Returns: { condition: SQL OR condition, matchingOfferIds, matchingPublisherIds }
+ */
+export async function buildConversionsSearchConditions(searchTerm: string): Promise<{
+  conversionFieldConditions: any[];
+  matchingOfferIds: string[];
+  matchingPublisherIds: string[];
+}> {
+  const searchPattern = `%${searchTerm.toLowerCase()}%`;
+  
+  // Search in conversion fields directly
+  const conversionFieldConditions: any[] = [
+    sql`LOWER(COALESCE(${conversions.externalId}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(${conversions.clickId}) LIKE ${searchPattern}`,
+    sql`LOWER(${conversions.id}) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${conversions.ip}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${conversions.sub1}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${conversions.sub2}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${conversions.sub3}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${conversions.sub4}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${conversions.sub5}, '')) LIKE ${searchPattern}`,
+  ];
+  
+  // Search offers by name
+  const matchingOffers = await db.select({ id: offers.id }).from(offers)
+    .where(sql`LOWER(${offers.name}) LIKE ${searchPattern}`);
+  const matchingOfferIds = matchingOffers.map(o => o.id);
+  
+  // Search publishers by username, fullName, or shortId
+  const matchingPublishers = await db.select({ id: users.id }).from(users)
+    .where(and(
+      eq(users.role, 'publisher'),
+      or(
+        sql`LOWER(${users.username}) LIKE ${searchPattern}`,
+        sql`LOWER(COALESCE(${users.fullName}, '')) LIKE ${searchPattern}`,
+        sql`CAST(${users.shortId} AS TEXT) LIKE ${searchPattern}`
+      )
+    ));
+  const matchingPublisherIds = matchingPublishers.map(p => p.id);
+  
+  return { conversionFieldConditions, matchingOfferIds, matchingPublisherIds };
+}
+
 export interface AdvertiserStatsFilters {
   dateFrom?: Date;
   dateTo?: Date;
