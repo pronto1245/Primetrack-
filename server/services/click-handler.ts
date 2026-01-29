@@ -26,14 +26,20 @@ interface ClickParams {
   fingerprintConfidence?: number;
 }
 
+type ClickStatus = "valid" | "blocked" | "rejected" | "error";
+type ClickErrorReason = "offer_not_found" | "offer_inactive" | "no_landing" | "fraud_block" | "cap_reached" | "geo_mismatch";
+
 interface ClickResult {
   clickId: string;
   redirectUrl: string;
   fraudScore: number;
   isBlocked: boolean;
+  status: ClickStatus;
+  errorReason?: ClickErrorReason;
   capReached?: boolean;
-  capRedirectUrl?: string;
 }
+
+const FALLBACK_STUB_URL = "/stub";
 
 interface ParsedUA {
   device: string;
@@ -46,76 +52,68 @@ export class ClickHandler {
   async processClick(params: ClickParams): Promise<ClickResult> {
     const clickId = this.generateClickId();
     
+    let errorReason: ClickErrorReason | undefined;
+    let status: ClickStatus = "valid";
+    let isBlocked = false;
+    let capReached = false;
+    
     const offer = await storage.getOffer(params.offerId);
     if (!offer) {
-      throw new Error("Offer not found");
+      errorReason = "offer_not_found";
+      status = "error";
+      isBlocked = true;
+    } else if (offer.status !== "active") {
+      errorReason = "offer_inactive";
+      status = "rejected";
+      isBlocked = true;
     }
     
-    if (offer.status !== "active") {
-      throw new Error("Offer is not active");
-    }
-    
-    // Check caps/limits (daily, monthly, total)
-    const capsCheck = await storage.checkOfferCaps(params.offerId);
-    if (capsCheck.dailyCapReached || capsCheck.monthlyCapReached || capsCheck.totalCapReached) {
-      const capAction = offer.capReachedAction || "block";
-      
-      if (capAction === "redirect" && offer.capRedirectUrl) {
-        return {
-          clickId,
-          redirectUrl: offer.capRedirectUrl,
-          fraudScore: 0,
-          isBlocked: false,
-          capReached: true,
-          capRedirectUrl: offer.capRedirectUrl
-        };
-      } else {
-        return {
-          clickId,
-          redirectUrl: "",
-          fraudScore: 0,
-          isBlocked: true,
-          capReached: true
-        };
+    let capsCheck = { dailyCapReached: false, monthlyCapReached: false, totalCapReached: false };
+    if (!errorReason && offer) {
+      capsCheck = await storage.checkOfferCaps(params.offerId);
+      if (capsCheck.dailyCapReached || capsCheck.monthlyCapReached || capsCheck.totalCapReached) {
+        errorReason = "cap_reached";
+        status = "rejected";
+        capReached = true;
+        isBlocked = offer.capReachedAction === "block";
       }
     }
     
-    const landings = await storage.getOfferLandings(params.offerId);
-    const landing = this.selectLanding(landings, params.geo, params.landingId);
-    
-    if (!landing) {
-      throw new Error("No landing available for this geo");
+    let landings: any[] = [];
+    let landing: any = null;
+    if (!errorReason && offer) {
+      landings = await storage.getOfferLandings(params.offerId);
+      landing = this.selectLanding(landings, params.geo, params.landingId);
+      if (!landing) {
+        errorReason = "no_landing";
+        status = "error";
+        isBlocked = true;
+      }
     }
     
-    // Parse User-Agent for device/os/browser/bot detection
     const parsedUA = this.parseUserAgent(params.userAgent);
-    
-    // Get enhanced IP intelligence
     const ipIntel = params.ip ? await ipIntelService.getIpIntelligence(params.ip) : null;
-    
-    // Use IP intel for GEO if available, otherwise use provided geo
     const detectedGeo = ipIntel?.country || params.geo;
     
-    // Check if GEO matches offer allowed GEOs
-    const isOfferGeoMatch = this.checkGeoMatch(detectedGeo, offer.geo);
+    let isOfferGeoMatch = true;
+    let isPublisherGeoAllowed = true;
+    let isGeoMatch = true;
+    let publisherOffer: any = null;
     
-    // Check if publisher has access to this specific GEO
-    const publisherOffer = await storage.getPublisherOffer(params.offerId, params.partnerId);
-    const isPublisherGeoAllowed = !publisherOffer?.approvedGeos || 
-      publisherOffer.approvedGeos.length === 0 || 
-      (detectedGeo ? publisherOffer.approvedGeos.includes(detectedGeo) : true);
+    if (offer && !errorReason) {
+      isOfferGeoMatch = this.checkGeoMatch(detectedGeo, offer.geo);
+      publisherOffer = await storage.getPublisherOffer(params.offerId, params.partnerId);
+      isPublisherGeoAllowed = !publisherOffer?.approvedGeos || 
+        publisherOffer.approvedGeos.length === 0 || 
+        (detectedGeo ? publisherOffer.approvedGeos.includes(detectedGeo) : true);
+      isGeoMatch = isOfferGeoMatch && isPublisherGeoAllowed;
+    }
     
-    // Combined GEO match: must match both offer GEO and publisher's approved GEOs
-    const isGeoMatch = isOfferGeoMatch && isPublisherGeoAllowed;
-    
-    // Check if this click is unique (first from this IP+offer+publisher today)
     const isUnique = await this.checkUniqueness(params.ip, params.offerId, params.partnerId);
     
-    // Combine basic fraud check with IP intel
     const basicFraudCheck = this.performBasicFraudCheck(params.ip, params.userAgent);
     const fraudCheck = this.mergeFraudChecks(basicFraudCheck, ipIntel);
     
-    // Determine if click is suspicious and collect reasons
     const suspiciousAnalysis = this.analyzeSuspiciousTraffic({
       fraudScore: fraudCheck.score,
       isProxy: fraudCheck.isProxy,
@@ -127,35 +125,49 @@ export class ClickHandler {
       isUnique,
     });
     
-    // Run full antifraud evaluation with rules and velocity checks
-    const fraudSignals: FraudSignals = {
-      ip: params.ip,
-      userAgent: params.userAgent,
-      country: detectedGeo,
-      fingerprint: params.visitorId,
-      isProxy: fraudCheck.isProxy,
-      isVpn: fraudCheck.isVpn,
-      isBot: parsedUA.isBot,
-      isDatacenter: fraudCheck.isDatacenter,
-      fraudScore: fraudCheck.score,
-      signals: suspiciousAnalysis.reasons,
-    };
+    let antifraudResult = { action: "allow" as string, fraudScore: fraudCheck.score, matchedRules: [] as any[] };
+    if (offer && !errorReason) {
+      const fraudSignals: FraudSignals = {
+        ip: params.ip,
+        userAgent: params.userAgent,
+        country: detectedGeo,
+        fingerprint: params.visitorId,
+        isProxy: fraudCheck.isProxy,
+        isVpn: fraudCheck.isVpn,
+        isBot: parsedUA.isBot,
+        isDatacenter: fraudCheck.isDatacenter,
+        fraudScore: fraudCheck.score,
+        signals: suspiciousAnalysis.reasons,
+      };
+      
+      antifraudResult = await antiFraudService.evaluateClick(
+        params.offerId,
+        offer.advertiserId,
+        params.partnerId,
+        fraudSignals
+      );
+      
+      if (!errorReason && (antifraudResult.action === "block" || fraudCheck.score >= 80)) {
+        errorReason = "fraud_block";
+        status = "blocked";
+        isBlocked = true;
+      }
+    }
     
-    const antifraudResult = await antiFraudService.evaluateClick(
-      params.offerId,
-      offer.advertiserId,
-      params.partnerId,
-      fraudSignals
-    );
+    const clickIdParam = landing?.clickIdParam || "click_id";
+    let redirectUrl = FALLBACK_STUB_URL;
     
-    const clickIdParam = landing.clickIdParam || "click_id";
-    const redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params, clickIdParam);
+    if (landing && !isBlocked) {
+      redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params, clickIdParam);
+    } else if (capReached && offer?.capRedirectUrl) {
+      redirectUrl = offer.capRedirectUrl;
+    }
     
     const clickData: InsertClick = {
       clickId,
       offerId: params.offerId,
       publisherId: params.partnerId,
-      landingId: landing.id,
+      landingId: landing?.id || null,
       ip: params.ip,
       userAgent: params.userAgent,
       geo: detectedGeo,
@@ -194,12 +206,13 @@ export class ClickHandler {
       visitorId: params.visitorId,
       fingerprintConfidence: params.fingerprintConfidence?.toString(),
       redirectUrl,
+      status,
+      errorReason: errorReason || null,
     };
     
     const savedClick = await storage.createClick(clickData);
     
-    // Create antifraud log entry
-    if (antifraudResult.action !== "allow" || antifraudResult.matchedRules.length > 0) {
+    if (offer && (antifraudResult.action !== "allow" || antifraudResult.matchedRules.length > 0)) {
       try {
         await storage.createAntifraudLog({
           advertiserId: offer.advertiserId,
@@ -208,12 +221,12 @@ export class ClickHandler {
           clickId: savedClick.id,
           action: antifraudResult.action,
           fraudScore: antifraudResult.fraudScore,
-          isProxy: fraudSignals.isProxy,
-          isVpn: fraudSignals.isVpn,
-          isBot: fraudSignals.isBot,
-          isDatacenter: fraudSignals.isDatacenter,
+          isProxy: fraudCheck.isProxy,
+          isVpn: fraudCheck.isVpn,
+          isBot: parsedUA.isBot,
+          isDatacenter: fraudCheck.isDatacenter,
           matchedRuleIds: antifraudResult.matchedRules.map(r => r.id),
-          signals: JSON.stringify(fraudSignals.signals),
+          signals: JSON.stringify(suspiciousAnalysis.reasons),
           ip: params.ip,
           userAgent: params.userAgent,
           country: detectedGeo,
@@ -223,19 +236,18 @@ export class ClickHandler {
       }
     }
     
-    // Send notification for suspicious traffic
-    if (suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow") {
+    if (offer && (suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow")) {
       this.notifySuspiciousTraffic(offer.advertiserId, params.offerId, clickId, suspiciousAnalysis.reasons);
     }
     
-    // Determine if click should be blocked
-    const isBlocked = antifraudResult.action === "block" || fraudCheck.score >= 80;
-    
     return {
       clickId,
-      redirectUrl: isBlocked ? "" : redirectUrl,
+      redirectUrl,
       fraudScore: antifraudResult.fraudScore,
       isBlocked,
+      status,
+      errorReason,
+      capReached,
     };
   }
   

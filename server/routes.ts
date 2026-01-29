@@ -2321,20 +2321,6 @@ export async function registerRoutes(
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
       });
 
-      if (result.isBlocked) {
-        if (result.capReached) {
-          return res.status(410).json({ 
-            error: "Offer cap reached", 
-            reason: "cap_exceeded"
-          });
-        }
-        return res.status(403).json({ 
-          error: "Traffic blocked", 
-          reason: "fraud_detected",
-          fraudScore: result.fraudScore 
-        });
-      }
-
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
       console.error("Split test click handler error:", error);
@@ -2464,30 +2450,9 @@ export async function registerRoutes(
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
       });
 
-      if (result.isBlocked) {
-        const rejectReason = result.capReached ? "cap_reached" : "fraud_blocked";
-        await storage.updateRawClickStatus(rawClickId, "rejected", rejectReason, undefined, {
-          resolvedOfferId: offerId,
-          resolvedLandingId: landingId,
-          resolvedPublisherId: partnerId,
-          advertiserId: offer?.advertiserId,
-        });
-        
-        if (result.capReached) {
-          return res.status(410).json({ 
-            error: "Offer cap reached", 
-            reason: "cap_exceeded"
-          });
-        }
-        return res.status(403).json({ 
-          error: "Traffic blocked", 
-          reason: "fraud_detected",
-          fraudScore: result.fraudScore 
-        });
-      }
-
-      // Success - update raw_click with processed status and click_id
-      await storage.updateRawClickStatus(rawClickId, "processed", undefined, result.clickId, {
+      const rawClickStatus = result.isBlocked ? "rejected" : "processed";
+      const rejectReason = result.isBlocked ? (result.capReached ? "cap_reached" : "fraud_blocked") : undefined;
+      await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.clickId, {
         resolvedOfferId: offerId,
         resolvedLandingId: landingId,
         resolvedPublisherId: partnerId,
@@ -2594,20 +2559,6 @@ export async function registerRoutes(
         visitorId: visitor_id as string,
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
       });
-
-      if (result.isBlocked) {
-        if (result.capReached) {
-          return res.status(410).json({ 
-            error: "Offer cap reached", 
-            reason: "cap_exceeded"
-          });
-        }
-        return res.status(403).json({ 
-          error: "Traffic blocked", 
-          reason: "fraud_detected",
-          fraudScore: result.fraudScore 
-        });
-      }
 
       res.redirect(302, result.redirectUrl);
     } catch (error: any) {
@@ -2751,30 +2702,9 @@ export async function registerRoutes(
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
       });
 
-      if (result.isBlocked) {
-        const rejectReason = result.capReached ? "cap_reached" : "fraud_blocked";
-        await storage.updateRawClickStatus(rawClickId, "rejected", rejectReason, undefined, {
-          resolvedOfferId: offerId,
-          resolvedLandingId: landingId,
-          resolvedPublisherId: partnerId,
-          advertiserId: offer?.advertiserId,
-        });
-        
-        if (result.capReached) {
-          return res.status(410).json({ 
-            error: "Offer cap reached", 
-            reason: "cap_exceeded"
-          });
-        }
-        return res.status(403).json({ 
-          error: "Traffic blocked", 
-          reason: "fraud_detected",
-          fraudScore: result.fraudScore 
-        });
-      }
-
-      // Success - update raw_click with processed status and click_id
-      await storage.updateRawClickStatus(rawClickId, "processed", undefined, result.clickId, {
+      const rawClickStatus = result.isBlocked ? "rejected" : "processed";
+      const rejectReason = result.isBlocked ? (result.capReached ? "cap_reached" : "fraud_blocked") : undefined;
+      await storage.updateRawClickStatus(rawClickId, rawClickStatus, rejectReason, result.clickId, {
         resolvedOfferId: offerId,
         resolvedLandingId: landingId,
         resolvedPublisherId: partnerId,
