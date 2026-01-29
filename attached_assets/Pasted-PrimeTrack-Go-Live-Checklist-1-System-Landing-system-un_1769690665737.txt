@@ -1,0 +1,86 @@
+PrimeTrack – Go-Live Checklist
+1️⃣ System Landing
+
+ /system/unavailable?lang=xx редирект 302 работает для всех поддерживаемых языков (EN/ES/PT/DE/RU/FR/IT/PL/TR/JA/KO/ZH/AR/HI/TH/VI/ID/NL/SV/UK)
+
+ Фallback язык: en для любых неизвестных GEO
+
+ Контент нейтральный, без слов: Offer / Blocked / Error / Fraud / Cap
+
+ Проверить отображение на мобильных и десктопах
+
+2️⃣ GEO → Language Mapping
+
+ Все 50+ GEO корректно определяют язык
+
+ Новые GEO логируются для дальнейшего расширения
+
+ GEO без маппинга → fallback en
+
+3️⃣ Click Handler
+
+ Все клики всегда записываются в DB, даже при ошибках
+
+ status = valid / blocked / rejected / error корректно
+
+ errorReason / reject_reason сохраняются для всех rejected/error кликов
+
+ Postbacks валидных кликов корректно отправляются рекламодателям
+
+ Fraud / Cap / GEO mismatch → редирект на /system/unavailable
+
+4️⃣ checkStage Tracking
+
+ Все этапы offer/landing/fraud/cap/geo/redirect корректно записываются
+
+ Проверка на edge-case: missing offer, fraud, cap reached, geo mismatch
+
+ Timeline в UI соответствует checkStage
+
+5️⃣ ClickFlow Timeline UI (AdvertiserPostbacks)
+
+ Expand / collapse клика работает
+
+ Все статусы (valid / blocked / rejected / error) отображаются правильно
+
+ Язык и GEO отображаются корректно в таблице
+
+ Проверка на больших объемах (50+ кликов) — UI не лагает
+
+6️⃣ Database / Storage
+
+ Новые поля status / errorReason / checkStage добавлены и корректно работают
+
+ Нет потери кликов при ошибках / дублирующихся запросах
+
+ Проверить индексы для быстрого фильтра по status/checkStage
+
+7️⃣ Monitoring & Logging
+
+ Логи кликов: IP, GEO, language, status, checkStage
+
+ Логи новых GEO/языков для расширения
+
+ Метрики: clicks_total / clicks_valid / clicks_blocked / clicks_rejected / clicks_error
+
+ Настроены alert’ы при падении редиректа или ошибок DB
+
+8️⃣ Testing / Sanity Checks
+
+ 60+ тестовых кликов на всех языках и GEO
+
+ Все редиректы /system/unavailable проверены
+
+ Все этапы checkStage корректно отображаются в Timeline
+
+ Postbacks проверены на тестовом рекламодателе
+
+9️⃣ Release Preparation
+
+ Стейджинг соответствует продакшн-среде (домены, субдомены, API)
+
+ Файлы переводов загружены для всех языков
+
+ Stub / system landing доступен по HTTPS
+
+ Обновлена документация для QA и команды поддержки

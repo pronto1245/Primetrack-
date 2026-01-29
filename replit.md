@@ -6,6 +6,10 @@ PrimeTrack is a centralized SaaS platform for affiliate tracking, designed to in
 ## User Preferences
 Preferred communication style: Simple, everyday language (Russian).
 
+## Test Credentials
+- **Admin:** username: `admin`, password: `admin123`
+- **Login path:** `/login` (NOT /auth)
+
 ## System Architecture
 
 ### UI/UX
