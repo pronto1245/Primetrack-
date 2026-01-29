@@ -15,6 +15,7 @@ import { ClickHandler } from "./services/click-handler";
 import { Orchestrator } from "./services/orchestrator";
 import { notificationService } from "./services/notification-service";
 import { totpService } from "./services/totp-service";
+import { geoToLanguage } from "./services/geo-language";
 import geoip from "geoip-lite";
 import { resolveRequestHost, resolveRequestOrigin, setWorkerSecret } from "./lib/request-utils";
 import { requireStaffWriteAccess } from "./staffAccessMiddleware";
@@ -2345,8 +2346,10 @@ export async function registerRoutes(
       const userAgent = req.headers["user-agent"] || "";
       const referer = req.headers["referer"] || "";
       
-      // GEO from headers or IP geolocation
-      let geoCode = (req.headers["cf-ipcountry"] as string) ||
+      // GEO from query param, headers, or IP geolocation
+      const geoParam = req.query.geo as string;
+      let geoCode = geoParam?.toUpperCase() ||
+                    (req.headers["cf-ipcountry"] as string) ||
                     (req.headers["x-country-code"] as string);
       
       if (!geoCode && ip && ip !== "unknown") {
@@ -2387,9 +2390,8 @@ export async function registerRoutes(
       
       if (!rawPartnerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "missing_partner_id");
-        return res.status(400).json({ 
-          error: "Missing required parameter: partner_id" 
-        });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
 
       // Resolve shortId or UUID to actual UUIDs
@@ -2407,7 +2409,8 @@ export async function registerRoutes(
         await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found", undefined, {
           checkStage: "offer",
         });
-        return res.status(404).json({ error: "Offer not found" });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
       if (!landingId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "landing_not_found", undefined, {
@@ -2415,7 +2418,8 @@ export async function registerRoutes(
           advertiserId: offer?.advertiserId,
           checkStage: "landing",
         });
-        return res.status(404).json({ error: "Landing not found" });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
       if (!partnerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "partner_not_found", undefined, {
@@ -2424,7 +2428,8 @@ export async function registerRoutes(
           advertiserId: offer?.advertiserId,
           checkStage: "landing",
         });
-        return res.status(404).json({ error: "Partner not found" });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
 
       // Get landing for storeClickIdIn config
@@ -2598,7 +2603,7 @@ export async function registerRoutes(
       const referer = req.headers["referer"] || "";
       
       // GEO: from query param, headers, or IP geolocation
-      let geoCode = (geo as string) || 
+      let geoCode = (geo as string)?.toUpperCase() || 
                     (req.headers["cf-ipcountry"] as string) ||
                     (req.headers["x-country-code"] as string);
       
@@ -2642,10 +2647,8 @@ export async function registerRoutes(
 
       if (!rawOfferId || !rawPartnerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "missing_required_params");
-        return res.status(400).json({ 
-          error: "Missing required parameters", 
-          required: ["offer_id (or o)", "partner_id (or a)"] 
-        });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
 
       // Resolve shortId or UUID to actual UUIDs
@@ -2657,14 +2660,16 @@ export async function registerRoutes(
 
       if (!offerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "offer_not_found");
-        return res.status(404).json({ error: "Offer not found" });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
       if (!partnerId) {
         await storage.updateRawClickStatus(rawClickId, "rejected", "partner_not_found", undefined, {
           resolvedOfferId: offerId,
           advertiserId: offer?.advertiserId,
         });
-        return res.status(404).json({ error: "Partner not found" });
+        const lang = geoToLanguage(geoCode) || 'en';
+        return res.redirect(302, `/system/unavailable?lang=${lang}`);
       }
       
       // Resolve landing ID if provided - return 404 if specified but not found
@@ -2678,7 +2683,8 @@ export async function registerRoutes(
             resolvedPublisherId: partnerId,
             advertiserId: offer?.advertiserId,
           });
-          return res.status(404).json({ error: "Landing not found" });
+          const lang = geoToLanguage(geoCode) || 'en';
+          return res.redirect(302, `/system/unavailable?lang=${lang}`);
         }
         landingId = resolvedLandingId;
         landing = await storage.getOfferLanding(landingId);
