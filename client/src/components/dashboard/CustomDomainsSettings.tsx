@@ -184,24 +184,28 @@ export function CustomDomainsSettings() {
     },
   });
 
-  const submitRequestMutation = useMutation({
+  const checkSslMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/domains/${id}/submit-request`, {
+      const res = await fetch(`/api/domains/${id}/check-ssl`, {
         method: "POST",
         credentials: "include",
       });
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || "Submit failed");
+        throw new Error(error.message || "SSL check failed");
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
-      toast({ title: "Заявка отправлена", description: "Администратор рассмотрит вашу заявку в ближайшее время" });
+      if (data.sslCheck?.success) {
+        toast({ title: "SSL активен", description: "Домен готов к использованию" });
+      } else {
+        toast({ title: "SSL ещё настраивается", description: data.sslCheck?.error || "Попробуйте через несколько минут" });
+      }
     },
     onError: (error: Error) => {
-      toast({ title: "Ошибка отправки заявки", description: error.message, variant: "destructive" });
+      toast({ title: "Ошибка проверки SSL", description: error.message, variant: "destructive" });
     },
   });
 
@@ -270,46 +274,37 @@ export function CustomDomainsSettings() {
     }
   };
 
-  const getRequestStatusBadge = (status: string | null) => {
-    switch (status) {
-      case "active":
-        return (
-          <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">
-            <Check className="w-3 h-3 mr-1" />
-            Активен
-          </Badge>
-        );
-      case "admin_review":
-        return (
-          <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-            <Clock className="w-3 h-3 mr-1" />
-            На рассмотрении
-          </Badge>
-        );
-      case "provisioning":
-        return (
-          <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
-            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-            Настройка...
-          </Badge>
-        );
-      case "rejected":
-        return (
-          <Badge variant="destructive">
-            <X className="w-3 h-3 mr-1" />
-            Отклонён
-          </Badge>
-        );
-      case "pending":
-      case "ns_configured":
-      default:
-        return (
-          <Badge variant="outline">
-            <Clock className="w-3 h-3 mr-1" />
-            Ожидает настройки NS
-          </Badge>
-        );
+  const getDomainStatusBadge = (domain: CustomDomain) => {
+    if (domain.sslStatus === "ssl_active" || domain.sslStatus === "active") {
+      return (
+        <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">
+          <Check className="w-3 h-3 mr-1" />
+          SSL активен
+        </Badge>
+      );
     }
+    if (domain.isVerified) {
+      return (
+        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
+          <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+          SSL настраивается
+        </Badge>
+      );
+    }
+    if (domain.sslStatus === "ssl_failed" || domain.sslStatus === "failed") {
+      return (
+        <Badge variant="destructive">
+          <X className="w-3 h-3 mr-1" />
+          Ошибка SSL
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+        <Clock className="w-3 h-3 mr-1" />
+        Настройте DNS
+      </Badge>
+    );
   };
 
   if (isLoading) {
@@ -355,28 +350,21 @@ export function CustomDomainsSettings() {
               </div>
               <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
                 <p className="text-sm font-medium text-blue-400">
-                  Как подключить домен (NS-делегирование)
+                  Быстрая настройка (self-service)
                 </p>
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground">
-                    <strong>Шаг 1:</strong> Добавьте домен и перейдите к настройке
+                    <strong>Шаг 1:</strong> Добавьте домен
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    <strong>Шаг 2:</strong> Измените NS-записи у регистратора на:
-                  </p>
-                  <div className="space-y-1">
-                    <code className="block bg-muted px-2 py-1 rounded text-xs font-mono">angela.ns.cloudflare.com</code>
-                    <code className="block bg-muted px-2 py-1 rounded text-xs font-mono">drake.ns.cloudflare.com</code>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    <strong>Шаг 3:</strong> Отправьте заявку на проверку администратору
+                    <strong>Шаг 2:</strong> Настройте CNAME запись у регистратора (target будет показан)
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    <strong>Шаг 4:</strong> После одобрения домен будет активирован
+                    <strong>Шаг 3:</strong> Нажмите "Проверить DNS" — SSL выдаётся автоматически
                   </p>
                 </div>
-                <p className="text-xs text-amber-500 mt-2">
-                  ⏱ Изменение NS-записей может занять до 24-48 часов
+                <p className="text-xs text-muted-foreground mt-2">
+                  Обычно DNS активируется за 1-5 минут
                 </p>
               </div>
             </div>
@@ -458,7 +446,7 @@ export function CustomDomainsSettings() {
                 </div>
               </CardHeader>
               <CardContent>
-                {domain.requestStatus && getRequestStatusBadge(domain.requestStatus)}
+                {getDomainStatusBadge(domain)}
                 
                 {domain.requestStatus === "rejected" && domain.rejectionReason && (
                   <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
@@ -466,54 +454,46 @@ export function CustomDomainsSettings() {
                   </div>
                 )}
 
-                {(!domain.isVerified && domain.requestStatus !== "active") && (
+                {!domain.isVerified && (
                   <div className="space-y-3 mt-4">
                     <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm text-muted-foreground mb-2">NS-записи для настройки:</p>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-muted px-2 py-1 rounded font-mono text-xs">angela.ns.cloudflare.com</code>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard("angela.ns.cloudflare.com")}>
+                      <p className="text-sm text-muted-foreground mb-2">Настройте CNAME запись у регистратора:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs text-muted-foreground">{domain.domain}</code>
+                        <span className="text-muted-foreground">→</span>
+                        <code className="flex-1 bg-muted px-2 py-1 rounded font-mono text-xs">
+                          {domain.dnsTarget || "(загрузка...)"}
+                        </code>
+                        {domain.dnsTarget && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7" 
+                            onClick={() => copyToClipboard(domain.dnsTarget!)}
+                          >
                             <Copy className="w-3 h-3" />
                           </Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-muted px-2 py-1 rounded font-mono text-xs">drake.ns.cloudflare.com</code>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard("drake.ns.cloudflare.com")}>
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
+                        )}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        После настройки DNS подождите 1-5 минут и нажмите "Проверить DNS"
+                      </p>
                     </div>
                     
                     <div className="flex gap-2">
-                      {domain.requestStatus !== "admin_review" && domain.requestStatus !== "provisioning" && (
-                        <Button
-                          onClick={() => submitRequestMutation.mutate(domain.id)}
-                          disabled={submitRequestMutation.isPending}
-                          data-testid={`button-submit-request-${domain.id}`}
-                        >
-                          <ExternalLink className={`w-4 h-4 mr-2 ${submitRequestMutation.isPending ? 'animate-spin' : ''}`} />
-                          Отправить заявку
-                        </Button>
-                      )}
+                      <Button
+                        onClick={() => verifyMutation.mutate(domain.id)}
+                        disabled={verifyMutation.isPending}
+                        data-testid={`button-verify-dns-${domain.id}`}
+                      >
+                        <RefreshCw className={`w-4 h-4 mr-2 ${verifyMutation.isPending ? 'animate-spin' : ''}`} />
+                        Проверить DNS
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => setIsHelpOpen(true)}>
                         <HelpCircle className="w-4 h-4 mr-1" />
                         Инструкция
                       </Button>
                     </div>
-                    
-                    {domain.requestStatus === "admin_review" && (
-                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-sm text-blue-400">
-                        Ваша заявка на рассмотрении. Ожидайте ответа администратора.
-                      </div>
-                    )}
-                    
-                    {domain.requestStatus === "provisioning" && (
-                      <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded text-sm text-yellow-400">
-                        Домен настраивается. Это может занять несколько минут.
-                      </div>
-                    )}
                     
                     {domain.lastError && (
                       <div className="p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
@@ -527,10 +507,20 @@ export function CustomDomainsSettings() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <Link2 className="w-4 h-4 text-muted-foreground" />
+                        {domain.useForTracking ? (
+                          <Link2 className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Shield className="w-4 h-4 text-blue-500" />
+                        )}
                         <div>
-                          <Label className="text-sm font-medium">Использовать для трекинг-ссылок</Label>
-                          <p className="text-xs text-muted-foreground">Ссылки офферов будут генерироваться с этим доменом</p>
+                          <Label className="text-sm font-medium">
+                            {domain.useForTracking ? "Для трекинг-ссылок" : "Только для входа партнёров"}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {domain.useForTracking 
+                              ? "Ссылки офферов будут генерироваться с этим доменом" 
+                              : "Партнёры входят через этот домен (white-label)"}
+                          </p>
                         </div>
                       </div>
                       <Switch
@@ -542,15 +532,23 @@ export function CustomDomainsSettings() {
                     
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <Label className="text-xs text-muted-foreground">Пример трекинг-ссылки</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          {domain.useForTracking ? "Пример трекинг-ссылки" : "Ссылка для входа партнёров"}
+                        </Label>
                         <div className="flex items-center gap-2 mt-1">
                           <code className="flex-1 text-sm bg-muted px-2 py-1 rounded truncate">
-                            https://{domain.domain}/click/offer-id/landing-id
+                            {domain.useForTracking 
+                              ? `https://${domain.domain}/click/offer-id/landing-id`
+                              : `https://${domain.domain}/login`}
                           </code>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => copyToClipboard(`https://${domain.domain}/click/offer-id/landing-id`)}
+                            onClick={() => copyToClipboard(
+                              domain.useForTracking 
+                                ? `https://${domain.domain}/click/offer-id/landing-id`
+                                : `https://${domain.domain}/login`
+                            )}
                           >
                             <Copy className="w-4 h-4" />
                           </Button>
@@ -567,16 +565,28 @@ export function CustomDomainsSettings() {
                     </div>
                     
                     {(domain.sslStatus !== "ssl_active" && domain.sslStatus !== "active") && (
-                      <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
-                        <p className="text-sm font-medium text-blue-400">SSL сертификат:</p>
-                        <p className="text-xs text-muted-foreground">
-                          SSL сертификат выдаётся автоматически после активации домена администратором.
-                        </p>
+                      <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-yellow-400">SSL сертификат настраивается</p>
+                          <p className="text-xs text-muted-foreground">
+                            Обычно занимает 1-5 минут. Нажмите кнопку для проверки статуса.
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => checkSslMutation.mutate(domain.id)}
+                          disabled={checkSslMutation.isPending}
+                          data-testid={`button-check-ssl-${domain.id}`}
+                        >
+                          <RefreshCw className={`w-4 h-4 mr-2 ${checkSslMutation.isPending ? 'animate-spin' : ''}`} />
+                          Проверить SSL
+                        </Button>
                       </div>
                     )}
                     
                     <div className="flex gap-2">
-                      {domain.cloudflareHostnameId && (
+                      {domain.cloudflareHostnameId && (domain.sslStatus === "ssl_active" || domain.sslStatus === "active") && (
                         <Button
                           variant="outline"
                           onClick={() => syncMutation.mutate(domain.id)}
@@ -625,7 +635,7 @@ export function CustomDomainsSettings() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Как подключить кастомный домен</DialogTitle>
-            <DialogDescription>Инструкция по настройке домена для вашей партнёрской программы</DialogDescription>
+            <DialogDescription>Self-service настройка домена за 3 шага</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <div className="space-y-3">
@@ -636,30 +646,32 @@ export function CustomDomainsSettings() {
               <div className="flex gap-3">
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
                 <div>
-                  <p>Измените NS-записи у регистратора на Cloudflare:</p>
-                  <div className="mt-2 space-y-1">
-                    <code className="block bg-muted px-2 py-1 rounded text-xs">angela.ns.cloudflare.com</code>
-                    <code className="block bg-muted px-2 py-1 rounded text-xs">drake.ns.cloudflare.com</code>
+                  <p>Настройте CNAME запись у вашего регистратора:</p>
+                  <div className="mt-2 p-2 bg-muted rounded">
+                    <code className="text-xs">ваш-домен.com → CNAME target (показан в карточке домена)</code>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Изменения могут занять до 24-48 часов</p>
+                  <p className="text-xs text-muted-foreground mt-1">Обычно активируется за 1-5 минут</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</div>
-                <p>Отправьте заявку на проверку администратору</p>
+                <p>Нажмите "Проверить DNS" — система автоматически выдаст SSL-сертификат</p>
               </div>
-              <div className="flex gap-3">
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</div>
-                <p>После одобрения домен активируется с SSL-сертификатом</p>
+            </div>
+            
+            <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <p className="font-medium text-green-400 mb-2">Назначение доменов</p>
+              <div className="space-y-2 text-muted-foreground text-xs">
+                <p><strong className="text-green-400">Для трекинг-ссылок</strong> — домен используется в ссылках офферов (пример: trk.brand.com)</p>
+                <p><strong className="text-blue-400">Только для входа</strong> — партнёры входят через этот домен с вашим брендингом (пример: partners.brand.com)</p>
               </div>
             </div>
             
             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <p className="font-medium text-blue-400 mb-2">Два домена для разных целей</p>
+              <p className="font-medium text-blue-400 mb-2">Основной домен</p>
               <p className="text-muted-foreground text-xs">
-                Вы можете добавить несколько доменов. Например, один для входа партнёров (partners.brand.com), 
-                другой для трекинг-ссылок (trk.brand.com). Используйте переключатель "Использовать для трекинг-ссылок" 
-                чтобы указать какой домен использовать для генерации ссылок офферов.
+                Если несколько доменов для трекинга — "Основной" получает приоритет при генерации ссылок.
+                Также используется как домен входа по умолчанию для white-label.
               </p>
             </div>
           </div>
