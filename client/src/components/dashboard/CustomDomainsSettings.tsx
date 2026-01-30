@@ -467,48 +467,41 @@ export function CustomDomainsSettings() {
                 )}
 
                 {(!domain.isVerified && domain.requestStatus !== "active") && (
-                  <div className="space-y-4 mt-4">
-                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
-                      <h4 className="font-medium text-blue-400">Шаг 1: Настройте NS записи у регистратора</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Измените NS записи вашего домена на Cloudflare nameservers:
-                      </p>
-                      <div className="space-y-2">
+                  <div className="space-y-3 mt-4">
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">NS-записи для настройки:</p>
+                      <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-muted px-3 py-2 rounded font-mono text-sm">angela.ns.cloudflare.com</code>
-                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard("angela.ns.cloudflare.com")}>
-                            <Copy className="w-4 h-4" />
+                          <code className="flex-1 bg-muted px-2 py-1 rounded font-mono text-xs">angela.ns.cloudflare.com</code>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard("angela.ns.cloudflare.com")}>
+                            <Copy className="w-3 h-3" />
                           </Button>
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-muted px-3 py-2 rounded font-mono text-sm">drake.ns.cloudflare.com</code>
-                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard("drake.ns.cloudflare.com")}>
-                            <Copy className="w-4 h-4" />
+                          <code className="flex-1 bg-muted px-2 py-1 rounded font-mono text-xs">drake.ns.cloudflare.com</code>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard("drake.ns.cloudflare.com")}>
+                            <Copy className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Изменения NS могут занять до 24-48 часов для распространения.
-                      </p>
                     </div>
                     
-                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg space-y-3">
-                      <h4 className="font-medium text-yellow-400">Шаг 2: Отправьте заявку на проверку</h4>
-                      <p className="text-sm text-muted-foreground">
-                        После настройки NS записей отправьте заявку. Администратор проверит и активирует домен.
-                      </p>
-                    </div>
-                    
-                    {domain.requestStatus !== "admin_review" && domain.requestStatus !== "provisioning" && (
-                      <Button
-                        onClick={() => submitRequestMutation.mutate(domain.id)}
-                        disabled={submitRequestMutation.isPending}
-                        data-testid={`button-submit-request-${domain.id}`}
-                      >
-                        <ExternalLink className={`w-4 h-4 mr-2 ${submitRequestMutation.isPending ? 'animate-spin' : ''}`} />
-                        Отправить заявку на проверку
+                    <div className="flex gap-2">
+                      {domain.requestStatus !== "admin_review" && domain.requestStatus !== "provisioning" && (
+                        <Button
+                          onClick={() => submitRequestMutation.mutate(domain.id)}
+                          disabled={submitRequestMutation.isPending}
+                          data-testid={`button-submit-request-${domain.id}`}
+                        >
+                          <ExternalLink className={`w-4 h-4 mr-2 ${submitRequestMutation.isPending ? 'animate-spin' : ''}`} />
+                          Отправить заявку
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => setIsHelpOpen(true)}>
+                        <HelpCircle className="w-4 h-4 mr-1" />
+                        Инструкция
                       </Button>
-                    )}
+                    </div>
                     
                     {domain.requestStatus === "admin_review" && (
                       <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-sm text-blue-400">
