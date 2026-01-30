@@ -23,7 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw, Copy, Shield, Globe, Star, Check, AlertTriangle, Clock, X, ExternalLink } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Copy, Shield, Globe, Star, Check, AlertTriangle, Clock, X, ExternalLink, HelpCircle, Link2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -37,6 +38,7 @@ interface CustomDomain {
   sslExpiresAt: string | null;
   isPrimary: boolean;
   isActive: boolean;
+  useForTracking: boolean;
   lastError: string | null;
   createdAt: string;
   dnsTarget: string | null;
@@ -55,6 +57,7 @@ export function CustomDomainsSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     domain: "",
@@ -199,6 +202,23 @@ export function CustomDomainsSettings() {
     },
     onError: (error: Error) => {
       toast({ title: "Ошибка отправки заявки", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const toggleTrackingMutation = useMutation({
+    mutationFn: async ({ id, useForTracking }: { id: string; useForTracking: boolean }) => {
+      const res = await fetch(`/api/domains/${id}/use-for-tracking`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ useForTracking }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/domains"] });
+      toast({ title: "Настройки обновлены" });
     },
   });
 
@@ -512,6 +532,21 @@ export function CustomDomainsSettings() {
                 
                 {domain.isVerified && (
                   <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Link2 className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <Label className="text-sm font-medium">Использовать для трекинг-ссылок</Label>
+                          <p className="text-xs text-muted-foreground">Ссылки офферов будут генерироваться с этим доменом</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={domain.useForTracking ?? true}
+                        onCheckedChange={(checked) => toggleTrackingMutation.mutate({ id: domain.id, useForTracking: checked })}
+                        data-testid={`switch-tracking-${domain.id}`}
+                      />
+                    </div>
+                    
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <Label className="text-xs text-muted-foreground">Пример трекинг-ссылки</Label>
@@ -593,29 +628,58 @@ export function CustomDomainsSettings() {
         </div>
       )}
 
-      <Card className="bg-muted/50">
-        <CardHeader>
-          <CardTitle className="text-sm">Как это работает</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <div className="flex gap-3">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</div>
-            <p>Добавьте домен в системе</p>
+      <Dialog open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Как подключить кастомный домен</DialogTitle>
+            <DialogDescription>Инструкция по настройке домена для вашей партнёрской программы</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</div>
+                <p>Добавьте домен в системе нажав "Добавить домен"</p>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
+                <div>
+                  <p>Измените NS-записи у регистратора на Cloudflare:</p>
+                  <div className="mt-2 space-y-1">
+                    <code className="block bg-muted px-2 py-1 rounded text-xs">angela.ns.cloudflare.com</code>
+                    <code className="block bg-muted px-2 py-1 rounded text-xs">drake.ns.cloudflare.com</code>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Изменения могут занять до 24-48 часов</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</div>
+                <p>Отправьте заявку на проверку администратору</p>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</div>
+                <p>После одобрения домен активируется с SSL-сертификатом</p>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <p className="font-medium text-blue-400 mb-2">Два домена для разных целей</p>
+              <p className="text-muted-foreground text-xs">
+                Вы можете добавить несколько доменов. Например, один для входа партнёров (partners.brand.com), 
+                другой для трекинг-ссылок (trk.brand.com). Используйте переключатель "Использовать для трекинг-ссылок" 
+                чтобы указать какой домен использовать для генерации ссылок офферов.
+              </p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
-            <p>Измените NS-записи на Cloudflare (angela/drake.ns.cloudflare.com)</p>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</div>
-            <p>Отправьте заявку на проверку администратору</p>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</div>
-            <p>После одобрения домен активируется с SSL-сертификатом</p>
-          </div>
-        </CardContent>
-      </Card>
+          <DialogFooter>
+            <Button onClick={() => setIsHelpOpen(false)}>Понятно</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Button variant="outline" onClick={() => setIsHelpOpen(true)} className="w-full" data-testid="button-help">
+        <HelpCircle className="w-4 h-4 mr-2" />
+        Как подключить домен
+      </Button>
     </div>
   );
 }

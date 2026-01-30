@@ -1528,6 +1528,7 @@ export const customDomains = pgTable("custom_domains", {
   // Usage
   isPrimary: boolean("is_primary").default(false),
   isActive: boolean("is_active").default(true),
+  useForTracking: boolean("use_for_tracking").default(true), // If true, domain is used for generating tracking links
   
   // Error tracking
   lastError: text("last_error"),

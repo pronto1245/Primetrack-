@@ -4837,7 +4837,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveTrackingDomain(advertiserId: string): Promise<string | null> {
-    const domains = await db.select().from(customDomains)
+    // First try to find a domain explicitly marked for tracking
+    const trackingDomains = await db.select().from(customDomains)
+      .where(and(
+        eq(customDomains.advertiserId, advertiserId),
+        eq(customDomains.isVerified, true),
+        eq(customDomains.isActive, true),
+        eq(customDomains.sslStatus, "ssl_active"),
+        eq(customDomains.useForTracking, true)
+      ))
+      .orderBy(desc(customDomains.isPrimary), desc(customDomains.createdAt))
+      .limit(1);
+    
+    if (trackingDomains[0]) {
+      return trackingDomains[0].domain;
+    }
+    
+    // Fallback: any active domain (for backward compatibility)
+    const fallbackDomains = await db.select().from(customDomains)
       .where(and(
         eq(customDomains.advertiserId, advertiserId),
         eq(customDomains.isVerified, true),
@@ -4847,7 +4864,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(customDomains.isPrimary), desc(customDomains.createdAt))
       .limit(1);
     
-    return domains[0]?.domain || null;
+    return fallbackDomains[0]?.domain || null;
+  }
+  
+  async updateDomainUseForTracking(domainId: string, useForTracking: boolean): Promise<CustomDomain | null> {
+    const result = await db.update(customDomains)
+      .set({ useForTracking, updatedAt: new Date() })
+      .where(eq(customDomains.id, domainId))
+      .returning();
+    return result[0] || null;
   }
 
   // Domain Request Workflow (Admin)

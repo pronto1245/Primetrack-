@@ -8628,6 +8628,33 @@ export async function registerRoutes(
     }
   });
 
+  // Toggle useForTracking for a domain
+  app.patch("/api/domains/:id/use-for-tracking", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const { id } = req.params;
+      const { useForTracking } = req.body;
+      
+      if (typeof useForTracking !== "boolean") {
+        return res.status(400).json({ message: "useForTracking must be a boolean" });
+      }
+      
+      const existing = await storage.getCustomDomain(id);
+      if (!existing || existing.advertiserId !== advertiserId) {
+        return res.status(404).json({ message: "Domain not found" });
+      }
+      
+      const updated = await storage.updateDomainUseForTracking(id, useForTracking);
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update domain useForTracking:", error);
+      res.status(500).json({ message: "Failed to update domain" });
+    }
+  });
+
   // Get tracking links with custom domain
   app.get("/api/domains/tracking-links/:offerId/:landingId", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
     try {
