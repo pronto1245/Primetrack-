@@ -4842,10 +4842,10 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveTrackingDomain(advertiserId: string): Promise<string | null> {
     // First try to find a domain explicitly marked for tracking
-    // First priority: domains with useForTracking enabled and SSL active
-    const trackingDomainsWithSsl = await db.select().from(customDomains)
+    const trackingDomains = await db.select().from(customDomains)
       .where(and(
         eq(customDomains.advertiserId, advertiserId),
+        eq(customDomains.isVerified, true),
         eq(customDomains.isActive, true),
         eq(customDomains.sslStatus, "ssl_active"),
         eq(customDomains.useForTracking, true)
@@ -4853,25 +4853,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(customDomains.isPrimary), desc(customDomains.createdAt))
       .limit(1);
     
-    if (trackingDomainsWithSsl[0]) {
-      return trackingDomainsWithSsl[0].domain;
+    if (trackingDomains[0]) {
+      return trackingDomains[0].domain;
     }
     
-    // Second priority: domains with useForTracking enabled (even without SSL - will use HTTP)
-    const trackingDomainsNoSsl = await db.select().from(customDomains)
-      .where(and(
-        eq(customDomains.advertiserId, advertiserId),
-        eq(customDomains.isActive, true),
-        eq(customDomains.useForTracking, true)
-      ))
-      .orderBy(desc(customDomains.isPrimary), desc(customDomains.createdAt))
-      .limit(1);
-    
-    if (trackingDomainsNoSsl[0]) {
-      return trackingDomainsNoSsl[0].domain;
-    }
-    
-    // Fallback: any active domain with SSL (for backward compatibility)
+    // Fallback: any active domain (for backward compatibility)
     const fallbackDomains = await db.select().from(customDomains)
       .where(and(
         eq(customDomains.advertiserId, advertiserId),
