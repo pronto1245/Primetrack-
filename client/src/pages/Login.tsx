@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useBranding } from "@/contexts/BrandingContext";
 
+interface PlatformSettings {
+  platformName?: string;
+  platformLogoUrl?: string;
+}
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const { branding } = useBranding();
@@ -22,6 +27,15 @@ export default function Login() {
   const [resetSuccess, setResetSuccess] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
   const [totpCode, setTotpCode] = useState("");
+
+  const { data: platformSettings } = useQuery<PlatformSettings>({
+    queryKey: ["/api/public/platform-settings"],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const displayLogo = branding.isWhiteLabel ? branding.logoUrl : platformSettings?.platformLogoUrl;
+  const displayName = branding.isWhiteLabel ? branding.brandName : (platformSettings?.platformName || "Вход в систему");
+  const displayDescription = branding.isWhiteLabel ? "Вход в партнёрский кабинет" : "Введите данные для входа";
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -112,19 +126,19 @@ export default function Login() {
 
       <Card className="w-full max-w-md bg-card border-border relative z-10">
         <CardHeader className="text-center">
-          {branding.logoUrl && (
+          {displayLogo && (
             <img 
-              src={branding.logoUrl} 
-              alt={branding.brandName} 
+              src={displayLogo} 
+              alt={displayName} 
               className="h-16 w-auto mx-auto mb-4 object-contain"
               data-testid="img-brand-logo"
             />
           )}
           <CardTitle className="text-2xl font-bold text-foreground" data-testid="text-brand-name">
-            {branding.isWhiteLabel ? branding.brandName : "Вход в систему"}
+            {displayName}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {branding.isWhiteLabel ? "Вход в партнёрский кабинет" : "Введите данные для входа"}
+            {displayDescription}
           </CardDescription>
         </CardHeader>
 
