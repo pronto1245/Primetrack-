@@ -557,7 +557,6 @@ function WhiteLabelTab() {
     logoUrl: "",
     faviconUrl: "",
     hidePlatformBranding: false,
-    customCss: "",
     emailLogoUrl: "",
     emailFooterText: "",
   });
@@ -573,7 +572,6 @@ function WhiteLabelTab() {
         logoUrl: settings.logoUrl || "",
         faviconUrl: settings.faviconUrl || "",
         hidePlatformBranding: settings.hidePlatformBranding || false,
-        customCss: settings.customCss || "",
         emailLogoUrl: settings.emailLogoUrl || "",
         emailFooterText: settings.emailFooterText || "",
       });
@@ -767,22 +765,6 @@ function WhiteLabelTab() {
         </div>
 
         <Separator className="my-4" />
-        <h4 className="font-medium">Расширенные настройки</h4>
-
-        <div className="space-y-2">
-          <Label htmlFor="customCss">Кастомный CSS</Label>
-          <textarea
-            id="customCss"
-            data-testid="input-custom-css"
-            value={formData.customCss}
-            onChange={(e) => setFormData({ ...formData, customCss: e.target.value })}
-            placeholder=".my-class { color: red; }"
-            className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-          />
-          <p className="text-xs text-muted-foreground">
-            CSS-стили применятся к партнёрскому кабинету
-          </p>
-        </div>
 
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="space-y-0.5">
