@@ -557,8 +557,6 @@ function WhiteLabelTab() {
     logoUrl: "",
     faviconUrl: "",
     hidePlatformBranding: false,
-    emailLogoUrl: "",
-    emailFooterText: "",
   });
 
   const { data: settings, isLoading } = useQuery<any>({
@@ -572,8 +570,6 @@ function WhiteLabelTab() {
         logoUrl: settings.logoUrl || "",
         faviconUrl: settings.faviconUrl || "",
         hidePlatformBranding: settings.hidePlatformBranding || false,
-        emailLogoUrl: settings.emailLogoUrl || "",
-        emailFooterText: settings.emailFooterText || "",
       });
     }
   }, [settings]);
@@ -736,32 +732,6 @@ function WhiteLabelTab() {
           <p className="text-xs text-muted-foreground">
             URL иконки для вкладки браузера (16x16 или 32x32 px)
           </p>
-        </div>
-
-        <Separator className="my-4" />
-        <h4 className="font-medium">Email брендинг</h4>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="emailLogoUrl">Логотип для Email</Label>
-            <Input
-              id="emailLogoUrl"
-              data-testid="input-email-logo-url"
-              value={formData.emailLogoUrl}
-              onChange={(e) => setFormData({ ...formData, emailLogoUrl: e.target.value })}
-              placeholder="https://example.com/email-logo.png"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="emailFooterText">Текст футера Email</Label>
-            <Input
-              id="emailFooterText"
-              data-testid="input-email-footer"
-              value={formData.emailFooterText}
-              onChange={(e) => setFormData({ ...formData, emailFooterText: e.target.value })}
-              placeholder="© 2025 Ваша компания"
-            />
-          </div>
         </div>
 
         <Separator className="my-4" />
