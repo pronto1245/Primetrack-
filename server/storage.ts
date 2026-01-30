@@ -1190,9 +1190,13 @@ export class DatabaseStorage implements IStorage {
       encryptedData.telegramBotToken = encrypt(data.telegramBotToken);
     }
     
-    const [result] = await db.update(advertiserSettings)
-      .set(encryptedData)
-      .where(eq(advertiserSettings.advertiserId, advertiserId))
+    // Use upsert to create record if it doesn't exist
+    const [result] = await db.insert(advertiserSettings)
+      .values({ advertiserId, ...encryptedData })
+      .onConflictDoUpdate({
+        target: advertiserSettings.advertiserId,
+        set: encryptedData
+      })
       .returning();
     return result;
   }
