@@ -48,29 +48,33 @@ async function getCloudflareSettings(): Promise<CloudflareSettings | null> {
   
   const { cloudflareZoneId, cloudflareApiToken, cloudflareCnameTarget, cloudflareFallbackOrigin } = settings;
   
-  if (!cloudflareZoneId || !cloudflareApiToken || !cloudflareFallbackOrigin) {
+  // Try environment variable first, then database
+  const zoneId = process.env.CLOUDFLARE_ZONE_ID || cloudflareZoneId;
+  const apiTokenRaw = process.env.CLOUDFLARE_API_TOKEN || cloudflareApiToken;
+  const fallbackOrigin = process.env.CLOUDFLARE_FALLBACK_ORIGIN || cloudflareFallbackOrigin;
+  const cnameTarget = process.env.CLOUDFLARE_CNAME_TARGET || cloudflareCnameTarget;
+  
+  if (!zoneId || !apiTokenRaw || !fallbackOrigin) {
     return null;
   }
   
   // Decrypt the API token if it's encrypted (contains ":" separator)
-  let decryptedToken = cloudflareApiToken;
-  if (hasSecret(cloudflareApiToken)) {
-    const decrypted = decrypt(cloudflareApiToken);
+  let decryptedToken = apiTokenRaw;
+  if (hasSecret(apiTokenRaw)) {
+    const decrypted = decrypt(apiTokenRaw);
     if (decrypted && decrypted.length > 0) {
       decryptedToken = decrypted;
     } else {
       console.error("[Cloudflare] Failed to decrypt API token - decryption returned empty");
       return null;
     }
-  } else {
-    console.log("[Cloudflare] Token not encrypted (legacy format), using as-is");
   }
   
   return {
-    zoneId: cloudflareZoneId,
+    zoneId,
     apiToken: decryptedToken,
-    cnameTarget: cloudflareCnameTarget || `customers.${cloudflareFallbackOrigin.replace('tracking.', '')}`,
-    fallbackOrigin: cloudflareFallbackOrigin,
+    cnameTarget: cnameTarget || `customers.${fallbackOrigin.replace('tracking.', '')}`,
+    fallbackOrigin,
   };
 }
 
