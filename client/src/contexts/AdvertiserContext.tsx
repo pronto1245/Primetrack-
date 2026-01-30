@@ -13,7 +13,6 @@ interface AdvertiserInfo {
   companyName: string | null;
   // White-label
   brandName: string | null;
-  primaryColor: string | null;
   customDomain: string | null;
   hidePlatformBranding: boolean;
 }

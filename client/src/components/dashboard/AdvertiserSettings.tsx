@@ -556,9 +556,6 @@ function WhiteLabelTab() {
     brandName: "",
     logoUrl: "",
     faviconUrl: "",
-    primaryColor: "#3b82f6",
-    secondaryColor: "#64748b",
-    accentColor: "#f59e0b",
     hidePlatformBranding: false,
     customCss: "",
     emailLogoUrl: "",
@@ -575,9 +572,6 @@ function WhiteLabelTab() {
         brandName: settings.brandName || "",
         logoUrl: settings.logoUrl || "",
         faviconUrl: settings.faviconUrl || "",
-        primaryColor: settings.primaryColor || "#3b82f6",
-        secondaryColor: settings.secondaryColor || "#64748b",
-        accentColor: settings.accentColor || "#f59e0b",
         hidePlatformBranding: settings.hidePlatformBranding || false,
         customCss: settings.customCss || "",
         emailLogoUrl: settings.emailLogoUrl || "",
@@ -629,7 +623,7 @@ function WhiteLabelTab() {
           <CardDescription>Настройте брендинг для ваших партнёров</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
           <div className="space-y-2">
             <Label htmlFor="brandName">Название бренда</Label>
             <Input
@@ -639,63 +633,9 @@ function WhiteLabelTab() {
               onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
               placeholder="Ваш бренд"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="primaryColor">Основной цвет</Label>
-            <div className="flex gap-2">
-              <Input
-                id="primaryColor"
-                type="color"
-                data-testid="input-primary-color"
-                value={formData.primaryColor}
-                onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
-                className="w-16 h-10 p-1"
-              />
-              <Input
-                value={formData.primaryColor}
-                onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
-                placeholder="#3b82f6"
-                className="flex-1"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="secondaryColor">Дополнительный цвет</Label>
-            <div className="flex gap-2">
-              <Input
-                id="secondaryColor"
-                type="color"
-                data-testid="input-secondary-color"
-                value={formData.secondaryColor}
-                onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
-                className="w-16 h-10 p-1"
-              />
-              <Input
-                value={formData.secondaryColor}
-                onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
-                placeholder="#64748b"
-                className="flex-1"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="accentColor">Акцентный цвет</Label>
-            <div className="flex gap-2">
-              <Input
-                id="accentColor"
-                type="color"
-                data-testid="input-accent-color"
-                value={formData.accentColor}
-                onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
-                className="w-16 h-10 p-1"
-              />
-              <Input
-                value={formData.accentColor}
-                onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
-                placeholder="#f59e0b"
-                className="flex-1"
-              />
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Название, которое увидят ваши партнёры вместо названия платформы
+            </p>
           </div>
         </div>
 
