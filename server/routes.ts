@@ -784,6 +784,47 @@ export async function registerRoutes(
     }
   });
 
+  // Public branding by domain (for white-label login page)
+  app.get("/api/public/branding", async (req: Request, res: Response) => {
+    try {
+      const hostname = (req.query.domain as string) || req.hostname;
+      
+      // Check if this is a custom domain
+      const customDomain = await storage.getCustomDomainByDomain(hostname);
+      
+      if (!customDomain || !customDomain.isVerified || !customDomain.isActive) {
+        // Return default platform branding
+        const platformSettings = await storage.getPlatformSettings();
+        return res.json({
+          isWhiteLabel: false,
+          brandName: platformSettings?.platformName || "Primetrack",
+          logoUrl: platformSettings?.platformLogoUrl || null,
+          hidePlatformBranding: false,
+        });
+      }
+      
+      // Get advertiser settings for branding
+      const advSettings = await storage.getAdvertiserSettings(customDomain.advertiserId);
+      const advertiser = await storage.getUser(customDomain.advertiserId);
+      
+      res.json({
+        isWhiteLabel: true,
+        advertiserId: customDomain.advertiserId,
+        brandName: advSettings?.brandName || advertiser?.companyName || advertiser?.username || "Partner",
+        logoUrl: advSettings?.logoUrl || advertiser?.logoUrl || null,
+        hidePlatformBranding: advSettings?.hidePlatformBranding || false,
+      });
+    } catch (error) {
+      console.error("Failed to get branding:", error);
+      res.json({
+        isWhiteLabel: false,
+        brandName: "Primetrack",
+        logoUrl: null,
+        hidePlatformBranding: false,
+      });
+    }
+  });
+
   // Public roadmap (for landing page)
   app.get("/api/public/roadmap", async (req: Request, res: Response) => {
     try {

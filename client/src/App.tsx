@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { StaffProvider } from "@/contexts/StaffContext";
+import { BrandingProvider } from "@/contexts/BrandingContext";
 import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import SystemUnavailable from "@/pages/SystemUnavailable";
@@ -78,12 +79,14 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <StaffProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </StaffProvider>
+        <BrandingProvider>
+          <StaffProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </StaffProvider>
+        </BrandingProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

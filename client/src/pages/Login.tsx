@@ -10,9 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Loader2, User, Lock, Mail, ArrowLeft, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useBranding } from "@/contexts/BrandingContext";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { branding } = useBranding();
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -110,9 +112,19 @@ export default function Login() {
 
       <Card className="w-full max-w-md bg-card border-border relative z-10">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-foreground">Вход в систему</CardTitle>
+          {branding.logoUrl && (
+            <img 
+              src={branding.logoUrl} 
+              alt={branding.brandName} 
+              className="h-16 w-auto mx-auto mb-4 object-contain"
+              data-testid="img-brand-logo"
+            />
+          )}
+          <CardTitle className="text-2xl font-bold text-foreground" data-testid="text-brand-name">
+            {branding.isWhiteLabel ? branding.brandName : "Вход в систему"}
+          </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Введите данные для входа
+            {branding.isWhiteLabel ? "Вход в партнёрский кабинет" : "Введите данные для входа"}
           </CardDescription>
         </CardHeader>
 

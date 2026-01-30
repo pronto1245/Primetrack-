@@ -117,11 +117,16 @@ function MobileHeader({ role, mobileMenuOpen, setMobileMenuOpen, t }: {
   setMobileMenuOpen: (open: boolean) => void,
   t: any 
 }) {
+  const { selectedAdvertiser } = useAdvertiserContext();
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
   
   const { data: platformSettings } = useQuery<any>({
     queryKey: ["/api/public/platform-settings"],
   });
+  
+  // White-label branding for publishers
+  const showWhiteLabel = role === "publisher" && selectedAdvertiser?.hidePlatformBranding;
+  const displayName = selectedAdvertiser?.brandName || selectedAdvertiser?.companyName || "PARTNER";
   
   return (
     <header className="md:hidden h-14 bg-card border-b border-border flex items-center justify-between px-4 flex-shrink-0">
@@ -136,9 +141,13 @@ function MobileHeader({ role, mobileMenuOpen, setMobileMenuOpen, t }: {
           <Menu className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2">
-          <div className={`w-3 h-3 rounded-sm ${roleColor}`} />
+          {showWhiteLabel && selectedAdvertiser?.logoUrl ? (
+            <img src={selectedAdvertiser.logoUrl} alt={displayName} className="h-6 w-6 object-contain" />
+          ) : (
+            <div className={`w-3 h-3 rounded-sm ${roleColor}`} />
+          )}
           <span className="font-mono font-bold text-xs tracking-wider uppercase">
-            {platformSettings?.platformName || role}
+            {showWhiteLabel ? displayName : (platformSettings?.platformName || role)}
           </span>
         </div>
       </div>
@@ -234,11 +243,30 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
   
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
 
+  // White-label branding for publishers
+  const showWhiteLabel = role === "publisher" && selectedAdvertiser?.hidePlatformBranding;
+  const displayName = selectedAdvertiser?.brandName || selectedAdvertiser?.companyName || "PARTNER";
+
   return (
     <div className="flex flex-col h-full">
       <div className="h-14 flex items-center px-4 border-b border-border">
-        <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
-        <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
+        {showWhiteLabel ? (
+          <>
+            {selectedAdvertiser?.logoUrl ? (
+              <img src={selectedAdvertiser.logoUrl} alt={displayName} className="h-8 w-8 object-contain mr-3" />
+            ) : (
+              <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
+            )}
+            <span className="font-mono font-bold text-sm tracking-wider uppercase truncate">
+              {displayName}
+            </span>
+          </>
+        ) : (
+          <>
+            <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
+            <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
+          </>
+        )}
       </div>
 
       <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
@@ -434,8 +462,23 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
   return (
     <aside className="w-64 bg-card border-r border-border flex-shrink-0 hidden md:flex flex-col">
       <div className="h-14 flex items-center px-4 border-b border-border">
-        <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
-        <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
+        {role === "publisher" && selectedAdvertiser?.hidePlatformBranding ? (
+          <>
+            {selectedAdvertiser?.logoUrl ? (
+              <img src={selectedAdvertiser.logoUrl} alt={selectedAdvertiser.brandName || selectedAdvertiser.companyName || ""} className="h-8 w-8 object-contain mr-3" />
+            ) : (
+              <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
+            )}
+            <span className="font-mono font-bold text-sm tracking-wider uppercase truncate" data-testid="sidebar-brand-name">
+              {selectedAdvertiser.brandName || selectedAdvertiser.companyName || "PARTNER"}
+            </span>
+          </>
+        ) : (
+          <>
+            <div className={`w-3 h-3 rounded-sm ${roleColor} mr-3`} />
+            <span className="font-mono font-bold text-sm tracking-wider uppercase">{role} PORTAL</span>
+          </>
+        )}
       </div>
 
       <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
