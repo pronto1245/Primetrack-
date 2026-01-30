@@ -28,7 +28,7 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Centralized HTTP-Client:** Unified client for external APIs with retry, exponential backoff, jitter, timeouts, and correlation ID.
 - **Notifications:** In-app and Telegram notifications configurable by users.
 - **Data Migration:** API and CSV-based migration tools for importing data from external trackers (Scaleo, Affilka, Affise, Alanbase) with data mapping, deduplication, and error logging.
-- **Custom Domains:** Integration with Cloudflare SSL for custom domain provisioning via a Cloudflare Worker Proxy.
+- **Custom Domains:** Integration with Cloudflare SSL for custom domain provisioning via a Cloudflare Worker Proxy. Supports multiple domains per advertiser with `useForTracking` flag to designate which domains generate tracking links (vs login-only domains).
 - **White-Label Branding:** Advertisers can customize partner-facing UI with their own logo and brand name. When `hidePlatformBranding` is enabled, publishers see the advertiser's brand instead of the platform name. Uses BrandingContext for domain-based lookup on login, and AdvertiserContext for dashboard branding.
 - **IP Intelligence:** Integration for IP data.
 - **Fingerprinting:** Utilizes FingerprintJS for visitor identification.
