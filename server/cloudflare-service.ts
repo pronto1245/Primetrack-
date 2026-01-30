@@ -386,7 +386,21 @@ export async function reprovisionDomain(domainId: string): Promise<{ success: bo
 
 export async function getCnameTarget(): Promise<string | null> {
   const settings = await getCloudflareSettings();
-  return settings?.cnameTarget || null;
+  if (settings?.cnameTarget) {
+    return settings.cnameTarget;
+  }
+  
+  // Fallback: read directly from platform_settings even if Cloudflare API isn't configured
+  const platformSettings = await storage.getPlatformSettings();
+  if (platformSettings?.cloudflareCnameTarget) {
+    return platformSettings.cloudflareCnameTarget;
+  }
+  if (platformSettings?.cloudflareFallbackOrigin) {
+    return `customers.${platformSettings.cloudflareFallbackOrigin.replace('tracking.', '')}`;
+  }
+  
+  // Final fallback from environment
+  return process.env.PLATFORM_CNAME_TARGET || null;
 }
 
 export const cloudflareService = {
