@@ -1,0 +1,63 @@
+
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+[root@v742573 primetrack]# node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('UPDATE users SET two_factor_secret = NULL, two_factor_enabled = false, two_factor_setup_completed = false WHERE two_factor_enabled = true')
+  .then(r => console.log('Reset', r.rowCount, 'users'))
+  .catch(e => console.error(e))
+  .finally(() => pool.end());
+"
+Reset 4 users
+[root@v742573 primetrack]# Read from remote host 185.179.191.12: Connection reset by peer
+Connection to 185.179.191.12 closed.
+client_loop: send disconnect: Broken pipe
+a1@Macbook-pro1 ~ % mkdir -p /etc/ssl/private
+mkdir: /etc/ssl/private: Permission denied
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Sat Jan 31 18:10:16 UTC 2026 from 159.65.109.68 on ssh:notty
+There was 1 failed login attempt since the last successful login.
+Last login: Sat Jan 31 17:52:24 2026 from 217.168.247.175
+[root@v742573 ~]# mkdir -p /etc/ssl/private
+[root@v742573 ~]# openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/ssl/private/nginx-selfsigned.key \
+  -out /etc/ssl/certs/nginx-selfsigned.crt \
+  -subj "/CN=primetrack.pro"
+....+.....+++++++++++++++++++++++++++++++++++++++*...+.+.....+...+.......+...........+.........+.+...+.....+......+..........+..............+.........+..........+...+..+......+.........+......+......+.+.....+.......+..+......+++++++++++++++++++++++++++++++++++++++*.+.........+.+............+...+..+.......+...+...........+..........+..+...+......+.........+......+...+......+.+......+.....+....+.....+....+.........+......+.........+..+...+.+......+..............+.......+.........+...........+..........+..+.............+...+..+.......+.....+.+..+.......+.....+.......+...+............+.....+...+.+......+.....+.+..+.+.....+......+.............+......+.........+.....+.....................+.+........+..........+...+.........+.....+.++++++
+....+.................+.........+.......+............+.....+...+...+++++++++++++++++++++++++++++++++++++++*....+......+....+...........+.+.....+++++++++++++++++++++++++++++++++++++++*...+.......+...+.........+............+.....+....+......+...+........+....+...+........+.......+.....+............+....+..+.............+.....+.........+............+.............+...+.............................+....+.........+..+..........+.........+..+...+.+...+..+.........+.+.........+..+....+.....+......+.......+...+...+..+...+.......+..+..........+..+...+.......+.........+.....+.+.....+.+.........+.....+.+...+......+..............+..........+..+..........+.....+....+...+......+.....+.+...+.....+...+..................+.........+.+...........+...............+....+...........+...++++++
+-----
+[root@v742573 ~]# cat > /etc/nginx/conf.d/primetrack.conf << 'EOF'
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name _;
+    
+    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
+[root@v742573 ~]# nginx -t && nginx -s reload
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@v742573 ~]# 
