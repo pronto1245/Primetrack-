@@ -1,0 +1,73 @@
+~ % pm2 status
+pm2 logs primetrack --lines 30
+zsh: command not found: pm2
+zsh: command not found: pm2
+a1@Macbook-pro1 ~ % root@185.179.191.12
+zsh: command not found: root@185.179.191.12
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Sat Jan 31 18:29:18 UTC 2026 from 159.65.109.68 on ssh:notty
+There were 27 failed login attempts since the last successful login.
+Last login: Sat Jan 31 18:10:46 2026 from 217.168.247.175
+[root@v742573 ~]# pm2 status
+pm2 logs primetrack --lines 30
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 7    │ online    │ 0%       │ 303.6mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 30 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 30 lines:
+0|primetra | [Encryption] Decrypt error: Error: Unsupported state or unable to authenticate data
+0|primetra |     at Decipheriv.final (node:internal/crypto/cipher:193:29)
+0|primetra |     at Pt (/var/www/primetrack/dist/index.cjs:70:33752)
+0|primetra |     at Object.verifyToken (/var/www/primetrack/dist/index.cjs:193:3345)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70260
+0|primetra | [Encryption] Decrypt error: Error: Unsupported state or unable to authenticate data
+0|primetra |     at Decipheriv.final (node:internal/crypto/cipher:193:29)
+0|primetra |     at Pt (/var/www/primetrack/dist/index.cjs:70:33752)
+0|primetra |     at Object.verifyToken (/var/www/primetrack/dist/index.cjs:193:3345)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70260
+
+/root/.pm2/logs/primetrack-out.log last 30 lines:
+0|primetra | [Domain] Running TLS handshake + HTTP check for lak-dom.ru...
+0|primetra | [Domain] SSL check result for lak-dom.ru: success=false, status=ssl_failed, error=Certificate does not match domain. Cert covers: primetrack.pro
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [Domain] Reprovisioning domain lak-dom.ru
+0|primetra | 2026-01-31T18:23:37.919Z [Cloudflare] [req_1769883817919_sf93ks] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames?hostname=lak-dom.ru","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T18:23:38.750Z [Cloudflare] [req_1769883817919_sf93ks] Request completed {"status":200,"latency":829}
+0|primetra | [Cloudflare] Hostname lak-dom.ru already exists (id: 1c74077a-23a8-4b48-a995-69ce72b4b4e6), updating origin to primetrack.pro
+0|primetra | 2026-01-31T18:23:38.830Z [Cloudflare] [req_1769883818830_4nucsm] Request started {"method":"PATCH","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/1c74077a-23a8-4b48-a995-69ce72b4b4e6","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T18:23:39.549Z [Cloudflare] [req_1769883818830_4nucsm] Request completed {"status":202,"latency":717}
+0|primetra | [Domain] Successfully reprovisioned lak-dom.ru
+0|primetra | [Domain] Checking SSL for lak-dom.ru...
+0|primetra | 2026-01-31T18:24:20.451Z [Cloudflare] [req_1769883860451_w69il6] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/1c74077a-23a8-4b48-a995-69ce72b4b4e6","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T18:24:21.238Z [Cloudflare] [req_1769883860451_w69il6] Request completed {"status":200,"latency":785}
+0|primetra | [Domain] Cloudflare sync for lak-dom.ru: status=active, ssl=active
+0|primetra | [Domain] Running TLS handshake + HTTP check for lak-dom.ru...
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [Domain] SSL check result for lak-dom.ru: success=true, status=ssl_active, error=undefined
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CLICK DEBUG] rawOfferId=0063, rawLandingId=0203, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=a3f6ae18-8cf1-4dde-a1db-a2c33baecfed, landingId=f8becd87-2c3b-4b4f-95ee-cdccb4ddcddb, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=esslotunareg, clickId=deed707e-b04e-4548-96ac-ea76480cbdd3, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=esslotunareg&external_id=deed707e-b04e-4548-96ac-ea76480cbdd3, clickIdReplaced=false
+0|primetra | [CLICK-METRIC] status=valid geo=US
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+
+0
