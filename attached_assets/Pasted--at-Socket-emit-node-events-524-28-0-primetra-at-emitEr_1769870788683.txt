@@ -1,0 +1,75 @@
+     at Socket.emit (node:events:524:28)
+0|primetra |       at emitErrorNT (node:internal/streams/destroy:169:8)
+0|primetra |       at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+0|primetra |       at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+0|primetra |     type: 'system',
+0|primetra |     errno: 'ECONNREFUSED',
+0|primetra |     code: 'ECONNREFUSED'
+0|primetra |   },
+0|primetra |   code: 'ECONNREFUSED',
+0|primetra |   [Symbol(gaxios-gaxios-error)]: '6.7.1'
+0|primetra | }
+
+^C
+[root@v742573 primetrack]# scp dist/index.cjs root@185.179.191.12:/var/www/primetrack/dist/
+ssh root@185.179.191.12 "pm2 restart primetrack && sleep 3 && pm2 logs primetrack --lines 10"
+root@185.179.191.12's password: 
+root@185.179.191.12's password: 
+  [Восстановлен 31 янв. 2026 г., 17:43:42]
+Last login: Sat Jan 31 17:43:36 on console
+Restored session: суббота, 31 января 2026 г. 17:42:36 (MSK)
+a1@Macbook-pro1 ~ % scp dist/index.cjs root@185.179.191.12:/var/www/primetrack/dist/
+ssh root@185.179.191.12 "pm2 restart primetrack && sleep 3 && pm2 logs primetrack --lines 15"
+scp: stat local "dist/index.cjs": No such file or directory
+root@185.179.191.12's password: 
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬───────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼───────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ primetrack    │ default     │ 1.0.0   │ fork    │ 627540   │ 0s     │ 2    │ online    │ 0%       │ 17.8mb   │ root     │ disabled │
+└────┴───────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[TAILING] Tailing last 15 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 15 lines:
+0|primetra |       at ClientRequest.<anonymous> (/var/www/primetrack/node_modules/node-fetch/lib/index.js:1501:11)
+0|primetra |       at ClientRequest.emit (node:events:524:28)
+0|primetra |       at emitErrorEvent (node:_http_client:101:11)
+0|primetra |       at Socket.socketErrorListener (node:_http_client:504:5)
+0|primetra |       at Socket.emit (node:events:524:28)
+0|primetra |       at emitErrorNT (node:internal/streams/destroy:169:8)
+0|primetra |       at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+0|primetra |       at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+0|primetra |     type: 'system',
+0|primetra |     errno: 'ECONNREFUSED',
+0|primetra |     code: 'ECONNREFUSED'
+0|primetra |   },
+0|primetra |   code: 'ECONNREFUSED',
+0|primetra |   [Symbol(gaxios-gaxios-error)]: '6.7.1'
+0|primetra | }
+
+/root/.pm2/logs/primetrack-out.log last 15 lines:
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 2:29:24 PM [aggregation] Daily stats aggregation completed: 4 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 2:45:24 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 2:45:24 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 2:45:24 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+^C%                                                                             a1@Macbook-pro1 ~ % ssh root@185.179.191.12 "grep R2 /var/www/primetrack/.env"
+root@185.179.191.12's password: 
+R2_ACCESS_KEY_ID=15273ea1523e7f6fa2c5894194253c83
+R2_SECRET_ACCESS_KEY=5e8363eea9be633855227cd7660111f056230801a27c7ff8ac07b16594947edd
+R2_ENDPOINT=https://f0a36ec75b07cdaa35a7e6ab015cf770.r2.cloudflarestorage.com
+R2_BUCKET_NAME=primetrack-uploads
+R2_PUBLIC_URL=https://pub-a0f25c897d8747eaa5408dc0e1dc8401.r2.dev
+a1@Macbook-pro1 ~ % 
