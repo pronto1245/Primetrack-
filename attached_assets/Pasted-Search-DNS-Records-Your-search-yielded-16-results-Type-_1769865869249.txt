@@ -1,0 +1,160 @@
+Search DNS Records
+Your search yielded 16 results
+
+Type
+
+Name
+
+Content
+
+Proxy status
+
+TTL
+
+Actions
+
+A
+origin
+34.111.179.208
+
+Proxied
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+
+
+A
+primetrack.pro
+34.111.179.208
+
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+
+
+A
+tracking
+34.111.179.208
+
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+
+
+CNAME
+customers
+origin.primetrack.pro
+
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+CNAME
+zb43891230
+zmverify.zoho.com
+DNS only
+
+10 min
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+MX
+primetrack.pro
+mx3.zoho.com
+
+50
+DNS only
+
+10 min
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+MX
+primetrack.pro
+mx.zoho.com
+
+10
+DNS only
+
+10 min
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+MX
+primetrack.pro
+mx2.zoho.com
+
+20
+DNS only
+
+10 min
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+MX
+send
+feedback-smtp.eu-west-1.amazonses.com
+
+10
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+_dmarc
+"v=DMARC1; p=none;"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+primetrack.pro
+"yandex-verification: faa265290f5701e6"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+primetrack.pro
+"google-site-verification=5Mr4Af5cmjplfegPiHx1EdJ_r7SpLj4rzbXcgNGWJ9Y"
+DNS only
+
+1 hr
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+primetrack.pro
+"v=spf1 include:zohomail.com ~all"
+DNS only
+
+1 hr
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+primetrack.pro
+"replit-verify=24b37059-5b12-44cb-b70b-19a2dcb6cd9e"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+resend._domainkey
+"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDqX3cKTyIfXxkWSm5h668HJzCUP5mxpCArCzkCpaR5PNR7fppI+hd9aCqbTC9cQtcwGp3q/TF9N4vq0s5QlnZ3D7KRXhDPScriSiddHXnV73gpRg25ka45LgPV5v2hKFT5Cld8h3ga5i3GHy3tLSWV5O1jx7HUK2o/HEwU/uHWUQIDAQAB"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
+
+TXT
+send
+"v=spf1 include:amazonses.com ~all"
+DNS only
+
+Auto
+EditWhen toggled open, an additional table row will be added below this row to enable editing DNS records.
