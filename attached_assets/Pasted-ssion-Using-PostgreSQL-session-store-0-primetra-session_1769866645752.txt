@@ -1,0 +1,64 @@
+ssion] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:35:53 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:35:53 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:35:53 PM [aggregation] Daily stats aggregation completed: 0 rows
+
+grep -r "secure" /var/www/primetrack/server/ | grep -i cookie
+^C
+[root@v742573 primetrack]# grep -r "secure" /var/www/primetrack/server/ | grep -i cookie
+/var/www/primetrack/server/routes.ts:  // On Replit, always use secure cookies (HTTPS proxy)
+/var/www/primetrack/server/routes.ts:  // In production, use secure cookies
+/var/www/primetrack/server/routes.ts:  // In local development (no Replit), use non-secure cookies
+/var/www/primetrack/server/routes.ts:  console.log(`[session] Cookie config: secure=${useSecureCookies}, sameSite=${sameSiteValue}, isReplit=${isReplit}`);
+/var/www/primetrack/server/routes.ts:        secure: useSecureCookies,
+/var/www/primetrack/server/routes.ts:        secure: useSecureCookies,
+[root@v742573 primetrack]# grep -A10 -B5 "useSecureCookies" /var/www/primetrack/server/routes.ts | head -40
+  }
+  
+  // On Replit, always use secure cookies (HTTPS proxy)
+  // In production, use secure cookies
+  // In local development (no Replit), use non-secure cookies
+  const useSecureCookies = isProduction || isReplit;
+  
+  // For Replit we need sameSite=none for iframe/cross-origin
+  // For external deployments (Koyeb, etc) use sameSite=lax for better compatibility
+  const sameSiteValue = isReplit ? "none" as const : "lax" as const;
+  
+  console.log(`[session] Cookie config: secure=${useSecureCookies}, sameSite=${sameSiteValue}, isReplit=${isReplit}`);
+  
+  app.use(
+    session({
+      name: "sid",
+      secret: process.env.SESSION_SECRET || "affiliate-tracker-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      store,
+      proxy: true,
+      cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: useSecureCookies,
+        sameSite: sameSiteValue,
+        path: "/",
+      },
+    })
+  );
+}
+
+async function seedUsers() {
+  // Seed users only for initial setup - generates secure random passwords
+  const crypto = await import("crypto");
+--
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    const isReplit = !!process.env.REPL_ID;
+[root@v742573 primetrack]# 
