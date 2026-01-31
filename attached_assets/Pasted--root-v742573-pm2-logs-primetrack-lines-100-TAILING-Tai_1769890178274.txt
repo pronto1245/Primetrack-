@@ -1,0 +1,119 @@
+[root@v742573 ~]# pm2 logs primetrack --lines 100
+[TAILING] Tailing last 100 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 100 lines:
+0|primetra | [Encryption] Decrypt error: Error: Unsupported state or unable to authenticate data
+0|primetra |     at Decipheriv.final (node:internal/crypto/cipher:193:29)
+0|primetra |     at Pt (/var/www/primetrack/dist/index.cjs:70:33752)
+0|primetra |     at Object.verifyToken (/var/www/primetrack/dist/index.cjs:193:3345)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70260
+0|primetra | [Encryption] Decrypt error: Error: Unsupported state or unable to authenticate data
+0|primetra |     at Decipheriv.final (node:internal/crypto/cipher:193:29)
+0|primetra |     at Pt (/var/www/primetrack/dist/index.cjs:70:33752)
+0|primetra |     at Object.verifyToken (/var/www/primetrack/dist/index.cjs:193:3345)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70260
+
+/root/.pm2/logs/primetrack-out.log last 100 lines:
+0|primetra | 2026-01-31T19:31:31.287Z [Cloudflare] [req_1769887890497_xxnp8s] Request completed {"status":200,"latency":788}
+0|primetra | [Domain] Cloudflare sync for aviatorline.space: status=pending, ssl=active
+0|primetra | [Domain] Checking SSL for aviatorline.space...
+0|primetra | 2026-01-31T19:31:37.606Z [Cloudflare] [req_1769887897606_8mdawg] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/c73c15d2-5884-4d8f-a01c-5fcda6332c63","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T19:31:38.559Z [Cloudflare] [req_1769887897606_8mdawg] Request completed {"status":200,"latency":951}
+0|primetra | [Domain] Cloudflare sync for aviatorline.space: status=pending, ssl=active
+0|primetra | [Domain] Checking SSL for aviatorline.space...
+0|primetra | 2026-01-31T19:31:42.406Z [Cloudflare] [req_1769887902406_l2utxa] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/c73c15d2-5884-4d8f-a01c-5fcda6332c63","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T19:31:43.121Z [Cloudflare] [req_1769887902406_l2utxa] Request completed {"status":200,"latency":713}
+0|primetra | [Domain] Cloudflare sync for aviatorline.space: status=pending, ssl=active
+0|primetra | [Domain] Checking SSL for aviatorline.space...
+0|primetra | 2026-01-31T19:31:44.142Z [Cloudflare] [req_1769887904142_ovj2sy] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/c73c15d2-5884-4d8f-a01c-5fcda6332c63","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T19:31:44.890Z [Cloudflare] [req_1769887904142_ovj2sy] Request completed {"status":200,"latency":747}
+0|primetra | [Domain] Cloudflare sync for aviatorline.space: status=pending, ssl=active
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [Domain] Checking SSL for aviatorline.space...
+0|primetra | 2026-01-31T19:37:20.123Z [Cloudflare] [req_1769888240123_xvt4bq] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/c73c15d2-5884-4d8f-a01c-5fcda6332c63","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T19:37:20.877Z [Cloudflare] [req_1769888240123_xvt4bq] Request completed {"status":200,"latency":753}
+0|primetra | [Domain] Cloudflare sync for aviatorline.space: status=active, ssl=active
+0|primetra | [Domain] Running TLS handshake + HTTP check for aviatorline.space...
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [Domain] SSL check result for aviatorline.space: success=true, status=ssl_active, error=undefined
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from aviatorline.space mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | 2026-01-31T19:38:40.691Z [Cloudflare] [req_1769888320691_1vd2oa] Request started {"method":"DELETE","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/c73c15d2-5884-4d8f-a01c-5fcda6332c63","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T19:38:41.513Z [Cloudflare] [req_1769888320691_1vd2oa] Request completed {"status":200,"latency":819}
+0|primetra | 2026-01-31T19:38:43.312Z [Cloudflare] [req_1769888323312_0wqz6i] Request started {"method":"DELETE","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/1c74077a-23a8-4b48-a995-69ce72b4b4e6","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T19:38:44.031Z [Cloudflare] [req_1769888323312_0wqz6i] Request completed {"status":200,"latency":718}
+0|primetra | 2026-01-31T20:00:36.412Z [Cloudflare] [req_1769889636411_zqycqm] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames?hostname=lak-dom.ru","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T20:00:37.277Z [Cloudflare] [req_1769889636411_zqycqm] Request completed {"status":200,"latency":863}
+0|primetra | [Cloudflare] Creating new hostname lak-dom.ru with origin primetrack.pro
+0|primetra | 2026-01-31T20:00:37.358Z [Cloudflare] [req_1769889637358_mhnkrf] Request started {"method":"POST","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T20:00:38.114Z [Cloudflare] [req_1769889637358_mhnkrf] Request completed {"status":201,"latency":755}
+0|primetra | [Domain] CNAME not found for lak-dom.ru, trying A record fallback...
+0|primetra | [Domain] A record found for lak-dom.ru: 188.114.96.1, 188.114.97.1
+0|primetra | [Domain] lak-dom.ru already has Cloudflare hostname: 889ade6e-861b-40e3-841c-207a65b3be9f
+0|primetra | [Domain] Checking SSL for lak-dom.ru...
+0|primetra | 2026-01-31T20:00:47.053Z [Cloudflare] [req_1769889647053_sdq4dq] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/889ade6e-861b-40e3-841c-207a65b3be9f","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T20:00:47.950Z [Cloudflare] [req_1769889647053_sdq4dq] Request completed {"status":200,"latency":895}
+0|primetra | [Domain] Cloudflare sync for lak-dom.ru: status=pending, ssl=pending_validation
+0|primetra | [Domain] Checking SSL for lak-dom.ru...
+0|primetra | 2026-01-31T20:00:53.859Z [Cloudflare] [req_1769889653859_ormaw1] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/889ade6e-861b-40e3-841c-207a65b3be9f","attempt":1,"maxRetries":3}
+0|primetra | 8:00:54 PM [aggregation] Hourly aggregation: 4 rows updated
+0|primetra | 2026-01-31T20:00:54.701Z [Cloudflare] [req_1769889653859_ormaw1] Request completed {"status":200,"latency":841}
+0|primetra | [Domain] Cloudflare sync for lak-dom.ru: status=pending, ssl=pending_validation
+0|primetra | [Domain] Checking SSL for lak-dom.ru...
+0|primetra | 2026-01-31T20:00:55.868Z [Cloudflare] [req_1769889655868_d76qkz] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/889ade6e-861b-40e3-841c-207a65b3be9f","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T20:00:56.634Z [Cloudflare] [req_1769889655868_d76qkz] Request completed {"status":200,"latency":764}
+0|primetra | [Domain] Cloudflare sync for lak-dom.ru: status=pending, ssl=pending_validation
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [Domain] Checking SSL for lak-dom.ru...
+0|primetra | 2026-01-31T20:04:52.068Z [Cloudflare] [req_1769889892068_zk1hkw] Request started {"method":"GET","url":"https://api.cloudflare.com/client/v4/zones/e742e8d60b47e769445517d1371355fb/custom_hostnames/889ade6e-861b-40e3-841c-207a65b3be9f","attempt":1,"maxRetries":3}
+0|primetra | 2026-01-31T20:04:53.306Z [Cloudflare] [req_1769889892068_zk1hkw] Request completed {"status":200,"latency":1237}
+0|primetra | [Domain] Cloudflare sync for lak-dom.ru: status=active, ssl=active
+0|primetra | [Domain] Running TLS handshake + HTTP check for lak-dom.ru...
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [Domain] SSL check result for lak-dom.ru: success=true, status=ssl_active, error=undefined
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+
+
