@@ -4,6 +4,9 @@ import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 import { antiFraudService, type FraudSignals } from "./antifraud-service";
 import { resolveLanguage, logClickMetric } from "./geo-language";
+import geoip from "geoip-lite";
+
+const IP_INTEL_TIMEOUT_MS = 200;
 
 interface ClickParams {
   offerId: string;
@@ -52,6 +55,7 @@ interface ParsedUA {
 
 export class ClickHandler {
   async processClick(params: ClickParams): Promise<ClickResult> {
+    const startTime = Date.now();
     const clickId = this.generateClickId();
     
     let errorReason: ClickErrorReason | undefined;
@@ -59,7 +63,11 @@ export class ClickHandler {
     let isBlocked = false;
     let capReached = false;
     
+    // PHASE 1: Get offer (required for all other operations)
+    const t1 = Date.now();
     const offer = await storage.getOffer(params.offerId);
+    const offerTime = Date.now() - t1;
+    
     if (!offer) {
       errorReason = "offer_not_found";
       status = "error";
@@ -70,22 +78,73 @@ export class ClickHandler {
       isBlocked = true;
     }
     
-    let capsCheck = { dailyCapReached: false, monthlyCapReached: false, totalCapReached: false };
-    if (!errorReason && offer) {
-      capsCheck = await storage.checkOfferCaps(params.offerId);
-      if (capsCheck.dailyCapReached || capsCheck.monthlyCapReached || capsCheck.totalCapReached) {
-        errorReason = "cap_reached";
-        status = "rejected";
-        capReached = true;
-        isBlocked = offer.capReachedAction === "block";
-      }
+    // Early exit for invalid offers
+    if (errorReason) {
+      const lang = resolveLanguage(undefined, params.geo);
+      console.log(`[CLICK-TIMING] clickId=${clickId} total=${Date.now() - startTime}ms (early exit: ${errorReason})`);
+      const savedClick = await storage.createClick({
+        clickId,
+        offerId: params.offerId,
+        publisherId: params.partnerId,
+        status,
+        errorReason,
+        redirectUrl: buildSystemUnavailableUrl(lang),
+        ip: params.ip,
+        userAgent: params.userAgent,
+        geo: params.geo,
+      } as InsertClick);
+      return {
+        id: savedClick.id,
+        clickId,
+        redirectUrl: buildSystemUnavailableUrl(lang),
+        fraudScore: 0,
+        isBlocked: true,
+        status,
+        errorReason,
+        capReached: false,
+      };
     }
     
-    let landings: any[] = [];
+    // PHASE 2: Parallel operations - caps, landings, publisherOffer, uniqueness, IP intel with timeout
+    const t2 = Date.now();
+    const parsedUA = this.parseUserAgent(params.userAgent);
+    
+    // Fast GEO fallback using geoip-lite (local, instant)
+    const fastGeo = params.ip ? geoip.lookup(params.ip)?.country : null;
+    
+    // IP Intel with timeout - don't block redirect for slow external API
+    const ipIntelPromise = params.ip 
+      ? Promise.race([
+          ipIntelService.getIpIntelligence(params.ip),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), IP_INTEL_TIMEOUT_MS))
+        ])
+      : Promise.resolve(null);
+    
+    // Run all independent operations in parallel
+    const [capsCheck, landings, publisherOffer, isUnique, ipIntel] = await Promise.all([
+      storage.checkOfferCaps(params.offerId),
+      storage.getOfferLandings(params.offerId),
+      storage.getPublisherOffer(params.offerId, params.partnerId),
+      this.checkUniqueness(params.ip, params.offerId, params.partnerId),
+      ipIntelPromise,
+    ]);
+    const parallelTime = Date.now() - t2;
+    
+    // Use IP intel GEO if available, otherwise fallback to fast geoip-lite
+    const detectedGeo = ipIntel?.country || fastGeo || params.geo;
+    
+    // Check caps (offer is guaranteed to exist after early exit check)
+    if (capsCheck.dailyCapReached || capsCheck.monthlyCapReached || capsCheck.totalCapReached) {
+      errorReason = "cap_reached";
+      status = "rejected";
+      capReached = true;
+      isBlocked = offer!.capReachedAction === "block";
+    }
+    
+    // Select landing
     let landing: any = null;
-    if (!errorReason && offer) {
-      landings = await storage.getOfferLandings(params.offerId);
-      landing = this.selectLanding(landings, params.geo, params.landingId);
+    if (!errorReason) {
+      landing = this.selectLanding(landings, detectedGeo, params.landingId);
       if (!landing) {
         errorReason = "no_landing";
         status = "error";
@@ -93,26 +152,21 @@ export class ClickHandler {
       }
     }
     
-    const parsedUA = this.parseUserAgent(params.userAgent);
-    const ipIntel = params.ip ? await ipIntelService.getIpIntelligence(params.ip) : null;
-    const detectedGeo = ipIntel?.country || params.geo;
-    
+    // GEO matching
     let isOfferGeoMatch = true;
     let isPublisherGeoAllowed = true;
     let isGeoMatch = true;
-    let publisherOffer: any = null;
     
-    if (offer && !errorReason) {
-      isOfferGeoMatch = this.checkGeoMatch(detectedGeo, offer.geo);
-      publisherOffer = await storage.getPublisherOffer(params.offerId, params.partnerId);
+    if (!errorReason) {
+      isOfferGeoMatch = this.checkGeoMatch(detectedGeo, offer!.geo);
       isPublisherGeoAllowed = !publisherOffer?.approvedGeos || 
         publisherOffer.approvedGeos.length === 0 || 
         (detectedGeo ? publisherOffer.approvedGeos.includes(detectedGeo) : true);
       isGeoMatch = isOfferGeoMatch && isPublisherGeoAllowed;
     }
     
-    const isUnique = await this.checkUniqueness(params.ip, params.offerId, params.partnerId);
-    
+    // PHASE 3: Antifraud evaluation (must block before redirect)
+    const t3 = Date.now();
     const basicFraudCheck = this.performBasicFraudCheck(params.ip, params.userAgent);
     const fraudCheck = this.mergeFraudChecks(basicFraudCheck, ipIntel);
     
@@ -128,7 +182,7 @@ export class ClickHandler {
     });
     
     let antifraudResult = { action: "allow" as string, fraudScore: fraudCheck.score, matchedRules: [] as any[] };
-    if (offer && !errorReason) {
+    if (!errorReason) {
       const fraudSignals: FraudSignals = {
         ip: params.ip,
         userAgent: params.userAgent,
@@ -144,28 +198,32 @@ export class ClickHandler {
       
       antifraudResult = await antiFraudService.evaluateClick(
         params.offerId,
-        offer.advertiserId,
+        offer!.advertiserId,
         params.partnerId,
         fraudSignals
       );
       
-      if (!errorReason && (antifraudResult.action === "block" || fraudCheck.score >= 80)) {
+      if (antifraudResult.action === "block" || fraudCheck.score >= 80) {
         errorReason = "fraud_block";
         status = "blocked";
         isBlocked = true;
       }
     }
+    const antifraudTime = Date.now() - t3;
     
+    // PHASE 4: Build redirect URL
     const clickIdParam = landing?.clickIdParam || "click_id";
-    const lang = resolveLanguage(offer?.language, detectedGeo);
+    const lang = resolveLanguage(offer!.language, detectedGeo);
     let redirectUrl = buildSystemUnavailableUrl(lang);
     
     if (landing && !isBlocked) {
       redirectUrl = this.buildRedirectUrl(landing.landingUrl, clickId, params, clickIdParam);
-    } else if (capReached && offer?.capRedirectUrl) {
-      redirectUrl = offer.capRedirectUrl;
+    } else if (capReached && offer!.capRedirectUrl) {
+      redirectUrl = offer!.capRedirectUrl;
     }
     
+    // PHASE 5: Save click (synchronous - must not lose data)
+    const t4 = Date.now();
     const clickData: InsertClick = {
       clickId,
       offerId: params.offerId,
@@ -214,11 +272,19 @@ export class ClickHandler {
     };
     
     const savedClick = await storage.createClick(clickData);
+    const saveTime = Date.now() - t4;
     
-    if (offer && (antifraudResult.action !== "allow" || antifraudResult.matchedRules.length > 0)) {
-      try {
-        await storage.createAntifraudLog({
-          advertiserId: offer.advertiserId,
+    // Log timing
+    const totalTime = Date.now() - startTime;
+    console.log(`[CLICK-TIMING] clickId=${clickId} total=${totalTime}ms offer=${offerTime}ms parallel=${parallelTime}ms antifraud=${antifraudTime}ms save=${saveTime}ms ipIntel=${ipIntel ? 'hit' : 'miss'}`);
+    
+    // PHASE 6: Fire-and-forget async operations (don't block redirect)
+    const advertiserId = offer!.advertiserId;
+    setImmediate(() => {
+      // Antifraud log
+      if (antifraudResult.action !== "allow" || antifraudResult.matchedRules.length > 0) {
+        storage.createAntifraudLog({
+          advertiserId,
           offerId: params.offerId,
           publisherId: params.partnerId,
           clickId: savedClick.id,
@@ -233,18 +299,17 @@ export class ClickHandler {
           ip: params.ip,
           userAgent: params.userAgent,
           country: detectedGeo,
-        });
-      } catch (logError) {
-        console.error("Failed to create antifraud log:", logError);
+        }).catch((err) => console.error("Failed to create antifraud log:", err));
       }
-    }
-    
-    if (offer && (suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow")) {
-      this.notifySuspiciousTraffic(offer.advertiserId, params.offerId, clickId, suspiciousAnalysis.reasons);
-    }
-    
-    // Log click metric for valid/blocked clicks
-    logClickMetric(status, detectedGeo || 'XX', errorReason);
+      
+      // Suspicious traffic notification
+      if (suspiciousAnalysis.isSuspicious || antifraudResult.action !== "allow") {
+        this.notifySuspiciousTraffic(advertiserId, params.offerId, clickId, suspiciousAnalysis.reasons);
+      }
+      
+      // Click metric
+      logClickMetric(status, detectedGeo || 'XX', errorReason);
+    });
     
     return {
       id: savedClick.id,
