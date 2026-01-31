@@ -1,0 +1,347 @@
+gs/primetrack-out.log last 30 lines:
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:35:53 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:35:53 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:38:48 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:38:49 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:38:49 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:42:34 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:42:34 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:42:35 PM [aggregation] Daily stats aggregation completed: 0 rows
+
+/root/.pm2/logs/primetrack-error.log last 30 lines:
+0|primetra |   dataType: undefined,
+0|primetra |   constraint: undefined,
+0|primetra |   file: 'parse_relation.c',
+0|primetra |   line: '3716',
+0|primetra |   routine: 'errorMissingColumn'
+0|primetra | }
+0|primetra | [CustomDomain] Error resolving domain: error: column "use_for_tracking" does not exist
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:13330
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:70:28669
+0|primetra |     at async Tb.getCustomDomainByDomain (/var/www/primetrack/dist/index.cjs:150:1978)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70411 {
+0|primetra |   length: 117,
+0|primetra |   severity: 'ERROR',
+0|primetra |   code: '42703',
+0|primetra |   detail: undefined,
+0|primetra |   hint: undefined,
+0|primetra |   position: '448',
+0|primetra |   internalPosition: undefined,
+0|primetra |   internalQuery: undefined,
+0|primetra |   where: undefined,
+0|primetra |   schema: undefined,
+0|primetra |   table: undefined,
+0|primetra |   column: undefined,
+0|primetra |   dataType: undefined,
+0|primetra |   constraint: undefined,
+0|primetra |   file: 'parse_relation.c',
+0|primetra |   line: '3716',
+0|primetra |   routine: 'errorMissingColumn'
+0|primetra | }
+
+cd /var/www/primetrack
+npm run db:push
+^C
+[root@v742573 primetrack]# cd /var/www/primetrack
+npm run db:push
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/var/www/primetrack/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+
++ use_for_tracking column will be created
+--- all columns conflicts in custom_domains table resolved ---
+
+· You're about to add password_reset_tokens_token_unique unique constraint to the table, which contains 4 items. If this statement fails, you will receive an error from the database. Do you want to truncate password_reset_tokens table?
+
+· You're about to add offer_landings_short_id_unique unique constraint to the table, which contains 247 items. If this statement fails, you will receive an error from the database. Do you want to truncate offer_landings table?
+
+· You're about to add offers_short_id_unique unique constraint to the table, which contains 64 items. If this statement fails, you will receive an error from the database. Do you want to truncate offers table?
+
+· You're about to add split_tests_short_code_unique unique constraint to the table, which contains 1 items. If this statement fails, you will receive an error from the database. Do you want to truncate split_tests table?
+
+· You're about to add user_postback_settings_user_id_unique unique constraint to the table, which contains 2 items. If this statement fails, you will receive an error from the database. Do you want to truncate user_postback_settings table?
+
+· You're about to add users_short_id_unique unique constraint to the table, which contains 20 items. If this statement fails, you will receive an error from the database. Do you want to truncate users table?
+
+· You're about to add users_referral_code_unique unique constraint to the table, which contains 20 items. If this statement fails, you will receive an error from the database. Do you want to truncate users table?
+
+ Warning  Found data-loss statements:
+· You're about to delete playing_with_neon table with 10 items
+· You're about to delete session table with 12 items
+· You're about to delete cloudflare_account_id column in platform_settings table with 1 items
+· You're about to delete cloudflare_worker_name column in platform_settings table with 1 items
+· You're about to delete cloudflare_worker_environment column in platform_settings table with 1 items
+· You're about to delete first_name column in users table with 20 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+[✓] Changes applied
+[root@v742573 primetrack]# pm2 restart primetrack
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 2    │ online    │ 0%       │ 11.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# pm2 restart primetrack && pm2 logs primetrack --lines 20
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 3    │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-out.log last 20 lines:
+0|primetra | 1:42:34 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:42:34 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:42:35 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:56:04 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:56:04 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:56:05 PM [aggregation] Daily stats aggregation completed: 0 rows
+
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetra |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetra |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetra |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+
+0|primetrack  | [WorkerAuth] Worker secret loaded from environment variable
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 1:56:45 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 1:56:45 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-01
+0|primetrack  | 1:56:45 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetrack  |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetrack  |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetrack  |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetrack  |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetrack  |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetrack  |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetrack  |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetrack  |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetrack  |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetrack  |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetrack  |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetrack  |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetrack  |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetrack  |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetrack  |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+^C
+[root@v742573 primetrack]# pm2 logs primetrack --lines 50 | grep -i session
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+
