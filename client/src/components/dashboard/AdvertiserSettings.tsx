@@ -15,6 +15,7 @@ import {
   Wallet, Trash2, Building2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { resolveAssetUrl } from "@/lib/resolveAssetUrl";
 import { useToast } from "@/hooks/use-toast";
 import { WebhooksSettings } from "./WebhooksSettings";
 import { CustomDomainsSettings } from "./CustomDomainsSettings";
@@ -240,8 +241,8 @@ function ProfileTab() {
                     });
                     const { uploadURL, objectPath } = await res.json();
                     await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-                    const logoUrl = window.location.origin + objectPath;
-                    setFormData({ ...formData, logoUrl });
+                    const logoUrl = resolveAssetUrl(objectPath);
+                    setFormData({ ...formData, logoUrl: logoUrl || "" });
                   } catch (err) {
                     console.error("Upload failed:", err);
                   }
@@ -660,8 +661,8 @@ function WhiteLabelTab() {
                     });
                     const { uploadURL, objectPath } = await res.json();
                     await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-                    const logoUrl = window.location.origin + objectPath;
-                    setFormData({ ...formData, logoUrl });
+                    const logoUrl = resolveAssetUrl(objectPath);
+                    setFormData({ ...formData, logoUrl: logoUrl || "" });
                   } catch (err) {
                     console.error("Upload failed:", err);
                   }
@@ -709,8 +710,8 @@ function WhiteLabelTab() {
                     });
                     const { uploadURL, objectPath } = await res.json();
                     await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-                    const faviconUrl = window.location.origin + objectPath;
-                    setFormData({ ...formData, faviconUrl });
+                    const faviconUrl = resolveAssetUrl(objectPath);
+                    setFormData({ ...formData, faviconUrl: faviconUrl || "" });
                   } catch (err) {
                     console.error("Upload failed:", err);
                   }

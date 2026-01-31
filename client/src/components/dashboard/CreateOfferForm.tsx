@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { useUpload } from "@/hooks/use-upload";
+import { resolveAssetUrl } from "@/lib/resolveAssetUrl";
 import { CountrySelector } from "./CountrySelector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCurrencySymbol } from "@/lib/utils";
@@ -143,7 +144,7 @@ export function CreateOfferForm({ role }: { role: string }) {
 
   const { uploadFile, isUploading, progress } = useUpload({
     onSuccess: (response) => {
-      setFormData(prev => ({ ...prev, logoUrl: response.objectPath }));
+      setFormData(prev => ({ ...prev, logoUrl: resolveAssetUrl(response.objectPath) || "" }));
     },
   });
 

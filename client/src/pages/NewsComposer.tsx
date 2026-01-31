@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Image, Loader2, Upload, X, Send } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { resolveAssetUrl } from "@/lib/resolveAssetUrl";
 
 interface CurrentUser {
   id: string;
@@ -174,8 +175,8 @@ export default function NewsComposer({ embedded = false, editId }: NewsComposerP
         headers: { "Content-Type": file.type },
       });
 
-      const imageFullUrl = window.location.origin + objectPath;
-      setImageUrl(imageFullUrl);
+      const imageFullUrl = resolveAssetUrl(objectPath);
+      setImageUrl(imageFullUrl || "");
       toast({
         title: "Успешно",
         description: "Изображение загружено",

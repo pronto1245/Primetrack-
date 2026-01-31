@@ -15,6 +15,7 @@ import {
   Newspaper, Map, Plus, Trash2, Edit, Check, X
 } from "lucide-react";
 import { useUpload } from "@/hooks/use-upload";
+import { resolveAssetUrl } from "@/lib/resolveAssetUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
@@ -607,7 +608,7 @@ function PlatformTab() {
   
   const { uploadFile, isUploading: isUploadingLogo } = useUpload({
     onSuccess: (response) => {
-      setFormData(prev => ({ ...prev, platformLogoUrl: response.objectPath }));
+      setFormData(prev => ({ ...prev, platformLogoUrl: resolveAssetUrl(response.objectPath) || "" }));
       toast({ title: "Логотип загружен" });
     },
     onError: (error) => {
