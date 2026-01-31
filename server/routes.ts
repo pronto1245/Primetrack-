@@ -8611,15 +8611,22 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Domain not found" });
       }
 
-      try {
+      // Delete from Cloudflare first
+      if (existing.cloudflareHostnameId) {
         const { cloudflareService } = await import("./cloudflare-service");
-        if (existing.cloudflareHostnameId) {
-          await cloudflareService.deprovisionDomain(id);
+        const cfResult = await cloudflareService.deprovisionDomain(id);
+        
+        if (!cfResult.success) {
+          // Block deletion if Cloudflare returns an error (except 404/not found)
+          console.error(`[Cloudflare] Cannot delete domain ${existing.domain}: ${cfResult.error}`);
+          return res.status(502).json({ 
+            message: `Failed to delete domain from Cloudflare: ${cfResult.error}`,
+            cloudflareError: cfResult.error 
+          });
         }
-      } catch (cfError) {
-        console.error(`Cloudflare deprovisioning error for ${existing.domain}:`, cfError);
       }
 
+      // Delete from database only after successful Cloudflare deletion
       await storage.deleteCustomDomain(id);
       res.json({ success: true });
     } catch (error) {

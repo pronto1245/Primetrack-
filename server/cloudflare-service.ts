@@ -333,16 +333,28 @@ export async function provisionDomain(
   }
 }
 
-export async function deprovisionDomain(domainId: string): Promise<void> {
+export async function deprovisionDomain(domainId: string): Promise<{ success: boolean; error?: string; notFound?: boolean }> {
   const domain = await storage.getCustomDomain(domainId);
   if (!domain?.cloudflareHostnameId) {
-    return;
+    // No Cloudflare hostname ID - nothing to delete in CF
+    return { success: true };
   }
   
   try {
     await deleteCustomHostname(domain.cloudflareHostnameId);
+    console.log(`[Cloudflare] Successfully deleted hostname ${domain.cloudflareHostnameId} for domain ${domain.domain}`);
+    return { success: true };
   } catch (error) {
-    console.error(`Failed to delete Cloudflare hostname: ${error}`);
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    
+    // Check if hostname not found in Cloudflare (already deleted)
+    if (errorMsg.includes("not found") || errorMsg.includes("404") || errorMsg.includes("does not exist")) {
+      console.log(`[Cloudflare] Hostname ${domain.cloudflareHostnameId} not found in Cloudflare (already deleted)`);
+      return { success: true, notFound: true };
+    }
+    
+    console.error(`[Cloudflare] Failed to delete hostname ${domain.cloudflareHostnameId}: ${errorMsg}`);
+    return { success: false, error: errorMsg };
   }
 }
 
