@@ -1,0 +1,57 @@
+Last login: Sat Jan 31 17:43:42 on ttys000
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12 "pm2 logs primetrack --err --lines 50 --nostream"
+root@185.179.191.12's password: 
+[TAILING] Tailing last 50 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 50 lines:
+0|primetra |     at async IdentityPoolClient._BaseExternalAccountClient_internalRefreshAccessTokenAsync (/var/www/primetrack/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:408:26)
+0|primetra |     at async IdentityPoolClient.refreshAccessTokenAsync (/var/www/primetrack/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:316:20)
+0|primetra |     at async IdentityPoolClient.getAccessToken (/var/www/primetrack/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:190:13)
+0|primetra |     at async IdentityPoolClient.getRequestHeaders (/var/www/primetrack/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:207:37)
+0|primetra |     at async GoogleAuth.authorizeRequest (/var/www/primetrack/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/googleauth.js:742:25)
+0|primetra |     at async Promise.all (index 1)
+0|primetra |     at async prepareRequest (/var/www/primetrack/node_modules/@google-cloud/storage/build/cjs/src/nodejs-common/util.js:504:61) {
+0|primetra |   config: {
+0|primetra |     retry: true,
+0|primetra |     retryConfig: {
+0|primetra |       httpMethodsToRetry: [Array],
+0|primetra |       currentRetryAttempt: 2,
+0|primetra |       retry: 3,
+0|primetra |       noResponseRetries: 2,
+0|primetra |       retryDelayMultiplier: 2,
+0|primetra |       timeOfFirstRequest: 1769870661025,
+0|primetra |       totalTimeout: 9007199254740991,
+0|primetra |       maxRetryDelay: 9007199254740991,
+0|primetra |       statusCodesToRetry: [Array]
+0|primetra |     },
+0|primetra |     url: 'http://127.0.0.1:1106/credential',
+0|primetra |     method: 'GET',
+0|primetra |     headers: {
+0|primetra |       'User-Agent': 'google-api-nodejs-client/9.15.1',
+0|primetra |       'x-goog-api-client': 'gl-node/20.20.0',
+0|primetra |       Accept: 'application/json'
+0|primetra |     },
+0|primetra |     responseType: 'json',
+0|primetra |     paramsSerializer: [Function: paramsSerializer],
+0|primetra |     validateStatus: [Function: validateStatus],
+0|primetra |     errorRedactor: [Function: defaultErrorRedactor]
+0|primetra |   },
+0|primetra |   response: undefined,
+0|primetra |   error: FetchError: request to http://127.0.0.1:1106/credential failed, reason: connect ECONNREFUSED 127.0.0.1:1106
+0|primetra |       at ClientRequest.<anonymous> (/var/www/primetrack/node_modules/node-fetch/lib/index.js:1501:11)
+0|primetra |       at ClientRequest.emit (node:events:524:28)
+0|primetra |       at emitErrorEvent (node:_http_client:101:11)
+0|primetra |       at Socket.socketErrorListener (node:_http_client:504:5)
+0|primetra |       at Socket.emit (node:events:524:28)
+0|primetra |       at emitErrorNT (node:internal/streams/destroy:169:8)
+0|primetra |       at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+0|primetra |       at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+0|primetra |     type: 'system',
+0|primetra |     errno: 'ECONNREFUSED',
+0|primetra |     code: 'ECONNREFUSED'
+0|primetra |   },
+0|primetra |   code: 'ECONNREFUSED',
+0|primetra |   [Symbol(gaxios-gaxios-error)]: '6.7.1'
+0|primetra | }
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+
+a1@Macbook-pro1 ~ % 
