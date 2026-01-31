@@ -1,0 +1,70 @@
+26_\320\262_21.12_1767983590340-Bp90ddAd.png"
+ create mode 100644 "dist/public/demo-videos/\320\260\320\275\321\202\320\270\321\204\321\200\320\276\320\264.mp4"
+ create mode 100644 "dist/public/demo-videos/\320\264\320\260\321\210\320\261\320\276\321\200\320\264.mp4"
+ create mode 100644 "dist/public/demo-videos/\320\272\320\276\320\274\320\260\320\275\320\264\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\320\276\321\204\321\204\320\265\321\200\321\213_.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\201\320\276\320\267\320\264\320\260\320\275\320\270\320\265_\320\276\321\204\321\204\320\265\321\200\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\201\321\202\320\260\321\202\320\270\321\202\321\201\321\202\320\270\320\272\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\204\320\270\320\275\320\260\320\275\321\201\321\213.mp4"
+ create mode 100644 dist/public/favicon-32x32.png
+ create mode 100644 dist/public/favicon.png
+ create mode 100644 dist/public/favicon.svg
+ create mode 100644 dist/public/index.html
+ create mode 100644 dist/public/opengraph.jpg
+ create mode 100644 dist/public/primetrack-logo.png
+[PM2] Starting /var/www/primetrack/dist/index.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 19.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# pm2 logs primetrack --lines 20
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:31567
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:36220
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at Object.<anonymous> (/var/www/primetrack/dist/index.cjs:256:4417)
+0|primetra |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|primetra |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|primetra |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|primetra |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|primetra |     at cjsLoader (node:internal/modules/esm/translators:298:15)
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+
+/root/.pm2/logs/primetrack-out.log last 20 lines:
+0|primetra | 3:53:00 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 3:53:00 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 3:53:01 PM [aggregation] Daily stats aggregation completed: 4 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 4:22:15 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 4:22:15 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 4:22:15 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+
