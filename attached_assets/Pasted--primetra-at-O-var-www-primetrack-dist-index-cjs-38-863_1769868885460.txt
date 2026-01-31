@@ -1,0 +1,177 @@
+|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+
+^C
+[root@v742573 primetrack]# pm2 logs primetrack --lines 50
+[TAILING] Tailing last 50 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-out.log last 50 lines:
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 2:00:33 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 2:00:33 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 2:00:34 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 2:02:19 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 2:02:19 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 2:02:19 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 2:09:07 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 2:09:07 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 2:09:08 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 2:09:14 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 2:09:14 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 2:09:15 PM [aggregation] Daily stats aggregation completed: 0 rows
+
+/root/.pm2/logs/primetrack-error.log last 50 lines:
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+
+^C
+[root@v742573 primetrack]# pm2 logs primetrack --err --lines 50
+[TAILING] Tailing last 50 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 50 lines:
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+
+
