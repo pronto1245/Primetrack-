@@ -1,0 +1,145 @@
+7 [notice] 2673462#2673462: signal process started
+2026/01/31 20:28:53 [crit] 2673463#2673463: *3744 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 34.96.46.82, server: 0.0.0.0:443
+2026/01/31 20:29:07 [crit] 2673463#2673463: *3755 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 34.96.46.116, server: 0.0.0.0:443
+2026/01/31 20:29:27 [crit] 2673463#2673463: *3770 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 34.96.47.131, server: 0.0.0.0:443
+2026/01/31 20:30:53 [crit] 2673463#2673463: *3801 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 95.215.0.144, server: 0.0.0.0:443
+[root@v742573 primetrack]# ^C
+[root@v742573 primetrack]# cd /var/www/primetrack
+git add -A
+git commit -m "Configure Cloudflare Origin Certificate and custom domains SSL"
+git push origin main
+[main 44ecbbf] Configure Cloudflare Origin Certificate and custom domains SSL
+ Committer: root <root@v742573.ip.webhost1.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 3 files changed, 95 insertions(+), 73 deletions(-)
+ create mode 100644 .env
+Username for 'https://github.com': cd /var/www/primetrack
+git reset --soft HEAD~1
+git checkout .envPassword for 'https://cd%20%2Fvar%2Fwww%2Fprimetrack@github.com': 
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/pronto1245/Primetrack-.git/'
+[root@v742573 primetrack]# cd /var/www/primetrack
+git reset --soft HEAD~1
+git checkout .env
+Updated 0 paths from the index
+[root@v742573 primetrack]# cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+remote: Enumerating objects: 55, done.
+remote: Counting objects: 100% (55/55), done.
+remote: Compressing objects: 100% (14/14), done.
+remote: Total 50 (delta 36), reused 50 (delta 36), pack-reused 0 (from 0)
+Unpacking objects: 100% (50/50), 225.43 KiB | 1.26 MiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+   b2c9722..b48abc0  main       -> origin/main
+Updating b2c9722..b48abc0
+Fast-forward
+ ...roxied-Auto-EditWhen-toggled-_1769886334042.txt | 134 +++++++++++++++++++
+ ...tatus-TTL-Actions-A-origin-18_1769888101292.txt | 148 +++++++++++++++++++++
+ ...l9-noarch-python3-configargp-_1769886903725.txt |  57 ++++++++
+ ...metrack-lines-100-TAILING-Tai_1769890178274.txt | 119 +++++++++++++++++
+ ...1-6mb-Done-in-529ms-PM2-Apply_1769886190335.txt |  58 ++++++++
+ ...inx-selfsigned-key-location-p_1769890132916.txt | 132 ++++++++++++++++++
+ ...etrack-ad36eb8-b2c9722-main-o_1769886060878.txt |  95 +++++++++++++
+ ...ize-22-M-Downloading-Packages_1769886815877.txt | 133 ++++++++++++++++++
+ ...tificate-etc-ssl-cloudflare-o_1769891479983.txt |  55 ++++++++
+ ...72_31.01.2026_\320\262_22.33_1769888018146.png" | Bin 0 -> 122395 bytes
+ client/public/opengraph.jpg                        | Bin 61028 -> 60757 bytes
+ 11 files changed, 931 insertions(+)
+ create mode 100644 attached_assets/Pasted--A-origin-185-179-191-12-Proxied-Auto-EditWhen-toggled-_1769886334042.txt
+ create mode 100644 attached_assets/Pasted--Type-Name-Content-Proxy-status-TTL-Actions-A-origin-18_1769888101292.txt
+ create mode 100644 attached_assets/Pasted--python3-chardet-4-0-0-5-el9-noarch-python3-configargp-_1769886903725.txt
+ create mode 100644 attached_assets/Pasted--root-v742573-pm2-logs-primetrack-lines-100-TAILING-Tai_1769890178274.txt
+ create mode 100644 attached_assets/Pasted-4-warnings-dist-index-cjs-1-6mb-Done-in-529ms-PM2-Apply_1769886190335.txt
+ create mode 100644 attached_assets/Pasted-ate-key-etc-ssl-private-nginx-selfsigned-key-location-p_1769890132916.txt
+ create mode 100644 attached_assets/Pasted-github-com-pronto1245-Primetrack-ad36eb8-b2c9722-main-o_1769886060878.txt
+ create mode 100644 attached_assets/Pasted-oad-size-5-2-M-Installed-size-22-M-Downloading-Packages_1769886815877.txt
+ create mode 100644 attached_assets/Pasted-server-server-name-ssl-certificate-etc-ssl-cloudflare-o_1769891479983.txt
+ create mode 100644 "attached_assets/\320\241\320\275\320\270\320\274\320\276\320\272_31.01.2026_\320\262_22.33_1769888018146.png"
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3878 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-Dt-nmw6a.css                                      195.95 kB │ gzip:  28.11 kB
+../dist/public/assets/index-ByyZflIZ.js                                     2,582.01 kB │ gzip: 672.73 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 20.05s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 697ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 12   │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
