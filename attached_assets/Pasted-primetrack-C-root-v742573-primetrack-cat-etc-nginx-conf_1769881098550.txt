@@ -1,0 +1,85 @@
+primetrack]# ^C
+[root@v742573 primetrack]# cat /etc/nginx/conf.d/primetrack.conf
+server {
+    listen 80;
+    server_name lak-dom.ru;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+[root@v742573 primetrack]# cat >> /var/www/primetrack/.env << 'EOF'
+CLOUDFLARE_API_TOKEN=RahzqgTD2hy3VAGwLND3dA9iG0NpL02niwWk3kgE
+CLOUDFLARE_ZONE_ID=e742e8d60b47e769445517d1371355fb
+CLOUDFLARE_CNAME_TARGET=customers.primetrack.pro
+CLOUDFLARE_FALLBACK_ORIGIN=185.179.191.12
+CLOUDFLARE_WORKER_SECRET=Prime7846Track2024Secret!
+PLATFORM_DOMAIN=primetrack.pro
+EOF
+[root@v742573 primetrack]# cat > /etc/nginx/conf.d/primetrack.conf << 'EOF'
+server {
+    listen 80;
+    server_name _;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
+[root@v742573 primetrack]# nginx -t && nginx -s reload && pm2 restart primetrack
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 4    │ online    │ 0%       │ 16.8mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# # 1. Добавь Cloudflare переменные
+cat >> /var/www/primetrack/.env << 'EOF'
+CLOUDFLARE_API_TOKEN=RahzqgTD2hy3VAGwLND3dA9iG0NpL02niwWk3kgE
+CLOUDFLARE_ZONE_ID=e742e8d60b47e769445517d1371355fb
+CLOUDFLARE_CNAME_TARGET=customers.primetrack.pro
+CLOUDFLARE_FALLBACK_ORIGIN=185.179.191.12
+CLOUDFLARE_WORKER_SECRET=Prime7846Track2024Secret!
+PLATFORM_DOMAIN=primetrack.pro
+EOF
+
+# 2. Обнови nginx для всех доменов
+cat > /etc/nginx/conf.d/primetrack.conf << 'EOF'
+server {
+    listen 80;
+    server_name _;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
+
+# 3. Перезапусти всё
+nginx -t && nginx -s reload && pm2 restart primetrack
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 5    │ online    │ 0%       │ 11.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
