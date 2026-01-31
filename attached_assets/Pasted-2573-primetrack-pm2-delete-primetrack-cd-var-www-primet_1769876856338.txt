@@ -1,0 +1,49 @@
+2573 primetrack]# pm2 delete primetrack
+cd /var/www/primetrack
+export $(cat .env | xargs)
+pm2 start dist/index.cjs --name primetrack --cwd /var/www/primetrack
+pm2 save
+pm2 logs primetrack --lines 5
+[PM2] Applying action deleteProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Starting /var/www/primetrack/dist/index.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 17.6mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 5 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 5 lines:
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+
+/root/.pm2/logs/primetrack-out.log last 5 lines:
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 4:26:49 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 4:26:50 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+0|primetrack  | [WorkerAuth] Worker secret loaded from environment variable
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 4:27:26 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 4:27:26 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-01
+0|primetrack  | 4:27:27 PM [aggregation] Daily stats aggregation completed: 4 rows
+
