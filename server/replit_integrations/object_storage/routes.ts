@@ -1,11 +1,16 @@
 import type { Express } from "express";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { isR2Configured, getR2UploadUrl } from "../../services/r2-storage";
 
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || "";
+const IS_REPLIT = !!process.env.REPL_ID;
 
 export function registerObjectStorageRoutes(app: Express): void {
-  const objectStorageService = new ObjectStorageService();
+  // Only load Replit Object Storage if we're on Replit
+  let objectStorageService: any = null;
+  if (IS_REPLIT) {
+    const { ObjectStorageService } = require("./objectStorage");
+    objectStorageService = new ObjectStorageService();
+  }
 
   app.post("/api/uploads/request-url", async (req, res) => {
     try {
@@ -17,7 +22,7 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
-      // Use R2 if configured, otherwise Replit Object Storage
+      // Use R2 if configured (VPS/Koyeb)
       if (isR2Configured()) {
         const { uploadUrl, publicUrl } = await getR2UploadUrl(contentType);
         return res.json({
@@ -28,7 +33,7 @@ export function registerObjectStorageRoutes(app: Express): void {
       }
 
       // Fallback to Replit Object Storage (only works on Replit)
-      if (process.env.REPL_ID) {
+      if (IS_REPLIT && objectStorageService) {
         const uploadURL = await objectStorageService.getObjectEntityUploadURL();
         const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
         return res.json({
@@ -55,18 +60,23 @@ export function registerObjectStorageRoutes(app: Express): void {
       }
 
       // Fallback to Replit Object Storage (only works on Replit)
-      if (process.env.REPL_ID) {
-        const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-        await objectStorageService.downloadObject(objectFile, res);
-        return;
+      if (IS_REPLIT && objectStorageService) {
+        const { ObjectNotFoundError } = require("./objectStorage");
+        try {
+          const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+          await objectStorageService.downloadObject(objectFile, res);
+          return;
+        } catch (error) {
+          if (error instanceof ObjectNotFoundError) {
+            return res.status(404).json({ error: "Object not found" });
+          }
+          throw error;
+        }
       }
 
       return res.status(404).json({ error: "Object not found - storage not configured" });
     } catch (error) {
       console.error("Error serving object:", error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: "Object not found" });
-      }
       return res.status(500).json({ error: "Failed to serve object" });
     }
   });
