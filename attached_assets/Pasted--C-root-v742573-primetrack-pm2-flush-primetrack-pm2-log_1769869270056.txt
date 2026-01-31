@@ -1,0 +1,43 @@
+^C
+[root@v742573 primetrack]# pm2 flush primetrack
+pm2 logs primetrack --err --lines 5
+[PM2] Flushing:
+[PM2] /root/.pm2/logs/primetrack-out.log
+[PM2] /root/.pm2/logs/primetrack-error.log
+[PM2] Logs flushed
+[TAILING] Tailing last 5 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 5 lines:
+^C
+[root@v742573 primetrack]# pm2 restart primetrack --update-env
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 9    │ online    │ 0%       │ 24.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# pm2 logs primetrack --err --lines 20
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+
+
