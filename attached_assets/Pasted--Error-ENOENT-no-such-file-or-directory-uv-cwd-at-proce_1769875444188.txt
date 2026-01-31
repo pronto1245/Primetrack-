@@ -1,0 +1,83 @@
+                       ^
+
+Error: ENOENT: no such file or directory, uv_cwd
+    at process.wrappedCwd [as cwd] (node:internal/bootstrap/switches/does_own_process_state:144:28)
+    at new API (/usr/lib/node_modules/pm2/lib/API.js:69:24)
+    at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/binaries/CLI.js:27:11)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/usr/lib/node_modules/pm2/bin/pm2:3:1) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'uv_cwd'
+}
+
+Node.js v20.20.0
+[root@v742573 primetrack]# netstat -tulnp | grep :80
+-bash: netstat: command not found
+[root@v742573 primetrack]# # 1. Проверь, живой ли nginx и слушает ли он порт 80
+netstat -tulnp | grep :80
+
+# 2. Перезагрузи конфиг nginx
+nginx -s reload
+
+# 3. Если всё равно не заходит, проверь, нет ли конфликта с дефолтным конфигом (удали его)
+rm -f /etc/nginx/sites-enabled/default
+nginx -s reload
+
+# 4. Проверь статус firewall еще раз и убедись, что 80 порт реально открыт для всех
+firewall-cmd --list-all
+-bash: netstat: command not found
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: ens3
+  sources: 
+  services: cockpit dhcpv6-client ssh
+  ports: 22/tcp 80/tcp 443/tcp
+  protocols: 
+  forward: yes
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+[root@v742573 primetrack]# cd /var/www/primetrack
+-bash: cd: /var/www/primetrack: No such file or directory
+[root@v742573 primetrack]# apt update && apt install -y net-tools iproute2
+-bash: apt: command not found
+[root@v742573 primetrack]# ls -la /etc/nginx/
+total 84
+drwxr-xr-x   4 root root 4096 Jan 31 13:31 .
+drwxr-xr-x. 88 root root 8192 Jan 31 13:30 ..
+drwxr-xr-x   2 root root   29 Jan 31 13:28 conf.d
+drwxr-xr-x   2 root root    6 Nov 20 12:43 default.d
+-rw-r--r--   1 root root 1077 Nov 20 12:43 fastcgi.conf
+-rw-r--r--   1 root root 1077 Nov 20 12:43 fastcgi.conf.default
+-rw-r--r--   1 root root 1007 Nov 20 12:43 fastcgi_params
+-rw-r--r--   1 root root 1007 Nov 20 12:43 fastcgi_params.default
+-rw-r--r--   1 root root 2837 Nov 20 12:43 koi-utf
+-rw-r--r--   1 root root 2223 Nov 20 12:43 koi-win
+-rw-r--r--   1 root root 5231 Nov 20 12:43 mime.types
+-rw-r--r--   1 root root 5231 Nov 20 12:43 mime.types.default
+-rw-r--r--   1 root root  726 Jan 31 13:32 nginx.conf
+-rw-r--r--   1 root root 2656 Nov 20 12:43 nginx.conf.default
+-rw-r--r--   1 root root  636 Nov 20 12:43 scgi_params
+-rw-r--r--   1 root root  636 Nov 20 12:43 scgi_params.default
+-rw-r--r--   1 root root  664 Nov 20 12:43 uwsgi_params
+-rw-r--r--   1 root root  664 Nov 20 12:43 uwsgi_params.default
+-rw-r--r--   1 root root 3610 Nov 20 12:43 win-utf
+[root@v742573 primetrack]# nginx
+nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+nginx: [emerg] still could not bind()
+[root@v742573 primetrack]# netstat -tulnp | grep -E '80|3000'
+-bash: netstat: command not found
+[root@v742573 primetrack]# 
