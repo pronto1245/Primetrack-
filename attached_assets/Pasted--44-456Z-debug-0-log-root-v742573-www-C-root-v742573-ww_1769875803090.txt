@@ -1,0 +1,68 @@
+_44_456Z-debug-0.log
+[root@v742573 www]# ^C
+[root@v742573 www]# # Останавливаем и удаляем все процессы PM2
+pm2 delete all && pm2 save --force
+
+# Полностью сносим папку с проектом
+rm -rf /var/www/primetrack
+
+# Удаляем конфиги Nginx
+rm -f /etc/nginx/conf.d/primetrack.conf
+rm -f /etc/nginx/sites-enabled/default
+
+# Перезагружаем Nginx (он будет чист)
+nginx -s reload
+[PM2] Applying action deleteProcessId on app [all](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 www]# # Создаем папку и клонируем
+mkdir -p /var/www && cd /var/www
+git clone https://github.com/pronto1245/Primetrack-.git primetrack
+cd primetrack
+
+# Ставим зависимости и собираем
+npm install
+npm run build
+Cloning into 'primetrack'...
+remote: Enumerating objects: 10053, done.
+remote: Counting objects: 100% (3121/3121), done.
+remote: Compressing objects: 100% (427/427), done.
+remote: Total 10053 (delta 1466), reused 2918 (delta 1280), pack-reused 6932 (from 1)
+Receiving objects: 100% (10053/10053), 375.21 MiB | 41.33 MiB/s, done.
+Resolving deltas: 100% (6806/6806), done.
+Updating files: 100% (510/510), done.
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated lodash.isequal@4.5.0: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated fstream@1.0.12: This package is no longer supported.
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 905 packages, and audited 906 packages in 19s
+
+111 packages are looking for funding
+  run `npm fund` for details
+
+29 vulnerabilities (2 low, 1 moderate, 26 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+sh: line 1: tsx: command not found
+[root@v742573 primetrack]# 
