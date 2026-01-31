@@ -1,0 +1,55 @@
+server;
+    server_name _;
+    
+    ssl_certificate /etc/ssl/cloudflare/origin.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/origin.key;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $http_x_forwarded_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $http_x_forwarded_host;
+    }
+}
+nginx -t && systemctl reload nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@v742573 primetrack]# curl -I https://lak-dom.ru
+HTTP/2 200 
+date: Sat, 31 Jan 2026 20:31:06 GMT
+content-type: text/html; charset=UTF-8
+server: cloudflare
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+x-powered-by: Express
+accept-ranges: bytes
+cache-control: public, max-age=0
+last-modified: Sat, 31 Jan 2026 19:00:50 GMT
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=jr70HLlMk2RAURxCNo9UKRBToDtacJuEiXfW41lHS8wGAHJuyU2vkFXJ2ZFx9Wy%2Fsjv7JoHW6Pkd6%2FWi06a6orcDSpcXFOHJ%2BD4XeYW6W5iRmuQlqGM%3D"}]}
+cf-cache-status: DYNAMIC
+cf-ray: 9c6bf88058e33556-FRA
+alt-svc: h3=":443"; ma=86400
+
+[root@v742573 primetrack]# tail -20 /var/log/nginx/error.log
+2026/01/31 16:14:38 [error] 1155330#1155330: *63 connect() failed (111: Connection refused) while connecting to upstream, client: 162.158.182.74, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 16:14:53 [error] 1155330#1155330: *65 connect() failed (111: Connection refused) while connecting to upstream, client: 195.3.221.8, server: lak-dom.ru, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:3000/", host: "185.179.191.12"
+2026/01/31 17:33:04 [notice] 1630851#1630851: signal process started
+2026/01/31 17:38:03 [notice] 1660544#1660544: signal process started
+2026/01/31 18:11:19 [notice] 1859195#1859195: signal process started
+2026/01/31 19:14:46 [notice] 2239404#2239404: signal process started
+2026/01/31 19:14:52 [notice] 2240040#2240040: signal process started
+2026/01/31 19:16:39 [notice] 2250693#2250693: signal process started
+2026/01/31 20:19:00 [notice] 2623060#2623060: signal process started
+2026/01/31 20:19:06 [notice] 2623609#2623609: signal process started
+2026/01/31 20:19:09 [notice] 2623852#2623852: signal process started
+2026/01/31 20:19:10 [notice] 2623951#2623951: signal process started
+2026/01/31 20:19:15 [notice] 2624587#2624587: signal process started
+2026/01/31 20:22:04 [crit] 2624589#2624589: *3576 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 196.196.53.51, server: 0.0.0.0:443
+2026/01/31 20:26:38 [crit] 2624589#2624589: *3693 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 94.102.49.155, server: 0.0.0.0:443
+2026/01/31 20:27:27 [notice] 2673462#2673462: signal process started
+2026/01/31 20:28:53 [crit] 2673463#2673463: *3744 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 34.96.46.82, server: 0.0.0.0:443
+2026/01/31 20:29:07 [crit] 2673463#2673463: *3755 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 34.96.46.116, server: 0.0.0.0:443
+2026/01/31 20:29:27 [crit] 2673463#2673463: *3770 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 34.96.47.131, server: 0.0.0.0:443
+2026/01/31 20:30:53 [crit] 2673463#2673463: *3801 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 95.215.0.144, server: 0.0.0.0:443
+[root@v742573 primetrack]# 
