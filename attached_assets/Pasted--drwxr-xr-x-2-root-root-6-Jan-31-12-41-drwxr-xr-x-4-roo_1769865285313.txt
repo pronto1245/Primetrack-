@@ -1,0 +1,47 @@
+
+drwxr-xr-x 2 root root  6 Jan 31 12:41 .
+drwxr-xr-x 4 root root 39 Jan 31 12:33 ..
+[root@v742573 primetrack]# git clone https://github.com/pronto1245/Primetrack-.git .
+Cloning into '.'...
+remote: Enumerating objects: 10053, done.
+remote: Counting objects: 100% (3121/3121), done.
+remote: Compressing objects: 100% (427/427), done.
+^Cceiving objects:  15% (1518/10053), 235.32 MiB | 262.00 KiB/s
+[root@v742573 primetrack]# rm -rf /var/www/primetrack/* /var/www/primetrack/.[!.]* 2>/dev/null; git clone --depth 1 https://github.com/pronto1245/Primetrack-.git .
+Cloning into '.'...
+remote: Enumerating objects: 514, done.
+remote: Counting objects: 100% (514/514), done.
+remote: Compressing objects: 100% (472/472), done.
+remote: Total 514 (delta 50), reused 440 (delta 35), pack-reused 0 (from 0)
+Receiving objects: 100% (514/514), 361.58 MiB | 40.79 MiB/s, done.
+Resolving deltas: 100% (50/50), done.
+Updating files: 100% (510/510), done.
+[root@v742573 primetrack]# npm install
+npm warn deprecated lodash.isequal@4.5.0: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated fstream@1.0.12: This package is no longer supported.
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+
+added 1011 packages, and audited 1012 packages in 30s
+
+128 packages are looking for funding
+  run `npm fund` for details
+
+33 vulnerabilities (2 low, 5 moderate, 26 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+[root@v742573 primetrack]# 
