@@ -1,0 +1,57 @@
+ python3-chardet-4.0.0-5.el9.noarch                                            
+  python3-configargparse-1.7.1-1.el9.noarch                                     
+  python3-configobj-5.0.6-25.el9.noarch                                         
+  python3-cryptography-36.0.1-5.el9.x86_64                                      
+  python3-distro-1.5.0-7.el9.noarch                                             
+  python3-idna-2.10-7.el9.1.noarch                                              
+  python3-importlib-metadata-4.12.0-2.el9.noarch                                
+  python3-josepy-1.14.0-1.el9.noarch                                            
+  python3-parsedatetime-2.6-5.el9.noarch                                        
+  python3-ply-3.11-14.el9.noarch                                                
+  python3-pyOpenSSL-21.0.0-1.el9.noarch                                         
+  python3-pycparser-2.20-6.el9.noarch                                           
+  python3-pyparsing-2.4.7-9.el9.noarch                                          
+  python3-pyrfc3339-1.1-11.el9.noarch                                           
+  python3-pysocks-1.7.1-12.el9.noarch                                           
+  python3-pytz-2021.1-5.el9.noarch                                              
+  python3-requests-2.25.1-10.el9.noarch                                         
+  python3-setuptools-53.0.0-15.el9.noarch                                       
+  python3-urllib3-1.26.5-6.el9.noarch                                           
+  python3-zipp-3.20.1-2.el9.noarch                                              
+
+Complete!
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Enter email address (used for urgent renewal and security notices)
+ (Enter 'c' to cancel): 9791207@gmail.com
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Please read the Terms of Service at
+https://letsencrypt.org/documents/LE-SA-v1.6-August-18-2025.pdf. You must agree
+in order to register with the ACME server. Do you agree?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: y
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Would you be willing, once your first certificate is successfully issued, to
+share your email address with the Electronic Frontier Foundation, a founding
+partner of the Let's Encrypt project and the non-profit organization that
+develops Certbot? We'd like to send you email about our work encrypting the web,
+EFF news, campaigns, and ways to support digital freedom.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: y
+Account registered.
+Requesting a certificate for primetrack.pro and www.primetrack.pro
+y
+
+Certbot failed to authenticate some domains (authenticator: nginx). The Certificate Authority reported these problems:
+  Domain: www.primetrack.pro
+  Type:   dns
+  Detail: DNS problem: NXDOMAIN looking up A for www.primetrack.pro - check that a DNS record exists for this domain; DNS problem: NXDOMAIN looking up AAAA for www.primetrack.pro - check that a DNS record exists for this domain
+
+Hint: The Certificate Authority failed to verify the temporary nginx configuration changes made by Certbot. Ensure the listed domains point to this nginx server and that it is accessible from the internet.
+
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+[root@v742573 primetrack]# y
+-bash: y: command not found
+[root@v742573 primetrack]# 
