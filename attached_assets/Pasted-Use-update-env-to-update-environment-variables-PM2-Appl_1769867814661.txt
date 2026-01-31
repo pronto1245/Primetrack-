@@ -1,0 +1,67 @@
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 3    │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-out.log last 20 lines:
+0|primetra | 1:42:34 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:42:34 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:42:35 PM [aggregation] Daily stats aggregation completed: 0 rows
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:56:04 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:56:04 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 1:56:05 PM [aggregation] Daily stats aggregation completed: 0 rows
+
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetra |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetra |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetra |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetra | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetra |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetra |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetra |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetra |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetra |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+
+0|primetrack  | [WorkerAuth] Worker secret loaded from environment variable
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 1:56:45 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 1:56:45 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-01
+0|primetrack  | 1:56:45 PM [aggregation] Daily stats aggregation completed: 0 rows
+
