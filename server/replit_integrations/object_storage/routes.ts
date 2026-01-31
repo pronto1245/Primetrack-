@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { isR2Configured, getR2UploadUrl } from "../../services/r2-storage";
 
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || "";
+
 export function registerObjectStorageRoutes(app: Express): void {
   const objectStorageService = new ObjectStorageService();
 
@@ -15,7 +17,7 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
-      // Use R2 if configured (Koyeb), otherwise Replit Object Storage
+      // Use R2 if configured, otherwise Replit Object Storage
       if (isR2Configured()) {
         const { uploadUrl, publicUrl } = await getR2UploadUrl(contentType);
         return res.json({
@@ -25,15 +27,18 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
-      // Fallback to Replit Object Storage
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      // Fallback to Replit Object Storage (only works on Replit)
+      if (process.env.REPL_ID) {
+        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+        const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+        return res.json({
+          uploadURL,
+          objectPath,
+          metadata: { name, size, contentType },
+        });
+      }
 
-      res.json({
-        uploadURL,
-        objectPath,
-        metadata: { name, size, contentType },
-      });
+      return res.status(500).json({ error: "No storage backend configured. Set R2 credentials." });
     } catch (error) {
       console.error("Error generating upload URL:", error);
       res.status(500).json({ error: "Failed to generate upload URL" });
@@ -42,8 +47,21 @@ export function registerObjectStorageRoutes(app: Express): void {
 
   app.get("/objects/:objectPath(*)", async (req, res) => {
     try {
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      await objectStorageService.downloadObject(objectFile, res);
+      // If R2 is configured, redirect to R2 public URL
+      if (isR2Configured() && R2_PUBLIC_URL) {
+        const objectPath = req.params.objectPath;
+        const r2Url = `${R2_PUBLIC_URL}/${objectPath}`;
+        return res.redirect(301, r2Url);
+      }
+
+      // Fallback to Replit Object Storage (only works on Replit)
+      if (process.env.REPL_ID) {
+        const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+        await objectStorageService.downloadObject(objectFile, res);
+        return;
+      }
+
+      return res.status(404).json({ error: "Object not found - storage not configured" });
     } catch (error) {
       console.error("Error serving object:", error);
       if (error instanceof ObjectNotFoundError) {
