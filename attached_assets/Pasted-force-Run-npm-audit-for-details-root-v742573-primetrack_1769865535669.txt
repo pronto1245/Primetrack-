@@ -1,0 +1,113 @@
+force
+
+Run `npm audit` for details.
+[root@v742573 primetrack]# cat > .env << 'EOF'
+DATABASE_URL=postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+NODE_ENV=production
+PORT=3000
+EOF
+[root@v742573 primetrack]# cat .env
+DATABASE_URL=postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+NODE_ENV=production
+PORT=3000
+[root@v742573 primetrack]# cat > .env << 'EOF'
+APP_DOMAIN=https://primetrack.pro
+BINANCE_API_KEY=cfghyjhgy789ijhvfguiuhbb
+CLOUDFLARE_API_TOKEN=RahzqgTD2hy3VAGwLND3dA9iG0NpL02niwWk3kgE
+CLOUDFLARE_CNAME_TARGET=customers.primetrack.pro
+CLOUDFLARE_FALLBACK_ORIGIN=primetrack.pro
+CLOUDFLARE_WORKER_SECRET=Prime7846Track2024Secret!
+CLOUDFLARE_ZONE_ID=e742e8d60b47e769445517d1371355fb
+CORS_ORIGIN=https://primetrack.pro
+DATABASE_URL=postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+ENCRYPTION_KEY=6FNZjsGhkgQkRtg4lzi4aaNxJdwVysUH
+NODE_ENV=production
+PLATFORM_DOMAIN=primetrack.pro
+R2_ACCESS_KEY_ID=15273ea1523e7f6fa2c5894194253c83
+R2_BUCKET_NAME=primetrack-uploads
+R2_ENDPOINT=https://f0a36ec75b07cdaa35a7e6ab015cf770.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://pub-a0f25c897d8747eaa5408dc0e1dc8401.r2.dev
+R2_SECRET_ACCESS_KEY=5e8363eea9be633855227cd7660111f056230801a27c7ff8ac07b16594947edd
+RESEND_API_KEY=re_EYPJoiYf_MqQj2HXNXkd7dZUCnVqGFtuT
+SESSION_COOKIE_DOMAIN=.primetrack.pro
+SESSION_SECRET=f0uPiJ07Fv1X6W0znJ6kYXXEehajHs+XUbvJAfDz7/sEv/b0NHW84ozzSrXy9BZaMIGPbZcodhRDRqXfHAl7hQ==
+EOFT=3000SUPPORT_BOT_TOKEN=8383877045:AAFLv1xFzAVz_0z1WaW2DSjV6jYsEFy-nCw
+[root@v742573 primetrack]# npm run build && pm2 start npm --name "primetrack" -- run start
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3877 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-Dt-nmw6a.css                                      195.95 kB │ gzip:  28.11 kB
+../dist/public/assets/index-C9uzdNbJ.js                                     2,581.86 kB │ gzip: 672.67 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 19.46s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 585ms
+[PM2] Starting /usr/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 28.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
