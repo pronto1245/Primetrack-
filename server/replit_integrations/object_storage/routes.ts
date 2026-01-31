@@ -70,7 +70,9 @@ export function registerObjectStorageRoutes(app: Express): void {
       // Priority 1: Redirect to R2 public URL if configured
       const r2PublicUrl = getR2PublicUrl();
       if (isR2Configured() && r2PublicUrl) {
-        const r2Url = `${r2PublicUrl}/${objectPath}`;
+        // If it starts with uploads/, use it as is, otherwise prefix with uploads/
+        const finalPath = objectPath.startsWith("uploads/") ? objectPath : `uploads/${objectPath}`;
+        const r2Url = `${r2PublicUrl}/${finalPath}`;
         return res.redirect(301, r2Url);
       }
 
