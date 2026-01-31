@@ -1,0 +1,90 @@
+-videos/\321\201\320\276\320\267\320\264\320\260\320\275\320\270\320\265_\320\276\321\204\321\204\320\265\321\200\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\201\321\202\320\260\321\202\320\270\321\202\321\201\321\202\320\270\320\272\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\204\320\270\320\275\320\260\320\275\321\201\321\213.mp4"
+ create mode 100644 dist/public/favicon-32x32.png
+ create mode 100644 dist/public/favicon.png
+ create mode 100644 dist/public/favicon.svg
+ create mode 100644 dist/public/index.html
+ create mode 100644 dist/public/opengraph.jpg
+ create mode 100644 dist/public/primetrack-logo.png
+[PM2] Starting /var/www/primetrack/dist/index.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 19.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# pm2 logs primetrack --lines 20
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:31567
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:36220
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at Object.<anonymous> (/var/www/primetrack/dist/index.cjs:256:4417)
+^Cprimetra | 4:22:15 PM [aggregation] Daily stats aggregation completed: 4 rowsy
+[root@v742573 primetrack]# ls -la /var/www/primetrack/dist/public/
+total 1180
+drwxr-xr-x 4 root root   4096 Jan 31 16:22 .
+drwxr-xr-x 3 root root     37 Jan 31 16:22 ..
+-rw-r--r-- 1 root root  49117 Jan 31 16:22 admin-logo.jpg
+-rw-r--r-- 1 root root 230518 Jan 31 16:22 apple-touch-icon.png
+drwxr-xr-x 2 root root   4096 Jan 31 16:22 assets
+drwxr-xr-x 2 root root   4096 Jan 31 16:22 demo-videos
+-rw-r--r-- 1 root root 302234 Jan 31 16:22 favicon-32x32.png
+-rw-r--r-- 1 root root 302234 Jan 31 16:22 favicon.png
+-rw-r--r-- 1 root root    518 Jan 31 16:22 favicon.svg
+-rw-r--r-- 1 root root   2307 Jan 31 16:22 index.html
+-rw-r--r-- 1 root root  61477 Jan 31 16:22 opengraph.jpg
+-rw-r--r-- 1 root root 230518 Jan 31 16:22 primetrack-logo.png
+[root@v742573 primetrack]# pm2 restart primetrack
+pm2 logs primetrack --lines 10
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 1    │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 10 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 10 lines:
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+
+/root/.pm2/logs/primetrack-out.log last 10 lines:
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 4:22:15 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 4:22:15 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 4:22:15 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+0|primetrack  | [WorkerAuth] Worker secret loaded from environment variable
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 4:26:49 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 4:26:49 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-01
+0|primetrack  | 4:26:50 PM [aggregation] Daily stats aggregation completed: 4 rows
+
