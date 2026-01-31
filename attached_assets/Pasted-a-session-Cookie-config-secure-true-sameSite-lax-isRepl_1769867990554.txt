@@ -1,0 +1,24 @@
+a | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+^C
+[root@v742573 primetrack]# tail -30 /var/log/nginx/access.log | grep -E "(api/user|api/auth)"
+217.168.247.175 - - [31/Jan/2026:13:57:25 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:25 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:26 +0000] "POST /api/auth/login HTTP/1.1" 200 142 "https://lak-dom.ru/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:26 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:26 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:27 +0000] "POST /api/auth/login HTTP/1.1" 200 142 "https://lak-dom.ru/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:27 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:27 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:28 +0000] "POST /api/auth/login HTTP/1.1" 200 142 "https://lak-dom.ru/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:29 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:29 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+[root@v742573 primetrack]# ^C
+[root@v742573 primetrack]# curl -v -X POST https://lak-dom.ru/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' 2>&1 | grep -i "set-cookie"
+< set-cookie: sid=s%3AWY6RKkgebEZak2fCRwhCkLbW9685VPfS.KKI6KUIbiBcPSVgAiNWpkrHgEQZp6kUBHnvA2y213gc; Path=/; Expires=Sun, 01 Feb 2026 13:59:42 GMT; HttpOnly; Secure; SameSite=Lax
+[root@v742573 primetrack]# 
