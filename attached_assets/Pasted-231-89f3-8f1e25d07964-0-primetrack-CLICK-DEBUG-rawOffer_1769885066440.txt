@@ -1,0 +1,43 @@
+231-89f3-8f1e25d07964
+0|primetrack  | [CLICK DEBUG] rawOfferId=0063, rawLandingId=0203, rawPartnerId=019
+0|primetrack  | [CLICK DEBUG] resolved offerId=a3f6ae18-8cf1-4dde-a1db-a2c33baecfed, landingId=f8becd87-2c3b-4b4f-95ee-cdccb4ddcddb, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetrack  | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=esslotunareg, clickId=1e7081d0-1fe9-4748-a27a-fe46b558bac8, clickIdParam=external_id
+0|primetrack  | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=esslotunareg&external_id=1e7081d0-1fe9-4748-a27a-fe46b558bac8, clickIdReplaced=false
+0|primetrack  | [CLICK-METRIC] status=valid geo=RU
+0|primetrack  | 6:44:14 PM [aggregation] Hourly aggregation: 4 rows updated
+^C
+[root@v742573 ~]# cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+remote: Enumerating objects: 59, done.
+remote: Counting objects: 100% (59/59), done.
+remote: Compressing objects: 100% (13/13), done.
+remote: Total 48 (delta 35), reused 48 (delta 35), pack-reused 0 (from 0)
+Unpacking objects: 100% (48/48), 178.77 KiB | 1.31 MiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+   2f2dfb7..ad36eb8  main       -> origin/main
+Updating 2f2dfb7..ad36eb8
+Fast-forward
+ ...roxied-Auto-EditWhen-toggled-_1769880855686.txt | 148 ++++++++++++++++++++
+ ...metrack-lines-50-zsh-command-_1769881959531.txt |  81 +++++++++++
+ ...tatus-TTL-Actions-A-origin-18_1769881614941.txt | 146 +++++++++++++++++++
+ ...aint-undefined-file-parse-rel_1769883090478.txt |  63 +++++++++
+ ...track-lines-30-zsh-command-no_1769884306738.txt |  73 ++++++++++
+ ...4-root-v742573-cd-var-www-pri_1769880339627.txt |  69 +++++++++
+ ...primetrack-cat-etc-nginx-conf_1769881098550.txt |  85 +++++++++++
+ client/public/opengraph.jpg                        | Bin 60214 -> 61028 bytes
+ dist/index.cjs                                     | 134 +++++++++---------
+ dist/public/opengraph.jpg                          | Bin 60214 -> 61028 bytes
+ server/services/click-handler.ts                   | 155 +++++++++++++++------
+ 11 files changed, 842 insertions(+), 112 deletions(-)
+ create mode 100644 attached_assets/Pasted--A-origin-34-111-179-208-Proxied-Auto-EditWhen-toggled-_1769880855686.txt
+ create mode 100644 attached_assets/Pasted--Macbook-pro1-pm2-logs-primetrack-lines-50-zsh-command-_1769881959531.txt
+ create mode 100644 attached_assets/Pasted--Type-Name-Content-Proxy-status-TTL-Actions-A-origin-18_1769881614941.txt
+ create mode 100644 attached_assets/Pasted--dataType-undefined-constraint-undefined-file-parse-rel_1769883090478.txt
+ create mode 100644 attached_assets/Pasted--pm2-status-pm2-logs-primetrack-lines-30-zsh-command-no_1769884306738.txt
+ create mode 100644 attached_assets/Pasted-49-50-2026-from-85-94-17-34-root-v742573-cd-var-www-pri_1769880339627.txt
+ create mode 100644 attached_assets/Pasted-primetrack-C-root-v742573-primetrack-cat-etc-nginx-conf_1769881098550.txt
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+sh: line 1: tsx: command not found
+[root@v742573 primetrack]# 
