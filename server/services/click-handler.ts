@@ -4,6 +4,7 @@ import type { InsertClick } from "@shared/schema";
 import { ipIntelService } from "./ip-intel-service";
 import { antiFraudService, type FraudSignals } from "./antifraud-service";
 import { resolveLanguage, logClickMetric } from "./geo-language";
+import { offerCache } from "./offer-cache";
 import geoip from "geoip-lite";
 
 const IP_INTEL_TIMEOUT_MS = 200;
@@ -63,9 +64,16 @@ export class ClickHandler {
     let isBlocked = false;
     let capReached = false;
     
-    // PHASE 1: Get offer (required for all other operations)
+    // PHASE 1: Get offer (required for all other operations) - with negative cache
     const t1 = Date.now();
-    const offer = await storage.getOffer(params.offerId);
+    let offer: any = null;
+    const cachedOffer = offerCache.getOffer(params.offerId);
+    if (cachedOffer) {
+      offer = cachedOffer.data; // May be null for negative cache hit
+    } else {
+      offer = await storage.getOffer(params.offerId);
+      offerCache.setOffer(params.offerId, offer); // Cache both found and not found
+    }
     const offerTime = Date.now() - t1;
     
     if (!offer) {
@@ -120,14 +128,34 @@ export class ClickHandler {
         ])
       : Promise.resolve(null);
     
-    // Run all independent operations in parallel
-    const [capsCheck, landings, publisherOffer, isUnique, ipIntel] = await Promise.all([
+    // Run all independent operations in parallel - with caching for landings/publisherOffer
+    const cachedLandings = offerCache.getLandings(params.offerId);
+    const cachedPublisherOffer = offerCache.getPublisherOffer(params.offerId, params.partnerId);
+    
+    // Determine which DB calls are needed (cache returns {found, data} or null)
+    const needLandingsFromDb = !cachedLandings;
+    const needPublisherOfferFromDb = !cachedPublisherOffer;
+    
+    const [capsCheck, landingsFromDb, publisherOfferFromDb, isUnique, ipIntel] = await Promise.all([
       storage.checkOfferCaps(params.offerId),
-      storage.getOfferLandings(params.offerId),
-      storage.getPublisherOffer(params.offerId, params.partnerId),
+      needLandingsFromDb ? storage.getOfferLandings(params.offerId) : Promise.resolve(null),
+      needPublisherOfferFromDb ? storage.getPublisherOffer(params.offerId, params.partnerId) : Promise.resolve(null),
       this.checkUniqueness(params.ip, params.offerId, params.partnerId),
       ipIntelPromise,
     ]);
+    
+    // Resolve final values from cache or DB
+    let landings: any[] = cachedLandings?.data || [];
+    let publisherOffer: any = cachedPublisherOffer?.data || null;
+    
+    if (needLandingsFromDb) {
+      landings = landingsFromDb || [];
+      offerCache.setLandings(params.offerId, landings);
+    }
+    if (needPublisherOfferFromDb) {
+      publisherOffer = publisherOfferFromDb;
+      offerCache.setPublisherOffer(params.offerId, params.partnerId, publisherOffer);
+    }
     const parallelTime = Date.now() - t2;
     
     // Use IP intel GEO if available, otherwise fallback to fast geoip-lite

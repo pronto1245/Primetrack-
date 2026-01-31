@@ -282,6 +282,8 @@ export const clicks = pgTable("clicks", {
   offerPublisherDateIdx: index("clicks_offer_publisher_date_idx").on(table.offerId, table.publisherId, table.createdAt),
   publisherDateIdx: index("clicks_publisher_date_idx").on(table.publisherId, table.createdAt),
   offerDateIdx: index("clicks_offer_date_idx").on(table.offerId, table.createdAt),
+  // Uniqueness check index for click handler
+  uniquenessIdx: index("idx_clicks_uniqueness").on(table.ip, table.offerId, table.publisherId, table.createdAt),
 }));
 
 export const insertClickSchema = createInsertSchema(clicks).omit({
@@ -1086,7 +1088,9 @@ export const velocityCounters = pgTable("velocity_counters", {
   
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at"),
-});
+}, (table) => ({
+  velocityLookupIdx: index("idx_velocity_counters_lookup").on(table.counterType, table.counterKey, table.advertiserId),
+}));
 
 export const insertVelocityCounterSchema = createInsertSchema(velocityCounters).omit({
   id: true,

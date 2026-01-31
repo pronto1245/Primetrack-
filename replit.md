@@ -34,7 +34,11 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Fingerprinting:** Utilizes FingerprintJS for visitor identification.
 - **Tracker Integration:** Universal postback endpoint compatible with major trackers like Keitaro, Binom, Voluum.
 - **Advertiser Sources:** Manages advertiser-specific offer sources with secure credential storage.
-- **Performance Optimization:** Extensive SQL-based optimizations for reporting and data retrieval.
+- **Performance Optimization:** 
+  - Click TTFB optimization: parallelized DB queries, IP intel timeout with geoip-lite fallback, async logging
+  - Offer cache: 60s TTL in-memory cache for offers, landings, publisherOffer (no negative cache for landings)
+  - Antifraud optimization: parallelized velocity counter fetches and increments
+  - Database indexes: idx_velocity_counters_lookup, idx_clicks_uniqueness for fast lookups
 
 ## External Dependencies
 - **Database:** PostgreSQL

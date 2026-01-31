@@ -320,20 +320,24 @@ export class AntiFraudService {
       publisherClicksMinute: 0
     };
 
-    if (ip) {
-      const ipCounter = await this.getOrCreateCounter("ip", ip, advertiserId, offerId);
+    // Parallelize all counter fetches
+    const [ipCounter, fpCounter, pubCounter] = await Promise.all([
+      ip ? this.getOrCreateCounter("ip", ip, advertiserId, offerId) : null,
+      fingerprint ? this.getOrCreateCounter("fingerprint", fingerprint, advertiserId, offerId) : null,
+      publisherId ? this.getOrCreateCounter("publisher", publisherId, advertiserId, offerId) : null,
+    ]);
+
+    if (ipCounter) {
       result.ipClicksMinute = this.getCounterValue(ipCounter, "minute", now);
       result.ipClicksHour = this.getCounterValue(ipCounter, "hour", now);
       result.ipClicksDay = this.getCounterValue(ipCounter, "day", now);
     }
 
-    if (fingerprint) {
-      const fpCounter = await this.getOrCreateCounter("fingerprint", fingerprint, advertiserId, offerId);
+    if (fpCounter) {
       result.fingerprintClicksHour = this.getCounterValue(fpCounter, "hour", now);
     }
 
-    if (publisherId) {
-      const pubCounter = await this.getOrCreateCounter("publisher", publisherId, advertiserId, offerId);
+    if (pubCounter) {
       result.publisherClicksMinute = this.getCounterValue(pubCounter, "minute", now);
     }
 
@@ -400,15 +404,12 @@ export class AntiFraudService {
   ): Promise<void> {
     const now = new Date();
 
-    if (ip) {
-      await this.incrementCounter("ip", ip, advertiserId, offerId, now);
-    }
-    if (fingerprint) {
-      await this.incrementCounter("fingerprint", fingerprint, advertiserId, offerId, now);
-    }
-    if (publisherId) {
-      await this.incrementCounter("publisher", publisherId, advertiserId, offerId, now);
-    }
+    // Parallelize all counter increments
+    await Promise.all([
+      ip ? this.incrementCounter("ip", ip, advertiserId, offerId, now) : null,
+      fingerprint ? this.incrementCounter("fingerprint", fingerprint, advertiserId, offerId, now) : null,
+      publisherId ? this.incrementCounter("publisher", publisherId, advertiserId, offerId, now) : null,
+    ]);
   }
 
   private async incrementCounter(
