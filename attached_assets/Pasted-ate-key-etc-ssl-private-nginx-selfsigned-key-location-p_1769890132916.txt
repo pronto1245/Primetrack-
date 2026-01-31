@@ -1,0 +1,132 @@
+ate_key /etc/ssl/private/nginx-selfsigned.key;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
+nginx -t && systemctl reload nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@v742573 primetrack]# Read from remote host 185.179.191.12: Connection reset by peer
+Connection to 185.179.191.12 closed.
+client_loop: send disconnect: Broken pipe
+a1@Macbook-pro1 ~ % tail -f /var/log/nginx/access.log 
+tail: /var/log/nginx/access.log: No such file or directory
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+tail -50 /var/log/nginx/error.log
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Sat Jan 31 19:48:49 UTC 2026 from 51.159.18.215 on ssh:notty
+There were 82 failed login attempts since the last successful login.
+Last login: Sat Jan 31 18:31:26 2026 from 85.94.17.34
+[root@v742573 ~]# tail -50 /var/log/nginx/error.log
+2026/01/31 12:32:41 [notice] 467#467: signal process started
+2026/01/31 13:22:50 [notice] 1874#1874: signal process started
+2026/01/31 13:26:23 [notice] 1#1: js vm init njs: 00007F06FD25FA80
+2026/01/31 13:26:40 [notice] 407#407: js vm init njs: 00007F7C74E23A80
+2026/01/31 13:26:40 [notice] 407#407: signal process started
+2026/01/31 13:27:26 [warn] 150009#150009: conflicting server name "_" on 0.0.0.0:80, ignored
+2026/01/31 13:27:30 [notice] 1#1: js vm init njs: 00007F6003631A80
+2026/01/31 13:28:09 [warn] 164206#164206: conflicting server name "_" on 0.0.0.0:80, ignored
+2026/01/31 13:30:21 [warn] 178525#178525: conflicting server name "_" on 0.0.0.0:80, ignored
+2026/01/31 13:30:21 [warn] 178526#178526: conflicting server name "_" on 0.0.0.0:80, ignored
+2026/01/31 13:31:26 [emerg] 184969#184969: unexpected end of file, expecting "}" in /etc/nginx/nginx.conf:41
+2026/01/31 13:32:01 [notice] 188577#188577: signal process started
+2026/01/31 13:42:11 [notice] 249616#249616: signal process started
+2026/01/31 13:48:15 [notice] 285952#285952: signal process started
+2026/01/31 14:16:39 [error] 285956#285956: *602 connect() failed (111: Connection refused) while connecting to upstream, client: 195.3.221.8, server: lak-dom.ru, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:3000/", host: "185.179.191.12"
+2026/01/31 15:43:11 [error] 285956#285956: *1004 connect() failed (111: Connection refused) while connecting to upstream, client: 43.166.136.24, server: lak-dom.ru, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:3000/", host: "strategic-commercial.net"
+2026/01/31 15:43:35 [error] 285956#285956: *1006 connect() failed (111: Connection refused) while connecting to upstream, client: 130.12.180.108, server: lak-dom.ru, request: "POST /goform/formJsonAjaxReq HTTP/1.1", upstream: "http://127.0.0.1:3000/goform/formJsonAjaxReq", host: "185.179.191.12:80", referrer: "http://185.179.191.12:80/home.asp"
+2026/01/31 15:47:32 [error] 285956#285956: *1048 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 15:47:32 [error] 285956#285956: *1050 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /favicon.ico HTTP/1.1", upstream: "http://127.0.0.1:3000/favicon.ico", host: "lak-dom.ru", referrer: "https://lak-dom.ru/dashboard/advertiser/offers"
+2026/01/31 15:47:35 [error] 285956#285956: *1048 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 15:47:35 [error] 285956#285956: *1050 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /favicon.ico HTTP/1.1", upstream: "http://127.0.0.1:3000/favicon.ico", host: "lak-dom.ru", referrer: "https://lak-dom.ru/dashboard/advertiser/offers"
+2026/01/31 15:47:36 [error] 285956#285956: *1048 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 15:47:36 [error] 285956#285956: *1050 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /favicon.ico HTTP/1.1", upstream: "http://127.0.0.1:3000/favicon.ico", host: "lak-dom.ru", referrer: "https://lak-dom.ru/dashboard/advertiser/offers"
+2026/01/31 15:47:37 [error] 285956#285956: *1048 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 15:47:37 [error] 285956#285956: *1050 connect() failed (111: Connection refused) while connecting to upstream, client: 5.35.3.97, server: lak-dom.ru, request: "GET /favicon.ico HTTP/1.1", upstream: "http://127.0.0.1:3000/favicon.ico", host: "lak-dom.ru", referrer: "https://lak-dom.ru/dashboard/advertiser/offers"
+2026/01/31 16:02:16 [notice] 1088163#1088163: signal process started
+2026/01/31 16:02:16 [notice] 1088167#1088167: signal process started
+2026/01/31 16:03:46 [emerg] 1097109#1097109: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/01/31 16:03:46 [emerg] 1097109#1097109: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/01/31 16:03:46 [emerg] 1097109#1097109: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/01/31 16:03:46 [emerg] 1097109#1097109: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/01/31 16:03:46 [emerg] 1097109#1097109: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/01/31 16:03:46 [emerg] 1097109#1097109: still could not bind()
+2026/01/31 16:06:02 [notice] 1110709#1110709: signal process started
+2026/01/31 16:08:45 [notice] 1126905#1126905: signal process started
+2026/01/31 16:12:52 [notice] 1151649#1151649: signal process started
+2026/01/31 16:13:29 [notice] 1155329#1155329: signal process started
+2026/01/31 16:13:50 [error] 1155330#1155330: *59 connect() failed (111: Connection refused) while connecting to upstream, client: 104.23.221.153, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 16:14:16 [error] 1155330#1155330: *61 connect() failed (111: Connection refused) while connecting to upstream, client: 104.23.223.108, server: lak-dom.ru, request: "GET /favicon.ico HTTP/1.1", upstream: "http://127.0.0.1:3000/favicon.ico", host: "lak-dom.ru", referrer: "https://lak-dom.ru/dashboard/advertiser/offers"
+2026/01/31 16:14:38 [error] 1155330#1155330: *63 connect() failed (111: Connection refused) while connecting to upstream, client: 162.158.182.74, server: lak-dom.ru, request: "GET /dashboard/advertiser/offers HTTP/1.1", upstream: "http://127.0.0.1:3000/dashboard/advertiser/offers", host: "lak-dom.ru", referrer: "https://replit.com/"
+2026/01/31 16:14:53 [error] 1155330#1155330: *65 connect() failed (111: Connection refused) while connecting to upstream, client: 195.3.221.8, server: lak-dom.ru, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:3000/", host: "185.179.191.12"
+2026/01/31 17:33:04 [notice] 1630851#1630851: signal process started
+2026/01/31 17:38:03 [notice] 1660544#1660544: signal process started
+2026/01/31 18:11:19 [notice] 1859195#1859195: signal process started
+2026/01/31 19:14:46 [notice] 2239404#2239404: signal process started
+2026/01/31 19:14:52 [notice] 2240040#2240040: signal process started
+2026/01/31 19:16:39 [notice] 2250693#2250693: signal process started
+[root@v742573 ~]# tail -50 /var/log/nginx/access.log
+85.94.17.34 - - [31/Jan/2026:20:01:19 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:01:49 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:01:49 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+172.71.154.11 - - [31/Jan/2026:20:02:13 +0000] "GET / HTTP/1.1" 200 2153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "104.164.126.71"
+104.22.17.187 - - [31/Jan/2026:20:02:13 +0000] "GET / HTTP/1.1" 200 2153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "104.164.173.212"
+85.94.17.34 - - [31/Jan/2026:20:02:18 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:02:20 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:02:20 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+5.61.209.92 - - [31/Jan/2026:20:02:21 +0000] "GET /SDK/webLanguage HTTP/1.1" 200 2153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36 Edg/90.0.818.46" "-"
+162.158.167.68 - - [31/Jan/2026:20:02:22 +0000] "GET / HTTP/1.1" 200 2153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "104.164.173.212"
+162.158.167.68 - - [31/Jan/2026:20:02:45 +0000] "GET /https%3A/fonts.googleapis.com/css2%3Ffamily%3DInter%3Awght%40300%3B400%3B500%3B600%26family%3DSpace%2BGrotesk%3Awght%40300%3B400%3B500%3B600%3B700%26family%3DJetBrains%2BMono%3Awght%40400%3B500%26display%3Dswap HTTP/1.1" 200 2153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "104.164.173.212"
+162.158.167.209 - - [31/Jan/2026:20:02:46 +0000] "GET /assets/index-ByyZflIZ.js HTTP/1.1" 400 55 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "104.164.173.212"
+43.155.188.157 - - [31/Jan/2026:20:02:47 +0000] "GET / HTTP/1.1" 200 2153 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1" "-"
+85.94.17.34 - - [31/Jan/2026:20:02:50 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:02:50 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:03:18 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:03:20 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:03:20 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:03:51 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:03:51 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:04:19 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:04:21 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:04:22 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+172.71.158.192 - - [31/Jan/2026:20:04:34 +0000] "GET /.well-known/cf-custom-hostname-challenge/889ade6e-861b-40e3-841c-207a65b3be9f HTTP/1.1" 200 2153 "-" "Cloudflare Custom Hostname Verification" "2a06:98c0:3624:666b:6559:f880:9e24:86b"
+104.22.17.186 - - [31/Jan/2026:20:04:34 +0000] "GET /.well-known/cf-custom-hostname-challenge/889ade6e-861b-40e3-841c-207a65b3be9f HTTP/1.1" 200 2153 "-" "Cloudflare Custom Hostname Verification" "2a06:98c0:3624:666b:6559:f880:9e24:86b"
+85.94.17.34 - - [31/Jan/2026:20:04:52 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:04:52 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+104.23.221.133 - - [31/Jan/2026:20:04:53 +0000] "HEAD / HTTP/1.1" 200 0 "-" "node" "2a0a:8d80:0:b1d8::1"
+85.94.17.34 - - [31/Jan/2026:20:04:53 +0000] "POST /api/domains/dfa91ce0-a1ca-485f-afb6-5af89df751b5/check-ssl HTTP/1.1" 200 1050 "https://primetrack.pro/dashboard/advertiser/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "-"
+85.94.17.34 - - [31/Jan/2026:20:04:54 +0000] "GET /api/domains HTTP/1.1" 200 919 "https://primetrack.pro/dashboard/advertiser/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "-"
+172.71.183.145 - - [31/Jan/2026:20:05:11 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)" "176.65.148.161"
+162.159.113.64 - - [31/Jan/2026:20:05:13 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)" "176.65.148.161"
+85.94.17.34 - - [31/Jan/2026:20:05:20 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:05:22 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:05:22 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:05:53 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:05:53 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:06:21 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:06:23 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:06:23 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:06:54 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:06:54 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:07:21 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:07:24 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:07:24 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:07:55 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:07:55 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:08:22 +0000] "GET /api/news/unread-count? HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:08:25 +0000] "GET /api/notifications?limit=10 HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+85.94.17.34 - - [31/Jan/2026:20:08:25 +0000] "GET /api/notifications/unread-count HTTP/1.1" 304 0 "https://primetrack.pro/dashboard/admin/settings" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" "-"
+[root@v742573 ~]# 
