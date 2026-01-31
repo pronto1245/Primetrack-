@@ -1,0 +1,113 @@
+.-var-www-primetrack-dist-inde_1769874792456.txt |   52 +
+ ...emctl-stop-nginx-rm-rf-opt-ke_1769866260614.txt |   82 ++
+ ...terObjectStorageRoutes-app-Ex_1769874175957.txt |  117 ++
+ ...rting-var-www-primetrack-dist_1769874447246.txt |   47 +
+ ...sion-store-0-primetra-session_1769866645752.txt |   64 +
+ ...index-cjs-38-7991-0-primetrac_1769867948550.txt |   59 +
+ ...eclare-x-XDG-SESSION-ID-46-de_1769876024609.txt |   76 ++
+ ...72_31.01.2026_\320\262_15.10_1769861470230.png" |  Bin 0 -> 72888 bytes
+ ...72_31.01.2026_\320\262_15.19_1769862006773.png" |  Bin 0 -> 270874 bytes
+ ...72_31.01.2026_\320\262_15.22_1769862134210.png" |  Bin 0 -> 260492 bytes
+ client/public/opengraph.jpg                        |  Bin 60323 -> 61477 bytes
+ dist/index.cjs                                     |  693 +++++++++++
+ dist/public/admin-logo.jpg                         |  Bin 0 -> 49117 bytes
+ dist/public/apple-touch-icon.png                   |  Bin 0 -> 230518 bytes
+ dist/public/assets/index-C9uzdNbJ.js               | 1251 ++++++++++++++++++++
+ dist/public/assets/index-Dt-nmw6a.css              |    1 +
+ ...2026_\320\262_21.11_1767983590341-gQeC2xVZ.png" |  Bin 0 -> 403460 bytes
+ ...2026_\320\262_21.12_1767983590330-BAhPDH0M.png" |  Bin 0 -> 258127 bytes
+ ...2026_\320\262_21.12_1767983590340-Bp90ddAd.png" |  Bin 0 -> 362735 bytes
+ ...02\320\270\321\204\321\200\320\276\320\264.mp4" |  Bin 0 -> 1092655 bytes
+ ...60\321\210\320\261\320\276\321\200\320\264.mp4" |  Bin 0 -> 1074634 bytes
+ ...76\320\274\320\260\320\275\320\264\320\260.mp4" |  Bin 0 -> 315477 bytes
+ ...6\321\204\321\204\320\265\321\200\321\213_.mp4" |  Bin 0 -> 1567003 bytes
+ ...76\321\204\321\204\320\265\321\200\320\260.mp4" |  Bin 0 -> 2552848 bytes
+ ...02\321\201\321\202\320\270\320\272\320\260.mp4" |  Bin 0 -> 3129341 bytes
+ ...70\320\275\320\260\320\275\321\201\321\213.mp4" |  Bin 0 -> 1709740 bytes
+ dist/public/favicon-32x32.png                      |  Bin 0 -> 302234 bytes
+ dist/public/favicon.png                            |  Bin 0 -> 302234 bytes
+ dist/public/favicon.svg                            |   11 +
+ dist/public/index.html                             |   42 +
+ dist/public/opengraph.jpg                          |  Bin 0 -> 61477 bytes
+ dist/public/primetrack-logo.png                    |  Bin 0 -> 230518 bytes
+ .../replit_integrations/object_storage/routes.ts   |   79 +-
+ server/services/r2-storage.ts                      |   46 +-
+ 72 files changed, 6416 insertions(+), 33 deletions(-)
+ create mode 100644 attached_assets/Pasted---1769874004367_1769874004368.txt
+ create mode 100644 attached_assets/Pasted--0-primetra-at-Fu-getObjectEntityFile-var-www-primetrac_1769868927023.txt
+ create mode 100644 attached_assets/Pasted--44-456Z-debug-0-log-root-v742573-www-C-root-v742573-ww_1769875803090.txt
+ create mode 100644 attached_assets/Pasted--C-root-v742573-primetrack-pm2-flush-primetrack-pm2-log_1769869270056.txt
+ create mode 100644 attached_assets/Pasted--Error-ENOENT-no-such-file-or-directory-uv-cwd-at-proce_1769875444188.txt
+ create mode 100644 attached_assets/Pasted--at-Socket-emit-node-events-524-28-0-primetra-at-emitEr_1769870788683.txt
+ create mode 100644 attached_assets/Pasted--dist-index-cjs-1-6mb-Done-in-566ms-Use-update-env-to-u_1769874320250.txt
+ create mode 100644 attached_assets/Pasted--drwxr-xr-x-2-root-root-6-Jan-31-12-41-drwxr-xr-x-4-roo_1769865285313.txt
+ create mode 100644 attached_assets/Pasted--https-lak-dom-ru-SESSION-SECRET-f0uPiJ07Fv1X6W0znJ6kYX_1769868561778.txt
+ create mode 100644 attached_assets/Pasted--id-name--1769866587272_1769866587273.txt
+ create mode 100644 attached_assets/Pasted--lines-option-root-pm2-logs-primetrack-out-log-last-15-_1769869861867.txt
+ create mode 100644 attached_assets/Pasted--pm2-logs-primetrack-error-log-last-10-lines-0-primetra_1769869780869.txt
+ create mode 100644 attached_assets/Pasted--primetra-at-O-var-www-primetrack-dist-index-cjs-38-863_1769868885460.txt
+ create mode 100644 attached_assets/Pasted--root-v742573-primetrack-pm2-logs-primetrack-lines-15-T_1769868099069.txt
+ create mode 100644 attached_assets/Pasted--root-v742573-primetrack-pm2-logs-primetrack-lines-20-T_1769865578592.txt
+ create mode 100644 attached_assets/Pasted-0-primetra-at-l-var-www-primetrack-dist-index-cjs-38-52_1769868862669.txt
+ create mode 100644 attached_assets/Pasted-1-12-building-for-production-plugin-vite-esbuild-client_1769874283765.txt
+ create mode 100644 attached_assets/Pasted-2-ACCESS-KEY-ID-15273ea1523e7f6fa2c5894194253c83-R2-SEC_1769868841319.txt
+ create mode 100644 attached_assets/Pasted-2-s-password-NODE-ENV-production-DATABASE-URL-postgresq_1769873884905.txt
+ create mode 100644 attached_assets/Pasted-44-34-PM-crypto-Crypto-payout-service-ready-per-adverti_1769874935354.txt
+ create mode 100644 attached_assets/Pasted-4a43797a-4854-422c-8eb1-34ddcc0a8157-1-GET-https-lak-do_1769869458151.txt
+ create mode 100644 attached_assets/Pasted-742573-primetrack-cd-var-www-primetrack-pm2-delete-prim_1769866749391.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Sat-Jan-31-12-43-37-on-console-a1-Macbook-pr_1769862343906.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Sat-Jan-31-12-43-37-on-console-a1-Macbook-pr_1769862589066.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Sat-Jan-31-17-43-42-on-ttys000-a1-Macbook-pr_1769872074503.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Sat-Jan-31-17-43-42-on-ttys000-a1-Macbook-pr_1769873003714.txt
+ create mode 100644 attached_assets/Pasted-PM2-Starting-var-www-primetrack-dist-index-cjs-in-fork-_1769874708532.txt
+ create mode 100644 attached_assets/Pasted-SEND-API-KEY-re-EYPJoiYf-MqQj2HXNXkd7dZUCnVqGFtuT-SESSI_1769876066988.txt
+ create mode 100644 attached_assets/Pasted-Search-DNS-Records-Your-search-yielded-16-results-Type-_1769865869249.txt
+ create mode 100644 attached_assets/Pasted-TAILING-Tailing-last-50-lines-for-primetrack-process-ch_1769866439448.txt
+ create mode 100644 attached_assets/Pasted-Use-update-env-to-update-environment-variables-PM2-Appl_1769867814661.txt
+ create mode 100644 attached_assets/Pasted-a-session-Cookie-config-secure-true-sameSite-lax-isRepl_1769867990554.txt
+ create mode 100644 attached_assets/Pasted-cmp-block-inversion-no-interfaces-ens3-sources-services_1769867264579.txt
+ create mode 100644 attached_assets/Pasted-e-configuration-file-etc-nginx-nginx-conf-syntax-is-ok-_1769867457496.txt
+ create mode 100644 attached_assets/Pasted-er-4-5-32-1-483-el9-x86-64-perl-lib-0-65-483-el9-x86-64_1769862690313.txt
+ create mode 100644 attached_assets/Pasted-force-Run-npm-audit-for-details-root-v742573-primetrack_1769865535669.txt
+ create mode 100644 attached_assets/Pasted-gs-primetrack-out-log-last-30-lines-0-primetra-CapsRese_1769867920068.txt
+ create mode 100644 attached_assets/Pasted-imetra-at-Object-anonymous-var-www-primetrack-dist-inde_1769874792456.txt
+ create mode 100644 attached_assets/Pasted-ot-v742573-primetrack-systemctl-stop-nginx-rm-rf-opt-ke_1769866260614.txt
+ create mode 100644 attached_assets/Pasted-rage-export-function-registerObjectStorageRoutes-app-Ex_1769874175957.txt
+ create mode 100644 attached_assets/Pasted-rimetrack-pm2-save-PM2-Starting-var-www-primetrack-dist_1769874447246.txt
+ create mode 100644 attached_assets/Pasted-ssion-Using-PostgreSQL-session-store-0-primetra-session_1769866645752.txt
+ create mode 100644 attached_assets/Pasted-t-var-www-primetrack-dist-index-cjs-38-7991-0-primetrac_1769867948550.txt
+ create mode 100644 attached_assets/Pasted-x-XDG-SESSION-CLASS-user-declare-x-XDG-SESSION-ID-46-de_1769876024609.txt
+ create mode 100644 "attached_assets/\320\241\320\275\320\270\320\274\320\276\320\272_31.01.2026_\320\262_15.10_1769861470230.png"
+ create mode 100644 "attached_assets/\320\241\320\275\320\270\320\274\320\276\320\272_31.01.2026_\320\262_15.19_1769862006773.png"
+ create mode 100644 "attached_assets/\320\241\320\275\320\270\320\274\320\276\320\272_31.01.2026_\320\262_15.22_1769862134210.png"
+ create mode 100644 dist/index.cjs
+ create mode 100644 dist/public/admin-logo.jpg
+ create mode 100644 dist/public/apple-touch-icon.png
+ create mode 100644 dist/public/assets/index-C9uzdNbJ.js
+ create mode 100644 dist/public/assets/index-Dt-nmw6a.css
+ create mode 100644 "dist/public/assets/\320\241\320\275\320\270\320\274\320\276\320\272_09.01.2026_\320\262_21.11_1767983590341-gQeC2xVZ.png"
+ create mode 100644 "dist/public/assets/\320\241\320\275\320\270\320\274\320\276\320\272_09.01.2026_\320\262_21.12_1767983590330-BAhPDH0M.png"
+ create mode 100644 "dist/public/assets/\320\241\320\275\320\270\320\274\320\276\320\272_09.01.2026_\320\262_21.12_1767983590340-Bp90ddAd.png"
+ create mode 100644 "dist/public/demo-videos/\320\260\320\275\321\202\320\270\321\204\321\200\320\276\320\264.mp4"
+ create mode 100644 "dist/public/demo-videos/\320\264\320\260\321\210\320\261\320\276\321\200\320\264.mp4"
+ create mode 100644 "dist/public/demo-videos/\320\272\320\276\320\274\320\260\320\275\320\264\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\320\276\321\204\321\204\320\265\321\200\321\213_.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\201\320\276\320\267\320\264\320\260\320\275\320\270\320\265_\320\276\321\204\321\204\320\265\321\200\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\201\321\202\320\260\321\202\320\270\321\202\321\201\321\202\320\270\320\272\320\260.mp4"
+ create mode 100644 "dist/public/demo-videos/\321\204\320\270\320\275\320\260\320\275\321\201\321\213.mp4"
+ create mode 100644 dist/public/favicon-32x32.png
+ create mode 100644 dist/public/favicon.png
+ create mode 100644 dist/public/favicon.svg
+ create mode 100644 dist/public/index.html
+ create mode 100644 dist/public/opengraph.jpg
+ create mode 100644 dist/public/primetrack-logo.png
+[PM2] Starting /var/www/primetrack/dist/index.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 19.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# 
