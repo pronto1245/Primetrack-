@@ -1,0 +1,76 @@
+x XDG_SESSION_CLASS="user"
+declare -x XDG_SESSION_ID="46"
+declare -x XDG_SESSION_TYPE="tty"
+declare -x which_declare="declare -f"
+[PM2][ERROR] Script not found: /var/www/primetrack/dist/index.cjs
+[PM2] Saving current process list...
+[PM2][WARN] PM2 is not managing any process, skipping save...
+[PM2][WARN] To force saving use: pm2 save --force
+[root@v742573 primetrack]# cd /var/www/primetrack
+npx tsx script/build.ts
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /var/www/primetrack/script/build.ts
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at nextResolve (node:internal/modules/esm/hooks:864:28)
+    at resolveBase (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769875977452:2:3744)
+    at resolveDirectory (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769875977452:2:4243)
+    at resolveTsPaths (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769875977452:2:4984)
+    at async resolve (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1769875977452:2:5355)
+    at async nextResolve (node:internal/modules/esm/hooks:864:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:306:24) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.20.0
+[root@v742573 primetrack]# cat << 'EOF' > .env
+APP_DOMAIN=https://lak-dom.ru
+BINANCE_API_KEY=cfghyjhgy789ijhvfguiuhbb
+CLOUDFLARE_API_TOKEN=RahzqgTD2hy3VAGwLND3dA9iG0NpL02niwWk3kgE
+CLOUDFLARE_CNAME_TARGET=customers.primetrack.pro
+CLOUDFLARE_FALLBACK_ORIGIN=primetrack.pro
+CLOUDFLARE_WORKER_SECRET=Prime7846Track2024Secret!
+CLOUDFLARE_ZONE_ID=e742e8d60b47e769445517d1371355fb
+CORS_ORIGIN=https://lak-dom.ru
+DATABASE_URL=postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+ENCRYPTION_KEY=6FNZjsGhkgQkRtg4lzi4aaNxJdwVysUH
+NODE_ENV=production
+PLATFORM_DOMAIN=primetrack.pro
+R2_ACCESS_KEY_ID=15273ea1523e7f6fa2c5894194253c83
+R2_BUCKET_NAME=primetrack-uploads
+R2_ENDPOINT=https://f0a36ec75b07cdaa35a7e6ab015cf770.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://pub-a0f25c897d8747eaa5408dc0e1dc8401.r2.dev
+R2_SECRET_ACCESS_KEY=5e8363eea9be633855227cd7660111f056230801a27c7ff8ac07b16594947edd
+RESEND_API_KEY=re_EYPJoiYf_MqQj2HXNXkd7dZUCnVqGFtuT
+SESSION_COOKIE_DOMAIN=.lak-dom.ru
+SESSION_SECRET=f0uPiJ07Fv1X6W0znJ6kYXXEehajHs+XUbvJAfDz7/sEv/b0NHW84ozzSrXy9BZaMIGPbZcodhRDRqXfHAl7hQ==
+TELEGRAM_NOTIFY_BOT_TOKEN=8114656266:AAGJMYc4seDYkuvZ-cCxL2E4sobMAbwl7AQ
+TELEGRAM_SUPPORT_BOT_TOKEN=8383877045:AAFLv1xFzAVz_0z1WaW2DSjV6jYsEFy-nCw
+EOF
+[root@v742573 primetrack]# export $(cat .env | xargs)
+pm2 start dist/index.cjs --name primetrack
+pm2 save
+[PM2][ERROR] Script not found: /var/www/primetrack/dist/index.cjs
+[PM2] Saving current process list...
+[PM2][WARN] PM2 is not managing any process, skipping save...
+[PM2][WARN] To force saving use: pm2 save --force
+[root@v742573 primetrack]# cat << 'EOF' > /etc/nginx/conf.d/primetrack.conf
+server {
+    listen 80;
+    server_name lak-dom.ru;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
+
+nginx -s reload
+[root@v742573 primetrack]# 
