@@ -1,0 +1,58 @@
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 529ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 9    │ online    │ 0%       │ 12.1mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# curl -w "TTFB: %{time_starttransfer}s\n" -o /dev/null -s "https://primetrack.pro/t/OFFER_ID?p=PARTNER_ID"
+TTFB: 0.210180s
+[root@v742573 primetrack]# # На VPS - работает ли сервер
+pm2 logs primetrack --lines 20
+
+# С твоего компьютера без VPN
+ping primetrack.pro
+nslookup primetrack.pro
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra | [Encryption] Decrypt error: Error: Unsupported state or unable to authenticate data
+0|primetra |     at Decipheriv.final (node:internal/crypto/cipher:193:29)
+0|primetra |     at Pt (/var/www/primetrack/dist/index.cjs:70:33752)
+0|primetra |     at Object.verifyToken (/var/www/primetrack/dist/index.cjs:193:3345)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70260
+0|primetra | [Encryption] Decrypt error: Error: Unsupported state or unable to authenticate data
+0|primetra |     at Decipheriv.final (node:internal/crypto/cipher:193:29)
+0|primetra |     at Pt (/var/www/primetrack/dist/index.cjs:70:33752)
+0|primetra |     at Object.verifyToken (/var/www/primetrack/dist/index.cjs:193:3345)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:70260
+
+/root/.pm2/logs/primetrack-out.log last 20 lines:
+0|primetra | [CLICK DEBUG] resolved offerId=a3f6ae18-8cf1-4dde-a1db-a2c33baecfed, landingId=f8becd87-2c3b-4b4f-95ee-cdccb4ddcddb, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=esslotunareg, clickId=0705cac9-db31-472a-9239-a516cc1b7a70, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=esslotunareg&external_id=0705cac9-db31-472a-9239-a516cc1b7a70, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=0705cac9-db31-472a-9239-a516cc1b7a70 total=517ms offer=43ms parallel=169ms antifraud=255ms save=50ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=US
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [CustomDomain] Request from lak-dom.ru mapped to advertiser 832e2eeb-d3df-4231-89f3-8f1e25d07964
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 7:00:53 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-01-31
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 7:00:53 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-01
+0|primetra | 7:00:54 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+
