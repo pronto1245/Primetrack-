@@ -1,0 +1,82 @@
+ot@v742573 primetrack]# systemctl stop nginx
+rm -rf /opt/keitaro
+rm -f /etc/systemd/system/nginx.service
+systemctl daemon-reload
+dnf reinstall -y nginx
+systemctl enable nginx
+systemctl start nginx
+Last metadata expiration check: 0:56:51 ago on Sat 31 Jan 2026 12:33:11 PM UTC.
+Dependencies resolved.
+================================================================================
+ Package       Architecture   Version                   Repository         Size
+================================================================================
+Reinstalling:
+ nginx         x86_64         2:1.20.1-26.el9           appstream          36 k
+
+Transaction Summary
+================================================================================
+
+Total download size: 36 k
+Installed size: 148 k
+Downloading Packages:
+nginx-1.20.1-26.el9.x86_64.rpm                  104 kB/s |  36 kB     00:00    
+--------------------------------------------------------------------------------
+Total                                            38 kB/s |  36 kB     00:00     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1 
+  Reinstalling     : nginx-2:1.20.1-26.el9.x86_64                           1/2 
+  Running scriptlet: nginx-2:1.20.1-26.el9.x86_64                           1/2 
+  Running scriptlet: nginx-2:1.20.1-26.el9.x86_64                           2/2 
+  Cleanup          : nginx-2:1.20.1-26.el9.x86_64                           2/2 
+  Running scriptlet: nginx-2:1.20.1-26.el9.x86_64                           2/2 
+  Verifying        : nginx-2:1.20.1-26.el9.x86_64                           1/2 
+  Verifying        : nginx-2:1.20.1-26.el9.x86_64                           2/2 
+
+Reinstalled:
+  nginx-2:1.20.1-26.el9.x86_64                                                  
+
+Complete!
+[root@v742573 primetrack]# cat /etc/nginx/conf.d/primetrack.conf
+systemctl status nginx
+pm2 status
+server {
+    listen 80 default_server;
+    server_name _;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+● nginx.service - The nginx HTTP and reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: di>
+     Active: active (running) since Sat 2026-01-31 13:30:21 UTC; 22s ago
+    Process: 178524 ExecStartPre=/usr/bin/rm -f /run/nginx.pid (code=exited, st>
+    Process: 178525 ExecStartPre=/usr/sbin/nginx -t (code=exited, status=0/SUCC>
+    Process: 178526 ExecStart=/usr/sbin/nginx (code=exited, status=0/SUCCESS)
+   Main PID: 178550 (nginx)
+      Tasks: 3 (limit: 35994)
+     Memory: 3.2M (peak: 3.3M)
+        CPU: 66ms
+     CGroup: /system.slice/nginx.service
+             ├─178550 "nginx: master process /usr/sbin/nginx"
+             ├─178551 "nginx: worker process"
+             └─178552 "nginx: worker process"
+
+Jan 31 13:30:21 v742573.ip.webhost1.net systemd[1]: Starting The nginx HTTP and>
+Jan 31 13:30:21 v742573.ip.webhost1.net nginx[178525]: nginx: [warn] conflictin>
+Jan 31 13:30:21 v742573.ip.webhost1.net nginx[178525]: nginx: the configuration>
+Jan 31 13:30:21 v742573.ip.webhost1.net nginx[178525]: nginx: configuration fil>
+Jan 31 13:30:21 v742573.ip.webhost1.net nginx[178526]: nginx: [warn] conflictin>
+Jan 31 13:30:21 v742573.ip.webhost1.net systemd[1]: Started The nginx HTTP and >
+lines 1-21/21 (END)
