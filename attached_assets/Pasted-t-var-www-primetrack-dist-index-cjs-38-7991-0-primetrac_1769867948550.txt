@@ -1,0 +1,59 @@
+t /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at kt.set.kt.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at kt.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at kt.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:312:1108
+0|primetrack  |     at Mi.handle_error (/var/www/primetrack/dist/index.cjs:38:3073)
+0|primetrack  |     at G (/var/www/primetrack/dist/index.cjs:38:8417)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8013
+0|primetrack  |     at _a.process_params (/var/www/primetrack/dist/index.cjs:38:8558)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7938)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+0|primetrack  | Error serving object: Error: PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' tool and set PRIVATE_OBJECT_DIR env var.
+0|primetrack  |     at Fu.getPrivateObjectDir (/var/www/primetrack/dist/index.cjs:256:6214)
+0|primetrack  |     at Fu.getObjectEntityFile (/var/www/primetrack/dist/index.cjs:256:7568)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:256:10430
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at l (/var/www/primetrack/dist/index.cjs:38:5273)
+0|primetrack  |     at $i.dispatch (/var/www/primetrack/dist/index.cjs:38:5072)
+0|primetrack  |     at Mi.handle_request (/var/www/primetrack/dist/index.cjs:38:3191)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:7991
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8637)
+0|primetrack  |     at O (/var/www/primetrack/dist/index.cjs:38:8716)
+^C
+[root@v742573 primetrack]# pm2 logs primetrack --lines 50 | grep -i session
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+^C
+[root@v742573 primetrack]# tail -30 /var/log/nginx/access.log | grep -E "(api/user|api/auth)"
+217.168.247.175 - - [31/Jan/2026:13:57:25 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:25 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:26 +0000] "POST /api/auth/login HTTP/1.1" 200 142 "https://lak-dom.ru/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:26 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:26 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:27 +0000] "POST /api/auth/login HTTP/1.1" 200 142 "https://lak-dom.ru/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:27 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:27 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:28 +0000] "POST /api/auth/login HTTP/1.1" 200 142 "https://lak-dom.ru/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:29 +0000] "GET /api/user HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+217.168.247.175 - - [31/Jan/2026:13:57:29 +0000] "GET /api/auth/me HTTP/1.1" 401 31 "https://lak-dom.ru/dashboard/advertiser" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" "217.168.247.175"
+[root@v742573 primetrack]# 
