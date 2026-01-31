@@ -1,0 +1,69 @@
+49:50 2026 from 85.94.17.34
+[root@v742573 ~]# cd /var/www/primetrack && git pull origin main && pm2 restart primetrack
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 1    │ online    │ 0%       │ 24.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# git fetch origin && git reset --hard origin/main && pm2 restart primetrack
+HEAD is now at 7ce5ab3 Add production build
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 2    │ online    │ 0%       │ 14.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# git pull origin main && pm2 restart primetrack
+remote: Enumerating objects: 74, done.
+remote: Counting objects: 100% (74/74), done.
+remote: Compressing objects: 100% (11/11), done.
+remote: Total 56 (delta 45), reused 56 (delta 45), pack-reused 0 (from 0)
+Unpacking objects: 100% (56/56), 725.69 KiB | 3.41 MiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   7ce5ab3..2f2dfb7  main       -> origin/main
+Updating 7ce5ab3..2f2dfb7
+Fast-forward
+ ...nd-not-found-bash-primetra-co_1769876773117.txt |  48 ++
+ ...nde-1769874792456-txt-52-emct_1769876544332.txt | 113 +++++
+ ...0-267-320-264-320-260-320-275_1769876820453.txt |  90 ++++
+ ...e-New-month-detected-2026-01-_1769877001181.txt |  81 ++++
+ ...-primetrack-cd-var-www-primet_1769876856338.txt |  49 +++
+ ...0340-Bp90ddAd-png-create-mode_1769876727931.txt |  70 +++
+ ...AILED-pub-a0f25c897d8747eaa54_1769878268194.txt |  16 +
+ client/public/opengraph.jpg                        | Bin 61477 -> 60214 bytes
+ client/src/components/dashboard/AdminSettings.tsx  |   3 +-
+ .../components/dashboard/AdvertiserSettings.tsx    |  13 +-
+ .../src/components/dashboard/CreateOfferForm.tsx   |   3 +-
+ client/src/lib/resolveAssetUrl.ts                  |   9 +
+ client/src/pages/NewsComposer.tsx                  |   5 +-
+ .../{index-C9uzdNbJ.js => index-ByyZflIZ.js}       | 484 ++++++++++-----------
+ dist/public/index.html                             |   2 +-
+ dist/public/opengraph.jpg                          | Bin 61477 -> 60214 bytes
+ 16 files changed, 733 insertions(+), 253 deletions(-)
+ create mode 100644 attached_assets/Pasted--bash-HoldReleaseJob-command-not-found-bash-primetra-co_1769876773117.txt
+ create mode 100644 attached_assets/Pasted--var-www-primetrack-dist-inde-1769874792456-txt-52-emct_1769876544332.txt
+ create mode 100644 attached_assets/Pasted--videos-321-201-320-276-320-267-320-264-320-260-320-275_1769876820453.txt
+ create mode 100644 attached_assets/Pasted-0-primetra-CapsResetService-New-month-detected-2026-01-_1769877001181.txt
+ create mode 100644 attached_assets/Pasted-2573-primetrack-pm2-delete-primetrack-cd-var-www-primet_1769876856338.txt
+ create mode 100644 attached_assets/Pasted-26-320-262-21-12-1767983590340-Bp90ddAd-png-create-mode_1769876727931.txt
+ create mode 100644 attached_assets/Pasted-et-ERR-TUNNEL-CONNECTION-FAILED-pub-a0f25c897d8747eaa54_1769878268194.txt
+ create mode 100644 client/src/lib/resolveAssetUrl.ts
+ rename dist/public/assets/{index-C9uzdNbJ.js => index-ByyZflIZ.js} (71%)
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 3    │ online    │ 0%       │ 19.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
