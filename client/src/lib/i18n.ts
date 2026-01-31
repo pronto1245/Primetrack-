@@ -371,6 +371,10 @@ const resources = {
           subid: "SubID",
           antiDuplicate: "Anti-duplicate"
         },
+        migration: {
+          title: "Easy migration from any tracker",
+          subtitle: "Move from your current tracker without losing data. We support import from popular platforms."
+        },
         migrationSection: {
           whatTransfers: "What transfers",
           campaigns: "Campaigns and traffic sources",
@@ -1023,6 +1027,10 @@ const resources = {
           postback: "Postback",
           subid: "SubID",
           antiDuplicate: "Антидубль"
+        },
+        migration: {
+          title: "Простой переход с любого трекера",
+          subtitle: "Перенесите данные с текущего трекера без потерь. Поддерживаем импорт из популярных платформ."
         },
         migrationSection: {
           whatTransfers: "Что переносится",
