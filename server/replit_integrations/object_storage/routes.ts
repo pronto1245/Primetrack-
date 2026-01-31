@@ -3,24 +3,24 @@ import { isR2Configured, getR2UploadUrl, getR2PublicUrl } from "../../services/r
 
 export function registerObjectStorageRoutes(app: Express): void {
   // Lazy-load Replit Object Storage only when needed and available
-  const getObjectStorageService = (() => {
-    let service: any = null;
-    let attempted = false;
-    return () => {
-      if (attempted) return service;
-      attempted = true;
-      // Only try to load if REPL_ID is set (means we're on Replit)
-      if (process.env.REPL_ID) {
-        try {
-          const { ObjectStorageService } = require("./objectStorage");
-          service = new ObjectStorageService();
-        } catch (e) {
-          console.warn("[ObjectStorage] Failed to initialize Replit storage:", e);
-        }
+  let objectStorageService: any = null;
+  let objectStorageAttempted = false;
+
+  async function getObjectStorageService() {
+    if (objectStorageAttempted) return objectStorageService;
+    objectStorageAttempted = true;
+    
+    // Only try to load if REPL_ID is set (means we're on Replit)
+    if (process.env.REPL_ID) {
+      try {
+        const module = await import("./objectStorage");
+        objectStorageService = new module.ObjectStorageService();
+      } catch (e) {
+        console.warn("[ObjectStorage] Failed to initialize Replit storage:", e);
       }
-      return service;
-    };
-  })();
+    }
+    return objectStorageService;
+  }
 
   app.post("/api/uploads/request-url", async (req, res) => {
     try {
@@ -43,10 +43,10 @@ export function registerObjectStorageRoutes(app: Express): void {
       }
 
       // Priority 2: Fallback to Replit Object Storage (only on Replit)
-      const objectStorageService = getObjectStorageService();
-      if (objectStorageService) {
-        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-        const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      const service = await getObjectStorageService();
+      if (service) {
+        const uploadURL = await service.getObjectEntityUploadURL();
+        const objectPath = service.normalizeObjectEntityPath(uploadURL);
         return res.json({
           uploadURL,
           objectPath,
@@ -75,11 +75,11 @@ export function registerObjectStorageRoutes(app: Express): void {
       }
 
       // Priority 2: Try Replit Object Storage (only on Replit)
-      const objectStorageService = getObjectStorageService();
-      if (objectStorageService) {
+      const service = await getObjectStorageService();
+      if (service) {
         try {
-          const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-          await objectStorageService.downloadObject(objectFile, res);
+          const objectFile = await service.getObjectEntityFile(req.path);
+          await service.downloadObject(objectFile, res);
           return;
         } catch (error: any) {
           if (error?.name === "ObjectNotFoundError") {
