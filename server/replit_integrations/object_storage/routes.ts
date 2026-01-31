@@ -1,16 +1,26 @@
 import type { Express } from "express";
-import { isR2Configured, getR2UploadUrl } from "../../services/r2-storage";
-
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || "";
-const IS_REPLIT = !!process.env.REPL_ID;
+import { isR2Configured, getR2UploadUrl, getR2PublicUrl } from "../../services/r2-storage";
 
 export function registerObjectStorageRoutes(app: Express): void {
-  // Only load Replit Object Storage if we're on Replit
-  let objectStorageService: any = null;
-  if (IS_REPLIT) {
-    const { ObjectStorageService } = require("./objectStorage");
-    objectStorageService = new ObjectStorageService();
-  }
+  // Lazy-load Replit Object Storage only when needed and available
+  const getObjectStorageService = (() => {
+    let service: any = null;
+    let attempted = false;
+    return () => {
+      if (attempted) return service;
+      attempted = true;
+      // Only try to load if REPL_ID is set (means we're on Replit)
+      if (process.env.REPL_ID) {
+        try {
+          const { ObjectStorageService } = require("./objectStorage");
+          service = new ObjectStorageService();
+        } catch (e) {
+          console.warn("[ObjectStorage] Failed to initialize Replit storage:", e);
+        }
+      }
+      return service;
+    };
+  })();
 
   app.post("/api/uploads/request-url", async (req, res) => {
     try {
@@ -22,7 +32,7 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
-      // Use R2 if configured (VPS/Koyeb)
+      // Priority 1: Use R2 if configured (VPS, Koyeb, production)
       if (isR2Configured()) {
         const { uploadUrl, publicUrl } = await getR2UploadUrl(contentType);
         return res.json({
@@ -32,8 +42,9 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
-      // Fallback to Replit Object Storage (only works on Replit)
-      if (IS_REPLIT && objectStorageService) {
+      // Priority 2: Fallback to Replit Object Storage (only on Replit)
+      const objectStorageService = getObjectStorageService();
+      if (objectStorageService) {
         const uploadURL = await objectStorageService.getObjectEntityUploadURL();
         const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
         return res.json({
@@ -43,7 +54,9 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
-      return res.status(500).json({ error: "No storage backend configured. Set R2 credentials." });
+      return res.status(500).json({ 
+        error: "No storage backend configured. Please configure R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL in environment." 
+      });
     } catch (error) {
       console.error("Error generating upload URL:", error);
       res.status(500).json({ error: "Failed to generate upload URL" });
@@ -52,28 +65,32 @@ export function registerObjectStorageRoutes(app: Express): void {
 
   app.get("/objects/:objectPath(*)", async (req, res) => {
     try {
-      // If R2 is configured, redirect to R2 public URL
-      if (isR2Configured() && R2_PUBLIC_URL) {
-        const objectPath = req.params.objectPath;
-        const r2Url = `${R2_PUBLIC_URL}/${objectPath}`;
+      const objectPath = req.params.objectPath;
+
+      // Priority 1: Redirect to R2 public URL if configured
+      const r2PublicUrl = getR2PublicUrl();
+      if (isR2Configured() && r2PublicUrl) {
+        const r2Url = `${r2PublicUrl}/${objectPath}`;
         return res.redirect(301, r2Url);
       }
 
-      // Fallback to Replit Object Storage (only works on Replit)
-      if (IS_REPLIT && objectStorageService) {
-        const { ObjectNotFoundError } = require("./objectStorage");
+      // Priority 2: Try Replit Object Storage (only on Replit)
+      const objectStorageService = getObjectStorageService();
+      if (objectStorageService) {
         try {
           const objectFile = await objectStorageService.getObjectEntityFile(req.path);
           await objectStorageService.downloadObject(objectFile, res);
           return;
-        } catch (error) {
-          if (error instanceof ObjectNotFoundError) {
+        } catch (error: any) {
+          if (error?.name === "ObjectNotFoundError") {
             return res.status(404).json({ error: "Object not found" });
           }
           throw error;
         }
       }
 
+      // No storage configured
+      console.error(`[ObjectStorage] Cannot serve ${objectPath} - no storage backend available`);
       return res.status(404).json({ error: "Object not found - storage not configured" });
     } catch (error) {
       console.error("Error serving object:", error);
