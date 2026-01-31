@@ -105,13 +105,21 @@ async function cloudflareRequest<T>(
     
     if (!data.success) {
       const errorMsg = data.errors.map(e => e.message).join(", ");
-      throw new Error(`Cloudflare API error: ${errorMsg}`);
+      // Check for "not found" error codes from Cloudflare API (1001, 1002, 1003)
+      const notFoundCodes = [1001, 1002, 1003];
+      const isNotFound = data.errors.some(e => notFoundCodes.includes(e.code));
+      throw new ExternalApiError(
+        `Cloudflare API error: ${errorMsg}`, 
+        "Cloudflare", 
+        isNotFound ? 404 : undefined
+      );
     }
     
     return data;
   } catch (error) {
+    // Preserve ExternalApiError with statusCode for proper error handling
     if (error instanceof ExternalApiError) {
-      throw new Error(`Cloudflare API error: ${error.message}`);
+      throw error;
     }
     throw error;
   }
@@ -345,10 +353,16 @@ export async function deprovisionDomain(domainId: string): Promise<{ success: bo
     console.log(`[Cloudflare] Successfully deleted hostname ${domain.cloudflareHostnameId} for domain ${domain.domain}`);
     return { success: true };
   } catch (error) {
+    // Check if hostname not found in Cloudflare (already deleted) - use status code
+    if (error instanceof ExternalApiError && error.statusCode === 404) {
+      console.log(`[Cloudflare] Hostname ${domain.cloudflareHostnameId} not found in Cloudflare (already deleted)`);
+      return { success: true, notFound: true };
+    }
+    
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
     
-    // Check if hostname not found in Cloudflare (already deleted)
-    if (errorMsg.includes("not found") || errorMsg.includes("404") || errorMsg.includes("does not exist")) {
+    // Fallback string check for cases where status code isn't available
+    if (errorMsg.includes("not found") || errorMsg.includes("does not exist")) {
       console.log(`[Cloudflare] Hostname ${domain.cloudflareHostnameId} not found in Cloudflare (already deleted)`);
       return { success: true, notFound: true };
     }
