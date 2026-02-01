@@ -1,0 +1,122 @@
+s/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 640ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 15   │ online    │ 0%       │ 18.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+remote: Enumerating objects: 24, done.
+remote: Counting objects: 100% (24/24), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 14 (delta 12), reused 14 (delta 12), pack-reused 0 (from 0)
+Unpacking objects: 100% (14/14), 4.55 KiB | 194.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+   b1654c3..4c72ab0  main       -> origin/main
+Updating b1654c3..4c72ab0
+Fast-forward
+ ...df-service-ts-10-45-10-const-_1769938131755.txt | 113 +++++++++++++++++++++
+ client/src/components/dashboard/Reports.tsx        |  19 +++-
+ server/routes.ts                                   |  38 ++++++-
+ server/storage.ts                                  |  15 +++
+ 4 files changed, 179 insertions(+), 6 deletions(-)
+ create mode 100644 attached_assets/Pasted--server-services-finance-pdf-service-ts-10-45-10-const-_1769938131755.txt
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3878 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-8Ur2iVdJ.css                                      195.98 kB │ gzip:  28.12 kB
+../dist/public/assets/index-Dv91VhVI.js                                     2,582.36 kB │ gzip: 672.83 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 20.89s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 1183ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 16   │ online    │ 0%       │ 7.4mb    │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
