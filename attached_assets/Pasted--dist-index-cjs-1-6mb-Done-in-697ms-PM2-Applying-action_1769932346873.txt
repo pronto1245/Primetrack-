@@ -1,0 +1,123 @@
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 697ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 12   │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# Read from remote host 185.179.191.12: Connection reset by peer
+Connection to 185.179.191.12 closed.
+client_loop: send disconnect: Broken pipe
+tail: /var/log/nginx/error.log: No such file or directory
+a1@Macbook-pro1 ~ % cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+cd: no such file or directory: /var/www/primetrack
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Sun Feb  1 07:49:01 UTC 2026 from 91.224.92.108 on ssh:notty
+There were 744 failed login attempts since the last successful login.
+Last login: Sat Jan 31 20:08:10 2026 from 85.94.17.34
+[root@v742573 ~]# cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+remote: Enumerating objects: 25, done.
+remote: Counting objects: 100% (25/25), done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 17 (delta 12), reused 17 (delta 12), pack-reused 0 (from 0)
+Unpacking objects: 100% (17/17), 58.52 KiB | 587.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+   b48abc0..118f302  main       -> origin/main
+Updating b48abc0..118f302
+Fast-forward
+ ...ignal-process-started-2026-01_1769891836495.txt | 145 +++++++++++++++++++++
+ client/public/opengraph.jpg                        | Bin 60757 -> 61373 bytes
+ server/cloudflare-service.ts                       |  36 ++++-
+ server/routes.ts                                   |  17 ++-
+ 4 files changed, 188 insertions(+), 10 deletions(-)
+ create mode 100644 attached_assets/Pasted-7-notice-2673462-2673462-signal-process-started-2026-01_1769891836495.txt
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3878 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-Dt-nmw6a.css                                      195.95 kB │ gzip:  28.11 kB
+../dist/public/assets/index-ByyZflIZ.js                                     2,582.01 kB │ gzip: 672.73 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 20.65s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 635ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 13   │ online    │ 0%       │ 18.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
