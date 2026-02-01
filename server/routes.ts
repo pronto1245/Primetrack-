@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices, insertAdvertiserSourceSchema } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices, insertAdvertiserSourceSchema, clicks } from "@shared/schema";
 import { db } from "../db";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
@@ -5759,6 +5759,42 @@ export async function registerRoutes(
   // DETAILED REPORTS API
   // Full click/conversion logs with filters
   // ============================================
+
+  // Get distinct geo codes from clicks (for filter dropdown)
+  app.get("/api/reports/distinct-geos", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const role = req.session.role!;
+      
+      let offerIds: string[] | undefined;
+      
+      if (role === "publisher") {
+        // Publisher sees geos from their clicks only
+        const publisherClicks = await db.selectDistinct({ geo: clicks.geo })
+          .from(clicks)
+          .where(eq(clicks.publisherId, userId))
+          .orderBy(clicks.geo);
+        return res.json(publisherClicks.map(c => c.geo).filter(Boolean));
+      } else if (role === "advertiser") {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (!effectiveAdvertiserId) {
+          // Advertiser without valid ID - return empty to prevent data exposure
+          return res.json([]);
+        }
+        const advertiserOffers = await storage.getOffersByAdvertiser(effectiveAdvertiserId);
+        offerIds = advertiserOffers.map(o => o.id);
+        if (offerIds.length === 0) {
+          return res.json([]);
+        }
+      }
+      // Admin gets all geos (no offerIds filter)
+      const geos = await storage.getDistinctGeos(offerIds);
+      res.json(geos);
+    } catch (error: any) {
+      console.error("Distinct geos error:", error);
+      res.status(500).json({ message: "Failed to fetch distinct geos" });
+    }
+  });
 
   // Detailed clicks report - for all roles with proper access control
   app.get("/api/reports/clicks", requireAuth, async (req: Request, res: Response) => {

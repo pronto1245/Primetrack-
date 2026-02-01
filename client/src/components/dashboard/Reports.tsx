@@ -15,7 +15,6 @@ import {
   Calendar, Copy, Ban, Pause, Play, Check
 } from "lucide-react";
 import { useAdvertiserContext } from "@/contexts/AdvertiserContext";
-import { COUNTRIES } from "@/lib/countries";
 import { ExportMenu } from "@/components/ui/export-menu";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
@@ -110,6 +109,16 @@ export function Reports({ role }: ReportsProps) {
       return res.json();
     },
     enabled: role === "advertiser" || role === "admin"
+  });
+
+  // Fetch distinct geos from actual click data (not static COUNTRIES list)
+  const { data: distinctGeos = [] } = useQuery<string[]>({
+    queryKey: ["/api/reports/distinct-geos"],
+    queryFn: async () => {
+      const res = await fetch("/api/reports/distinct-geos", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    }
   });
 
   const handleRefresh = async () => {
@@ -223,10 +232,10 @@ export function Reports({ role }: ReportsProps) {
                 data-testid="select-geo"
                 options={[
                   { value: "all", label: "Все страны", icon: "🌍" },
-                  ...COUNTRIES.map((country) => ({
-                    value: country.code,
-                    label: country.name,
-                    icon: getCountryFlag(country.code),
+                  ...distinctGeos.map((geo) => ({
+                    value: geo,
+                    label: geo,
+                    icon: getCountryFlag(geo),
                   })),
                 ]}
               />

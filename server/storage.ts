@@ -515,6 +515,7 @@ export interface IStorage {
   getClicksReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ clicks: Click[]; total: number; page: number; limit: number; allClicks?: Click[] }>;
   getConversionsReport(filters: any, groupBy?: string, page?: number, limit?: number): Promise<{ conversions: any[]; total: number; page: number; limit: number }>;
   getGroupedReport(filters: any, groupBy: string, role: string): Promise<any>;
+  getDistinctGeos(offerIds?: string[]): Promise<string[]>;
   
   // Optimized Reports (SQL-based pagination and aggregation)
   getClicksReportOptimized(filters: any, page?: number, limit?: number): Promise<{
@@ -3781,6 +3782,20 @@ export class DatabaseStorage implements IStorage {
     };
     
     return { data: grouped, groupBy, summary };
+  }
+  
+  async getDistinctGeos(offerIds?: string[]): Promise<string[]> {
+    const conditions: any[] = [];
+    if (offerIds?.length) {
+      conditions.push(inArray(clicks.offerId, offerIds));
+    }
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const result = whereCondition
+      ? await db.selectDistinct({ geo: clicks.geo }).from(clicks).where(whereCondition).orderBy(clicks.geo)
+      : await db.selectDistinct({ geo: clicks.geo }).from(clicks).orderBy(clicks.geo);
+    
+    return result.map(r => r.geo).filter(Boolean) as string[];
   }
   
   // ============================================
