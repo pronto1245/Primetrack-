@@ -3520,6 +3520,13 @@ export class DatabaseStorage implements IStorage {
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
     
+    // Get offer names by offerId for displaying name instead of UUID
+    const offerIds = Array.from(new Set(paginatedConversions.map(c => c.offerId)));
+    const offersData = offerIds.length > 0 
+      ? await db.select({ id: offers.id, name: offers.name }).from(offers).where(inArray(offers.id, offerIds))
+      : [];
+    const offerMap = new Map(offersData.map(o => [o.id, o.name]));
+    
     // Get landing geo by landingId for displaying flag next to offer name
     const landingIds = Array.from(new Set(paginatedConversions.map(c => c.landingId).filter(Boolean))) as string[];
     const landingGeoData = landingIds.length > 0 
@@ -3530,6 +3537,7 @@ export class DatabaseStorage implements IStorage {
     const enrichedConversions = paginatedConversions.map(conv => ({
       ...conv,
       publisherName: publisherMap.get(conv.publisherId) || conv.publisherId,
+      offerName: offerMap.get(conv.offerId) || conv.offerId,
       landingGeo: conv.landingId ? landingGeoMap.get(conv.landingId) || null : null,
     }));
     
