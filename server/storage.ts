@@ -3228,6 +3228,13 @@ export class DatabaseStorage implements IStorage {
       }
     });
     
+    // Get landing geo by landingId for displaying flag next to offer name
+    const landingIds = Array.from(new Set(paginatedClicks.map(c => c.landingId).filter(Boolean))) as string[];
+    const landingGeoData = landingIds.length > 0 
+      ? await db.select({ id: offerLandings.id, geo: offerLandings.geo }).from(offerLandings).where(inArray(offerLandings.id, landingIds))
+      : [];
+    const landingGeoMap = new Map(landingGeoData.map(l => [l.id, l.geo]));
+    
     // Merge payout maps
     offerIds.forEach(id => {
       const offerPayout = offerPayoutMap.get(id) || 0;
@@ -3275,6 +3282,7 @@ export class DatabaseStorage implements IStorage {
       return {
         ...click,
         offerName: offerMap.get(click.offerId) || click.offerId,
+        landingGeo: click.landingId ? landingGeoMap.get(click.landingId) || null : null,
         publisherName: publisherMap.get(click.publisherId) || click.publisherId,
         publisherShortId: publisherShortIdMap.get(click.publisherId) || '-',
         publisherFullName: publisherFullNameMap.get(click.publisherId) || null,
@@ -3474,6 +3482,7 @@ export class DatabaseStorage implements IStorage {
           sub9: clicks.sub9,
           sub10: clicks.sub10,
           geo: clicks.geo,
+          landingId: clicks.landingId,
         }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).where(whereCondition).orderBy(desc(conversions.createdAt)).limit(limit).offset(offset)
       : await db.select({
           id: conversions.id,
@@ -3500,6 +3509,7 @@ export class DatabaseStorage implements IStorage {
           sub9: clicks.sub9,
           sub10: clicks.sub10,
           geo: clicks.geo,
+          landingId: clicks.landingId,
         }).from(conversions).leftJoin(clicks, eq(conversions.clickId, clicks.id)).orderBy(desc(conversions.createdAt)).limit(limit).offset(offset);
     
     // Enrich with publisher names
@@ -3509,9 +3519,17 @@ export class DatabaseStorage implements IStorage {
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
     
+    // Get landing geo by landingId for displaying flag next to offer name
+    const landingIds = Array.from(new Set(paginatedConversions.map(c => c.landingId).filter(Boolean))) as string[];
+    const landingGeoData = landingIds.length > 0 
+      ? await db.select({ id: offerLandings.id, geo: offerLandings.geo }).from(offerLandings).where(inArray(offerLandings.id, landingIds))
+      : [];
+    const landingGeoMap = new Map(landingGeoData.map(l => [l.id, l.geo]));
+    
     const enrichedConversions = paginatedConversions.map(conv => ({
       ...conv,
-      publisherName: publisherMap.get(conv.publisherId) || conv.publisherId
+      publisherName: publisherMap.get(conv.publisherId) || conv.publisherId,
+      landingGeo: conv.landingId ? landingGeoMap.get(conv.landingId) || null : null,
     }));
     
     return { conversions: enrichedConversions, total, page, limit };

@@ -608,7 +608,10 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                         <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-foreground">{click.offerName || click.offerId}</td>
+                    <td className="px-4 py-3 text-foreground">
+                      {click.landingGeo && <span className="mr-1" title={click.landingGeo}>{getCountryFlag(click.landingGeo)}</span>}
+                      {click.offerName || click.offerId}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{click.publisherShortId ? `${click.publisherShortId}${click.publisherFullName ? ` - ${click.publisherFullName}` : ''}` : '-'}</td>
                     <td className="px-4 py-3">
                       <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">
@@ -898,7 +901,10 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                           {conv.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-foreground">{conv.offerName || conv.offerId}</td>
+                      <td className="px-4 py-3 text-foreground">
+                        {conv.landingGeo && <span className="mr-1" title={conv.landingGeo}>{getCountryFlag(conv.landingGeo)}</span>}
+                        {conv.offerName || conv.offerId}
+                      </td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.publisherShortId ? `${conv.publisherShortId}${conv.publisherFullName ? ` - ${conv.publisherFullName}` : ''}` : '-'}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
                         ${payout.toFixed(2)}
