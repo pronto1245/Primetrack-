@@ -609,8 +609,8 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                       </button>
                     </td>
                     <td className="px-4 py-3 text-foreground">
-                      {click.landingGeo && <span className="mr-1" title={click.landingGeo}>{getCountryFlag(click.landingGeo)}</span>}
                       {click.offerName || click.offerId}
+                      {click.landingGeo && <span className="ml-1" title={click.landingGeo}>{getCountryFlag(click.landingGeo)}</span>}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{click.publisherShortId ? `${click.publisherShortId}${click.publisherFullName ? ` - ${click.publisherFullName}` : ''}` : '-'}</td>
                     <td className="px-4 py-3">
@@ -902,8 +902,8 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                         </span>
                       </td>
                       <td className="px-4 py-3 text-foreground">
-                        {conv.landingGeo && <span className="mr-1" title={conv.landingGeo}>{getCountryFlag(conv.landingGeo)}</span>}
                         {conv.offerName || conv.offerId}
+                        {conv.landingGeo && <span className="ml-1" title={conv.landingGeo}>{getCountryFlag(conv.landingGeo)}</span>}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{conv.publisherShortId ? `${conv.publisherShortId}${conv.publisherFullName ? ` - ${conv.publisherFullName}` : ''}` : '-'}</td>
                       <td className="px-4 py-3 text-right text-emerald-400 font-bold">
