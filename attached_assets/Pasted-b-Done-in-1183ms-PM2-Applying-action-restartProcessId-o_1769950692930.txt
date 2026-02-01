@@ -1,0 +1,120 @@
+b ⚠️
+
+⚡ Done in 1183ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 16   │ online    │ 0%       │ 7.4mb    │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# Read from remote host 185.179.191.12: Connection reset by peer
+Connection to 185.179.191.12 closed.
+client_loop: send disconnect: Broken pipe
+a1@Macbook-pro1 ~ % cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+cd: no such file or directory: /var/www/primetrack
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Sun Feb  1 12:51:51 UTC 2026 from 91.224.92.78 on ssh:notty
+There were 302 failed login attempts since the last successful login.
+Last login: Sun Feb  1 09:23:41 2026 from 85.94.17.34
+[root@v742573 ~]# cd /var/www/primetrack && git pull && npm run build && pm2 restart primetrack --update-env
+remote: Enumerating objects: 19, done.
+remote: Counting objects: 100% (19/19), done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 12 (delta 7), reused 12 (delta 7), pack-reused 0 (from 0)
+Unpacking objects: 100% (12/12), 55.77 KiB | 878.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+   4c72ab0..ce5da6b  main       -> origin/main
+Updating 4c72ab0..ce5da6b
+Fast-forward
+ ...-30-4-const-require-createReq_1769938950936.txt | 122 +++++++++++++++++++++
+ client/public/opengraph.jpg                        | Bin 61192 -> 61647 bytes
+ server/storage.ts                                  |   8 ++
+ 3 files changed, 130 insertions(+)
+ create mode 100644 attached_assets/Pasted-s-finance-pdf-service-ts-4-30-4-const-require-createReq_1769938950936.txt
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3878 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-8Ur2iVdJ.css                                      195.98 kB │ gzip:  28.12 kB
+../dist/public/assets/index-Dv91VhVI.js                                     2,582.36 kB │ gzip: 672.83 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 20.26s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 669ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 17   │ online    │ 0%       │ 8.4mb    │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
