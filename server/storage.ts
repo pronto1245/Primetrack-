@@ -3516,9 +3516,11 @@ export class DatabaseStorage implements IStorage {
     // Enrich with publisher names
     const publisherIds = Array.from(new Set(paginatedConversions.map(c => c.publisherId)));
     const publishersData = publisherIds.length > 0 
-      ? await db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, publisherIds))
+      ? await db.select({ id: users.id, username: users.username, shortId: users.shortId, fullName: users.fullName }).from(users).where(inArray(users.id, publisherIds))
       : [];
     const publisherMap = new Map(publishersData.map(p => [p.id, p.username]));
+    const publisherShortIdMap = new Map(publishersData.map(p => [p.id, p.shortId != null ? p.shortId.toString().padStart(3, '0') : '-']));
+    const publisherFullNameMap = new Map(publishersData.map(p => [p.id, p.fullName || null]));
     
     // Get offer names by offerId for displaying name instead of UUID
     const offerIds = Array.from(new Set(paginatedConversions.map(c => c.offerId)));
@@ -3537,6 +3539,8 @@ export class DatabaseStorage implements IStorage {
     const enrichedConversions = paginatedConversions.map(conv => ({
       ...conv,
       publisherName: publisherMap.get(conv.publisherId) || conv.publisherId,
+      publisherShortId: publisherShortIdMap.get(conv.publisherId) || '-',
+      publisherFullName: publisherFullNameMap.get(conv.publisherId) || null,
       offerName: offerMap.get(conv.offerId) || conv.offerId,
       landingGeo: conv.landingId ? landingGeoMap.get(conv.landingId) || null : null,
     }));
