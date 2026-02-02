@@ -21,6 +21,7 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Authentication:** Email/password (bcrypt), session-based, mandatory TOTP 2FA with admin-initiated reset.
 - **User Roles:** Admin, Advertiser, Publisher, and Advertiser Staff (Manager, Analyst, Support, Finance) with granular permissions.
 - **Tracking:** Mini-Tracker for click recording (GEO, IP, User-Agent, fingerprint, 302 redirects), Orchestrator for conversion events and payouts, and a Universal Postback System for inbound/outbound postbacks with retry logic.
+- **SubID Architecture:** Dedicated `subid` field for storing partner click_ids (for postbacks), extracted from subid/clickid/aff_click_id based on landing's storeClickIdIn config. Sub1-sub10 are free parameters taken only from corresponding URL params. {subid} macro available in redirects and postbacks.
 - **Webhooks:** CRUD endpoints with event/offer/partner filtering, HMAC-SHA256 signing, and retry mechanism.
 - **Data Export:** Supports CSV, Excel, PDF for various reports with role-based access control.
 - **Anti-Fraud:** Fraud scoring, proxy/VPN detection, fingerprint analysis, click-spam checks, duplicate lead detection, and suspicious traffic flagging.
