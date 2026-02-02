@@ -563,7 +563,6 @@ export class ClickHandler {
       const excludeParams = new Set([
         'partner_id', 'a', 'geo', 'visitor_id', 'fp_confidence',
         'subid', 'sub_id', 'aff_click_id', 'cnv_id', 'ref_id', 'external_id', 'externalid',
-        'sub1', 'sub2', 'sub3', 'sub4', 'sub5', 'sub6', 'sub7', 'sub8', 'sub9', 'sub10',
         'click_id', 'clickid', clickIdParam.toLowerCase()
       ]);
       
