@@ -4398,6 +4398,28 @@ export async function registerRoutes(
       }
       
       const updated = await storage.updatePublisherOfferAccess(publisherId, offerId, status, undefined, validatedLandings);
+      
+      // Send notification to publisher about access change
+      if (status === "approved") {
+        notificationService.notifyAccessApproved(
+          publisherId,
+          advertiserId,
+          offer.name
+        ).catch(console.error);
+      } else if (status === "rejected") {
+        notificationService.notifyAccessRejected(
+          publisherId,
+          advertiserId,
+          offer.name
+        ).catch(console.error);
+      } else if (status === "revoked") {
+        notificationService.notifySystemMessage(
+          publisherId,
+          "Доступ к офферу отозван",
+          `Ваш доступ к офферу "${offer.name}" был отозван рекламодателем.`
+        ).catch(console.error);
+      }
+      
       res.json(updated);
     } catch (error) {
       console.error("[partners/offers] Error:", error);
