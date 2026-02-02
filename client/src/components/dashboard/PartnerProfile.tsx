@@ -540,8 +540,9 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                                 data-testid={`button-edit-payout-${offer.id}`}
                                 size="sm"
                                 variant="ghost"
-                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                                 onClick={() => startEditPayout(offer)}
+                                title="Изменить ставку"
                               >
                                 <Pencil className="w-3 h-3" />
                               </Button>
