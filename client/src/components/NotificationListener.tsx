@@ -62,7 +62,8 @@ function getNotificationIcon(type: string) {
 export function NotificationListener() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const lastCheckRef = useRef<Date>(new Date());
+  // Start checking from 1 minute ago to catch recent notifications
+  const lastCheckRef = useRef<Date>(new Date(Date.now() - 60000));
   const shownIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -105,12 +106,18 @@ export function NotificationListener() {
             notifications[0].createdAt
           );
           lastCheckRef.current = new Date(latestCreatedAt);
+        } else {
+          // No new notifications, update cursor to now
+          lastCheckRef.current = new Date();
         }
       } catch (error) {
         // Silent fail - don't spam errors
       }
     };
 
+    // Check immediately on mount
+    checkNewNotifications();
+    
     const interval = setInterval(checkNewNotifications, 10000);
     
     return () => clearInterval(interval);
