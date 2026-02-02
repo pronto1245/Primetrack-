@@ -284,21 +284,19 @@ export function AdvertiserPostbacks() {
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
-          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded">
-            <h4 className="font-semibold text-blue-400 mb-2">Настройка постбека в вашей системе</h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              PrimeTrack передаёт вам <code className="bg-muted px-1 rounded">click_id</code> при редиректе на лендинг. 
-              Когда происходит конверсия, отправьте этот click_id обратно в постбеке:
-            </p>
-            <div className="space-y-1 font-mono text-xs">
-              <div className="text-muted-foreground break-all">
-                https://{platformDomain}/api/postback?click_id=<span className="text-amber-400">CLICK_ID</span>&status=lead&payout=10
-              </div>
+        <div className="mt-4 p-3 bg-muted/30 border border-border rounded">
+          <p className="text-xs text-muted-foreground mb-3">
+            PrimeTrack передаёт <code className="bg-muted px-1 rounded">aff_click_id</code> при редиректе. Верните его в постбеке:
+          </p>
+          <div className="space-y-2 font-mono text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-red-400 w-16">Keitaro:</span>
+              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{_aff_click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2">
-              Замените <code className="bg-muted px-1 rounded text-amber-400">CLICK_ID</code> на значение которое вы получили при редиректе (параметр указан в настройках лендинга, по умолчанию <code className="bg-muted px-1 rounded">aff_click_id</code>)
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-purple-400 w-16">Binom:</span>
+              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{aff_click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
+            </div>
           </div>
         </div>
       </Card>
