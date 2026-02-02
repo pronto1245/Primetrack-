@@ -286,16 +286,16 @@ export function AdvertiserPostbacks() {
 
         <div className="mt-4 p-3 bg-muted/30 border border-border rounded">
           <p className="text-xs text-muted-foreground mb-3">
-            PrimeTrack передаёт <code className="bg-muted px-1 rounded">aff_click_id</code> при редиректе. Верните его в постбеке:
+            PrimeTrack передаёт <code className="bg-muted px-1 rounded">click_id</code> при редиректе. Верните его в постбеке:
           </p>
           <div className="space-y-2 font-mono text-xs">
             <div className="flex items-center gap-2">
               <span className="text-red-400 w-16">Keitaro:</span>
-              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{_aff_click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
+              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{_click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-purple-400 w-16">Binom:</span>
-              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{aff_click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
+              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
             </div>
           </div>
         </div>
