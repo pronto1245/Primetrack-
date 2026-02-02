@@ -536,16 +536,24 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                               <span className="text-muted-foreground text-xs">/{offer.payoutModel}</span>
                             </div>
                             {offer.accessStatus === "approved" && (
-                              <Button
-                                data-testid={`button-edit-payout-${offer.id}`}
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                                onClick={() => startEditPayout(offer)}
-                                title="Изменить ставку"
-                              >
-                                <Pencil className="w-3 h-3" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      data-testid={`button-edit-payout-${offer.id}`}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                                      onClick={() => startEditPayout(offer)}
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-[200px]">
+                                    <p className="text-xs">Установить индивидуальную ставку для этого партнёра на данный оффер</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
                           </div>
                         )}
