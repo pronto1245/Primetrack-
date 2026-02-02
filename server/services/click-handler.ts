@@ -29,6 +29,7 @@ interface ClickParams {
   geo?: string;
   visitorId?: string;
   fingerprintConfidence?: number;
+  passthroughQuery?: Record<string, string>;
 }
 
 type ClickStatus = "valid" | "blocked" | "rejected" | "error";
@@ -550,6 +551,21 @@ export class ClickHandler {
     }
     if (params.sub10 && !url.searchParams.has("sub10")) {
       url.searchParams.set("sub10", params.sub10);
+    }
+    
+    // Add passthrough query parameters (all params from original request except internal ones)
+    if (params.passthroughQuery) {
+      const excludeParams = new Set([
+        'partner_id', 'a', 'geo', 'visitor_id', 'fp_confidence',
+        'sub1', 'sub2', 'sub3', 'sub4', 'sub5', 'sub6', 'sub7', 'sub8', 'sub9', 'sub10',
+        'click_id', 'clickid', clickIdParam.toLowerCase()
+      ]);
+      
+      for (const [key, value] of Object.entries(params.passthroughQuery)) {
+        if (!excludeParams.has(key.toLowerCase()) && !url.searchParams.has(key) && value) {
+          url.searchParams.set(key, value);
+        }
+      }
     }
     
     const finalUrl = url.toString() + fragment;

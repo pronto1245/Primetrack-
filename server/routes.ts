@@ -2345,6 +2345,14 @@ export async function registerRoutes(
 
       console.log(`[SplitTest] Processing click: splitTest=${shortCode}, selectedOffer=${offer.id}, landing=${landingId}, publisher=${splitTest.publisherId}`);
 
+      // Normalize query to Record<string, string> for passthrough
+      const passthroughQuery: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.query)) {
+        if (typeof value === 'string') {
+          passthroughQuery[key] = value;
+        }
+      }
+
       const result = await clickHandler.processClick({
         offerId: offer.id,
         landingId,
@@ -2365,6 +2373,7 @@ export async function registerRoutes(
         geo: geoCode,
         visitorId: visitor_id as string,
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+        passthroughQuery,
       });
 
       res.redirect(302, result.redirectUrl);
@@ -2487,6 +2496,14 @@ export async function registerRoutes(
       const landing = await storage.getOfferLanding(landingId);
       const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
+      // Normalize query to Record<string, string> for passthrough
+      const passthroughQuery: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.query)) {
+        if (typeof value === 'string') {
+          passthroughQuery[key] = value;
+        }
+      }
+
       const result = await clickHandler.processClick({
         offerId,
         landingId,
@@ -2507,6 +2524,7 @@ export async function registerRoutes(
         geo: geoCode,
         visitorId: visitor_id as string,
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+        passthroughQuery,
       });
 
       const rawClickStatus = result.isBlocked ? "rejected" : "processed";
@@ -2605,6 +2623,14 @@ export async function registerRoutes(
 
       console.log(`[CustomDomain] Processing click: domain=${req.customDomain.domain}, offer=${rawOfferId}, landing=${rawLandingId}, partner=${rawPartnerId}`);
 
+      // Normalize query to Record<string, string> for passthrough
+      const passthroughQuery: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.query)) {
+        if (typeof value === 'string') {
+          passthroughQuery[key] = value;
+        }
+      }
+
       const result = await clickHandler.processClick({
         offerId,
         landingId,
@@ -2625,6 +2651,7 @@ export async function registerRoutes(
         geo: geoCode,
         visitorId: visitor_id as string,
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+        passthroughQuery,
       });
 
       res.redirect(302, result.redirectUrl);
@@ -2754,6 +2781,14 @@ export async function registerRoutes(
       // Extract partner click_id using landing config (if available)
       const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
 
+      // Normalize query to Record<string, string> for passthrough
+      const passthroughQuery: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.query)) {
+        if (typeof value === 'string') {
+          passthroughQuery[key] = value;
+        }
+      }
+
       const result = await clickHandler.processClick({
         offerId,
         partnerId,
@@ -2774,6 +2809,7 @@ export async function registerRoutes(
         geo: geoCode,
         visitorId: visitor_id as string,
         fingerprintConfidence: fp_confidence ? parseFloat(fp_confidence as string) : undefined,
+        passthroughQuery,
       });
 
       const rawClickStatus = result.isBlocked ? "rejected" : "processed";
