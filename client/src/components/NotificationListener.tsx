@@ -60,7 +60,7 @@ function getNotificationIcon(type: string) {
 }
 
 export function NotificationListener() {
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   const [, setLocation] = useLocation();
   // Start checking from 1 minute ago to catch recent notifications
   const lastCheckRef = useRef<Date>(new Date(Date.now() - 60000));
@@ -84,20 +84,26 @@ export function NotificationListener() {
           
           const route = getNotificationRoute(notification);
           
-          toast({
-            title: notification.title,
-            description: notification.body,
-            duration: 5000,
-            action: route ? (
-              <button
-                onClick={() => setLocation(route)}
-                className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-                data-testid={`toast-action-${notification.id}`}
-              >
-                Открыть
-              </button>
-            ) : undefined,
-          });
+          const showToast = () => {
+            const { id: toastId } = toast({
+              title: notification.title,
+              description: notification.body,
+              duration: 5000,
+              action: route ? (
+                <button
+                  onClick={() => {
+                    dismiss(toastId);
+                    setLocation(route);
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+                  data-testid={`toast-action-${notification.id}`}
+                >
+                  Открыть
+                </button>
+              ) : undefined,
+            });
+          };
+          showToast();
         }
         
         if (notifications.length > 0) {
@@ -121,7 +127,7 @@ export function NotificationListener() {
     const interval = setInterval(checkNewNotifications, 10000);
     
     return () => clearInterval(interval);
-  }, [toast, setLocation]);
+  }, [toast, dismiss, setLocation]);
 
   return null;
 }

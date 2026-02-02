@@ -4635,12 +4635,14 @@ export class DatabaseStorage implements IStorage {
           eq(notifications.recipientId, userId),
           eq(notifications.advertiserScopeId, advertiserScopeId)
         ),
-        sql`${notifications.createdAt} > ${since}`
+        sql`${notifications.createdAt} > ${since}`,
+        eq(notifications.isRead, false)
       );
     } else {
       whereClause = and(
         eq(notifications.recipientId, userId),
-        sql`${notifications.createdAt} > ${since}`
+        sql`${notifications.createdAt} > ${since}`,
+        eq(notifications.isRead, false)
       );
     }
     return db.select().from(notifications)
