@@ -2273,7 +2273,7 @@ export async function registerRoutes(
   app.get("/t/s/:shortCode", async (req: Request, res: Response) => {
     try {
       const { shortCode } = req.params;
-      const { sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       // Get split test by short code
       const splitTest = await storage.getSplitTestByShortCode(shortCode);
@@ -2571,7 +2571,7 @@ export async function registerRoutes(
     try {
       const { offerId: rawOfferId, landingId: rawLandingId } = req.params;
       const rawPartnerId = (req.query.partner_id || req.query.a) as string;
-      const { sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
+      const { sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8, sub9, sub10, visitor_id, fp_confidence } = req.query;
 
       if (!rawPartnerId) {
         return res.status(400).json({ 
