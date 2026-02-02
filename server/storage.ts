@@ -130,6 +130,7 @@ export async function buildClicksSearchConditions(searchTerm: string): Promise<{
     sql`LOWER(COALESCE(${clicks.device}, '')) LIKE ${searchPattern}`,
     sql`LOWER(COALESCE(${clicks.os}, '')) LIKE ${searchPattern}`,
     sql`LOWER(COALESCE(${clicks.browser}, '')) LIKE ${searchPattern}`,
+    sql`LOWER(COALESCE(${clicks.subid}, '')) LIKE ${searchPattern}`,
     sql`LOWER(COALESCE(${clicks.sub1}, '')) LIKE ${searchPattern}`,
     sql`LOWER(COALESCE(${clicks.sub2}, '')) LIKE ${searchPattern}`,
     sql`LOWER(COALESCE(${clicks.sub3}, '')) LIKE ${searchPattern}`,
