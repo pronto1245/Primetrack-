@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, User, Mail, Phone, Send, Calendar, 
-  MousePointer, Target, DollarSign, Check, X, Loader2, Settings, Pencil
+  MousePointer, Target, DollarSign, Check, X, Loader2, Settings, Pencil, TrendingUp, Percent, Receipt
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { getCurrencySymbol, getOfferCurrency, formatCurrency } from "@/lib/utils";
@@ -431,6 +431,38 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                   <span className="text-xs uppercase">Выплаты (USD)</span>
                 </div>
                 <p className="text-2xl font-bold text-emerald-400">{formatCurrency(partner.payout)}</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-yellow-400 mb-1">
+                  <Percent className="w-4 h-4" />
+                  <span className="text-xs uppercase">CR</span>
+                </div>
+                <p className="text-2xl font-bold text-yellow-400">
+                  {partner.clicks > 0 ? ((partner.conversions / partner.clicks) * 100).toFixed(2) : "0.00"}%
+                </p>
+              </div>
+              
+              <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-cyan-400 mb-1">
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="text-xs uppercase">EPC</span>
+                </div>
+                <p className="text-2xl font-bold text-cyan-400">
+                  {formatCurrency(partner.clicks > 0 ? partner.payout / partner.clicks : 0)}
+                </p>
+              </div>
+              
+              <div className="bg-pink-500/10 border border-pink-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-pink-400 mb-1">
+                  <Receipt className="w-4 h-4" />
+                  <span className="text-xs uppercase">Средний чек</span>
+                </div>
+                <p className="text-2xl font-bold text-pink-400">
+                  {formatCurrency(partner.conversions > 0 ? partner.payout / partner.conversions : 0)}
+                </p>
               </div>
             </div>
           </CardContent>
