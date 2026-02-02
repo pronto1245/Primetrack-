@@ -1,0 +1,120 @@
+ings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 544ms
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 32   │ online    │ 0%       │ 12.1mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
+[root@v742573 primetrack]# pm2 logs primetrack --lines 50
+[TAILING] Tailing last 50 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-out.log last 50 lines:
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=697&a=1263, clickId=7fdea0c3-8f70-42e9-9c4e-812985a55a33, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=697&a=1263&aff_click_id=7fdea0c3-8f70-42e9-9c4e-812985a55a33&sub1=2dpmcmd.5.1i, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=7fdea0c3-8f70-42e9-9c4e-812985a55a33 total=722ms offer=40ms parallel=427ms antifraud=207ms save=46ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | [CLICK DEBUG] rawOfferId=0075, rawLandingId=0259, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=a7e96fc4-8d6a-442e-899e-80a8b7117d53, landingId=b949c3cd-f788-40b5-8ca0-c8beea7d09a5, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=697&a=1263, clickId=cea8d336-9644-4613-91a8-8aacda8cd13d, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=697&a=1263&aff_click_id=cea8d336-9644-4613-91a8-8aacda8cd13d&sub1=qd2oso.5.1j, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=cea8d336-9644-4613-91a8-8aacda8cd13d total=720ms offer=42ms parallel=418ms antifraud=212ms save=47ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | [CLICK DEBUG] rawOfferId=0075, rawLandingId=0259, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=a7e96fc4-8d6a-442e-899e-80a8b7117d53, landingId=b949c3cd-f788-40b5-8ca0-c8beea7d09a5, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=697&a=1263, clickId=ab59e005-d796-4a43-aea3-15becaaef882, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=697&a=1263&aff_click_id=ab59e005-d796-4a43-aea3-15becaaef882&sub1=qd2oso.5.1k, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=ab59e005-d796-4a43-aea3-15becaaef882 total=515ms offer=0ms parallel=301ms antifraud=170ms save=44ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | [CLICK DEBUG] rawOfferId=0075, rawLandingId=0259, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=a7e96fc4-8d6a-442e-899e-80a8b7117d53, landingId=b949c3cd-f788-40b5-8ca0-c8beea7d09a5, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=697&a=1263, clickId=f0ac17ce-1634-4dc8-ac60-61c522971828, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=697&a=1263&aff_click_id=f0ac17ce-1634-4dc8-ac60-61c522971828&sub1=30e29ap.5.1l, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=f0ac17ce-1634-4dc8-ac60-61c522971828 total=715ms offer=41ms parallel=449ms antifraud=175ms save=50ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | 7:06:23 PM [aggregation] Hourly aggregation: 3 rows updated
+0|primetra | 7:17:08 PM [express] GET /api_config.php 200 in 1ms
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 7:58:23 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-02
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 7:58:23 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 7:58:24 PM [aggregation] Daily stats aggregation completed: 3 rows
+0|primetra | 7:59:38 PM [express] GET /api_config.php 200 in 3ms
+0|primetra | [CLICK DEBUG] rawOfferId=0076, rawLandingId=0260, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=7863b87f-b913-4acc-9004-e512e915527b, landingId=88483352-0ebf-4bb3-aae6-0b10ed4076bb, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=696&a=1263, clickId=cf44e6a0-6dbd-4315-87af-9d3d613bbc36, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=696&a=1263&aff_click_id=cf44e6a0-6dbd-4315-87af-9d3d613bbc36, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=cf44e6a0-6dbd-4315-87af-9d3d613bbc36 total=676ms offer=43ms parallel=410ms antifraud=171ms save=49ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | [CLICK DEBUG] rawOfferId=0076, rawLandingId=0260, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=7863b87f-b913-4acc-9004-e512e915527b, landingId=88483352-0ebf-4bb3-aae6-0b10ed4076bb, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=696&a=1263, clickId=98f6d865-f872-452a-af3e-dff41b3c20aa, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=696&a=1263&aff_click_id=98f6d865-f872-452a-af3e-dff41b3c20aa, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=98f6d865-f872-452a-af3e-dff41b3c20aa total=705ms offer=42ms parallel=441ms antifraud=173ms save=47ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=TH
+
+/root/.pm2/logs/primetrack-error.log last 50 lines:
+0|primetra |   position: undefined,
+0|primetra |   internalPosition: undefined,
+0|primetra |   internalQuery: undefined,
+0|primetra |   where: undefined,
+0|primetra |   schema: undefined,
+0|primetra |   table: undefined,
+0|primetra |   column: undefined,
+0|primetra |   dataType: undefined,
+0|primetra |   constraint: undefined,
+0|primetra |   file: 'plancat.c',
+0|primetra |   line: '948',
+0|primetra |   routine: 'infer_arbiter_indexes'
+0|primetra | }
+0|primetra | [extension-requests] Error: error: column publisher_offers.custom_payout does not exist
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:13330
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:70:28669
+0|primetra |     at async jb.getExtensionRequestsByAdvertiser (/var/www/primetrack/dist/index.cjs:70:47758)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:138341 {
+0|primetra |   length: 129,
+0|primetra |   severity: 'ERROR',
+0|primetra |   code: '42703',
+0|primetra |   detail: undefined,
+0|primetra |   hint: undefined,
+0|primetra |   position: '295',
+0|primetra |   internalPosition: undefined,
+0|primetra |   internalQuery: undefined,
+0|primetra |   where: undefined,
+0|primetra |   schema: undefined,
+0|primetra |   table: undefined,
+0|primetra |   column: undefined,
+0|primetra |   dataType: undefined,
+0|primetra |   constraint: undefined,
+0|primetra |   file: 'parse_relation.c',
+0|primetra |   line: '3716',
+0|primetra |   routine: 'errorMissingColumn'
+0|primetra | }
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: ENOENT: no such file or directory, stat '/var/www/primetrack/dist/public/index.html'
+0|primetra | Error: DATABASE_URL environment variable is not set
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:31567
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:36220
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at Object.<anonymous> (/var/www/primetrack/dist/index.cjs:256:4420)
+0|primetra |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|primetra |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|primetra |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|primetra |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|primetra |     at cjsLoader (node:internal/modules/esm/translators:298:15)
+
+
