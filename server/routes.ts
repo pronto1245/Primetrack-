@@ -4086,6 +4086,17 @@ export async function registerRoutes(
       const { offerId, publisherId } = req.params;
       const { customPayout } = req.body;
 
+      // Validate customPayout: must be null, empty string, or valid non-negative number
+      let validatedPayout: string | null = null;
+      if (customPayout !== null && customPayout !== undefined && customPayout !== "") {
+        const numValue = parseFloat(customPayout);
+        if (isNaN(numValue) || numValue < 0) {
+          return res.status(400).json({ message: "Custom payout must be a non-negative number" });
+        }
+        // Store with 2 decimal precision
+        validatedPayout = numValue.toFixed(2);
+      }
+
       const offer = await storage.getOffer(offerId);
       if (!offer) {
         return res.status(404).json({ message: "Offer not found" });
@@ -4096,10 +4107,16 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Update customPayout in publisher_offers
-      await storage.updatePublisherOfferPayout(offerId, publisherId, customPayout);
+      // Verify publisher has access to this offer
+      const access = await storage.getPublisherOfferAccess(publisherId, offerId);
+      if (!access) {
+        return res.status(404).json({ message: "Publisher does not have access to this offer" });
+      }
 
-      res.json({ message: "Custom payout updated successfully" });
+      // Update customPayout in publisher_offers
+      await storage.updatePublisherOfferPayout(offerId, publisherId, validatedPayout);
+
+      res.json({ message: "Custom payout updated successfully", customPayout: validatedPayout });
     } catch (error) {
       console.error("Error updating custom payout:", error);
       res.status(500).json({ message: "Failed to update custom payout" });
