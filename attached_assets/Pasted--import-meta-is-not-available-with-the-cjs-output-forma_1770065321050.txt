@@ -1,0 +1,124 @@
+] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 590ms
+-bash: psql: command not found
+[root@v742573 primetrack]# cd /var/www/primetrack && git pull origin main && npm run build && psql "$DATABASE_URL" -c "UPDATE offer_landings SET store_click_id_in = 'subid' WHERE store_click_id_in = 'sub1'" && pm2 restart primetrack && pm2 logs primetrack --lines 5
+remote: Enumerating objects: 42, done.
+remote: Counting objects: 100% (42/42), done.
+remote: Compressing objects: 100% (7/7), done.
+remote: Total 35 (delta 28), reused 35 (delta 28), pack-reused 0 (from 0)
+Unpacking objects: 100% (35/35), 62.33 KiB | 658.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   cd59c91..611e932  main       -> origin/main
+Updating cd59c91..611e932
+Fast-forward
+ ...rimetra-internalPosition-unde_1770063503796.txt |  72 +++++++++++
+ ...deleteProcessId-on-app-primet_1770063658582.txt |  63 ++++++++++
+ ...43-ssl-default-server-server-_1770064135027.txt |  62 ++++++++++
+ ...-M2-Done-id-nam-1770063684302_1770063684303.txt |  50 ++++++++
+ ...-Mon-02-Feb-2026-20-33-32-GMT_1770064496970.txt | 134 +++++++++++++++++++++
+ ...Done-in-544ms-PM2-Applying-ac_1770063419420.txt | 120 ++++++++++++++++++
+ ...-index-html-2-15--17700633329_1770063332986.txt |  64 ++++++++++
+ client/public/opengraph.jpg                        | Bin 61845 -> 61692 bytes
+ shared/schema.ts                                   |   2 +-
+ 9 files changed, 566 insertions(+), 1 deletion(-)
+ create mode 100644 attached_assets/Pasted--primetra-position-295-0-primetra-internalPosition-unde_1770063503796.txt
+ create mode 100644 attached_assets/Pasted--save-PM2-Applying-action-deleteProcessId-on-app-primet_1770063658582.txt
+ create mode 100644 attached_assets/Pasted-80-default-server-listen-443-ssl-default-server-server-_1770064135027.txt
+ create mode 100644 attached_assets/Pasted-M2-Done-id-nam-1770063684302_1770063684303.txt
+ create mode 100644 attached_assets/Pasted-d-Server-nginx-1-20-1-Date-Mon-02-Feb-2026-20-33-32-GMT_1770064496970.txt
+ create mode 100644 attached_assets/Pasted-ings-dist-index-cjs-1-6mb-Done-in-544ms-PM2-Applying-ac_1770063419420.txt
+ create mode 100644 attached_assets/Pasted-ta-tag-updates-dist-public-index-html-2-15--17700633329_1770063332986.txt
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3879 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-CvtXEEVc.css                                      196.47 kB │ gzip:  28.17 kB
+../dist/public/assets/index-BeXd85_I.js                                     2,587.64 kB │ gzip: 674.51 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 19.06s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 512ms
+-bash: psql: command not found
+[root@v742573 primetrack]# 
