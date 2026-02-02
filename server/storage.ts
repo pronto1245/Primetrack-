@@ -478,6 +478,7 @@ export interface IStorage {
   getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]>;
   createPublisherOffer(publisherOffer: InsertPublisherOffer): Promise<PublisherOfferAccess>;
   updatePublisherOffer(offerId: string, publisherId: string, data: { approvedGeos?: string[] | null; approvedLandings?: string[] | null; requestedLandings?: string[] | null; extensionRequestedAt?: Date | null }): Promise<PublisherOfferAccess | undefined>;
+  updatePublisherOfferPayout(offerId: string, publisherId: string, customPayout: string | null): Promise<void>;
   requestLandingsExtension(offerId: string, publisherId: string, landingIds: string[]): Promise<PublisherOfferAccess | undefined>;
   approveLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
   rejectLandingsExtension(offerId: string, publisherId: string): Promise<PublisherOfferAccess | undefined>;
@@ -1389,6 +1390,12 @@ export class DatabaseStorage implements IStorage {
   async getPublisherOffersByOffer(offerId: string): Promise<PublisherOfferAccess[]> {
     return db.select().from(publisherOffers)
       .where(eq(publisherOffers.offerId, offerId));
+  }
+
+  async updatePublisherOfferPayout(offerId: string, publisherId: string, customPayout: string | null): Promise<void> {
+    await db.update(publisherOffers)
+      .set({ customPayout })
+      .where(and(eq(publisherOffers.offerId, offerId), eq(publisherOffers.publisherId, publisherId)));
   }
 
   async createPublisherOffer(data: InsertPublisherOffer): Promise<PublisherOfferAccess> {

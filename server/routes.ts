@@ -4061,7 +4061,11 @@ export async function registerRoutes(
             id: user.id,
             username: user.username,
             email: user.email,
+            shortId: user.shortId,
+            fullName: user.fullName,
             approvedAt: po.approvedAt,
+            approvedGeos: po.approvedGeos,
+            customPayout: po.customPayout,
           } : null;
         })
       );
@@ -4069,6 +4073,32 @@ export async function registerRoutes(
       res.json(publishers.filter(Boolean));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch publishers" });
+    }
+  });
+
+  // Update custom payout for publisher on specific offer
+  app.patch("/api/offers/:offerId/publishers/:publisherId/payout", requireAuth, requireRole("advertiser", "admin"), async (req: Request, res: Response) => {
+    try {
+      const { offerId, publisherId } = req.params;
+      const { customPayout } = req.body;
+
+      const offer = await storage.getOffer(offerId);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+
+      const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+      if (offer.advertiserId !== effectiveAdvertiserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update customPayout in publisher_offers
+      await storage.updatePublisherOfferPayout(offerId, publisherId, customPayout);
+
+      res.json({ message: "Custom payout updated successfully" });
+    } catch (error) {
+      console.error("Error updating custom payout:", error);
+      res.status(500).json({ message: "Failed to update custom payout" });
     }
   });
 
