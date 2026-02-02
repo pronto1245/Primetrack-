@@ -1,0 +1,57 @@
+
+    }
+  ]
+}
+
+Node.js v20.20.0
+[root@v742573 primetrack]# pm2 restart primetrack && pm2 logs primetrack --lines 5
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 2    │ online    │ 0%       │ 12.6mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 5 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 5 lines:
+0|primetra |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|primetra |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|primetra |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|primetra |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|primetra |     at cjsLoader (node:internal/modules/esm/translators:298:15)
+
+/root/.pm2/logs/primetrack-out.log last 5 lines:
+0|primetra | [CLICK DEBUG] resolved offerId=7863b87f-b913-4acc-9004-e512e915527b, landingId=88483352-0ebf-4bb3-aae6-0b10ed4076bb, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://play2lgg.com/click?o=696&a=1263, clickId=038e297e-51cc-4d64-8218-4135629c5256, clickIdParam=aff_click_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://play2lgg.com/click?o=696&a=1263&aff_click_id=038e297e-51cc-4d64-8218-4135629c5256&sub1=6vhjn&sub2=6tgfvb&sub3=7ytgvb&sub4=7ygvb&sub5=37yegdbsn&sub6=7ytgvbn&sub7=7ygbn&sub8=7ygbnjk, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=038e297e-51cc-4d64-8218-4135629c5256 total=679ms offer=41ms parallel=426ms antifraud=164ms save=46ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 8:49:05 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-02-02
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 8:49:05 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-02
+0|primetrack  | 8:49:05 PM [aggregation] Daily stats aggregation completed: 3 rows
+^C
+[root@v742573 primetrack]# node -e "const { Client } = require('pg'); const c = new Client({connectionString: 'postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require'}); c.connect().then(() => c.query(\"UPDATE offer_landings SET store_click_id_in = 'subid' WHERE store_click_id_in = 'sub1'\")).then(r => { console.log('Updated:', r.rowCount); c.end(); })"
+Updated: 256
+[root@v742573 primetrack]# pm2 restart primetrack && pm2 save
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 3    │ online    │ 0%       │ 3.3mb    │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# 
