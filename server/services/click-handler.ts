@@ -13,6 +13,7 @@ interface ClickParams {
   offerId: string;
   partnerId: string;
   landingId?: string;
+  subid?: string; // Partner's click_id for postbacks
   sub1?: string;
   sub2?: string;
   sub3?: string;
@@ -267,6 +268,7 @@ export class ClickHandler {
       device: parsedUA.device,
       os: parsedUA.os,
       browser: parsedUA.browser,
+      subid: params.subid,
       sub1: params.sub1,
       sub2: params.sub2,
       sub3: params.sub3,
@@ -500,6 +502,9 @@ export class ClickHandler {
       }
     }
     
+    // Replace {subid} macro with partner's click_id
+    urlString = urlString.replace(/\{subid\}/gi, params.subid || "");
+    
     urlString = urlString.replace(/\{sub1\}/gi, params.sub1 || "");
     urlString = urlString.replace(/\{sub2\}/gi, params.sub2 || "");
     urlString = urlString.replace(/\{sub3\}/gi, params.sub3 || "");
@@ -557,6 +562,7 @@ export class ClickHandler {
     if (params.passthroughQuery) {
       const excludeParams = new Set([
         'partner_id', 'a', 'geo', 'visitor_id', 'fp_confidence',
+        'subid', 'sub_id', 'aff_click_id', 'cnv_id', 'ref_id', 'external_id', 'externalid',
         'sub1', 'sub2', 'sub3', 'sub4', 'sub5', 'sub6', 'sub7', 'sub8', 'sub9', 'sub10',
         'click_id', 'clickid', clickIdParam.toLowerCase()
       ]);

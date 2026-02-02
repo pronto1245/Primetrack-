@@ -229,7 +229,10 @@ export const clicks = pgTable("clicks", {
   os: text("os"), // Windows, iOS, Android, MacOS, Linux
   browser: text("browser"), // Chrome, Safari, Firefox, Edge
   
-  // Sub-IDs for partner tracking (sub1-10)
+  // Partner's click_id for postbacks (extracted from subid/clickid/aff_click_id params)
+  subid: text("subid"),
+  
+  // Sub-IDs for partner tracking (sub1-10) - free parameters
   sub1: text("sub1"),
   sub2: text("sub2"),
   sub3: text("sub3"),

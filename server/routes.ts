@@ -120,19 +120,20 @@ function sanitizeLandingUrl(url: string): string {
 }
 
 // ============================================
-// HELPER: Extract partner click_id from request
-// Uses landing.storeClickIdIn config, fallback to sub1-sub10 list
+// HELPER: Extract partner's subid (click_id) from request
+// Uses landing.storeClickIdIn config, fallback to common tracker params
+// NOTE: Does NOT include sub1 - sub1 is now a free parameter
 // ============================================
-function extractPartnerClickId(query: any, storeClickIdIn?: string): string | undefined {
+function extractSubid(query: any, storeClickIdIn?: string): string | undefined {
   // 1. If storeClickIdIn is configured, use that parameter
   if (storeClickIdIn && query[storeClickIdIn]) {
     return query[storeClickIdIn] as string;
   }
   
-  // 2. Fallback: check common tracker parameters
+  // 2. Fallback: check common tracker parameters (NOT sub1!)
   // Keitaro: subid, Scaleo: aff_sub, Binom: cnv_id, Voluum: c/cid, RedTrack: ref_id
   const fallbackParams = [
-    'sub1', 'subid', 'sub_id',
+    'subid', 'sub_id',
     'aff_click_id', 'clickid', 'click_id',
     'aff_sub', 'cnv_id', 'ref_id', 'c',
     'external_id', 'externalid',
@@ -2320,8 +2321,8 @@ export async function registerRoutes(
         return res.status(404).json({ error: "No active landing for selected offer" });
       }
 
-      // Extract partner click_id using landing config
-      const effectiveSub1 = extractPartnerClickId(req.query, landing.storeClickIdIn);
+      // Extract partner's subid (click_id) using landing config
+      const subid = extractSubid(req.query, landing.storeClickIdIn);
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
@@ -2357,7 +2358,8 @@ export async function registerRoutes(
         offerId: offer.id,
         landingId,
         partnerId: splitTest.publisherId,
-        sub1: effectiveSub1,
+        subid,
+        sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
@@ -2494,7 +2496,7 @@ export async function registerRoutes(
 
       // Get landing for storeClickIdIn config
       const landing = await storage.getOfferLanding(landingId);
-      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
+      const subid = extractSubid(req.query, landing?.storeClickIdIn);
 
       // Normalize query to Record<string, string> for passthrough
       const passthroughQuery: Record<string, string> = {};
@@ -2508,7 +2510,8 @@ export async function registerRoutes(
         offerId,
         landingId,
         partnerId,
-        sub1: effectiveSub1,
+        subid,
+        sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
@@ -2599,7 +2602,7 @@ export async function registerRoutes(
 
       // Get landing for storeClickIdIn config
       const landing = await storage.getOfferLanding(landingId);
-      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
+      const subid = extractSubid(req.query, landing?.storeClickIdIn);
 
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || 
                  req.socket.remoteAddress || 
@@ -2635,7 +2638,8 @@ export async function registerRoutes(
         offerId,
         landingId,
         partnerId,
-        sub1: effectiveSub1,
+        subid,
+        sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,
@@ -2778,8 +2782,8 @@ export async function registerRoutes(
         landing = await storage.getOfferLanding(landingId);
       }
 
-      // Extract partner click_id using landing config (if available)
-      const effectiveSub1 = extractPartnerClickId(req.query, landing?.storeClickIdIn);
+      // Extract partner's subid (click_id) using landing config
+      const subid = extractSubid(req.query, landing?.storeClickIdIn);
 
       // Normalize query to Record<string, string> for passthrough
       const passthroughQuery: Record<string, string> = {};
@@ -2793,7 +2797,8 @@ export async function registerRoutes(
         offerId,
         partnerId,
         landingId,
-        sub1: effectiveSub1,
+        subid,
+        sub1: sub1 as string,
         sub2: sub2 as string,
         sub3: sub3 as string,
         sub4: sub4 as string,

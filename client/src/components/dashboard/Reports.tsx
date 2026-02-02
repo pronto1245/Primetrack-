@@ -543,7 +543,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
   const margin = summary?.margin || (totals.cost - totals.payout);
   const roi = summary?.roi || (totals.payout > 0 ? ((totals.cost - totals.payout) / totals.payout * 100) : 0);
 
-  const colSpan = isAdvertiser ? 23 : 20;
+  const colSpan = isAdvertiser ? 24 : 21;
 
   return (
     <Card className="bg-card border-border">
@@ -554,6 +554,7 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
               <tr className="border-b border-border bg-white/[0.02] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-3 font-medium">{t('reports.table.date') || 'Date'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
+                <th className="px-4 py-3 font-medium">SubID</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.offer') || 'Offer'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.publisher') || 'Publisher'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
@@ -616,6 +617,9 @@ function ClicksTable({ data, loading, page, setPage, role, groupedData, t }: any
                         {click.clickId?.slice(0, 12)}...
                         <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground" title={click.subid || ''}>
+                      {click.subid ? (click.subid.length > 16 ? click.subid.slice(0, 16) + '...' : click.subid) : '-'}
                     </td>
                     <td className="px-4 py-3 text-foreground">
                       {click.offerName || click.offerId}
@@ -860,6 +864,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.margin') || 'Margin'}</th>
                 <th className="px-4 py-3 font-medium text-right">{t('reports.table.roi') || 'ROI'}</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.clickId') || 'Click ID'}</th>
+                <th className="px-4 py-3 font-medium">SubID</th>
                 <th className="px-4 py-3 font-medium">{t('reports.table.geo') || 'GEO'}</th>
                 <th className="px-4 py-3 font-medium">Sub1</th>
                 <th className="px-4 py-3 font-medium">Sub2</th>
@@ -877,7 +882,7 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
             <tbody className="divide-y divide-white/5">
               {conversions.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdvertiser ? 22 : 21} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={isAdvertiser ? 23 : 22} className="px-4 py-8 text-center text-muted-foreground">
                     {t('reports.noData') || 'No data found'}
                   </td>
                 </tr>
@@ -941,6 +946,9 @@ function ConversionsTable({ data, loading, page, setPage, role, showFinancials, 
                           {conv.clickId?.slice(0, 8)}...
                           <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground" title={conv.subid || ''}>
+                        {conv.subid ? (conv.subid.length > 16 ? conv.subid.slice(0, 16) + '...' : conv.subid) : '-'}
                       </td>
                       <td className="px-4 py-3">
                         <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">

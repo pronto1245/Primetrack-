@@ -134,7 +134,7 @@ export function PostbackSettings() {
               При каждой конверсии система отправит HTTP запрос на указанные URL. Вы можете настроить отдельные URL для разных типов конверсий.
             </p>
             <p className="text-xs text-muted-foreground">
-              Поддерживаемые макросы: <code className="bg-white/10 px-1 rounded">{"{click_id}"}</code>, <code className="bg-white/10 px-1 rounded">{"{status}"}</code>, <code className="bg-white/10 px-1 rounded">{"{sum}"}</code>, <code className="bg-white/10 px-1 rounded">{"{payout}"}</code>, <code className="bg-white/10 px-1 rounded">{"{sub1}"}</code>-<code className="bg-white/10 px-1 rounded">{"{sub5}"}</code>
+              Поддерживаемые макросы: <code className="bg-white/10 px-1 rounded">{"{click_id}"}</code>, <code className="bg-white/10 px-1 rounded">{"{status}"}</code>, <code className="bg-white/10 px-1 rounded">{"{sum}"}</code>, <code className="bg-white/10 px-1 rounded">{"{payout}"}</code>, <code className="bg-white/10 px-1 rounded">{"{subid}"}</code>, <code className="bg-white/10 px-1 rounded">{"{sub1}"}</code>-<code className="bg-white/10 px-1 rounded">{"{sub5}"}</code>
             </p>
           </div>
         </div>

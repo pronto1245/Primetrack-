@@ -206,8 +206,8 @@ export function PublisherPostbacks() {
             <span><code className="text-emerald-400">{"{payout}"}</code> - Выплата</span>
             <span><code className="text-emerald-400">{"{sum}"}</code> - Сумма</span>
             <span><code className="text-emerald-400">{"{offer_id}"}</code> - ID оффера</span>
+            <span><code className="text-emerald-400">{"{subid}"}</code> - SubID партнёра</span>
             <span><code className="text-emerald-400">{"{sub1}"}</code> - Sub1</span>
-            <span><code className="text-emerald-400">{"{sub2}"}</code> - Sub2</span>
             <span><code className="text-emerald-400">{"{geo}"}</code> - Страна</span>
           </div>
         </div>
@@ -235,17 +235,17 @@ export function PublisherPostbacks() {
               <h4 className="font-semibold text-red-400 mb-1 text-sm">Постбек для Keitaro (шаг 2)</h4>
               <p className="text-[10px] text-muted-foreground mb-1">Укажите ниже в поле Lead/Sale:</p>
               <div className="font-mono text-[11px] text-emerald-400 break-all">
-                http://ваш-keitaro/postback?subid={"{sub1}"}&status={"{status}"}&payout={"{payout}"}
+                http://ваш-keitaro/postback?subid={"{subid}"}&status={"{status}"}&payout={"{payout}"}
               </div>
-              <p className="text-[10px] text-amber-400 mt-1">{"{sub1}"} — ваш оригинальный subid из Keitaro</p>
+              <p className="text-[10px] text-amber-400 mt-1">{"{subid}"} — ваш оригинальный subid из Keitaro</p>
             </div>
             <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
               <h4 className="font-semibold text-purple-400 mb-1 text-sm">Постбек для Binom (шаг 2)</h4>
               <p className="text-[10px] text-muted-foreground mb-1">Укажите ниже в поле Lead/Sale:</p>
               <div className="font-mono text-[11px] text-emerald-400 break-all">
-                http://ваш-binom/postback?clickid={"{sub1}"}&status={"{status}"}&payout={"{payout}"}
+                http://ваш-binom/postback?clickid={"{subid}"}&status={"{status}"}&payout={"{payout}"}
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1">{"{sub1}"} — ваш оригинальный clickid из Binom</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{"{subid}"} — ваш оригинальный clickid из Binom</p>
             </div>
           </div>
         </div>
@@ -264,7 +264,7 @@ export function PublisherPostbacks() {
             <div>
               <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
               <Input
-                placeholder="https://your-tracker.com/postback?subid={sub1}&status=lead"
+                placeholder="https://your-tracker.com/postback?subid={subid}&status=lead"
                 value={leadUrl}
                 onChange={(e) => setLeadUrl(e.target.value)}
                 className="bg-muted border-border text-foreground font-mono text-sm"
@@ -298,7 +298,7 @@ export function PublisherPostbacks() {
             <div>
               <Label className="text-xs text-muted-foreground font-mono mb-2 block">Postback URL</Label>
               <Input
-                placeholder="https://your-tracker.com/postback?subid={sub1}&status=sale"
+                placeholder="https://your-tracker.com/postback?subid={subid}&status=sale"
                 value={saleUrl}
                 onChange={(e) => setSaleUrl(e.target.value)}
                 className="bg-muted border-border text-foreground font-mono text-sm"

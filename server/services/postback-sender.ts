@@ -357,12 +357,12 @@ export class PostbackSender {
     }
     
     // Add parameters
-    // ВАЖНО: для Keitaro и других трекеров нужен click_id партнёра (sub1), а не внутренний
-    if (click.sub1) {
-      url.searchParams.set(clickIdParam, click.sub1);
+    // ВАЖНО: для Keitaro и других трекеров нужен subid партнёра, а не внутренний click_id
+    if (click.subid) {
+      url.searchParams.set(clickIdParam, click.subid);
     } else {
       url.searchParams.set(clickIdParam, click.clickId);
-      console.warn(`[PostbackSender] Fallback to internal clickId, sub1 empty. click=${click.id}`);
+      console.warn(`[PostbackSender] Fallback to internal clickId, subid empty. click=${click.id}`);
     }
     url.searchParams.set(statusParam, mappedStatus);
     url.searchParams.set(payoutParam, conversion.publisherPayout);
@@ -412,6 +412,7 @@ export class PostbackSender {
       "{offer_id}": offer.id,
       "{offer_name}": offer.name || "",
       "{publisher_id}": conversion.publisherId,
+      "{subid}": click.subid || "",
       "{sub1}": click.sub1 || "",
       "{sub2}": click.sub2 || "",
       "{sub3}": click.sub3 || "",

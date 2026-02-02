@@ -167,7 +167,7 @@ export class Orchestrator {
         payout: publisherPayout,
         revenue: advertiserCost,
         country: click.geo || undefined,
-        subId: click.sub1 || undefined,
+        subId: click.subid || undefined,
         ...fraudFlag,
       }).catch(console.error);
     } else if (webhookEventType === "sale") {
