@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, User, Mail, Phone, Send, Calendar, 
-  MousePointer, Target, DollarSign, Check, X, Loader2, Settings
+  MousePointer, Target, DollarSign, Check, X, Loader2, Settings, Pencil
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { getCurrencySymbol, getOfferCurrency, formatCurrency } from "@/lib/utils";
@@ -50,6 +51,7 @@ interface PartnerOffer {
   status: string;
   accessStatus: string;
   payout: string | null;
+  customPayout: string | null;
   payoutModel: string;
   currency: string;
   clicks: number;
@@ -155,6 +157,49 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
       });
     }
   });
+
+  const [editingPayoutOfferId, setEditingPayoutOfferId] = useState<string | null>(null);
+  const [editPayoutValue, setEditPayoutValue] = useState("");
+
+  const updatePayoutMutation = useMutation({
+    mutationFn: async ({ offerId, customPayout }: { offerId: string; customPayout: string | null }) => {
+      return apiRequest("PATCH", `/api/offers/${offerId}/publishers/${publisherId}/payout`, { customPayout });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/advertiser/partners", publisherId, "offers"] });
+      setEditingPayoutOfferId(null);
+      setEditPayoutValue("");
+      toast({
+        title: "Ставка обновлена",
+        description: "Индивидуальная ставка сохранена"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось обновить ставку",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const startEditPayout = (offer: PartnerOffer) => {
+    setEditingPayoutOfferId(offer.id);
+    setEditPayoutValue(offer.customPayout || "");
+  };
+
+  const savePayout = (offerId: string) => {
+    const value = editPayoutValue.trim();
+    updatePayoutMutation.mutate({ 
+      offerId, 
+      customPayout: value === "" ? null : value 
+    });
+  };
+
+  const cancelEditPayout = () => {
+    setEditingPayoutOfferId(null);
+    setEditPayoutValue("");
+  };
 
   const openGrantDialog = (offer: PartnerOffer) => {
     setSelectedOffer(offer);
@@ -437,10 +482,72 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                       </td>
                       <td className="px-4 py-3">{accessBadge(offer)}</td>
                       <td className="px-4 py-3 text-right">
-                        <span className="text-emerald-400 font-mono">
-                          {offer.payout ? `от ${getCurrencySymbol(getOfferCurrency(offer))}${offer.payout}` : "—"}
-                        </span>
-                        <span className="text-muted-foreground text-xs ml-1">/{offer.payoutModel}</span>
+                        {editingPayoutOfferId === offer.id ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <span className="text-muted-foreground text-sm">{getCurrencySymbol(offer.currency)}</span>
+                            <Input
+                              data-testid={`input-payout-${offer.id}`}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={editPayoutValue}
+                              onChange={(e) => setEditPayoutValue(e.target.value)}
+                              className="w-20 h-7 text-xs text-right"
+                              placeholder={offer.payout || "0"}
+                              autoFocus
+                            />
+                            <Button
+                              data-testid={`button-save-payout-${offer.id}`}
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 h-7 w-7 p-0"
+                              onClick={() => savePayout(offer.id)}
+                              disabled={updatePayoutMutation.isPending}
+                            >
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              data-testid={`button-cancel-payout-${offer.id}`}
+                              size="sm"
+                              variant="outline"
+                              className="h-7 w-7 p-0"
+                              onClick={cancelEditPayout}
+                              disabled={updatePayoutMutation.isPending}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1 group">
+                            <div className="flex flex-col items-end">
+                              {offer.customPayout ? (
+                                <>
+                                  <span className="text-emerald-400 font-mono font-semibold">
+                                    {getCurrencySymbol(offer.currency)}{offer.customPayout}
+                                  </span>
+                                  <span className="text-muted-foreground text-[10px] line-through">
+                                    {offer.payout ? `${getCurrencySymbol(offer.currency)}${offer.payout}` : "—"}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-emerald-400 font-mono">
+                                  {offer.payout ? `от ${getCurrencySymbol(offer.currency)}${offer.payout}` : "—"}
+                                </span>
+                              )}
+                              <span className="text-muted-foreground text-xs">/{offer.payoutModel}</span>
+                            </div>
+                            {offer.accessStatus === "approved" && (
+                              <Button
+                                data-testid={`button-edit-payout-${offer.id}`}
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => startEditPayout(offer)}
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{offer.clicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground font-mono">{offer.conversions.toLocaleString()}</td>

@@ -2164,9 +2164,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Offer not found" });
       }
 
+      // Get publisher offer access to check for custom payout
+      const publisherOfferAccess = await storage.getPublisherOfferAccess(click.publisherId, click.offerId);
+
       // Calculate advertiser cost and publisher payout from offer
+      // Use customPayout if set, otherwise fall back to offer's partnerPayout
       const advertiserCost = payout || offer.internalCost || "0";
-      const publisherPayout = offer.partnerPayout || "0";
+      const publisherPayout = publisherOfferAccess?.customPayout || offer.partnerPayout || "0";
 
       // Determine initial status based on hold period
       let finalStatus = inputStatus || "approved";
@@ -4291,7 +4295,9 @@ export async function registerRoutes(
           status: offer.status,
           accessStatus,
           payout,
+          customPayout: access?.customPayout || null,
           payoutModel: offer.payoutModel,
+          currency: offer.currency || landings[0]?.currency || 'USD',
           clicks: stats.clicks,
           conversions: stats.conversions,
           revenue: stats.revenue,
