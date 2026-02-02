@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Bell, DollarSign, UserPlus, FileText, CheckCircle, XCircle, Target } from "lucide-react";
 
 interface Notification {
@@ -13,28 +14,45 @@ interface Notification {
   createdAt: string;
 }
 
-function getNotificationRoute(notification: Notification): string | null {
+function getNotificationRoute(notification: Notification, role: string): string | null {
   const { entityType, entityId, type } = notification;
+  // advertiser_staff использует dashboard рекламодателя
+  const effectiveRole = role === "advertiser_staff" ? "advertiser" : role;
+  const basePath = `/dashboard/${effectiveRole}`;
   
   switch (type) {
     case "access_request":
-      return "/dashboard?tab=access-requests";
+      // Рекламодатель видит запросы доступа
+      return `${basePath}/requests`;
     case "offer":
-      return entityId ? `/dashboard/offers/${entityId}` : "/dashboard?tab=offers";
+      // Партнёр видит офферы
+      return entityId ? `${basePath}/offer/${entityId}` : `${basePath}/offers`;
     case "conversion":
     case "sale":
     case "lead":
-      return "/dashboard?tab=reports";
+      // Партнёр видит статистику
+      return `${basePath}/reports`;
     case "payout":
+      // Рекламодатель - финансы, партнёр - выплаты
+      if (role === "publisher") {
+        return `${basePath}/payouts`;
+      }
+      return `${basePath}/finance`;
     case "payout_rate":
-      return "/dashboard?tab=finance";
+      // Партнёр видит офферы с изменённой ставкой
+      return `${basePath}/offers`;
     case "system":
-      if (entityType === "publisher") return "/dashboard?tab=partners";
-      return "/dashboard?tab=notifications";
+      if (entityType === "publisher") {
+        // Рекламодатель видит партнёров
+        return `${basePath}/partners`;
+      }
+      return `${basePath}/notifications`;
     case "new_offer":
-      return entityId ? `/dashboard/offers/${entityId}` : "/dashboard?tab=offers";
+      return entityId ? `${basePath}/offer/${entityId}` : `${basePath}/offers`;
+    case "antifraud":
+      return `${basePath}/antifraud`;
     default:
-      return "/dashboard?tab=notifications";
+      return `${basePath}/notifications`;
   }
 }
 
@@ -61,12 +79,16 @@ function getNotificationIcon(type: string) {
 
 export function NotificationListener() {
   const { toast, dismiss } = useToast();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   // Start checking from 1 minute ago to catch recent notifications
   const lastCheckRef = useRef<Date>(new Date(Date.now() - 60000));
   const shownIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    // Don't poll if user is not authenticated
+    if (!user) return;
+    
     const checkNewNotifications = async () => {
       try {
         const since = lastCheckRef.current.toISOString();
@@ -82,7 +104,7 @@ export function NotificationListener() {
           if (shownIdsRef.current.has(notification.id)) continue;
           shownIdsRef.current.add(notification.id);
           
-          const route = getNotificationRoute(notification);
+          const route = getNotificationRoute(notification, user.role);
           
           const showToast = () => {
             const { id: toastId } = toast({
@@ -127,7 +149,7 @@ export function NotificationListener() {
     const interval = setInterval(checkNewNotifications, 10000);
     
     return () => clearInterval(interval);
-  }, [toast, dismiss, setLocation]);
+  }, [toast, dismiss, setLocation, user]);
 
   return null;
 }
