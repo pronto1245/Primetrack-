@@ -611,9 +611,11 @@ export interface IStorage {
   // Notifications
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotifications(userId: string, limit?: number, advertiserScopeId?: string): Promise<Notification[]>;
+  getNewNotifications(userId: string, since: Date, limit?: number, advertiserScopeId?: string): Promise<Notification[]>;
   getUnreadNotificationCount(userId: string, advertiserScopeId?: string): Promise<number>;
   markNotificationRead(id: string, userId: string): Promise<Notification | undefined>;
   markAllNotificationsRead(userId: string): Promise<void>;
+  markNotificationsAsRead(ids: string[]): Promise<void>;
   
   // News Posts
   createNewsPost(news: InsertNewsPost): Promise<NewsPost>;
@@ -4625,6 +4627,28 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
+  async getNewNotifications(userId: string, since: Date, limit: number = 20, advertiserScopeId?: string): Promise<Notification[]> {
+    let whereClause;
+    if (advertiserScopeId) {
+      whereClause = and(
+        or(
+          eq(notifications.recipientId, userId),
+          eq(notifications.advertiserScopeId, advertiserScopeId)
+        ),
+        sql`${notifications.createdAt} > ${since}`
+      );
+    } else {
+      whereClause = and(
+        eq(notifications.recipientId, userId),
+        sql`${notifications.createdAt} > ${since}`
+      );
+    }
+    return db.select().from(notifications)
+      .where(whereClause)
+      .orderBy(notifications.createdAt)
+      .limit(limit);
+  }
+
   async getUnreadNotificationCount(userId: string, advertiserScopeId?: string): Promise<number> {
     let whereClause;
     if (advertiserScopeId) {
@@ -4665,6 +4689,13 @@ export class DatabaseStorage implements IStorage {
         eq(notifications.recipientId, userId),
         eq(notifications.isRead, false)
       ));
+  }
+
+  async markNotificationsAsRead(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    await db.update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(inArray(notifications.id, ids));
   }
 
   // ============================================

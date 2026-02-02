@@ -4116,6 +4116,16 @@ export async function registerRoutes(
       // Update customPayout in publisher_offers
       await storage.updatePublisherOfferPayout(offerId, publisherId, validatedPayout);
 
+      // Notify publisher about payout rate change (only if setting a new rate, not clearing)
+      if (validatedPayout !== null) {
+        notificationService.notifyPayoutRateChanged(
+          publisherId,
+          effectiveAdvertiserId,
+          offer.name,
+          parseFloat(validatedPayout)
+        );
+      }
+
       res.json({ message: "Custom payout updated successfully", customPayout: validatedPayout });
     } catch (error) {
       console.error("Error updating custom payout:", error);
@@ -8017,6 +8027,29 @@ export async function registerRoutes(
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Get new notifications since timestamp (for real-time toast)
+  app.get("/api/notifications/new", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId!;
+      const since = req.query.since ? new Date(req.query.since as string) : new Date(Date.now() - 60000);
+      const limit = parseInt(req.query.limit as string) || 20;
+      const advertiserScopeId = req.session.role === 'advertiser_staff' 
+        ? req.session.staffAdvertiserId 
+        : undefined;
+      const notifications = await storage.getNewNotifications(userId, since, limit, advertiserScopeId);
+      
+      // Mark fetched notifications as read
+      if (notifications.length > 0) {
+        const ids = notifications.map((n: { id: string }) => n.id);
+        await storage.markNotificationsAsRead(ids);
+      }
+      
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch new notifications" });
     }
   });
 

@@ -147,6 +147,43 @@ export class NotificationService {
       body
     });
   }
+
+  async notifyNewOffer(
+    publisherId: string,
+    advertiserId: string,
+    offerName: string,
+    offerId: string
+  ) {
+    await storage.createNotification({
+      senderId: advertiserId,
+      senderRole: "advertiser",
+      recipientId: publisherId,
+      advertiserScopeId: advertiserId,
+      type: "new_offer",
+      title: "Новый оффер доступен!",
+      body: `Добавлен новый оффер "${offerName}". Проверьте условия и запросите доступ.`,
+      entityType: "offer",
+      entityId: offerId
+    });
+  }
+
+  async notifyPayoutRateChanged(
+    publisherId: string,
+    advertiserId: string,
+    offerName: string,
+    newPayout: number
+  ) {
+    await storage.createNotification({
+      senderId: advertiserId,
+      senderRole: "advertiser",
+      recipientId: publisherId,
+      advertiserScopeId: advertiserId,
+      type: "payout_rate",
+      title: "Изменение ставки",
+      body: `Ваша ставка по офферу "${offerName}" изменена на $${newPayout.toFixed(2)}`,
+      entityType: "offer"
+    });
+  }
 }
 
 export const notificationService = new NotificationService();

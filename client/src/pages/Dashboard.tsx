@@ -57,6 +57,7 @@ import { PublisherSplitTests } from "@/components/dashboard/PublisherSplitTests"
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import AdminIntegrations from "@/components/dashboard/AdminIntegrations";
 import { NotificationBell } from "@/components/NotificationBell";
+import { NotificationListener } from "@/components/NotificationListener";
 import { SubscriptionBadge } from "@/components/SubscriptionBadge";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -911,6 +912,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
 
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <NotificationListener />
       {/* Top Bar */}
       <header className="h-14 bg-card border-b border-border flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center gap-4">
