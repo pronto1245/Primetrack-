@@ -313,6 +313,15 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
               <p className="text-xs text-orange-400/70">Рекламодатель отозвал ваш доступ к офферу</p>
             </div>
           </div>
+          <Button
+            className="w-full bg-orange-600 hover:bg-orange-500 text-foreground mt-3"
+            onClick={() => requestAccessMutation.mutate()}
+            disabled={requestAccessMutation.isPending}
+            data-testid="button-request-access-revoked"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            Запросить снова
+          </Button>
         </CardContent>
       </Card>
     );
