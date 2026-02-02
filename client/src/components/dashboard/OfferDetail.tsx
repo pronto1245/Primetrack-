@@ -300,33 +300,7 @@ function AccessRequestCard({ offerId, accessStatus, onSuccess }: { offerId: stri
     );
   }
 
-  if (accessStatus === "revoked") {
-    return (
-      <Card className="bg-orange-500/10 border-orange-500/30">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-orange-400" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-orange-400">Доступ отозван</h3>
-              <p className="text-xs text-orange-400/70">Рекламодатель отозвал ваш доступ к офферу</p>
-            </div>
-          </div>
-          <Button
-            className="w-full bg-orange-600 hover:bg-orange-500 text-foreground mt-3"
-            onClick={() => requestAccessMutation.mutate()}
-            disabled={requestAccessMutation.isPending}
-            data-testid="button-request-access-revoked"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Запросить снова
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // При revoked показываем стандартную форму запроса доступа
   return (
     <Card className="bg-blue-500/10 border-blue-500/30">
       <CardContent className="p-6">
