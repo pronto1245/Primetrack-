@@ -188,13 +188,13 @@ export function PublisherOffers({ role }: { role: string }) {
     }
     if (offer.accessStatus === "revoked") {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start gap-1">
           <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-orange-500/20 text-orange-500">
             <AlertCircle className="w-3 h-3" />
             Отозван
           </span>
           <button
-            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 hover:text-blue-400 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
             onClick={(e) => {
               e.stopPropagation();
               requestAccessMutation.mutate(offer.id);
@@ -203,7 +203,7 @@ export function PublisherOffers({ role }: { role: string }) {
             data-testid={`button-request-access-revoked-${offer.id}`}
           >
             <Send className="w-3 h-3" />
-            Запросить
+            Запросить снова
           </button>
         </div>
       );
