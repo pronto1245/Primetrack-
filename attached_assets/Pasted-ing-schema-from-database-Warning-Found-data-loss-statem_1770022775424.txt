@@ -1,0 +1,74 @@
+ing schema from database...
+ Warning  Found data-loss statements:
+· You're about to delete session table with 3 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+[x] All changes were aborted
+[root@v742573 primetrack]# psql "$DATABASE_URL" -c "ALTER TABLE publisher_offers ADD COLUMN IF NOT EXISTS custom_payout NUMERIC(10,2);"
+-bash: psql: command not found
+[root@v742573 primetrack]# pm2 restart primetrack
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 21   │ online    │ 0%       │ 14.1mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# npx tsx -e "const { Pool } = require('pg'); const pool = new Pool({connectionString: process.env.DATABASE_URL}); pool.query('ALTER TABLE publisher_offers ADD COLUMN IF NOT EXISTS custom_payout NUMERIC(10,2)').then(() => { console.log('Done'); pool.end(); }).catch(e => { console.error(e); pool.end(); });"
+AggregateError [ECONNREFUSED]: 
+    at /var/www/primetrack/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:5432
+        at createConnectionError (node:net:1652:14)
+        at afterConnectMultiple (node:net:1682:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:5432
+        at createConnectionError (node:net:1652:14)
+        at afterConnectMultiple (node:net:1682:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432
+    }
+  ]
+}
+[root@v742573 primetrack]# cd /var/www/primetrack && git pull && node scripts/add-custom-payout-column.js && pm2 restart primetrack --update-env
+remote: Enumerating objects: 17, done.
+remote: Counting objects: 100% (17/17), done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 11 (delta 6), reused 11 (delta 6), pack-reused 0 (from 0)
+Unpacking objects: 100% (11/11), 55.99 KiB | 955.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+   ffb1fd3..c60068c  main       -> origin/main
+Updating ffb1fd3..c60068c
+Fast-forward
+ ...T1-Last-failed-login-17700222_1770022253355.txt | 104 +++++++++++++++++++++
+ client/public/opengraph.jpg                        | Bin 60977 -> 61413 bytes
+ scripts/add-custom-payout-column.js                |  29 ++++++
+ 3 files changed, 133 insertions(+)
+ create mode 100644 attached_assets/Pasted--keitaro-io-Keitaro-WebHOST1-Last-failed-login-17700222_1770022253355.txt
+ create mode 100644 scripts/add-custom-payout-column.js
+file:///var/www/primetrack/scripts/add-custom-payout-column.js:1
+const { Pool } = require('pg');
+                 ^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+This file is being treated as an ES module because it has a '.js' file extension and '/var/www/primetrack/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+    at file:///var/www/primetrack/scripts/add-custom-payout-column.js:1:18
+    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v20.20.0
+[root@v742573 primetrack]# 
