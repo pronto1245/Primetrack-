@@ -3287,6 +3287,29 @@ export async function registerRoutes(
 
       const existingRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offerId, publisherId);
       if (existingRequest) {
+        // Разрешаем повторный запрос при revoked или rejected статусе
+        if (existingRequest.status === "revoked" || existingRequest.status === "rejected") {
+          // Обновляем существующий запрос на pending
+          const updatedRequest = await storage.updateOfferAccessRequest(existingRequest.id, {
+            status: "pending",
+            message: message || null,
+            rejectionReason: null,
+          });
+          
+          // Notify advertiser about new access request
+          const publisher = await storage.getUser(publisherId);
+          if (publisher) {
+            notificationService.notifyAccessRequest(
+              offer.advertiserId,
+              publisher.username,
+              offer.name,
+              existingRequest.id
+            ).catch(console.error);
+          }
+          
+          return res.status(200).json(updatedRequest);
+        }
+        
         return res.status(400).json({ 
           message: "Access request already exists", 
           status: existingRequest.status 
