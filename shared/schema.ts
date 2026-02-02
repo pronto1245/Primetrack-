@@ -652,6 +652,7 @@ export const publisherOffers = pgTable("publisher_offers", {
   approvedLandings: text("approved_landings").array(),
   requestedLandings: text("requested_landings").array(),
   extensionRequestedAt: timestamp("extension_requested_at"),
+  customPayout: numeric("custom_payout", { precision: 10, scale: 2 }),
 });
 
 export const insertPublisherOfferSchema = createInsertSchema(publisherOffers).omit({
