@@ -536,32 +536,32 @@ export function CreateOfferForm({ role }: { role: string }) {
                   Специальные статусы
                 </Label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${formData.isTop ? 'border-yellow-500 bg-yellow-500/10' : 'border-border hover:border-yellow-500/50'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isTop}
                       onChange={e => setFormData(prev => ({ ...prev, isTop: e.target.checked }))}
-                      className="w-4 h-4 rounded border-border"
+                      className="w-4 h-4 rounded border-border accent-yellow-500"
                       data-testid="checkbox-is-top"
                     />
                     <span className="px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400">TOP</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${formData.isExclusive ? 'border-purple-500 bg-purple-500/10' : 'border-border hover:border-purple-500/50'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isExclusive}
                       onChange={e => setFormData(prev => ({ ...prev, isExclusive: e.target.checked }))}
-                      className="w-4 h-4 rounded border-border"
+                      className="w-4 h-4 rounded border-border accent-purple-500"
                       data-testid="checkbox-is-exclusive"
                     />
                     <span className="px-2 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-400">EXCLUSIVE</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${formData.isPrivate ? 'border-red-500 bg-red-500/10' : 'border-border hover:border-red-500/50'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isPrivate}
                       onChange={e => setFormData(prev => ({ ...prev, isPrivate: e.target.checked }))}
-                      className="w-4 h-4 rounded border-border"
+                      className="w-4 h-4 rounded border-border accent-red-500"
                       data-testid="checkbox-is-private"
                     />
                     <span className="px-2 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-400">PRIVATE</span>
