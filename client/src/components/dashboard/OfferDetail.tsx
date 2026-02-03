@@ -822,7 +822,7 @@ export function OfferDetail({ offerId, role }: { offerId: string; role: string }
                 </div>
                 {role === 'advertiser' && (
                   <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl p-4 border border-red-500/20">
-                    <div className="text-[10px] uppercase text-red-400/70 mb-1 font-medium">Internal Cost</div>
+                    <div className="text-[10px] uppercase text-red-400/70 mb-1 font-medium">Внутр. стоимость</div>
                     <div className="text-xl font-bold text-red-400" data-testid="text-internal-cost">
                       {getOfferCostPrice(offer) ? `${getCurrencySymbol(getOfferCurrency(offer))}${getOfferCostPrice(offer)}` : 'N/A'}
                     </div>
