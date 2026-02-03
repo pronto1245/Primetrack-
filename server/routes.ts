@@ -4312,6 +4312,7 @@ export async function registerRoutes(
       
       res.json({
         id: publisher.id,
+        shortId: publisher.shortId,
         username: publisher.username,
         email: publisher.email,
         telegram: publisher.telegram,
@@ -4381,6 +4382,7 @@ export async function registerRoutes(
         
         return {
           id: offer.id,
+          shortId: offer.shortId,
           name: offer.name,
           logoUrl: offer.logoUrl,
           status: offer.status,
@@ -4392,7 +4394,7 @@ export async function registerRoutes(
           clicks: stats.clicks,
           conversions: stats.conversions,
           revenue: stats.revenue,
-          landings: landings.map(l => ({ id: l.id, name: l.landingName || `Лендинг ${l.geo}`, url: l.landingUrl, geo: l.geo, payout: l.partnerPayout, currency: l.currency })),
+          landings: landings.map(l => ({ id: l.id, shortId: l.shortId, name: l.landingName || `Лендинг ${l.geo}`, url: l.landingUrl, geo: l.geo, payout: l.partnerPayout, currency: l.currency })),
           approvedLandings: access?.approvedLandings || null,
           requestedLandings: access?.requestedLandings || null,
           extensionRequestedAt: access?.extensionRequestedAt || null

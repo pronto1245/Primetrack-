@@ -23,6 +23,7 @@ interface PartnerProfileProps {
 
 interface PartnerDetails {
   id: string;
+  shortId: number | null;
   username: string;
   email: string;
   telegram?: string | null;
@@ -38,6 +39,7 @@ interface PartnerDetails {
 
 interface Landing {
   id: string;
+  shortId: number | null;
   name: string;
   url: string;
   geo: string;
@@ -46,6 +48,7 @@ interface Landing {
 
 interface PartnerOffer {
   id: string;
+  shortId: number | null;
   name: string;
   logoUrl: string | null;
   status: string;
@@ -279,8 +282,15 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
     return offer.landings.filter(l => offer.approvedLandings!.includes(l.id));
   };
 
-  const buildTrackingUrl = (offerId: string, landingId: string) => {
-    return `https://primetrack.pro/click/${offerId}/${landingId}?partner_id=${publisherId}`;
+  const buildTrackingUrl = (offerShortId: number | null, landingShortId: number | null) => {
+    const partnerShortId = partner?.shortId;
+    if (!offerShortId || !landingShortId || !partnerShortId) {
+      return null;
+    }
+    const offerIdStr = String(offerShortId).padStart(4, '0');
+    const landingIdStr = String(landingShortId).padStart(4, '0');
+    const partnerIdStr = String(partnerShortId).padStart(3, '0');
+    return `https://primetrack.pro/click/${offerIdStr}/${landingIdStr}?partner_id=${partnerIdStr}`;
   };
 
   const copyToClipboard = async (text: string) => {
@@ -912,7 +922,17 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
 
               <div className="max-h-80 overflow-y-auto space-y-3">
                 {getApprovedLandings(linksDialogOffer).map((landing) => {
-                  const trackingUrl = buildTrackingUrl(linksDialogOffer.id, landing.id);
+                  const trackingUrl = buildTrackingUrl(linksDialogOffer.shortId, landing.shortId);
+                  if (!trackingUrl) {
+                    return (
+                      <div 
+                        key={landing.id} 
+                        className="border border-border rounded-lg p-3 text-muted-foreground text-sm"
+                      >
+                        Ссылка недоступна (отсутствует shortId)
+                      </div>
+                    );
+                  }
                   return (
                     <div 
                       key={landing.id} 
