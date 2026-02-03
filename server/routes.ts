@@ -2025,7 +2025,17 @@ export async function registerRoutes(
       const selectedPartnerIds = rawOfferData.selectedPartnerIds;
       const finalOffer = await storage.getOffer(req.params.id);
       
-      if (finalOffer?.isPrivate && selectedPartnerIds && Array.isArray(selectedPartnerIds)) {
+      // Если оффер стал публичным — отзываем все доступы
+      if (!finalOffer?.isPrivate) {
+        const currentAccess = await storage.getPublisherOffersByOffer(req.params.id);
+        for (const access of currentAccess) {
+          try {
+            await storage.updatePublisherOfferAccess(req.params.id, access.publisherId, "revoke");
+          } catch (err) {
+            console.error(`[PUT /api/offers] Failed to revoke access for ${access.publisherId}:`, err);
+          }
+        }
+      } else if (finalOffer?.isPrivate && selectedPartnerIds && Array.isArray(selectedPartnerIds)) {
         console.log("[PUT /api/offers] Updating access for private offer, partners:", selectedPartnerIds);
         const landingIds = updatedLandings.map(l => l.id);
         
