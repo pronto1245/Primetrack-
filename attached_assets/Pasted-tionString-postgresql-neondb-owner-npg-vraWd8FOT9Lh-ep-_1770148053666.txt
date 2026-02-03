@@ -1,0 +1,119 @@
+tionString: 'postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require'
+});
+
+// Все индексы в базе
+pool.query(\`
+  SELECT tablename, indexname, indexdef 
+  FROM pg_indexes 
+  WHERE schemaname = 'public' 
+  ORDER BY tablename, indexname
+\`).then(r => {
+  console.log('=== ВСЕ ИНДЕКСЫ В БАЗЕ ===');
+  r.rows.forEach(row => console.log(row.tablename + ': ' + row.indexname));
+  pool.end();
+}).catch(e => { console.error('Error:', e.message); pool.end(); });
+"
+=== ВСЕ ИНДЕКСЫ В БАЗЕ ===
+acme_accounts: acme_accounts_pkey
+acme_challenges: acme_challenges_pkey
+advertiser_settings: advertiser_settings_advertiser_id_unique
+advertiser_settings: advertiser_settings_pkey
+advertiser_sources: advertiser_sources_advertiser_idx
+advertiser_sources: advertiser_sources_pkey
+advertiser_staff: advertiser_staff_email_unique
+advertiser_staff: advertiser_staff_pkey
+advertiser_subscriptions: advertiser_subscriptions_pkey
+antifraud_logs: antifraud_logs_pkey
+antifraud_metrics: antifraud_metrics_pkey
+antifraud_rules: antifraud_rules_pkey
+clicks: clicks_click_id_unique
+clicks: clicks_offer_date_idx
+clicks: clicks_offer_publisher_date_idx
+clicks: clicks_pkey
+clicks: clicks_publisher_date_idx
+conversion_fingerprints: conversion_fingerprints_pkey
+conversions: conversions_click_id_idx
+conversions: conversions_offer_publisher_date_idx
+conversions: conversions_pkey
+conversions: conversions_publisher_date_idx
+conversions: conversions_status_date_idx
+crypto_payout_logs: crypto_payout_logs_pkey
+crypto_payout_queue: crypto_payout_queue_idempotency_key_unique
+crypto_payout_queue: crypto_payout_queue_pkey
+custom_domains: custom_domains_domain_unique
+custom_domains: custom_domains_pkey
+daily_stats: daily_stats_advertiser_date_idx
+daily_stats: daily_stats_pkey
+daily_stats: daily_stats_publisher_date_idx
+daily_stats: daily_stats_unique_dims
+daily_stats: daily_stats_unique_idx
+data_migrations: data_migrations_pkey
+exchange_api_keys: exchange_api_keys_pkey
+incoming_postback_configs: incoming_postback_configs_pkey
+migration_history: migration_history_pkey
+news_posts: news_posts_pkey
+news_reads: news_reads_pkey
+notifications: notifications_pkey
+offer_access_requests: offer_access_requests_pkey
+offer_caps_stats: offer_caps_stats_offer_date_idx
+offer_caps_stats: offer_caps_stats_pkey
+offer_landing_variants: offer_landing_variants_pkey
+offer_landings: offer_landings_pkey
+offer_landings: offer_landings_short_id_unique
+offer_postback_settings: offer_postback_settings_offer_id_unique
+offer_postback_settings: offer_postback_settings_pkey
+offers: offers_advertiser_idx
+offers: offers_pkey
+offers: offers_short_id_unique
+password_reset_tokens: password_reset_tokens_pkey
+password_reset_tokens: password_reset_tokens_token_unique
+payment_methods: payment_methods_pkey
+payout_requests: payout_requests_pkey
+payouts: payouts_pkey
+platform_api_key_usage_logs: platform_api_key_usage_logs_pkey
+platform_api_keys: platform_api_keys_pkey
+platform_settings: platform_settings_pkey
+platform_webhook_logs: platform_webhook_logs_pkey
+platform_webhooks: platform_webhooks_pkey
+player_sessions: player_sessions_pkey
+postback_logs: postback_logs_pkey
+publisher_advertisers: publisher_advertisers_pkey
+publisher_balances: publisher_balances_pkey
+publisher_invoice_items: publisher_invoice_items_pkey
+publisher_invoices: publisher_invoices_pkey
+publisher_invoices: publisher_invoices_short_id_unique
+publisher_offers: publisher_offers_pkey
+publisher_postback_endpoints: publisher_postback_endpoints_pkey
+publisher_stats_cache: publisher_stats_cache_pkey
+publisher_wallets: publisher_wallets_pkey
+raw_clicks: raw_clicks_advertiser_date_idx
+raw_clicks: raw_clicks_created_at_idx
+raw_clicks: raw_clicks_pkey
+raw_clicks: raw_clicks_publisher_date_idx
+raw_clicks: raw_clicks_status_idx
+referral_earnings: referral_earnings_advertiser_idx
+referral_earnings: referral_earnings_conversion_idx
+referral_earnings: referral_earnings_pkey
+referral_earnings: referral_earnings_referred_idx
+referral_earnings: referral_earnings_referrer_idx
+roadmap_items: roadmap_items_pkey
+session: idx_session_expire
+session: session_pkey
+split_test_items: split_test_items_pkey
+split_tests: split_tests_pkey
+split_tests: split_tests_short_code_unique
+subscription_payments: subscription_payments_pkey
+subscription_plans: subscription_plans_pkey
+support_conversations: support_conversations_pkey
+support_messages: support_messages_pkey
+user_postback_settings: user_postback_settings_pkey
+user_postback_settings: user_postback_settings_user_id_unique
+users: users_email_unique
+users: users_pkey
+users: users_referral_code_unique
+users: users_short_id_unique
+users: users_username_unique
+velocity_counters: velocity_counters_pkey
+webhook_endpoints: webhook_endpoints_pkey
+webhook_logs: webhook_logs_pkey
+[root@v742573 primetrack]# 
