@@ -1,0 +1,115 @@
+Last login: Tue Feb  3 13:11:39 on ttys001
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Tue Feb  3 10:50:49 UTC 2026 from 85.94.17.34 on ssh:notty
+There were 48 failed login attempts since the last successful login.
+Last login: Tue Feb  3 10:12:05 2026 from 85.94.17.34
+[root@v742573 ~]# cd /var/www/primetrack && git pull origin main && npm run build && pm2 restart primetrack
+remote: Enumerating objects: 59, done.
+remote: Counting objects: 100% (59/59), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 46 (delta 40), reused 46 (delta 40), pack-reused 0 (from 0)
+Unpacking objects: 100% (46/46), 63.56 KiB | 570.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   c249902..51d932f  main       -> origin/main
+Updating c249902..51d932f
+Fast-forward
+ ...-01-on-ttys001-a1-Macbook-pro_1770113600011.txt |  93 +++++++++++++++++
+ ...85-179-191-12-cd-var-www-prim_1770113052852.txt |  42 ++++++++
+ client/public/opengraph.jpg                        | Bin 60976 -> 60148 bytes
+ .../src/components/dashboard/AdvertiserOffers.tsx  | 116 ++++++++++++++++++++-
+ .../src/components/dashboard/CreateOfferForm.tsx   |  94 ++---------------
+ client/src/components/dashboard/OfferDetail.tsx    |   2 +-
+ .../components/dashboard/PartnerAccessSelector.tsx | 112 ++++++++++++++++++++
+ server/routes.ts                                   |  91 +++++++++++++++-
+ 8 files changed, 458 insertions(+), 92 deletions(-)
+ create mode 100644 attached_assets/Pasted-Last-login-Tue-Feb-3-13-11-01-on-ttys001-a1-Macbook-pro_1770113600011.txt
+ create mode 100644 attached_assets/Pasted-a1-Macbook-pro1-ssh-root-185-179-191-12-cd-var-www-prim_1770113052852.txt
+ create mode 100644 client/src/components/dashboard/PartnerAccessSelector.tsx
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3880 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-DAYj07cr.css                                      196.91 kB │ gzip:  28.22 kB
+../dist/public/assets/index-DoJEJhgR.js                                     2,597.78 kB │ gzip: 676.71 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 19.07s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 572ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 9    │ online    │ 0%       │ 3.3mb    │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
