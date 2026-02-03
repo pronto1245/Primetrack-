@@ -90,10 +90,16 @@ export function PartnerAccessSelector({
             className="bg-background border-border text-foreground font-mono focus:border-red-500 pr-8"
             data-testid="input-partner-search"
           />
-          <ChevronDown 
-            className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          <button
+            type="button"
             onClick={() => setIsOpen(!isOpen)}
-          />
+            onMouseDown={e => e.preventDefault()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
+            data-testid="button-toggle-partner-dropdown"
+            aria-label={isOpen ? "Закрыть список партнёров" : "Открыть список партнёров"}
+          >
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
         </div>
         {isOpen && filteredPartners.length > 0 && (
           <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-48 overflow-auto">
