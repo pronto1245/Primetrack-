@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Search, Edit, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen, Archive, ArchiveRestore, Lock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Plus, Search, Edit, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen, Archive, ArchiveRestore, Lock, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 import { getCountryFlag } from "./CountrySelector";
 import { useStaff } from "@/contexts/StaffContext";
 import { getCurrencySymbol, getOfferCurrency } from "@/lib/utils";
+import { PartnerAccessSelector } from "./PartnerAccessSelector";
 
 interface OfferLanding {
   id: string;
@@ -95,7 +97,65 @@ export function AdvertiserOffers({ role }: { role: string }) {
   const [filterPrivate, setFilterPrivate] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [offerToArchive, setOfferToArchive] = useState<Offer | null>(null);
+  const [accessDialogOpen, setAccessDialogOpen] = useState(false);
+  const [accessOffer, setAccessOffer] = useState<Offer | null>(null);
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([]);
   const hasWriteAccess = canWrite("offers");
+
+  // Загрузка списка активных партнёров рекламодателя
+  const { data: partners } = useQuery<{ publisherId: string; username: string; email: string }[]>({
+    queryKey: ["/api/advertiser/partners", "active"],
+    queryFn: async () => {
+      const res = await fetch("/api/advertiser/partners?status=active", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: accessDialogOpen,
+  });
+
+  // Мутация для сохранения изменений доступа
+  const updateAccessMutation = useMutation({
+    mutationFn: async ({ offerId, partnerIds }: { offerId: string; partnerIds: string[] }) => {
+      const res = await fetch(`/api/offers/${offerId}/partners`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ selectedPartnerIds: partnerIds }),
+      });
+      if (!res.ok) throw new Error("Failed to update access");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/offers"] });
+      toast.success("Доступ к офферу обновлён");
+      setAccessDialogOpen(false);
+      setAccessOffer(null);
+    },
+    onError: () => {
+      toast.error("Не удалось обновить доступ");
+    },
+  });
+
+  const handleAccessClick = async (offer: Offer) => {
+    setAccessOffer(offer);
+    // Загружаем текущих партнёров с доступом
+    try {
+      const res = await fetch(`/api/offers/${offer.id}`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedPartnerIds(data.selectedPartnerIds || []);
+      }
+    } catch {
+      setSelectedPartnerIds([]);
+    }
+    setAccessDialogOpen(true);
+  };
+
+  const handleSaveAccess = () => {
+    if (accessOffer) {
+      updateAccessMutation.mutate({ offerId: accessOffer.id, partnerIds: selectedPartnerIds });
+    }
+  };
 
   const archiveOfferMutation = useMutation({
     mutationFn: async (offerId: string) => {
@@ -529,6 +589,18 @@ export function AdvertiserOffers({ role }: { role: string }) {
                             >
                               <Archive className="w-3 h-3" />
                             </Button>
+                            {offer.isPrivate && (
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-6 w-6 text-red-500 hover:text-red-400 hover:bg-red-500/10" 
+                                data-testid={`button-access-${offer.id}`}
+                                onClick={() => handleAccessClick(offer)}
+                                title="Управление доступом"
+                              >
+                                <Users className="w-3 h-3" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
@@ -566,6 +638,42 @@ export function AdvertiserOffers({ role }: { role: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={accessDialogOpen} onOpenChange={setAccessDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-red-500" />
+              Управление доступом: {accessOffer?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Выберите партнёров, которые будут иметь доступ к этому приватному офферу.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <PartnerAccessSelector
+              partners={partners || []}
+              selectedPartnerIds={selectedPartnerIds}
+              onAdd={(id) => setSelectedPartnerIds(prev => [...prev, id])}
+              onRemove={(id) => setSelectedPartnerIds(prev => prev.filter(p => p !== id))}
+              showWarning={false}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAccessDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button 
+              onClick={handleSaveAccess}
+              disabled={updateAccessMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-save-access"
+            >
+              {updateAccessMutation.isPending ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

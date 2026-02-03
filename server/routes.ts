@@ -1,9 +1,9 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices, insertAdvertiserSourceSchema, clicks } from "@shared/schema";
+import { insertUserSchema, insertOfferSchema, insertOfferLandingSchema, insertClickSchema, insertConversionSchema, insertOfferAccessRequestSchema, insertNotificationSchema, insertNewsPostSchema, publisherInvoices, insertAdvertiserSourceSchema, clicks, publisherOffers } from "@shared/schema";
 import { db } from "../db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
 import crypto from "crypto";
 import session from "express-session";
@@ -5133,6 +5133,93 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update offer caps" });
+    }
+  });
+
+  // Update partner access for private offer
+  const updatePartnerAccessSchema = z.object({
+    selectedPartnerIds: z.array(z.string()).default([])
+  });
+
+  app.put("/api/offers/:id/partners", requireAuth, requireRole("advertiser", "admin"), requireStaffWriteAccess("offers"), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate input with Zod
+      const parseResult = updatePartnerAccessSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid input", errors: parseResult.error.errors });
+      }
+      const { selectedPartnerIds } = parseResult.data;
+      
+      const offer = await storage.getOffer(id);
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      // Verify ownership (unless admin)
+      const user = await storage.getUser(req.session.userId!);
+      if (user?.role !== "admin" && offer.advertiserId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Only allow for private offers
+      if (!offer.isPrivate) {
+        return res.status(400).json({ message: "Cannot manage access for public offers" });
+      }
+      
+      // Get advertiser's active partners to validate IDs
+      const advertiserPartners = await storage.getAdvertiserPartners(offer.advertiserId);
+      const validPartnerIds = new Set(advertiserPartners.filter(p => p.status === "active").map(p => p.publisherId));
+      
+      // Filter to only valid partner IDs
+      const validatedPartnerIds = selectedPartnerIds.filter(pid => validPartnerIds.has(pid));
+      if (validatedPartnerIds.length !== selectedPartnerIds.length) {
+        console.warn(`[PUT /api/offers/${id}/partners] Some partner IDs were invalid and filtered out`);
+      }
+      
+      // Get current partner access
+      const currentAccess = await db.select()
+        .from(publisherOffers)
+        .where(eq(publisherOffers.offerId, id));
+      const currentIds = currentAccess.map(po => po.publisherId);
+      
+      // Determine partners to add and remove
+      const toAdd = validatedPartnerIds.filter((pid: string) => !currentIds.includes(pid));
+      const toRemove = currentIds.filter((pid: string) => !validatedPartnerIds.includes(pid));
+      
+      // Use transaction for atomic updates
+      await db.transaction(async (tx) => {
+        // Add new access
+        for (const publisherId of toAdd) {
+          await tx.insert(publisherOffers).values({
+            id: crypto.randomUUID(),
+            publisherId,
+            offerId: id,
+            status: "approved",
+            requestedLandings: [],
+            approvedLandings: [],
+            customPayout: null,
+            createdAt: new Date()
+          }).onConflictDoNothing();
+        }
+        
+        // Remove access
+        for (const publisherId of toRemove) {
+          await tx.delete(publisherOffers)
+            .where(and(
+              eq(publisherOffers.offerId, id),
+              eq(publisherOffers.publisherId, publisherId)
+            ));
+        }
+      });
+      
+      console.log(`[PUT /api/offers/${id}/partners] Updated access: added ${toAdd.length}, removed ${toRemove.length}`);
+      
+      res.json({ success: true, added: toAdd.length, removed: toRemove.length });
+    } catch (error) {
+      console.error("Failed to update partner access:", error);
+      res.status(500).json({ message: "Failed to update partner access" });
     }
   });
 
