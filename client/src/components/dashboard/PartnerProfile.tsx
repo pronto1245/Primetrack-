@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, User, Mail, Phone, Send, Calendar, 
-  MousePointer, Target, DollarSign, Check, X, Loader2, Settings, Pencil, TrendingUp, Percent, Receipt
+  MousePointer, Target, DollarSign, Check, X, Loader2, Settings, Pencil, TrendingUp, Percent, Receipt, Link2, Copy
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { getCurrencySymbol, getOfferCurrency, formatCurrency } from "@/lib/utils";
@@ -160,6 +160,8 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
 
   const [editingPayoutOfferId, setEditingPayoutOfferId] = useState<string | null>(null);
   const [editPayoutValue, setEditPayoutValue] = useState("");
+  const [linksDialogOpen, setLinksDialogOpen] = useState(false);
+  const [linksDialogOffer, setLinksDialogOffer] = useState<PartnerOffer | null>(null);
 
   const updatePayoutMutation = useMutation({
     mutationFn: async ({ offerId, customPayout }: { offerId: string; customPayout: string | null }) => {
@@ -263,6 +265,38 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
 
   const deselectAllLandings = () => {
     setSelectedLandings([]);
+  };
+
+  const openLinksDialog = (offer: PartnerOffer) => {
+    setLinksDialogOffer(offer);
+    setLinksDialogOpen(true);
+  };
+
+  const getApprovedLandings = (offer: PartnerOffer) => {
+    if (!offer.approvedLandings || offer.approvedLandings.length === 0) {
+      return offer.landings;
+    }
+    return offer.landings.filter(l => offer.approvedLandings!.includes(l.id));
+  };
+
+  const buildTrackingUrl = (offerId: string, landingId: string) => {
+    return `https://primetrack.pro/click/${offerId}/${landingId}?partner_id=${publisherId}`;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Скопировано",
+        description: "Ссылка скопирована в буфер обмена"
+      });
+    } catch (err) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось скопировать ссылку",
+        variant: "destructive"
+      });
+    }
   };
 
   const statusBadge = (status: string) => {
@@ -486,6 +520,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                 <thead className="bg-muted border-b border-border">
                   <tr>
                     <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Оффер</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Ссылки</th>
                     <th className="text-left text-xs font-medium text-muted-foreground uppercase px-4 py-3">Доступ</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Выплата</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase px-4 py-3">Клики</th>
@@ -511,6 +546,22 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                           )}
                           <span className="text-foreground font-medium">{offer.name}</span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {offer.accessStatus === "approved" && getApprovedLandings(offer).length > 0 ? (
+                          <Button
+                            data-testid={`button-links-${offer.id}`}
+                            size="sm"
+                            variant="outline"
+                            className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 h-7 text-xs"
+                            onClick={() => openLinksDialog(offer)}
+                          >
+                            <Link2 className="w-3 h-3 mr-1" />
+                            {getApprovedLandings(offer).length} ссылок
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">{accessBadge(offer)}</td>
                       <td className="px-4 py-3 text-right">
@@ -825,6 +876,97 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                 <Check className="w-4 h-4 mr-2" />
               )}
               {dialogAction === "grant" ? "Выдать доступ" : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={linksDialogOpen} onOpenChange={setLinksDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="w-5 h-5" />
+              Трекинговые ссылки партнёра
+            </DialogTitle>
+          </DialogHeader>
+          
+          {linksDialogOffer && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                {linksDialogOffer.logoUrl ? (
+                  <img 
+                    src={linksDialogOffer.logoUrl} 
+                    alt={linksDialogOffer.name} 
+                    className="w-10 h-10 rounded object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded bg-background flex items-center justify-center text-sm font-bold text-muted-foreground">
+                    {linksDialogOffer.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <span className="text-foreground font-medium">{linksDialogOffer.name}</span>
+                  <p className="text-xs text-muted-foreground">Партнёр: {partner?.username}</p>
+                </div>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto space-y-3">
+                {getApprovedLandings(linksDialogOffer).map((landing) => {
+                  const trackingUrl = buildTrackingUrl(linksDialogOffer.id, landing.id);
+                  return (
+                    <div 
+                      key={landing.id} 
+                      className="border border-border rounded-lg p-3 space-y-2"
+                      data-testid={`link-item-${landing.id}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{getCountryFlag(landing.geo)}</span>
+                        <span className="font-medium text-foreground">{landing.name || `Лендинг ${landing.geo}`}</span>
+                        <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">{landing.geo}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs text-blue-400 bg-blue-500/10 p-2 rounded font-mono break-all">
+                          {trackingUrl}
+                        </code>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                data-testid={`button-copy-${landing.id}`}
+                                size="sm"
+                                variant="outline"
+                                className="h-8 w-8 p-0 shrink-0"
+                                onClick={() => copyToClipboard(trackingUrl)}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Скопировать ссылку</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {getApprovedLandings(linksDialogOffer).length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  У партнёра нет доступных лендингов для этого оффера
+                </p>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button 
+              data-testid="button-close-links-dialog"
+              variant="outline" 
+              onClick={() => setLinksDialogOpen(false)}
+            >
+              Закрыть
             </Button>
           </DialogFooter>
         </DialogContent>
