@@ -1,0 +1,69 @@
+st { Pool } = require('pg');
+const pool = new Pool({ 
+  connectionString: 'postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require'
+});
+
+pool.query(\`CREATE UNIQUE INDEX IF NOT EXISTS offer_caps_stats_offer_date_idx ON offer_caps_stats(offer_id, date)\`)
+  .then(() => console.log('Index 1 created'))
+  .then(() => pool.query(\`CREATE UNIQUE INDEX IF NOT EXISTS daily_stats_unique_idx ON daily_stats(date, advertiser_id, publisher_id, offer_id, geo)\`))
+  .then(() => console.log('Index 2 created'))
+  .then(() => pool.end())
+  .catch(e => { console.error('Error:', e.message); pool.end(); });
+"
+Index 1 created
+Index 2 created
+[root@v742573 primetrack]# pm2 restart primetrack && sleep 3 && pm2 logs primetrack --lines 20
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 12   │ online    │ 0%       │ 20.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at async Hu.processConversion (/var/www/primetrack/dist/index.cjs:256:45818)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:121902 {
+0|primetra |   length: 148,
+0|primetra |   severity: 'ERROR',
+0|primetra |   code: '42P10',
+0|primetra |   detail: undefined,
+0|primetra |   hint: undefined,
+0|primetra |   position: undefined,
+0|primetra |   internalPosition: undefined,
+0|primetra |   internalQuery: undefined,
+0|primetra |   where: undefined,
+0|primetra |   schema: undefined,
+0|primetra |   table: undefined,
+0|primetra |   column: undefined,
+0|primetra |   dataType: undefined,
+0|primetra |   constraint: undefined,
+0|primetra |   file: 'plancat.c',
+0|primetra |   line: '948',
+0|primetra |   routine: 'infer_arbiter_indexes'
+0|primetra | }
+
+/root/.pm2/logs/primetrack-out.log last 20 lines:
+0|primetra | [buildRedirectUrl] OUTPUT: https://a5b76xc4a0.com/alt/playfortuna/registration?55339766ea7dfc53db38f00e8dab2fe3=&banner=regform&click=f9e2c0c5-43e4-4385-b159-d94cf56d4d02&sub1=%7Bsub1%7D&sub2=%7Bsub2%7D&sub3=%7Bsub3%7D&sub4=%7Bsub4%7D&sub5=%7Bsub5%7D&sub6=%7Bsub6%7D&sub7=%7Bsub7%7D&sub8=%7Bsub8%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK DEBUG] resolved offerId=a6b79ffa-1f10-47cd-80f3-1dde9bebe4da, landingId=ab94fa88-454e-4543-80c4-3cd774f92611, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [CLICK-TIMING] clickId=f9e2c0c5-43e4-4385-b159-d94cf56d4d02 total=699ms offer=43ms parallel=448ms antifraud=162ms save=45ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://a5b76xc4a0.com/alt/playfortuna/registration?55339766ea7dfc53db38f00e8dab2fe3&banner=regform, clickId=c2124154-e5e7-44d1-b5b1-2797cc1102c7, clickIdParam=click
+0|primetra | [buildRedirectUrl] OUTPUT: https://a5b76xc4a0.com/alt/playfortuna/registration?55339766ea7dfc53db38f00e8dab2fe3=&banner=regform&click=c2124154-e5e7-44d1-b5b1-2797cc1102c7&sub1=%7Bsub1%7D&sub2=%7Bsub2%7D&sub3=%7Bsub3%7D&sub4=%7Bsub4%7D&sub5=%7Bsub5%7D&sub6=%7Bsub6%7D&sub7=%7Bsub7%7D&sub8=%7Bsub8%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=c2124154-e5e7-44d1-b5b1-2797cc1102c7 total=345ms offer=0ms parallel=164ms antifraud=135ms save=44ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=RU
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 7:38:48 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-03
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 7:38:48 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 7:38:48 PM [aggregation] Daily stats aggregation completed: 3 rows
+
+
