@@ -1,0 +1,63 @@
+Last login: Tue Feb  3 16:21:36 on ttys001
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Tue Feb  3 18:22:13 UTC 2026 from 103.61.122.70 on ssh:notty
+There were 237 failed login attempts since the last successful login.
+Last login: Tue Feb  3 13:22:18 2026 from 85.94.17.34
+[root@v742573 ~]# # Посмотреть лендинг оффера 0044
+psql -U primetrack -d primetrack -c "SELECT id, name, \"storeClickIdIn\" FROM landings WHERE \"offerId\" = '0044';"
+
+# Посмотреть постбек партнёра 019
+psql -U primetrack -d primetrack -c "SELECT * FROM publisher_postbacks WHERE \"publisherId\" = '019';"
+
+# Посмотреть последние клики с subid
+psql -U primetrack -d primetrack -c "SELECT id, subid, \"externalId\" FROM clicks ORDER BY \"createdAt\" DESC LIMIT 5;"
+-bash: psql: command not found
+-bash: psql: command not found
+-bash: psql: command not found
+[root@v742573 ~]# cd /var/www/primetrack && node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('SELECT id, name, \"storeClickIdIn\" FROM landings WHERE \"offerId\" = \\'0044\\'').then(r => console.log('Landings:', r.rows));
+pool.query('SELECT * FROM publisher_postbacks WHERE \"publisherId\" = \\'019\\'').then(r => console.log('Postbacks:', r.rows));
+pool.query('SELECT id, subid, \"externalId\" FROM clicks ORDER BY \"createdAt\" DESC LIMIT 5').then(r => { console.log('Clicks:', r.rows); pool.end(); });
+"
+/var/www/primetrack/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+
+AggregateError [ECONNREFUSED]: 
+    at /var/www/primetrack/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:5432
+        at createConnectionError (node:net:1652:14)
+        at afterConnectMultiple (node:net:1682:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:5432
+        at createConnectionError (node:net:1652:14)
+        at afterConnectMultiple (node:net:1682:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432
+    }
+  ]
+}
+
+Node.js v20.20.0
+[root@v742573 primetrack]
