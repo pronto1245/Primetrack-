@@ -458,7 +458,7 @@ export function AdvertiserOffers({ role }: { role: string }) {
                   <th className="px-4 py-3 font-medium w-[70px]">EPC</th>
                   <th className="px-4 py-3 font-medium w-[120px]">Выплата партнёру</th>
                   <th className="px-4 py-3 font-medium w-[120px]">{t('dashboard.offers.geo')}</th>
-                  <th className="px-4 py-3 font-medium w-[110px]">Внутр. стоимость</th>
+                  <th className="px-4 py-3 font-medium w-[110px]">Ставка</th>
                   <th className="px-4 py-3 font-medium w-[80px]">{t('dashboard.offers.status')}</th>
                   <th className="px-4 py-3 font-medium text-right w-[100px]">Действия</th>
                 </tr>
