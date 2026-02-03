@@ -284,18 +284,39 @@ export function AdvertiserPostbacks() {
           </div>
         </div>
 
-        <div className="mt-4 p-3 bg-muted/30 border border-border rounded">
-          <p className="text-xs text-muted-foreground mb-3">
-            PrimeTrack передаёт <code className="bg-muted px-1 rounded">click_id</code> при редиректе. Верните его в постбеке:
-          </p>
-          <div className="space-y-2 font-mono text-xs">
-            <div className="flex items-center gap-2">
-              <span className="text-red-400 w-16">Keitaro:</span>
-              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{_click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
+        <div className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded">
+              <h4 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
+                <span>Keitaro (если вы используете как трекер)</span>
+              </h4>
+              <p className="text-xs text-muted-foreground mb-2">
+                В настройках оффера PrimeTrack укажите постбек:
+              </p>
+              <div className="space-y-1 font-mono text-xs">
+                <div className="text-muted-foreground break-all">
+                  https://{platformDomain}/api/postback?click_id={"{_click_id}"}&status={"{status}"}&payout={"{payout}"}
+                </div>
+              </div>
+              <p className="text-[10px] text-amber-400 mt-2">
+                <code className="bg-muted px-1 rounded">{"{_click_id}"}</code> — входящий параметр (с подчёркиванием). Имя параметра должно совпадать с тем что указано в URL лендинга.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-purple-400 w-16">Binom:</span>
-              <span className="text-muted-foreground break-all">https://{platformDomain}/api/postback?click_id={"{click_id}"}&status={"{status}"}&payout={"{payout}"}</span>
+            <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+              <h4 className="font-semibold text-purple-400 mb-2 flex items-center gap-2">
+                <span>Binom (если вы используете как трекер)</span>
+              </h4>
+              <p className="text-xs text-muted-foreground mb-2">
+                В настройках оффера укажите постбек:
+              </p>
+              <div className="space-y-1 font-mono text-xs">
+                <div className="text-muted-foreground break-all">
+                  https://{platformDomain}/api/postback?click_id={"{clickid}"}&status={"{status}"}&payout={"{payout}"}
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-2">
+                <code className="bg-muted px-1 rounded">{"{clickid}"}</code> — стандартный макрос Binom для ID клика
+              </p>
             </div>
           </div>
         </div>
