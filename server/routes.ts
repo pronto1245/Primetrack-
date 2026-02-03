@@ -1816,6 +1816,21 @@ export async function registerRoutes(
       }
 
       const createdLandings = await storage.getOfferLandings(offer.id);
+      
+      // Если оффер приватный и есть выбранные партнёры — создаём publisher_offers
+      const selectedPartnerIds = rawOfferData.selectedPartnerIds;
+      if (offer.isPrivate && selectedPartnerIds && Array.isArray(selectedPartnerIds) && selectedPartnerIds.length > 0) {
+        console.log("[POST /api/offers] Creating access for private offer, partners:", selectedPartnerIds);
+        const landingIds = createdLandings.map(l => l.id);
+        for (const publisherId of selectedPartnerIds) {
+          try {
+            await storage.updatePublisherOfferAccess(offer.id, publisherId, "approve", landingIds);
+          } catch (err) {
+            console.error(`[POST /api/offers] Failed to grant access to partner ${publisherId}:`, err);
+          }
+        }
+      }
+      
       res.status(201).json({ ...offer, landings: createdLandings });
     } catch (error: any) {
       console.error("[POST /api/offers] Create offer error:", error);
@@ -1910,7 +1925,17 @@ export async function registerRoutes(
       
       // Для advertiser/admin - полная информация
       const landings = await storage.getOfferLandings(offer.id);
-      res.json({ ...offer, landings });
+      
+      // Для приватных офферов возвращаем список партнёров с доступом
+      let selectedPartnerIds: string[] = [];
+      if (offer.isPrivate) {
+        const publisherOffers = await storage.getPublisherOffersByOffer(offer.id);
+        selectedPartnerIds = publisherOffers
+          .filter(po => po.status === "approved")
+          .map(po => po.publisherId);
+      }
+      
+      res.json({ ...offer, landings, selectedPartnerIds });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch offer" });
     }
@@ -1996,8 +2021,43 @@ export async function registerRoutes(
       const uniqueGeos = Array.from(new Set(updatedLandings.map(l => l.geo).filter(Boolean)));
       await storage.updateOffer(req.params.id, { geo: uniqueGeos });
       
-      // Вернуть обновлённый оффер с landings
+      // Обновляем доступ партнёров для приватных офферов
+      const selectedPartnerIds = rawOfferData.selectedPartnerIds;
       const finalOffer = await storage.getOffer(req.params.id);
+      
+      if (finalOffer?.isPrivate && selectedPartnerIds && Array.isArray(selectedPartnerIds)) {
+        console.log("[PUT /api/offers] Updating access for private offer, partners:", selectedPartnerIds);
+        const landingIds = updatedLandings.map(l => l.id);
+        
+        // Получаем текущих партнёров с доступом
+        const currentAccess = await storage.getPublisherOffersByOffer(req.params.id);
+        const currentPartnerIds = new Set(currentAccess.map(a => a.publisherId));
+        const newPartnerIds = new Set(selectedPartnerIds);
+        
+        // Удаляем доступ у партнёров, которых убрали
+        for (const access of currentAccess) {
+          if (!newPartnerIds.has(access.publisherId)) {
+            try {
+              await storage.updatePublisherOfferAccess(req.params.id, access.publisherId, "revoke");
+            } catch (err) {
+              console.error(`[PUT /api/offers] Failed to revoke access for ${access.publisherId}:`, err);
+            }
+          }
+        }
+        
+        // Добавляем доступ новым партнёрам
+        for (const publisherId of selectedPartnerIds) {
+          if (!currentPartnerIds.has(publisherId)) {
+            try {
+              await storage.updatePublisherOfferAccess(req.params.id, publisherId, "approve", landingIds);
+            } catch (err) {
+              console.error(`[PUT /api/offers] Failed to grant access to ${publisherId}:`, err);
+            }
+          }
+        }
+      }
+      
+      // Вернуть обновлённый оффер с landings
       res.json({ ...finalOffer, landings: updatedLandings });
     } catch (error) {
       console.error("Update offer error:", error);
