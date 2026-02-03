@@ -5169,8 +5169,8 @@ export async function registerRoutes(
       }
       
       // Get advertiser's active partners to validate IDs
-      const advertiserPartners = await storage.getAdvertiserPartners(offer.advertiserId);
-      const validPartnerIds = new Set(advertiserPartners.filter(p => p.status === "active").map(p => p.publisherId));
+      const advertiserPartners = await storage.getPublisherAdvertiserRelations(offer.advertiserId, "active");
+      const validPartnerIds = new Set(advertiserPartners.map(p => p.publisherId));
       
       // Filter to only valid partner IDs
       const validatedPartnerIds = selectedPartnerIds.filter(pid => validPartnerIds.has(pid));
