@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Search, Edit, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Search, Edit, Eye, Loader2, Tag, Globe, Megaphone, FolderOpen, Archive, ArchiveRestore, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -421,7 +421,8 @@ export function AdvertiserOffers({ role }: { role: string }) {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <span className="font-medium text-foreground group-hover:text-blue-400 transition-colors cursor-pointer" data-testid={`text-offer-name-${offer.id}`}>
+                          <span className="font-medium text-foreground group-hover:text-blue-400 transition-colors cursor-pointer flex items-center gap-1.5" data-testid={`text-offer-name-${offer.id}`}>
+                            {offer.isPrivate && <Lock className="w-3.5 h-3.5 text-red-400" data-testid={`icon-private-${offer.id}`} />}
                             {offer.name}
                           </span>
                         </Link>

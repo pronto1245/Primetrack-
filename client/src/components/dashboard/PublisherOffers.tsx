@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone, Send, XCircle, AlertCircle } from "lucide-react";
+import { Search, Eye, Loader2, Tag, CheckCircle, Clock, Globe, Megaphone, Send, XCircle, AlertCircle, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
@@ -411,7 +411,8 @@ export function PublisherOffers({ role }: { role: string }) {
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link href={`/dashboard/${role}/offer/${offer.id}`}>
-                          <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer truncate" data-testid={`text-offer-name-${offer.id}`}>
+                          <span className="font-medium text-foreground group-hover:text-emerald-400 transition-colors cursor-pointer truncate flex items-center gap-1.5" data-testid={`text-offer-name-${offer.id}`}>
+                            {offer.isPrivate && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" data-testid={`icon-private-${offer.id}`} />}
                             {offer.name}
                           </span>
                         </Link>

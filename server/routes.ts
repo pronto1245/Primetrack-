@@ -3243,6 +3243,12 @@ export async function registerRoutes(
           }
           
           const hasAccess = await storage.hasPublisherAccessToOffer(offer.id, publisherId);
+          
+          // Private offers are hidden from publishers without approved access
+          if (offer.isPrivate && !hasAccess) {
+            return null;
+          }
+          
           const existingRequest = await storage.getOfferAccessRequestByOfferAndPublisher(offer.id, publisherId);
           
           const { internalCost, ...safeOffer } = offer;
