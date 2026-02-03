@@ -1,0 +1,42 @@
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12 "cd /var/www/primetrack && git pull origin main && npm install && pm2 restart primetrack"
+root@185.179.191.12's password: 
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   55fa0eb..c249902  main       -> origin/main
+Updating 55fa0eb..c249902
+Fast-forward
+ ...rProfile-tsx-164-server-route_1770107330333.txt | 110 ++++++++++++++++++
+ ...r-minification-Consider-Using_1770107146931.txt |  93 +++++++++++++++
+ client/public/opengraph.jpg                        | Bin 60393 -> 60976 bytes
+ .../src/components/dashboard/AdvertiserOffers.tsx  |   5 +-
+ .../src/components/dashboard/CreateOfferForm.tsx   | 125 +++++++++++++++++++--
+ .../src/components/dashboard/PublisherOffers.tsx   |   5 +-
+ replit.md                                          |   1 +
+ server/routes.ts                                   |  80 ++++++++++++-
+ 8 files changed, 406 insertions(+), 13 deletions(-)
+ create mode 100644 attached_assets/Pasted-omponents-dashboard-PartnerProfile-tsx-164-server-route_1770107330333.txt
+ create mode 100644 attached_assets/Pasted-re-larger-than-500-kB-after-minification-Consider-Using_1770107146931.txt
+
+up to date, audited 1012 packages in 7s
+
+128 packages are looking for funding
+  run `npm fund` for details
+
+19 vulnerabilities (2 low, 5 moderate, 12 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬───────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼───────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ primetrack    │ default     │ 1.0.0   │ fork    │ 3783086  │ 0s     │ 7    │ online    │ 0%       │ 11.1mb   │ root     │ disabled │
+└────┴───────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+a1@Macbook-pro1 ~ % 
