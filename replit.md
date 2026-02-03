@@ -35,6 +35,7 @@ Preferred communication style: Simple, everyday language (Russian).
 - **Fingerprinting:** Utilizes FingerprintJS for visitor identification.
 - **Tracker Integration:** Universal postback endpoint compatible with major trackers like Keitaro, Binom, Voluum.
 - **Advertiser Sources:** Manages advertiser-specific offer sources with secure credential storage.
+- **Private Offers:** Offers can be marked as private (isPrivate=true) to hide them from the marketplace catalog for publishers without approved access. Publishers with approved access see private offers normally. Lock icon displayed next to private offer names in both advertiser and publisher tables.
 - **Performance Optimization:** 
   - Click TTFB optimization: parallelized DB queries, IP intel timeout with geoip-lite fallback, async logging
   - Offer cache: 60s TTL in-memory cache for offers, landings, publisherOffer (no negative cache for landings)
