@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Users, X } from "lucide-react";
+import { Lock, Users, X, ChevronDown } from "lucide-react";
 
 interface Partner {
   publisherId: string;
@@ -25,10 +25,23 @@ export function PartnerAccessSelector({
   showWarning = true,
 }: PartnerAccessSelectorProps) {
   const [partnerSearch, setPartnerSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filteredPartners = partners?.filter(p => 
     !selectedPartnerIds.includes(p.publisherId) &&
-    (p.username.toLowerCase().includes(partnerSearch.toLowerCase()) ||
+    (partnerSearch === "" || 
+     p.username.toLowerCase().includes(partnerSearch.toLowerCase()) ||
      p.email.toLowerCase().includes(partnerSearch.toLowerCase()))
   ) || [];
 
@@ -66,15 +79,23 @@ export function PartnerAccessSelector({
         </div>
       )}
       
-      <div className="relative">
-        <Input
-          placeholder="Поиск партнёра по имени или email..."
-          value={partnerSearch}
-          onChange={e => setPartnerSearch(e.target.value)}
-          className="bg-background border-border text-foreground font-mono focus:border-red-500"
-          data-testid="input-partner-search"
-        />
-        {partnerSearch && filteredPartners.length > 0 && (
+      <div className="relative" ref={containerRef}>
+        <div className="relative">
+          <Input
+            placeholder="Выберите партнёра или начните ввод..."
+            value={partnerSearch}
+            onChange={e => setPartnerSearch(e.target.value)}
+            onFocus={() => setIsOpen(true)}
+            onClick={() => setIsOpen(true)}
+            className="bg-background border-border text-foreground font-mono focus:border-red-500 pr-8"
+            data-testid="input-partner-search"
+          />
+          <ChevronDown 
+            className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            onClick={() => setIsOpen(!isOpen)}
+          />
+        </div>
+        {isOpen && filteredPartners.length > 0 && (
           <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-48 overflow-auto">
             {filteredPartners.map(partner => (
               <button
@@ -83,6 +104,7 @@ export function PartnerAccessSelector({
                 onClick={() => {
                   onAdd(partner.publisherId);
                   setPartnerSearch("");
+                  setIsOpen(false);
                 }}
                 className="w-full px-3 py-2 text-left hover:bg-muted flex items-center gap-2 text-sm"
                 data-testid={`button-add-partner-${partner.publisherId}`}
@@ -94,9 +116,9 @@ export function PartnerAccessSelector({
             ))}
           </div>
         )}
-        {partnerSearch && filteredPartners.length === 0 && (
+        {isOpen && filteredPartners.length === 0 && (
           <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg p-3 text-center text-muted-foreground text-sm">
-            Партнёры не найдены
+            {partners?.length === selectedPartnerIds.length ? "Все партнёры уже выбраны" : "Партнёры не найдены"}
           </div>
         )}
       </div>
