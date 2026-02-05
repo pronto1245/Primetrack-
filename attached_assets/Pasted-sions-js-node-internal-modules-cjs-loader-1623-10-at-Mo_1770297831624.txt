@@ -1,0 +1,53 @@
+sions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+[PM2] Saving current process list...
+[PM2][WARN] PM2 is not managing any process, skipping save...
+[PM2][WARN] To force saving use: pm2 save --force
+[root@v742573 primetrack]# cat > ecosystem.config.cjs << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'primetrack',
+    script: 'npm',
+    args: 'run start',
+    cwd: '/var/www/primetrack',
+    env_file: '.env'
+  }]
+}
+EOF
+
+pm2 start ecosystem.config.cjs
+pm2 save
+[PM2][WARN] Applications primetrack not running, starting...
+[PM2] App [primetrack] launched (1 instances)
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 16.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# pm2 env 0 | grep TELEGRAM
+[root@v742573 primetrack]# pm2 delete primetrack
+source .env && export $(cat .env | grep -v '^#' | xargs) && pm2 start npm --name primetrack -- run start
+pm2 env 0 | grep TELEGRAM
+pm2 save
+[PM2] Applying action deleteProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Starting /usr/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 11.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+TELEGRAM_NOTIFY_BOT_TOKEN: 8114656266:AAGJMYc4seDYkuvZ-cCxL2E4sobMAbwl7AQ
+TELEGRAM_SUPPORT_BOT_TOKEN: 8383877045:AAFLv1xFzAVz_0z1WaW2DSjV6jYsEFy-nCw
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# 
