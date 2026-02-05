@@ -198,9 +198,14 @@ class TelegramSupportService {
     if (adminChatId && chatId === adminChatId) {
       const pendingConversationId = this.pendingReplies.get(chatId);
       if (pendingConversationId) {
+        const conversation = await storage.getSupportConversation(pendingConversationId);
+        const userName = conversation?.telegramUsername 
+          ? `@${conversation.telegramUsername}` 
+          : `${conversation?.telegramFirstName || 'Пользователь'}${conversation?.telegramLastName ? ` ${conversation.telegramLastName}` : ''}`;
+        
         await this.sendReplyToUser(botToken, pendingConversationId, text);
         this.pendingReplies.delete(chatId);
-        await this.sendMessage(botToken, chatId, "✅ Ответ отправлен!");
+        await this.sendMessage(botToken, chatId, `✅ Ответ отправлен → ${userName}`);
         return;
       }
       await this.sendMessage(botToken, chatId, 
@@ -278,10 +283,20 @@ class TelegramSupportService {
     const [action, conversationId] = callbackData.split(":");
 
     if (action === "reply") {
+      const conversation = await storage.getSupportConversation(conversationId);
+      if (!conversation) {
+        await this.answerCallbackQuery(botToken, callback.id, "Диалог не найден");
+        return;
+      }
+      
+      const userName = conversation.telegramUsername 
+        ? `@${conversation.telegramUsername}` 
+        : `${conversation.telegramFirstName}${conversation.telegramLastName ? ` ${conversation.telegramLastName}` : ''}`;
+      
       this.pendingReplies.set(chatId, conversationId);
       await this.answerCallbackQuery(botToken, callback.id);
       await this.sendMessage(botToken, chatId,
-        "✍️ Напишите ваш ответ следующим сообщением:"
+        `✍️ <b>Ответ для:</b> ${userName}\n\nНапишите ваш ответ следующим сообщением:`
       );
     } else if (action === "close") {
       await storage.updateSupportConversation(conversationId, { status: "closed" });
