@@ -1,0 +1,157 @@
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 523ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 1    │ online    │ 0%       │ 15.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+Username for 'https://github.com':  github.com/pronto1245/Primetrack-
+Password for 'https://%20github.com%2Fpronto1245%2FPrimetrack-@github.com': 
+[root@v742573 primetrack]# cd /var/www/primetrack && git pull origin main && npm run build && pm2 restart primetrack
+remote: Enumerating objects: 98, done.
+remote: Counting objects: 100% (98/98), done.
+remote: Compressing objects: 100% (19/19), done.
+remote: Total 90 (delta 72), reused 89 (delta 71), pack-reused 0 (from 0)
+Unpacking objects: 100% (90/90), 184.37 KiB | 1.44 MiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   7284e8b..dcf6b17  main       -> origin/main
+Updating 7284e8b..dcf6b17
+Fast-forward
+ .../2026-02-03_20.05.17_1770138375988.jpg          | Bin 0 -> 122499 bytes
+ ...-0-0-start-0-primetra-NODE-EN_1770297889343.txt |  63 +++
+ ...-pm2-restart-primetrack-updat_1770297740722.txt |  82 +++
+ ...ning-SYN-flood--1770298646946_1770298646950.txt | 606 +++++++++++++++++++++
+ ...--id-name-mode--1770297860711_1770297860712.txt |  71 +++
+ ...nginx-zsh-command-not-found-g_1770299090367.txt |  63 +++
+ ...ead-from-remote-host-185-179-_1770298894204.txt |  67 +++
+ ...le-node-internal-modules-cjs-_1770298146751.txt |  36 ++
+ ...o-io-keitaro-redis-8-2-3-r1-5_1770299419891.txt |  41 ++
+ ...-54-on-ttys000-a1-Macbook-pro_1770124976183.txt | 108 ++++
+ ...-36-on-ttys001-a1-Macbook-pro_1770147231702.txt |  63 +++
+ ...-30-on-ttys000-a1-Macbook-pro_1770297604455.txt | 122 +++++
+ ...-pro-LS-COLORS-rs-0-di-01-34-_1770298443708.txt |  36 ++
+ ...ipping-0-primetra-1-19-41-PM-_1770297694372.txt |  71 +++
+ ...-error-log-last-10-lines-0-pr_1770147671285.txt |  45 ++
+ ...t-hard-nofile-200000-EOF-ulim_1770299342197.txt |  83 +++
+ ...ly-reset-for-2026-02-05-0-pri_1770297778973.txt |  76 +++
+ ...ules-cjs-loader-1623-10-at-Mo_1770297831624.txt |  53 ++
+ ...ool-new-Pool-connectionString_1770147545804.txt |  69 +++
+ ...db-owner-npg-vraWd8FOT9Lh-ep-_1770148053666.txt | 119 ++++
+ client/public/opengraph.jpg                        | Bin 60977 -> 61507 bytes
+ server/services/telegram-support-service.ts        |  19 +-
+ 22 files changed, 1891 insertions(+), 2 deletions(-)
+ create mode 100644 attached_assets/2026-02-03_20.05.17_1770138375988.jpg
+ create mode 100644 attached_assets/Pasted--0-primetra-rest-express-1-0-0-start-0-primetra-NODE-EN_1770297889343.txt
+ create mode 100644 attached_assets/Pasted--C-root-v742573-primetrack-pm2-restart-primetrack-updat_1770297740722.txt
+ create mode 100644 attached_assets/Pasted--Kernel-tuning-SYN-flood--1770298646946_1770298646950.txt
+ create mode 100644 attached_assets/Pasted--id-name-mode--1770297860711_1770297860712.txt
+ create mode 100644 attached_assets/Pasted--nginx-t-systemctl-reload-nginx-zsh-command-not-found-g_1770299090367.txt
+ create mode 100644 attached_assets/Pasted--root-v742573-primetrack-Read-from-remote-host-185-179-_1770298894204.txt
+ create mode 100644 attached_assets/Pasted-0-primetra-at-Module-compile-node-internal-modules-cjs-_1770298146751.txt
+ create mode 100644 attached_assets/Pasted-7cde07811d-registry-keitaro-io-keitaro-redis-8-2-3-r1-5_1770299419891.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Tue-Feb-3-13-50-54-on-ttys000-a1-Macbook-pro_1770124976183.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Tue-Feb-3-16-21-36-on-ttys001-a1-Macbook-pro_1770147231702.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Tue-Feb-3-22-32-30-on-ttys000-a1-Macbook-pro_1770297604455.txt
+ create mode 100644 attached_assets/Pasted-PLATFORM-DOMAIN-primetrack-pro-LS-COLORS-rs-0-di-01-34-_1770298443708.txt
+ create mode 100644 attached_assets/Pasted-ion-plans-already-exist-skipping-0-primetra-1-19-41-PM-_1770297694372.txt
+ create mode 100644 attached_assets/Pasted-n-root-pm2-logs-primetrack-error-log-last-10-lines-0-pr_1770147671285.txt
+ create mode 100644 attached_assets/Pasted-oot-soft-nofile-200000-root-hard-nofile-200000-EOF-ulim_1770299342197.txt
+ create mode 100644 attached_assets/Pasted-sResetService-Checking-daily-reset-for-2026-02-05-0-pri_1770297778973.txt
+ create mode 100644 attached_assets/Pasted-sions-js-node-internal-modules-cjs-loader-1623-10-at-Mo_1770297831624.txt
+ create mode 100644 attached_assets/Pasted-st-Pool-require-pg-const-pool-new-Pool-connectionString_1770147545804.txt
+ create mode 100644 attached_assets/Pasted-tionString-postgresql-neondb-owner-npg-vraWd8FOT9Lh-ep-_1770148053666.txt
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3880 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-DAYj07cr.css                                      196.91 kB │ gzip:  28.22 kB
+../dist/public/assets/index-BhK4wuGG.js                                     2,598.62 kB │ gzip: 676.94 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 17.75s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.6mb ⚠️
+
+⚡ Done in 515ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 2    │ online    │ 0%       │ 12.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
