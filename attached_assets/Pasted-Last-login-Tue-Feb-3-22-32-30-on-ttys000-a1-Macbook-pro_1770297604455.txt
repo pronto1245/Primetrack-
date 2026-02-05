@@ -1,0 +1,122 @@
+Last login: Tue Feb  3 22:32:30 on ttys000
+a1@Macbook-pro1 ~ % # 1. Подключиться к VPS
+ssh root@185.179.191.12
+
+# 2. Проверить логи телеграма
+cd /var/www/primetrack && pm2 logs primetrack --lines 200 | grep -i telegram
+
+# 3. Проверить установлены ли переменные окружения
+cat /var/www/primetrack/.env | grep TELEGRAM
+
+# 4. Проверить статус приложения
+pm2 status primetrack
+
+# 5. Перезапустить если нужно
+pm2 restart primetrack
+
+# 6. Смотреть логи в реальном времени
+pm2 logs primetrack --lines 50
+zsh: command not found: #
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Thu Feb  5 13:17:13 UTC 2026 from 213.209.159.158 on ssh:notty
+There were 916 failed login attempts since the last successful login.
+Last login: Wed Feb  4 19:08:05 2026 from 85.94.17.34
+[root@v742573 ~]# cd /var/www/primetrack && pm2 logs primetrack --lines 200 | grep -i telegram
+0|primetra | [TelegramSupport] No bot token configured
+0|primetra | [TelegramSupport] Received update: {
+0|primetra | [TelegramSupport] No bot token configured
+0|primetra | [TelegramSupport] Received update: {
+0|primetra | [TelegramSupport] No bot token configured
+cat /var/www/primetrack/.env | grep TELEGRAM
+
+^C
+[root@v742573 primetrack]# cat /var/www/primetrack/.env | grep TELEGRAM
+TELEGRAM_NOTIFY_BOT_TOKEN=8114656266:AAGJMYc4seDYkuvZ-cCxL2E4sobMAbwl7AQ
+TELEGRAM_SUPPORT_BOT_TOKEN=8383877045:AAFLv1xFzAVz_0z1WaW2DSjV6jYsEFy-nCw
+[root@v742573 primetrack]# pm2 status primetrack
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 13   │ online    │ 0%       │ 267.2mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# pm2 restart primetrack
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 14   │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# pm2 logs primetrack --lines 50
+[TAILING] Tailing last 50 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 50 lines:
+0|primetra | Postback handler error: Error: Click not found
+0|primetra |     at Hu.processConversion (/var/www/primetrack/dist/index.cjs:256:43391)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:121902
+0|primetra | Postback handler error: Error: Click not found
+0|primetra |     at Hu.processConversion (/var/www/primetrack/dist/index.cjs:256:43391)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:121902
+
+/root/.pm2/logs/primetrack-out.log last 50 lines:
+0|primetra |       "text": "📩 Новое сообщение\n\n👤 От: @YyyKk21 K\n\nЗдравствуйте! \n\nУвидел в одном из телеграм-чатов вашу пп.\n\nКакой у вас холд по выплатах? Или от оффера зависит?",
+0|primetra |       "entities": [
+0|primetra |         {
+0|primetra |           "offset": 3,
+0|primetra |           "length": 15,
+0|primetra |           "type": "bold"
+0|primetra |         },
+0|primetra |         {
+0|primetra |           "offset": 23,
+0|primetra |           "length": 3,
+0|primetra |           "type": "bold"
+0|primetra |         },
+0|primetra |         {
+0|primetra |           "offset": 27,
+0|primetra |           "length": 8,
+0|primetra |           "type": "mention"
+0|primetra |         }
+0|primetra |       ],
+0|primetra |       "reply_markup": {
+0|primetra |         "inline_keyboard": [
+0|primetra |           [
+0|primetra |             {
+0|primetra |               "text": "💬 Ответить",
+0|primetra |               "callback_data": "reply:a78e987f-302c-4831-a055-fad1c737e2cf"
+0|primetra |             },
+0|primetra |             {
+0|primetra |               "text": "❌ Закрыть",
+0|primetra |               "callback_data": "close:a78e987f-302c-4831-a055-fad1c737e2cf"
+0|primetra |             }
+0|primetra |           ]
+0|primetra |         ]
+0|primetra |       }
+0|primetra |     },
+0|primetra |     "chat_instance": "7391622890285858538",
+0|primetra |     "data": "reply:a78e987f-302c-4831-a055-fad1c737e2cf"
+0|primetra |   }
+0|primetra | }
+0|primetra | [TelegramSupport] No bot token configured
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:19:41 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-05
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:19:41 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:19:41 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+
