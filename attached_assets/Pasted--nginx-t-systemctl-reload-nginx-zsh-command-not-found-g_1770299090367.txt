@@ -1,0 +1,63 @@
+рить и перезагрузить
+nginx -t && systemctl reload nginx
+zsh: command not found: #
+grep: /etc/nginx/nginx.conf: No such file or directory
+zsh: command not found: #
+sed: 1: "/etc/nginx/nginx.conf
+": extra characters at the end of n command
+zsh: command not found: #
+zsh: command not found: nginx
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+Трекер Keitaro установлен на ваш сервер. Ссылка для входа в админ панель трекера:
+
+    http://185.179.191.12/admin
+
+Для начала работы перейдите по ссылке и следуйте инструкции. Ключ лицензии можно посмотреть в личном кабинете на сайте keitaro.io, в разделе Лицензии.
+Спасибо что выбрали Keitaro и WebHOST1.
+
+Last failed login: Thu Feb  5 13:38:02 UTC 2026 from 52.174.67.71 on ssh:notty
+There were 129 failed login attempts since the last successful login.
+Last login: Thu Feb  5 13:18:48 2026 from 37.48.249.158
+[root@v742573 ~]# # 1. Kernel tuning
+cat >> /etc/sysctl.conf << 'EOF'
+# Network performance
+net.core.somaxconn = 65535
+net.core.netdev_max_backlog = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
+net.ipv4.tcp_fin_timeout = 10
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_keepalive_intvl = 15
+net.netfilter.nf_conntrack_max = 1000000
+net.ipv4.tcp_syncookies = 1
+EOF
+sysctl -p
+net.core.somaxconn = 65535
+net.core.netdev_max_backlog = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
+net.ipv4.tcp_fin_timeout = 10
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_keepalive_intvl = 15
+net.netfilter.nf_conntrack_max = 1000000
+net.ipv4.tcp_syncookies = 1
+[root@v742573 ~]# # 2. Ulimit
+cat >> /etc/security/limits.conf << 'EOF'
+* soft nofile 200000
+* hard nofile 200000
+root soft nofile 200000
+root hard nofile 200000
+EOF
+ulimit -n 200000
+
+# 3. Nginx
+grep -n "worker_connections" /etc/nginx/nginx.conf
+sed -i 's/worker_connections.*/worker_connections 65535;/' /etc/nginx/nginx.conf 
+nginx -t && systemctl reload nginx
+9:    worker_connections 1024;
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@v742573 ~]# 
