@@ -1,0 +1,41 @@
+7cde07811d  registry.keitaro.io/keitaro/redis:8.2.3-r1                       5 days ago  Up 5 days (healthy)  6379-6380/tcp                                                 guest-redis
+42d369061035  registry.keitaro.io/keitaro/redis:8.2.3-r1                       5 days ago  Up 5 days (healthy)  127.0.0.1:6380->6380/tcp, 6379/tcp                            system-redis
+99e72fcb5623  registry.keitaro.io/keitaro/clickhouse:25.1.2.3-r2               5 days ago  Up 5 days (healthy)  127.0.0.1:8123->8123/tcp, 127.0.0.1:9000->9000/tcp, 9009/tcp  clickhouse
+5cfd2c84fed2  registry.keitaro.io/keitaro/sandbox:8.3-r8                       5 days ago  Up 5 days (healthy)  8104/tcp                                                      tracker-sandbox
+0469f6187e2a  registry.keitaro.io/keitaro/admin:11.4.2                         5 days ago  Up 5 days (healthy)  8105/tcp                                                      tracker-admin
+primetrack.conf
+[root@v742573 ~]# # Остановить все контейнеры Keitaro
+podman stop $(podman ps -q)
+
+# Удалить контейнеры
+podman rm $(podman ps -aq)
+
+# Удалить сервисы
+systemctl disable --now kctld
+rm -rf /etc/keitaro /var/www/keitaro /var/lib/keitaro
+
+# Убрать motd
+rm -f /etc/motd
+WARN[0010] StopSignal SIGTERM failed to stop container tracker-cli-cron-worker-channel-5 in 10 seconds, resorting to SIGKILL 
+WARN[0010] StopSignal SIGTERM failed to stop container tracker-cli-cron-worker-channel-2 in 10 seconds, resorting to SIGKILL 
+WARN[0010] StopSignal SIGTERM failed to stop container tracker-cli-cron-worker-channel-4 in 10 seconds, resorting to SIGKILL 
+WARN[0010] StopSignal SIGTERM failed to stop container tracker-cli-cron-worker-channel-6 in 10 seconds, resorting to SIGKILL 
+WARN[0010] StopSignal SIGTERM failed to stop container tracker-cli-cron-worker-channel-3 in 10 seconds, resorting to SIGKILL 
+WARN[0010] StopSignal SIGTERM failed to stop container tracker-cli-cron-worker-channel-1 in 10 seconds, resorting to SIGKILL 
+[WARN  netavark::firewall::firewalld] Error removing subnet 10.89.0.0/24 from firewalld trusted zone: org.fedoraproject.FirewallD1.Exception: UNKNOWN_SOURCE: '10.89.0.0/24' is not in any zone
+[WARN  netavark::firewall::firewalld] Error removing subnet fd8c:cb9c:395b:4957::/64 from firewalld trusted zone: org.fedoraproject.FirewallD1.Exception: UNKNOWN_SOURCE: 'fd8c:cb9c:395b:4957::/64' is not in any zone
+618e4c661c02
+5cfd2c84fed2
+fa74cad7da68
+ba4cb691223c
+16a8b34251e9
+3e75a56cd0e8
+99e72fcb5623
+0469f6187e2a
+f718b9cc6940
+f24de3fd1afd
+357cde07811d
+42d369061035
+Error: you must provide at least one name or id
+Failed to disable unit: Unit file kctld.service does not exist.
+[root@v742573 ~]# 
