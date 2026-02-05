@@ -1,0 +1,71 @@
+ion plans already exist, skipping
+0|primetra | 1:19:41 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-05
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:19:41 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:19:41 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+^C
+[root@v742573 primetrack]# pm2 restart primetrack --update-env
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 15   │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# pm2 logs primetrack --lines 20 | grep -i telegram
+^C
+[root@v742573 primetrack]# # Ctrl+C чтобы прервать
+
+# Проверить последние логи
+pm2 logs primetrack --lines 30 --nostream
+
+# Или проверить что переменные загрузились
+pm2 env 0 | grep TELEGRAM
+[TAILING] Tailing last 30 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 30 lines:
+0|primetra | Postback handler error: Error: Click not found
+0|primetra |     at Hu.processConversion (/var/www/primetrack/dist/index.cjs:256:43391)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:121902
+0|primetra | Postback handler error: Error: Click not found
+0|primetra |     at Hu.processConversion (/var/www/primetrack/dist/index.cjs:256:43391)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|primetra |     at async /var/www/primetrack/dist/index.cjs:256:121902
+
+/root/.pm2/logs/primetrack-out.log last 30 lines:
+0|primetra |     },
+0|primetra |     "chat_instance": "7391622890285858538",
+0|primetra |     "data": "reply:a78e987f-302c-4831-a055-fad1c737e2cf"
+0|primetra |   }
+0|primetra | }
+0|primetra | [TelegramSupport] No bot token configured
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:19:41 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-05
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:19:41 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:19:41 PM [aggregation] Daily stats aggregation completed: 4 rows
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:20:36 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-05
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:20:36 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:20:37 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+[root@v742573 primetrack]# 
