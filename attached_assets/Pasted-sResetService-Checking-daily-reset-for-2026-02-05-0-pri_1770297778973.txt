@@ -1,0 +1,76 @@
+sResetService] Checking daily reset for 2026-02-05
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:19:41 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:19:41 PM [aggregation] Daily stats aggregation completed: 4 rows
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:20:36 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-05
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:20:36 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:20:37 PM [aggregation] Daily stats aggregation completed: 4 rows
+
+[root@v742573 primetrack]# pm2 env 0 | grep TELEGRAM
+[root@v742573 primetrack]# # Удалить и создать заново с dotenv
+pm2 delete primetrack
+cd /var/www/primetrack
+pm2 start npm --name primetrack -- run start
+pm2 save
+[PM2] Applying action deleteProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Starting /usr/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 11.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# pm2 env 0 | grep TELEGRAM
+[root@v742573 primetrack]# cat > ecosystem.config.js << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'primetrack',
+    script: 'npm',
+    args: 'run start',
+    cwd: '/var/www/primetrack',
+    env_file: '.env'
+  }]
+}
+EOF
+
+pm2 delete primetrack
+pm2 start ecosystem.config.js
+pm2 save
+[PM2] Applying action deleteProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2][ERROR] File ecosystem.config.js malformated
+ReferenceError: module is not defined in ES module scope
+This file is being treated as an ES module because it has a '.js' file extension and '/var/www/primetrack/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+    at file:///var/www/primetrack/ecosystem.config.js:1:1
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:437:37)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:389:47)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1363:24)
+    at Module._compile (node:internal/modules/cjs/loader:1503:5)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+[PM2] Saving current process list...
+[PM2][WARN] PM2 is not managing any process, skipping save...
+[PM2][WARN] To force saving use: pm2 save --force
+[root@v742573 primetrack]# 
