@@ -1,0 +1,107 @@
+apper:6:24
+    at runScript (node:internal/process/execution:101:62)
+    at evalScript (node:internal/process/execution:133:3) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/var/www/primetrack/[eval]' ]
+}
+
+Node.js v20.20.0
+[root@v742573 primetrack]# pm2 env primetrack | grep DATABASE_URL
+[PM2][ERROR] Modules with id primetrack not found
+[root@v742573 primetrack]# cat /var/www/primetrack/.env | grep DATABASE_URL
+DATABASE_URL=postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+[root@v742573 primetrack]# DATABASE_URL="postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require" node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('SELECT COUNT(*) as total FROM publisher_advertisers').then(r => {
+  console.log('Total partners:', r.rows[0].total);
+  return pool.query('SELECT id, status, COUNT(*) as cnt FROM publisher_advertisers GROUP BY id, status LIMIT 20');
+}).then(r => {
+  console.log('By status:', r.rows);
+  pool.end();
+}).catch(e => { console.error(e); pool.end(); });
+"
+Total partners: 16
+By status: [
+  {
+    id: '4870ec91-a583-49d5-9dd2-ce99c42387d4',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: '66ba6e5e-3f92-4389-a5db-803b5d7997fc',
+    status: 'pending',
+    cnt: '1'
+  },
+  {
+    id: '90a2e5cc-7d0b-4443-9948-b6ed964f5f06',
+    status: 'pending',
+    cnt: '1'
+  },
+  {
+    id: '7a399322-f7b9-45d2-92a5-750454af900d',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: '76a00641-2b21-43f0-868d-0da4b536b239',
+    status: 'pending',
+    cnt: '1'
+  },
+  {
+    id: '120f40b5-2f58-4064-a789-881f23672836',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: '56f5ca88-d417-470e-b417-7b23df6e8309',
+    status: 'pending',
+    cnt: '1'
+  },
+  {
+    id: '3dafecc6-eecb-487c-a861-c65512a933f6',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: '36b022e0-494c-4273-87f9-792e1ac74c78',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: 'c7a0d799-97df-49c4-9a19-fe6fff2ead42',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: 'ed465524-c884-45b2-babc-f938f2c321d2',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: 'a54df56c-18b3-46f3-896a-6a34b9c2b7bd',
+    status: 'pending',
+    cnt: '1'
+  },
+  {
+    id: '783fc125-7b0b-423f-848d-1ccc83cf6151',
+    status: 'blocked',
+    cnt: '1'
+  },
+  {
+    id: 'a5f26f0e-64f0-4f9e-b72e-3dad3a4aaf52',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: 'be7f0ede-2b3e-466e-b288-23ecfef09d64',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: 'cdb6e924-d39c-4777-9bf0-6d1a9370c860',
+    status: 'active',
+    cnt: '1'
+  }
+]
+[root@v742573 primetrack]# 
