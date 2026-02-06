@@ -4322,6 +4322,7 @@ export async function registerRoutes(
         return {
           id: rel.id,
           publisherId: rel.publisherId,
+          shortId: rel.publisher.shortId ?? null,
           username: rel.publisher.username,
           email: rel.publisher.email,
           telegram: rel.publisher.telegram,
