@@ -4327,10 +4327,14 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
       const { status } = req.query;
-      const relations = await storage.getPublisherAdvertiserRelations(
+      let relations = await storage.getPublisherAdvertiserRelations(
         advertiserId, 
         status as string | undefined
       );
+      
+      if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+        relations = relations.filter(rel => rel.managerStaffId === req.session.staffId);
+      }
       
       // Get stats for each publisher
       const result = await Promise.all(relations.map(async (rel) => {
