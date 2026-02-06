@@ -4327,7 +4327,7 @@ export async function registerRoutes(
           totalClicks: 0, totalUniqueClicks: 0, totalLeads: 0, totalSales: 0,
           totalConversions: 0, approvedConversions: 0, advertiserCost: 0,
           publisherPayout: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0,
-          byOffer: [], byPublisher: [], byDay: []
+          byOffer: [], byPublisher: [], byDate: [], byGeo: []
         };
         if (managerPublisherIds.length > 0) {
           if (filters.publisherIds) {
@@ -4977,7 +4977,8 @@ export async function registerRoutes(
         }
       }
 
-      const conversions = await storage.getConversionsForAdvertiser(req.session.userId!, filters);
+      const effectiveAdvId = getEffectiveAdvertiserId(req) || req.session.userId!;
+      const conversions = await storage.getConversionsForAdvertiser(effectiveAdvId, filters);
       
       const safeConversions = conversions.map(c => ({
         id: c.id,
@@ -5076,12 +5077,13 @@ export async function registerRoutes(
         }
       }
 
-      const clicks = await storage.getClicksForAdvertiser(req.session.userId!, filters);
+      const effectiveAdvId = getEffectiveAdvertiserId(req) || req.session.userId!;
+      const clicks = await storage.getClicksForAdvertiser(effectiveAdvId, filters);
       
       // Get all conversions to calculate per-click stats (apply manager filter)
       const convFilters: any = {};
       if (filters.publisherIds) convFilters.publisherIds = filters.publisherIds;
-      const allConversions = await storage.getConversionsForAdvertiser(req.session.userId!, convFilters);
+      const allConversions = await storage.getConversionsForAdvertiser(effectiveAdvId, convFilters);
       
       // Track unique IPs per offer for isUnique calculation
       const uniqueIpsByOffer: Map<string, Set<string>> = new Map();
