@@ -4323,8 +4323,13 @@ export async function registerRoutes(
         const managerPublisherIds = managerRelations
           .filter(r => r.managerStaffId === req.session.staffId)
           .map(r => r.publisherId);
-        const emptyStats = { totalClicks: 0, totalUniqueClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0, approvedConversions: 0, advertiserCost: 0, publisherPayout: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0, byOffer: [], byPublisher: [], byDay: [] };
-          if (managerPublisherIds.length > 0) {
+        const emptyStats = {
+          totalClicks: 0, totalUniqueClicks: 0, totalLeads: 0, totalSales: 0,
+          totalConversions: 0, approvedConversions: 0, advertiserCost: 0,
+          publisherPayout: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0,
+          byOffer: [], byPublisher: [], byDay: []
+        };
+        if (managerPublisherIds.length > 0) {
           if (filters.publisherIds) {
             filters.publisherIds = filters.publisherIds.filter((id: string) => managerPublisherIds.includes(id));
             if (filters.publisherIds.length === 0) {
