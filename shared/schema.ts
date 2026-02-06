@@ -93,6 +93,10 @@ export const publisherAdvertisers = pgTable("publisher_advertisers", {
   status: text("status").notNull().default("pending"), // pending, active, paused, blocked
   referralEnabled: boolean("referral_enabled").notNull().default(false),
   referralRate: numeric("referral_rate", { precision: 5, scale: 2 }).default("0"),
+  trafficSource: text("traffic_source"),
+  amPercent: numeric("am_percent", { precision: 5, scale: 2 }).default("0"),
+  bonus: numeric("bonus", { precision: 10, scale: 2 }).default("0"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
