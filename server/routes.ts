@@ -4342,6 +4342,67 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/advertiser/partners/team-view", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+      const data = await storage.getTeamViewPartners(advertiserId);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch team view data" });
+    }
+  });
+
+  app.put("/api/advertiser/partners/:id/team-fields", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      if (req.session.isStaff) {
+        return res.status(403).json({ message: "Only advertiser can edit these fields" });
+      }
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+      const { id } = req.params;
+      const { trafficSource, amPercent, bonus } = req.body;
+      if (amPercent !== undefined && isNaN(parseFloat(amPercent))) {
+        return res.status(400).json({ message: "amPercent must be a number" });
+      }
+      if (bonus !== undefined && isNaN(parseFloat(bonus))) {
+        return res.status(400).json({ message: "bonus must be a number" });
+      }
+      const updated = await storage.updatePartnerTeamFields(id, advertiserId, { trafficSource, amPercent, bonus });
+      if (!updated) {
+        return res.status(404).json({ message: "Partner relation not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update partner fields" });
+    }
+  });
+
+  app.patch("/api/advertiser/partners/:id/notes", requireAuth, requireRole("advertiser"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+      const { id } = req.params;
+      const { notes } = req.body;
+      if (typeof notes !== "string") {
+        return res.status(400).json({ message: "Notes must be a string" });
+      }
+      const updated = await storage.updatePartnerNotes(id, advertiserId, notes);
+      if (!updated) {
+        return res.status(404).json({ message: "Partner relation not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update notes" });
+    }
+  });
+
   // Update partner status (approve, block, pause)
   app.put("/api/advertiser/partners/:id/status", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
     try {

@@ -492,6 +492,9 @@ export interface IStorage {
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
   getPublishersByAdvertiser(advertiserId: string): Promise<(PublisherAdvertiser & { publisher: User })[]>;
   addPublisherToAdvertiser(publisherId: string, advertiserId: string, status?: string): Promise<PublisherAdvertiser>;
+  getTeamViewPartners(advertiserId: string): Promise<any[]>;
+  updatePartnerTeamFields(relationId: string, advertiserId: string, data: { trafficSource?: string; amPercent?: string; bonus?: string }): Promise<PublisherAdvertiser | undefined>;
+  updatePartnerNotes(relationId: string, advertiserId: string, notes: string): Promise<PublisherAdvertiser | undefined>;
   
   // Referral System
   updatePublisherReferralSettings(publisherId: string, advertiserId: string, data: { referralEnabled?: boolean; referralRate?: string }): Promise<PublisherAdvertiser | undefined>;
@@ -2628,6 +2631,108 @@ export class DatabaseStorage implements IStorage {
       conversions: convStats?.totalConversions || 0, 
       payout: convStats?.totalPayout || 0 
     };
+  }
+
+  async getTeamViewPartners(advertiserId: string): Promise<any[]> {
+    const relations = await db.select().from(publisherAdvertisers)
+      .where(eq(publisherAdvertisers.advertiserId, advertiserId))
+      .orderBy(desc(publisherAdvertisers.createdAt));
+
+    const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
+    const offerIds = advertiserOffers.map(o => o.id);
+
+    const result = [];
+    for (const rel of relations) {
+      const publisher = await this.getUser(rel.publisherId);
+      if (!publisher) continue;
+
+      let totalClicks = 0;
+      let networkRevenue = 0;
+      let topGeo = '—';
+      let lastActivityDate: Date | null = null;
+
+      if (offerIds.length > 0) {
+        const [clickStats] = await db.select({
+          total: sql<number>`count(*)::int`,
+          lastClick: sql<string>`max(${clicks.createdAt})`,
+        }).from(clicks).where(and(
+          inArray(clicks.offerId, offerIds),
+          eq(clicks.publisherId, rel.publisherId)
+        ));
+        totalClicks = clickStats?.total || 0;
+        if (clickStats?.lastClick) lastActivityDate = new Date(clickStats.lastClick);
+
+        const [convStats] = await db.select({
+          revenue: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric) - sum(${conversions.publisherPayout}::numeric), 0)::float`,
+          lastConv: sql<string>`max(${conversions.createdAt})`,
+        }).from(conversions).where(and(
+          inArray(conversions.offerId, offerIds),
+          eq(conversions.publisherId, rel.publisherId)
+        ));
+        networkRevenue = convStats?.revenue || 0;
+        if (convStats?.lastConv) {
+          const convDate = new Date(convStats.lastConv);
+          if (!lastActivityDate || convDate > lastActivityDate) lastActivityDate = convDate;
+        }
+
+        const geoRows = await db.select({
+          geo: clicks.geo,
+          cnt: sql<number>`count(*)::int`,
+        }).from(clicks).where(and(
+          inArray(clicks.offerId, offerIds),
+          eq(clicks.publisherId, rel.publisherId)
+        )).groupBy(clicks.geo).orderBy(sql`count(*) desc`).limit(1);
+        if (geoRows.length > 0 && geoRows[0].geo) topGeo = geoRows[0].geo;
+      }
+
+      const now = new Date();
+      const activityDays = lastActivityDate
+        ? Math.max(0, Math.floor((now.getTime() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24)))
+        : null;
+
+      result.push({
+        relationId: rel.id,
+        publisherId: rel.publisherId,
+        shortId: publisher.shortId ?? null,
+        username: publisher.username,
+        email: publisher.email,
+        telegram: publisher.telegram,
+        companyName: publisher.companyName,
+        status: rel.status,
+        createdAt: rel.createdAt,
+        activityDays,
+        trafficSource: rel.trafficSource ?? null,
+        topGeo,
+        totalClicks,
+        networkRevenue,
+        amPercent: parseFloat(rel.amPercent || '0'),
+        amCommission: networkRevenue * parseFloat(rel.amPercent || '0') / 100,
+        bonus: parseFloat(rel.bonus || '0'),
+        notes: rel.notes ?? null,
+      });
+    }
+    return result;
+  }
+
+  async updatePartnerTeamFields(relationId: string, advertiserId: string, data: { trafficSource?: string; amPercent?: string; bonus?: string }): Promise<PublisherAdvertiser | undefined> {
+    const setData: any = {};
+    if (data.trafficSource !== undefined) setData.trafficSource = data.trafficSource || null;
+    if (data.amPercent !== undefined) setData.amPercent = data.amPercent || "0";
+    if (data.bonus !== undefined) setData.bonus = data.bonus || "0";
+    if (Object.keys(setData).length === 0) return undefined;
+    const [updated] = await db.update(publisherAdvertisers)
+      .set(setData)
+      .where(and(eq(publisherAdvertisers.id, relationId), eq(publisherAdvertisers.advertiserId, advertiserId)))
+      .returning();
+    return updated;
+  }
+
+  async updatePartnerNotes(relationId: string, advertiserId: string, notes: string): Promise<PublisherAdvertiser | undefined> {
+    const [updated] = await db.update(publisherAdvertisers)
+      .set({ notes: notes || null })
+      .where(and(eq(publisherAdvertisers.id, relationId), eq(publisherAdvertisers.advertiserId, advertiserId)))
+      .returning();
+    return updated;
   }
 
   async getPublisherOfferAccess(publisherId: string, offerId: string): Promise<PublisherOfferAccess | undefined> {
