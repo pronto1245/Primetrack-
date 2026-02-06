@@ -134,9 +134,14 @@ export function AdvertiserPartners() {
   const getEffectiveLink = () => {
     if (!linkData?.registrationLink) return "";
     if (isStaff && staffRole === "manager" && staffId) {
-      const url = new URL(linkData.registrationLink);
-      url.searchParams.set("am", staffId);
-      return url.toString();
+      try {
+        const url = new URL(linkData.registrationLink, window.location.origin);
+        url.searchParams.set("am", staffId);
+        return url.toString();
+      } catch {
+        const sep = linkData.registrationLink.includes("?") ? "&" : "?";
+        return `${linkData.registrationLink}${sep}am=${staffId}`;
+      }
     }
     return linkData.registrationLink;
   };
