@@ -1,0 +1,96 @@
+es (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/var/www/primetrack/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+ Warning  Found data-loss statements:
+· You're about to delete session table with 3 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+[✓] Changes applied
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 5    │ online    │ 0%       │ 20.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# cd /var/www/primetrack && pm2 restart primetrack && pm2 logs primetrack --lines 20
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 6    │ online    │ 0%       │ 18.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-out.log last 20 lines:
+0|primetra | [session] Staff session created for: 123@123.ee
+0|primetra | 12:07:16 PM [express] GET /api/advertiser/offers 404 in 43ms
+0|primetra | 12:14:45 PM [aggregation] Hourly aggregation: 9 rows updated
+0|primetra | 
+0|primetra | > rest-express@1.0.0 start
+0|primetra | > NODE_ENV=production node dist/index.cjs
+0|primetra | 
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 12:25:46 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 12:25:46 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 12:25:47 PM [aggregation] Daily stats aggregation completed: 9 rows
+
+/root/.pm2/logs/primetrack-error.log last 20 lines:
+0|primetra |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetra | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetra |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetra |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+
+0|primetrack  | > rest-express@1.0.0 start
+0|primetrack  | > NODE_ENV=production node dist/index.cjs
+0|primetrack  | [WorkerAuth] Worker secret loaded from environment variable
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 12:27:18 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 12:27:18 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-02
+0|primetrack  | 12:27:19 PM [aggregation] Daily stats aggregation completed: 9 rows
+
