@@ -1,0 +1,98 @@
+rResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetrack  |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetrack  |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetrack  |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+pm2 logs primetrack --lines 5 --nostream | grep session
+^C
+[root@v742573 primetrack]# pm2 logs primetrack --lines 5 --nostream | grep session
+[root@v742573 primetrack]# curl -k -v -X POST https://primetrack.pro/api/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}' 2>&1 | grep -i "set-cookie\|HTTP/"
+* ALPN, offering http/1.1
+* ALPN, server accepted to use http/1.1
+> POST /api/login HTTP/1.1
+< HTTP/1.1 404 Not Found
+[root@v742573 primetrack]# cd /var/www/primetrack && npm run build && pm2 restart primetrack
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3880 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-DJU0A3YR.css                                      198.37 kB │ gzip:  28.39 kB
+../dist/public/assets/index-BR5mVT-0.js                                     2,608.32 kB │ gzip: 678.76 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 18.54s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.7mb ⚠️
+
+⚡ Done in 1476ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 7    │ online    │ 0%       │ 18.1mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
