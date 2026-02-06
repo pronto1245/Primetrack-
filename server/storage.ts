@@ -3254,6 +3254,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (filters.publisherId) conditions.push(eq(clicks.publisherId, filters.publisherId));
+    if (filters.publisherIds?.length) conditions.push(inArray(clicks.publisherId, filters.publisherIds));
     if (filters.offerId) conditions.push(eq(clicks.offerId, filters.offerId));
     
     // Handle dateMode for filtering
@@ -3279,6 +3280,9 @@ export class DatabaseStorage implements IStorage {
       const offerIdsClause = filters.offerIds?.length 
         ? sql`AND ${conversions.offerId} IN (${sql.join(filters.offerIds.map((id: string) => sql`${id}`), sql`, `)})` 
         : sql``;
+      const publisherIdsClause = filters.publisherIds?.length
+        ? sql`AND ${conversions.publisherId} IN (${sql.join(filters.publisherIds.map((id: string) => sql`${id}`), sql`, `)})`
+        : sql``;
       
       conditions.push(
         sql`EXISTS (
@@ -3289,6 +3293,7 @@ export class DatabaseStorage implements IStorage {
           ${publisherClause}
           ${offerIdClause}
           ${offerIdsClause}
+          ${publisherIdsClause}
         )`
       );
     } else {
@@ -3346,6 +3351,7 @@ export class DatabaseStorage implements IStorage {
         if (filters.dateFrom) convConditionsPage.push(gte(conversions.createdAt, filters.dateFrom));
         if (filters.dateTo) convConditionsPage.push(lte(conversions.createdAt, filters.dateTo));
         if (filters.publisherId) convConditionsPage.push(eq(conversions.publisherId, filters.publisherId));
+        if (filters.publisherIds?.length) convConditionsPage.push(inArray(conversions.publisherId, filters.publisherIds));
         if (filters.offerId) convConditionsPage.push(eq(conversions.offerId, filters.offerId));
         if (filters.offerIds?.length) convConditionsPage.push(inArray(conversions.offerId, filters.offerIds));
       }
@@ -3585,6 +3591,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (filters.publisherId) conditions.push(eq(conversions.publisherId, filters.publisherId));
+    if (filters.publisherIds?.length) conditions.push(inArray(conversions.publisherId, filters.publisherIds));
     if (filters.offerId) conditions.push(eq(conversions.offerId, filters.offerId));
     if (filters.dateFrom) conditions.push(gte(conversions.createdAt, filters.dateFrom));
     if (filters.dateTo) conditions.push(lte(conversions.createdAt, filters.dateTo));

@@ -4318,6 +4318,26 @@ export async function registerRoutes(
       if (geo) filters.geo = (geo as string).split(',');
       if (status) filters.status = (status as string).split(',');
 
+      if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+        const managerRelations = await storage.getPublisherAdvertiserRelations(advertiserId);
+        const managerPublisherIds = managerRelations
+          .filter(r => r.managerStaffId === req.session.staffId)
+          .map(r => r.publisherId);
+        const emptyStats = { totalClicks: 0, totalUniqueClicks: 0, totalLeads: 0, totalSales: 0, totalConversions: 0, approvedConversions: 0, advertiserCost: 0, publisherPayout: 0, margin: 0, roi: 0, cr: 0, ar: 0, epc: 0, byOffer: [], byPublisher: [], byDay: [] };
+          if (managerPublisherIds.length > 0) {
+          if (filters.publisherIds) {
+            filters.publisherIds = filters.publisherIds.filter((id: string) => managerPublisherIds.includes(id));
+            if (filters.publisherIds.length === 0) {
+              return res.json(emptyStats);
+            }
+          } else {
+            filters.publisherIds = managerPublisherIds;
+          }
+        } else {
+          return res.json(emptyStats);
+        }
+      }
+
       const stats = await storage.getAdvertiserStats(advertiserId, filters);
       res.json(stats);
     } catch (error) {
@@ -4930,6 +4950,28 @@ export async function registerRoutes(
       if (geo) filters.geo = (geo as string).split(',');
       if (status) filters.status = (status as string).split(',');
 
+      if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (effectiveAdvertiserId) {
+          const managerRelations = await storage.getPublisherAdvertiserRelations(effectiveAdvertiserId);
+          const managerPublisherIds = managerRelations
+            .filter(r => r.managerStaffId === req.session.staffId)
+            .map(r => r.publisherId);
+          if (managerPublisherIds.length > 0) {
+            if (filters.publisherIds) {
+              filters.publisherIds = filters.publisherIds.filter((id: string) => managerPublisherIds.includes(id));
+            } else {
+              filters.publisherIds = managerPublisherIds;
+            }
+            if (!filters.publisherIds.length) {
+              return res.json([]);
+            }
+          } else {
+            return res.json([]);
+          }
+        }
+      }
+
       const conversions = await storage.getConversionsForAdvertiser(req.session.userId!, filters);
       
       const safeConversions = conversions.map(c => ({
@@ -5007,10 +5049,34 @@ export async function registerRoutes(
       if (publisherIds) filters.publisherIds = (publisherIds as string).split(',');
       if (geo) filters.geo = (geo as string).split(',');
 
+      if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+        const effectiveAdvertiserId = getEffectiveAdvertiserId(req);
+        if (effectiveAdvertiserId) {
+          const managerRelations = await storage.getPublisherAdvertiserRelations(effectiveAdvertiserId);
+          const managerPublisherIds = managerRelations
+            .filter(r => r.managerStaffId === req.session.staffId)
+            .map(r => r.publisherId);
+          if (managerPublisherIds.length > 0) {
+            if (filters.publisherIds) {
+              filters.publisherIds = filters.publisherIds.filter((id: string) => managerPublisherIds.includes(id));
+            } else {
+              filters.publisherIds = managerPublisherIds;
+            }
+            if (!filters.publisherIds.length) {
+              return res.json([]);
+            }
+          } else {
+            return res.json([]);
+          }
+        }
+      }
+
       const clicks = await storage.getClicksForAdvertiser(req.session.userId!, filters);
       
-      // Get all conversions to calculate per-click stats
-      const allConversions = await storage.getConversionsForAdvertiser(req.session.userId!, {});
+      // Get all conversions to calculate per-click stats (apply manager filter)
+      const convFilters: any = {};
+      if (filters.publisherIds) convFilters.publisherIds = filters.publisherIds;
+      const allConversions = await storage.getConversionsForAdvertiser(req.session.userId!, convFilters);
       
       // Track unique IPs per offer for isUnique calculation
       const uniqueIpsByOffer: Map<string, Set<string>> = new Map();
@@ -6279,6 +6345,18 @@ export async function registerRoutes(
         } else {
           return res.json({ clicks: [], total: 0, page: 1, limit: 50, summary: { clicks: 0, unique: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0 } });
         }
+
+        if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+          const managerRelations = await storage.getPublisherAdvertiserRelations(effectiveAdvertiserId);
+          const managerPublisherIds = managerRelations
+            .filter(r => r.managerStaffId === req.session.staffId)
+            .map(r => r.publisherId);
+          if (managerPublisherIds.length > 0) {
+            filters.publisherIds = managerPublisherIds;
+          } else {
+            return res.json({ clicks: [], total: 0, page: 1, limit: 50, summary: { clicks: 0, unique: 0, leads: 0, sales: 0, conversions: 0, payout: 0, cost: 0, margin: 0, roi: 0, cr: 0 } });
+          }
+        }
       }
       // Admin sees everything
 
@@ -6373,6 +6451,18 @@ export async function registerRoutes(
           // Advertiser has no offers - return empty
           return res.json({ conversions: [], total: 0, page: 1, limit: 50 });
         }
+
+        if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+          const managerRelations = await storage.getPublisherAdvertiserRelations(effectiveAdvertiserId);
+          const managerPublisherIds = managerRelations
+            .filter(r => r.managerStaffId === req.session.staffId)
+            .map(r => r.publisherId);
+          if (managerPublisherIds.length > 0) {
+            filters.publisherIds = managerPublisherIds;
+          } else {
+            return res.json({ conversions: [], total: 0, page: 1, limit: 50 });
+          }
+        }
       }
 
       if (offerId) filters.offerId = offerId as string;
@@ -6448,6 +6538,18 @@ export async function registerRoutes(
           filters.offerIds = advertiserOffers.map(o => o.id);
         } else {
           return res.json({ data: [], totals: {} });
+        }
+
+        if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+          const managerRelations = await storage.getPublisherAdvertiserRelations(effectiveAdvertiserId);
+          const managerPublisherIds = managerRelations
+            .filter(r => r.managerStaffId === req.session.staffId)
+            .map(r => r.publisherId);
+          if (managerPublisherIds.length > 0) {
+            filters.publisherIds = managerPublisherIds;
+          } else {
+            return res.json({ data: [], totals: {} });
+          }
         }
       }
 
