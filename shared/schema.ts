@@ -97,6 +97,7 @@ export const publisherAdvertisers = pgTable("publisher_advertisers", {
   amPercent: numeric("am_percent", { precision: 5, scale: 2 }).default("0"),
   bonus: numeric("bonus", { precision: 10, scale: 2 }).default("0"),
   notes: text("notes"),
+  managerStaffId: varchar("manager_staff_id").references(() => advertiserStaff.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

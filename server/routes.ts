@@ -990,7 +990,7 @@ export async function registerRoutes(
 
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
-      const { username, password, email, referralCode, fullName, phone, contactType, contactValue, advertiserId: directAdvertiserId, referrerId } = req.body;
+      const { username, password, email, referralCode, fullName, phone, contactType, contactValue, advertiserId: directAdvertiserId, referrerId, am } = req.body;
 
       if (!username || !password || !email) {
         return res.status(400).json({ message: "Username, password and email are required" });
@@ -1080,7 +1080,14 @@ export async function registerRoutes(
       });
 
       if (advertiserId) {
-        await storage.addPublisherToAdvertiser(newUser.id, advertiserId);
+        let managerStaffId: string | null = null;
+        if (am) {
+          const staffMember = await storage.getAdvertiserStaffById(am);
+          if (staffMember && staffMember.advertiserId === advertiserId && staffMember.staffRole === "manager" && staffMember.status === "active") {
+            managerStaffId = staffMember.id;
+          }
+        }
+        await storage.addPublisherToAdvertiser(newUser.id, advertiserId, "pending", managerStaffId);
       }
 
       req.session.userId = newUser.id;
@@ -4357,7 +4364,24 @@ export async function registerRoutes(
       if (!advertiserId) {
         return res.status(401).json({ message: "Not authorized as advertiser" });
       }
-      const data = await storage.getTeamViewPartners(advertiserId);
+
+      const options: { managerStaffId?: string; startDate?: Date; endDate?: Date } = {};
+
+      if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+        options.managerStaffId = req.session.staffId;
+      }
+
+      const { startDate, endDate } = req.query;
+      if (startDate && typeof startDate === "string") {
+        const d = new Date(startDate);
+        if (!isNaN(d.getTime())) options.startDate = d;
+      }
+      if (endDate && typeof endDate === "string") {
+        const d = new Date(endDate);
+        if (!isNaN(d.getTime())) options.endDate = d;
+      }
+
+      const data = await storage.getTeamViewPartners(advertiserId, options);
       res.json(data);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch team view data" });

@@ -491,8 +491,8 @@ export interface IStorage {
   // Publisher-Advertiser relationships
   getAdvertisersForPublisher(publisherId: string): Promise<(PublisherAdvertiser & { advertiser: User })[]>;
   getPublishersByAdvertiser(advertiserId: string): Promise<(PublisherAdvertiser & { publisher: User })[]>;
-  addPublisherToAdvertiser(publisherId: string, advertiserId: string, status?: string): Promise<PublisherAdvertiser>;
-  getTeamViewPartners(advertiserId: string): Promise<any[]>;
+  addPublisherToAdvertiser(publisherId: string, advertiserId: string, status?: string, managerStaffId?: string | null): Promise<PublisherAdvertiser>;
+  getTeamViewPartners(advertiserId: string, options?: { managerStaffId?: string; startDate?: Date; endDate?: Date }): Promise<any[]>;
   updatePartnerTeamFields(relationId: string, advertiserId: string, data: { trafficSource?: string; amPercent?: string; bonus?: string }): Promise<PublisherAdvertiser | undefined>;
   updatePartnerNotes(relationId: string, advertiserId: string, notes: string): Promise<PublisherAdvertiser | undefined>;
   
@@ -1618,7 +1618,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async addPublisherToAdvertiser(publisherId: string, advertiserId: string, status: string = "pending"): Promise<PublisherAdvertiser> {
+  async addPublisherToAdvertiser(publisherId: string, advertiserId: string, status: string = "pending", managerStaffId?: string | null): Promise<PublisherAdvertiser> {
     const existing = await db.select()
       .from(publisherAdvertisers)
       .where(and(
@@ -1633,7 +1633,8 @@ export class DatabaseStorage implements IStorage {
     const [relation] = await db.insert(publisherAdvertisers).values({
       publisherId,
       advertiserId,
-      status
+      status,
+      ...(managerStaffId ? { managerStaffId } : {}),
     }).returning();
     return relation;
   }
@@ -2633,9 +2634,14 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getTeamViewPartners(advertiserId: string): Promise<any[]> {
+  async getTeamViewPartners(advertiserId: string, options?: { managerStaffId?: string; startDate?: Date; endDate?: Date }): Promise<any[]> {
+    const conditions = [eq(publisherAdvertisers.advertiserId, advertiserId)];
+    if (options?.managerStaffId) {
+      conditions.push(eq(publisherAdvertisers.managerStaffId, options.managerStaffId));
+    }
+
     const relations = await db.select().from(publisherAdvertisers)
-      .where(eq(publisherAdvertisers.advertiserId, advertiserId))
+      .where(and(...conditions))
       .orderBy(desc(publisherAdvertisers.createdAt));
 
     const advertiserOffers = await this.getOffersByAdvertiser(advertiserId);
@@ -2646,42 +2652,63 @@ export class DatabaseStorage implements IStorage {
       const publisher = await this.getUser(rel.publisherId);
       if (!publisher) continue;
 
+      let managerName: string | null = null;
+      if (rel.managerStaffId) {
+        const [staffRow] = await db.select({ fullName: advertiserStaff.fullName })
+          .from(advertiserStaff)
+          .where(eq(advertiserStaff.id, rel.managerStaffId))
+          .limit(1);
+        if (staffRow) managerName = staffRow.fullName;
+      }
+
       let totalClicks = 0;
       let networkRevenue = 0;
       let topGeo = '—';
       let lastActivityDate: Date | null = null;
 
       if (offerIds.length > 0) {
+        const clickConditions: any[] = [
+          inArray(clicks.offerId, offerIds),
+          eq(clicks.publisherId, rel.publisherId),
+        ];
+        if (options?.startDate) clickConditions.push(sql`${clicks.createdAt} >= ${options.startDate.toISOString()}`);
+        if (options?.endDate) clickConditions.push(sql`${clicks.createdAt} <= ${options.endDate.toISOString()}`);
+
         const [clickStats] = await db.select({
           total: sql<number>`count(*)::int`,
           lastClick: sql<string>`max(${clicks.createdAt})`,
-        }).from(clicks).where(and(
-          inArray(clicks.offerId, offerIds),
-          eq(clicks.publisherId, rel.publisherId)
-        ));
+        }).from(clicks).where(and(...clickConditions));
         totalClicks = clickStats?.total || 0;
         if (clickStats?.lastClick) lastActivityDate = new Date(clickStats.lastClick);
+
+        const convConditions: any[] = [
+          inArray(conversions.offerId, offerIds),
+          eq(conversions.publisherId, rel.publisherId),
+        ];
+        if (options?.startDate) convConditions.push(sql`${conversions.createdAt} >= ${options.startDate.toISOString()}`);
+        if (options?.endDate) convConditions.push(sql`${conversions.createdAt} <= ${options.endDate.toISOString()}`);
 
         const [convStats] = await db.select({
           revenue: sql<number>`COALESCE(sum(${conversions.advertiserCost}::numeric) - sum(${conversions.publisherPayout}::numeric), 0)::float`,
           lastConv: sql<string>`max(${conversions.createdAt})`,
-        }).from(conversions).where(and(
-          inArray(conversions.offerId, offerIds),
-          eq(conversions.publisherId, rel.publisherId)
-        ));
+        }).from(conversions).where(and(...convConditions));
         networkRevenue = convStats?.revenue || 0;
         if (convStats?.lastConv) {
           const convDate = new Date(convStats.lastConv);
           if (!lastActivityDate || convDate > lastActivityDate) lastActivityDate = convDate;
         }
 
+        const geoConditions: any[] = [
+          inArray(clicks.offerId, offerIds),
+          eq(clicks.publisherId, rel.publisherId),
+        ];
+        if (options?.startDate) geoConditions.push(sql`${clicks.createdAt} >= ${options.startDate.toISOString()}`);
+        if (options?.endDate) geoConditions.push(sql`${clicks.createdAt} <= ${options.endDate.toISOString()}`);
+
         const geoRows = await db.select({
           geo: clicks.geo,
           cnt: sql<number>`count(*)::int`,
-        }).from(clicks).where(and(
-          inArray(clicks.offerId, offerIds),
-          eq(clicks.publisherId, rel.publisherId)
-        )).groupBy(clicks.geo).orderBy(sql`count(*) desc`).limit(1);
+        }).from(clicks).where(and(...geoConditions)).groupBy(clicks.geo).orderBy(sql`count(*) desc`).limit(1);
         if (geoRows.length > 0 && geoRows[0].geo) topGeo = geoRows[0].geo;
       }
 
@@ -2709,6 +2736,8 @@ export class DatabaseStorage implements IStorage {
         amCommission: networkRevenue * parseFloat(rel.amPercent || '0') / 100,
         bonus: parseFloat(rel.bonus || '0'),
         notes: rel.notes ?? null,
+        managerStaffId: rel.managerStaffId ?? null,
+        managerName,
       });
     }
     return result;

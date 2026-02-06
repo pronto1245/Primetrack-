@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Users, UserPlus, Loader2, Mail, User, Shield, Briefcase, 
-  BarChart2, HeadphonesIcon, Wallet, Trash2, Edit, KeyRound, Info, ChevronDown
+  BarChart2, HeadphonesIcon, Wallet, Trash2, Edit, KeyRound, Info, ChevronDown,
+  Link, Check, Copy
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest } from "@/lib/queryClient";
@@ -38,6 +39,7 @@ export function AdvertiserTeam() {
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [formData, setFormData] = useState({ fullName: "", email: "", staffRole: "analyst", password: "" });
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const hasWriteAccess = canWrite("team");
 
   const { data: staff = [], isLoading } = useQuery<StaffMember[]>({
@@ -48,6 +50,24 @@ export function AdvertiserTeam() {
       return res.json();
     },
   });
+
+  const { data: regLinkData } = useQuery<{ registrationLink: string }>({
+    queryKey: ["advertiser-registration-link"],
+    queryFn: async () => {
+      const res = await fetch("/api/advertiser/registration-link", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch registration link");
+      return res.json();
+    },
+  });
+
+  const copyManagerLink = (staffId: string) => {
+    if (!regLinkData?.registrationLink) return;
+    const url = new URL(regLinkData.registrationLink);
+    url.searchParams.set("am", staffId);
+    navigator.clipboard.writeText(url.toString());
+    setCopiedId(staffId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -298,8 +318,10 @@ export function AdvertiserTeam() {
                 <thead>
                   <tr className="border-b border-border text-left text-xs text-muted-foreground uppercase">
                     <th className="py-3 px-4">Сотрудник</th>
+                    <th className="py-3 px-4">ID</th>
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Роль</th>
+                    <th className="py-3 px-4">Ссылка</th>
                     <th className="py-3 px-4">Статус</th>
                     <th className="py-3 px-4">Дата</th>
                     <th className="py-3 px-4 text-right">Действия</th>
@@ -318,6 +340,9 @@ export function AdvertiserTeam() {
                             <span className="font-medium">{member.fullName}</span>
                           </div>
                         </td>
+                        <td className="py-3 px-4 text-muted-foreground text-xs font-mono">
+                          {member.id.slice(0, 8)}
+                        </td>
                         <td className="py-3 px-4 text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Mail className="w-3 h-3" />
@@ -329,6 +354,31 @@ export function AdvertiserTeam() {
                             <roleInfo.icon className="w-3 h-3" />
                             {roleInfo.label}
                           </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          {member.staffRole === "manager" ? (
+                            <Button
+                              data-testid={`button-copy-link-${member.id}`}
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-xs"
+                              onClick={() => copyManagerLink(member.id)}
+                            >
+                              {copiedId === member.id ? (
+                                <>
+                                  <Check className="w-3 h-3 text-green-500" />
+                                  Скопировано
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  Копировать
+                                </>
+                              )}
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
                         </td>
                         <td className="py-3 px-4">
                           <Badge variant={member.status === "active" ? "default" : "destructive"}>

@@ -23,6 +23,7 @@ export default function PublisherRegister() {
   const searchParams = new URLSearchParams(window.location.search);
   const referralCode = params.ref || searchParams.get("ref") || "";
   const advertiserId = searchParams.get("adv") || "";
+  const amParam = searchParams.get("am") || "";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -70,6 +71,7 @@ export default function PublisherRegister() {
           referralCode: data.referralCode,
           advertiserId: data.advertiserId,
           referrerId: data.referrerId,
+          ...(amParam ? { am: amParam } : {}),
         }),
         credentials: "include",
       });

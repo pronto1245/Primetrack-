@@ -52,6 +52,8 @@ interface TeamPartner {
   amCommission: number;
   bonus: number;
   notes: string | null;
+  managerStaffId: string | null;
+  managerName: string | null;
 }
 
 export function AdvertiserPartners() {
@@ -62,6 +64,7 @@ export function AdvertiserPartners() {
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("partners");
+  const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
 
   const { data: partners = [], isLoading } = useQuery<Partner[]>({
     queryKey: ["advertiser-partners", statusFilter],
@@ -76,9 +79,13 @@ export function AdvertiserPartners() {
   });
 
   const { data: teamPartners = [], isLoading: teamLoading } = useQuery<TeamPartner[]>({
-    queryKey: ["advertiser-partners-team"],
+    queryKey: ["advertiser-partners-team", dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
-      const res = await fetch("/api/advertiser/partners/team-view", { credentials: "include" });
+      const params = new URLSearchParams();
+      if (dateRange.startDate) params.set("startDate", dateRange.startDate);
+      if (dateRange.endDate) params.set("endDate", dateRange.endDate);
+      const qs = params.toString();
+      const res = await fetch(`/api/advertiser/partners/team-view${qs ? `?${qs}` : ''}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch team view");
       return res.json();
     },
@@ -447,8 +454,8 @@ export function AdvertiserPartners() {
         <TabsContent value="team">
           <Card className="bg-card border-border">
             <CardHeader className="border-b border-border">
-              <div className="flex items-center gap-4">
-                <div className="relative flex-1">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="relative flex-1 min-w-[200px]">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     data-testid="input-search-team"
@@ -457,6 +464,34 @@ export function AdvertiserPartners() {
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-10 bg-input border-border text-foreground"
                   />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    data-testid="input-start-date"
+                    type="date"
+                    value={dateRange.startDate}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-[140px] bg-input border-border text-foreground text-xs"
+                  />
+                  <span className="text-muted-foreground text-xs">—</span>
+                  <Input
+                    data-testid="input-end-date"
+                    type="date"
+                    value={dateRange.endDate}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-[140px] bg-input border-border text-foreground text-xs"
+                  />
+                  {(dateRange.startDate || dateRange.endDate) && (
+                    <Button
+                      data-testid="button-clear-dates"
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs text-muted-foreground"
+                      onClick={() => setDateRange({ startDate: "", endDate: "" })}
+                    >
+                      Сбросить
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -481,6 +516,7 @@ export function AdvertiserPartners() {
                         <th className="text-left text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[90px]">Статус</th>
                         <th className="text-left text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[100px]">Подключение</th>
                         <th className="text-right text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[80px]">Акт. (дн)</th>
+                        <th className="text-left text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[100px]">AM</th>
                         <th className="text-left text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[120px]">Источник</th>
                         <th className="text-center text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[50px]">GEO</th>
                         <th className="text-right text-[10px] font-medium text-muted-foreground uppercase px-3 py-2 min-w-[80px]">Трафик</th>
@@ -503,6 +539,31 @@ export function AdvertiserPartners() {
                         />
                       ))}
                     </tbody>
+                    {filteredTeamPartners.length > 0 && (
+                      <tfoot className="bg-muted/50 border-t-2 border-border">
+                        <tr>
+                          <td className="px-3 py-2 sticky left-0 bg-muted/50 z-10 text-xs font-bold text-foreground" colSpan={2}>ИТОГО</td>
+                          <td className="px-3 py-2" colSpan={4}></td>
+                          <td className="px-3 py-2"></td>
+                          <td className="px-3 py-2"></td>
+                          <td className="px-3 py-2"></td>
+                          <td className="px-3 py-2 text-right font-mono text-xs font-bold text-muted-foreground">
+                            {filteredTeamPartners.reduce((s, p) => s + p.totalClicks, 0).toLocaleString()}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono text-xs font-bold text-emerald-400">
+                            {formatCurrency(filteredTeamPartners.reduce((s, p) => s + p.networkRevenue, 0))}
+                          </td>
+                          <td className="px-3 py-2"></td>
+                          <td className="px-3 py-2 text-right font-mono text-xs font-bold text-purple-400">
+                            {formatCurrency(filteredTeamPartners.reduce((s, p) => s + p.amCommission, 0))}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono text-xs font-bold text-muted-foreground">
+                            {formatCurrency(filteredTeamPartners.reduce((s, p) => s + p.bonus, 0))}
+                          </td>
+                          <td className="px-3 py-2"></td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               )}
@@ -605,6 +666,9 @@ function TeamRow({ partner: p, canEdit, onUpdateFields, onUpdateNotes, statusBad
         ) : (
           <span className="text-xs text-muted-foreground/50">—</span>
         )}
+      </td>
+      <td className="px-3 py-2">
+        <span className="text-xs text-muted-foreground">{p.managerName || '—'}</span>
       </td>
       <td className="px-3 py-2">{editableCell("trafficSource", p.trafficSource || "")}</td>
       <td className="px-3 py-2 text-center">

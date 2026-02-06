@@ -15,17 +15,19 @@ export default function Register() {
   const searchParams = new URLSearchParams(window.location.search);
   const referralCode = params.ref || searchParams.get("ref") || "";
   const advertiserId = searchParams.get("adv") || "";
+  const amParam = searchParams.get("am") || "";
 
   // Redirect to full publisher registration form when referral code is present
   useEffect(() => {
     if (referralCode) {
-      // Redirect to /register/:ref with adv param if present
-      const redirectUrl = advertiserId 
-        ? `/register/${referralCode}?adv=${advertiserId}`
-        : `/register/${referralCode}`;
+      const params = new URLSearchParams();
+      if (advertiserId) params.set("adv", advertiserId);
+      if (amParam) params.set("am", amParam);
+      const qs = params.toString();
+      const redirectUrl = `/register/${referralCode}${qs ? `?${qs}` : ''}`;
       setLocation(redirectUrl);
     }
-  }, [referralCode, advertiserId, setLocation]);
+  }, [referralCode, advertiserId, amParam, setLocation]);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -58,6 +60,7 @@ export default function Register() {
         referralCode: data.referralCode,
         advertiserId: data.advertiserId,
         referrerId: data.referrerId,
+        ...(amParam ? { am: amParam } : {}),
       });
       return response.json();
     },
