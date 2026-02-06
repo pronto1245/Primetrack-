@@ -43,12 +43,15 @@ Preferred communication style: Simple, everyday language (Russian).
   - Database indexes: idx_velocity_counters_lookup, idx_clicks_uniqueness for fast lookups
 - **"Отчёт по вебам":** Tab in Partners section with 14 columns (ID, Name, Email/Telegram, Status, Connection date, Activity days, Source, GEO, Traffic, Margin, AM%, AM Commission, Bonus, Notes). Inline editing with role-based permissions.
 
+## Implemented Features
+- **AM Partner Binding via Registration Link (Feb 2026):**
+  - `publisher_advertisers.managerStaffId` FK to `advertiser_staff` for manager binding
+  - "Команда" section shows manager ID and "Copy link" button (registration link with `am=staffId` parameter)
+  - On registration, `am` parameter validates staff (must be active manager of same advertiser) and auto-binds
+  - "Отчёт по вебам" includes AM column (manager name), date range filter (startDate/endDate), and totals row
+  - Managers (staff role=manager) auto-see only their assigned partners in team-view (server-side filtering)
+
 ## Planned Features (TODO)
-- **AM Partner Binding via Registration Link:**
-  1. In "Команда" section — show manager ID and "Copy link" button next to each manager (registration link with `am=ID` parameter)
-  2. On partner registration — if `am=ID` is present in the link, auto-bind partner to that manager
-  3. In "Отчёт по вебам" — add "AM" column (manager name)
-  4. For managers — auto-filter the table to show only their assigned partners
 - **Deployment command (VPS):** `cd /var/www/primetrack && git pull origin main && npm install && npm run build && pm2 restart primetrack` (without drizzle-kit — schema changes via direct SQL)
 
 ## External Dependencies
