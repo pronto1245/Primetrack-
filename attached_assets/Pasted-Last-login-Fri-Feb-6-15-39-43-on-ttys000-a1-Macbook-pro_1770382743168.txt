@@ -1,0 +1,122 @@
+Last login: Fri Feb  6 15:39:43 on ttys000
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+
+Last failed login: Fri Feb  6 12:53:30 UTC 2026 from 45.148.10.141 on ssh:notty
+There were 15 failed login attempts since the last successful login.
+Last login: Fri Feb  6 12:40:01 2026 from 92.36.7.48
+[root@v742573 ~]# cd /var/www/primetrack && git pull origin main && npm install && npm run build && npx drizzle-kit push --config drizzle.config.mjs && pm2 restart primetrack
+remote: Enumerating objects: 36, done.
+remote: Counting objects: 100% (36/36), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 29 (delta 24), reused 29 (delta 24), pack-reused 0 (from 0)
+Unpacking objects: 100% (29/29), 9.27 KiB | 351.00 KiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   e397bc3..1f64d0e  main       -> origin/main
+Updating e397bc3..1f64d0e
+Fast-forward
+ ...rimetrack-fork--1770382046841_1770382046842.txt |  94 ++++++++++++++++
+ ...e-sql-for-session-store-rest-_1770381711774.txt |  44 ++++++++
+ ...m2-logs-primetrack-lines-50-n_1770382392712.txt | 107 ++++++++++++++++++
+ ...service-ready-per-advertiser-_1770381910404.txt |  58 ++++++++++
+ ...-31-on-ttys001-a1-Macbook-pro_1770381652024.txt | 121 +++++++++++++++++++++
+ drizzle.config.mjs                                 |  14 +++
+ script/build.ts                                    |   4 +-
+ server/index.ts                                    |   6 +-
+ server/routes.ts                                   |  11 +-
+ 9 files changed, 453 insertions(+), 6 deletions(-)
+ create mode 100644 attached_assets/Pasted--0-primetrack-fork--1770382046841_1770382046842.txt
+ create mode 100644 attached_assets/Pasted--Done-in-758ms-copied-table-sql-for-session-store-rest-_1770381711774.txt
+ create mode 100644 attached_assets/Pasted--root-v742573-primetrack-pm2-logs-primetrack-lines-50-n_1770382392712.txt
+ create mode 100644 attached_assets/Pasted-9-PM-crypto-Crypto-payout-service-ready-per-advertiser-_1770381910404.txt
+ create mode 100644 attached_assets/Pasted-Last-login-Fri-Feb-6-15-22-31-on-ttys001-a1-Macbook-pro_1770381652024.txt
+ create mode 100644 drizzle.config.mjs
+
+up to date, audited 1012 packages in 5s
+
+128 packages are looking for funding
+  run `npm fund` for details
+
+19 vulnerabilities (2 low, 5 moderate, 12 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3880 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-DJU0A3YR.css                                      198.37 kB │ gzip:  28.39 kB
+../dist/public/assets/index-BR5mVT-0.js                                     2,608.32 kB │ gzip: 678.76 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 18.12s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.7mb ⚠️
+
+⚡ Done in 743ms
+Reading config file '/var/www/primetrack/drizzle.config.mjs'
+(0 , import_drizzle_kit.defineConfig) is not a function
+[root@v742573 primetrack]# 
