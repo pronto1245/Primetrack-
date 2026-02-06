@@ -1,0 +1,77 @@
+primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetra | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetra |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetra |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+
+0|primetrack  | > rest-express@1.0.0 start
+0|primetrack  | > NODE_ENV=production node dist/index.cjs
+0|primetrack  | [WorkerAuth] Worker secret loaded from environment variable
+0|primetrack  | [session] Using PostgreSQL session store
+0|primetrack  | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetrack  | [shortId] Initializing short ID sequences and backfilling data...
+0|primetrack  | [shortId] Short ID initialization complete
+0|primetrack  | [seed] Subscription plans already exist, skipping
+0|primetrack  | 12:27:18 PM [express] serving on port 3000
+0|primetrack  | [HoldReleaseJob] Starting with interval 300000ms
+0|primetrack  | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetrack  | [CapsResetService] Started, checking every minute
+0|primetrack  | 12:27:18 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetrack  | [CapsResetService] New month detected: 2026-02
+0|primetrack  | 12:27:19 PM [aggregation] Daily stats aggregation completed: 9 rows
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetrack  |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetrack  |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetrack  |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetrack  |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetrack  |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetrack  |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetrack  | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetrack  |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetrack  |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetrack  |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetrack  |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetrack  |     at Ui.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetrack  |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetrack  |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetrack  |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetrack  |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+pm2 logs primetrack --lines 5 --nostream | grep session
+^C
+[root@v742573 primetrack]# pm2 logs primetrack --lines 5 --nostream | grep session
+[root@v742573 primetrack]# curl -k -v -X POST https://primetrack.pro/api/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}' 2>&1 | grep -i "set-cookie\|HTTP/"
+* ALPN, offering http/1.1
+* ALPN, server accepted to use http/1.1
+> POST /api/login HTTP/1.1
+< HTTP/1.1 404 Not Found
+[root@v742573 primetrack]# 
