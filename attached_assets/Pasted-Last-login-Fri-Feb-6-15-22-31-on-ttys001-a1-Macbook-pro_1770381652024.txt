@@ -1,0 +1,121 @@
+Last login: Fri Feb  6 15:22:31 on ttys001
+a1@Macbook-pro1 ~ % ssh root@185.179.191.12
+root@185.179.191.12's password: 
+
+Last failed login: Fri Feb  6 12:39:47 UTC 2026 from 45.148.10.141 on ssh:notty
+There were 27 failed login attempts since the last successful login.
+Last login: Fri Feb  6 12:22:55 2026 from 92.36.7.48
+[root@v742573 ~]# cd /var/www/primetrack && git pull origin main && npm install && npm run build && npm run db:push && pm2 restart primetrack
+remote: Enumerating objects: 26, done.
+remote: Counting objects: 100% (26/26), done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 19 (delta 13), reused 19 (delta 13), pack-reused 0 (from 0)
+Unpacking objects: 100% (19/19), 58.20 KiB | 1.02 MiB/s, done.
+From https://github.com/pronto1245/Primetrack-
+ * branch            main       -> FETCH_HEAD
+   f30885f..e397bc3  main       -> origin/main
+Updating f30885f..e397bc3
+Fast-forward
+ ...ges-run-npm-audit-fix-force-R_1770380849952.txt |  96 ++++++++++++++++++++
+ ...w-primetrack-dist-index-cjs-5_1770380958574.txt |  77 ++++++++++++++++
+ ...ttp-outgoing-655-11-0-primetr_1770381016936.txt |  98 +++++++++++++++++++++
+ client/public/opengraph.jpg                        | Bin 60200 -> 61289 bytes
+ script/build.ts                                    |   5 +-
+ 5 files changed, 275 insertions(+), 1 deletion(-)
+ create mode 100644 attached_assets/Pasted-es-including-breaking-changes-run-npm-audit-fix-force-R_1770380849952.txt
+ create mode 100644 attached_assets/Pasted-primetra-at-Et-send-var-www-primetrack-dist-index-cjs-5_1770380958574.txt
+ create mode 100644 attached_assets/Pasted-rResponse-setHeader-node-http-outgoing-655-11-0-primetr_1770381016936.txt
+
+up to date, audited 1012 packages in 3s
+
+128 packages are looking for funding
+  run `npm fund` for details
+
+19 vulnerabilities (2 low, 5 moderate, 12 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.1.12 building for production...
+[plugin vite:esbuild] client/src/lib/i18n.ts: Duplicate key "migration" in object literal
+547 |            subtitle: "Full toolkit for advertisers"
+548 |          },
+549 |          migration: {
+    |          ^
+550 |            title: "Migration from other trackers",
+551 |            subtitle: "Transfer offers, campaigns, subIDs and conversion history in 10-15 minutes. Without stopping tra...
+
+✓ 3880 modules transformed.
+rendering chunks (1)...[meta-images] no Replit deployment domain found, skipping meta tag updates
+../dist/public/index.html                                                       2.15 kB │ gzip:   0.84 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590330-BAhPDH0M.png    258.13 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.12_1767983590340-Bp90ddAd.png    362.74 kB
+../dist/public/assets/Снимок_09.01.2026_в_21.11_1767983590341-gQeC2xVZ.png    403.46 kB
+../dist/public/assets/index-DJU0A3YR.css                                      198.37 kB │ gzip:  28.39 kB
+../dist/public/assets/index-BR5mVT-0.js                                     2,608.32 kB │ gzip: 678.76 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 18.07s
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/invoice-pdf-service.ts:12:45:
+      12 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:4:30:
+      4 │ const require = createRequire(import.meta.url);
+        ╵                               ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/services/finance-pdf-service.ts:10:45:
+      10 │ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+         ╵                                              ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work
+  correctly.
+
+4 warnings
+
+  dist/index.cjs  1.7mb ⚠️
+
+⚡ Done in 758ms
+copied table.sql for session store
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/var/www/primetrack/drizzle.config.ts'
+(0 , import_drizzle_kit.defineConfig) is not a function
+[root@v742573 primetrack]# 
