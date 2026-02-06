@@ -165,6 +165,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
   const [editPayoutValue, setEditPayoutValue] = useState("");
   const [linksDialogOpen, setLinksDialogOpen] = useState(false);
   const [linksDialogOffer, setLinksDialogOffer] = useState<PartnerOffer | null>(null);
+  const [offerSearch, setOfferSearch] = useState("");
 
   const updatePayoutMutation = useMutation({
     mutationFn: async ({ offerId, customPayout }: { offerId: string; customPayout: string | null }) => {
@@ -383,6 +384,11 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
         <h1 className="text-2xl font-bold text-foreground">
           Профиль партнёра
         </h1>
+        {partner?.shortId != null && (
+          <Badge data-testid="text-partner-shortid" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-sm">
+            Партнер ID: {partner.shortId}
+          </Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -396,7 +402,12 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
           <CardContent className="space-y-4">
             <div>
               <p className="text-2xl font-bold text-foreground">{partner.companyName || partner.username}</p>
-              <p className="text-sm text-muted-foreground">@{partner.username}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground" data-testid="text-partner-login">@{partner.username}</p>
+                {partner.shortId != null && (
+                  <Badge data-testid="text-partner-info-id" className="bg-muted text-muted-foreground text-xs">ID: {partner.shortId}</Badge>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center gap-2">
@@ -514,17 +525,28 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
       </div>
 
       <Card className="bg-card border-border">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-lg">Офферы</CardTitle>
+          <Input
+            data-testid="input-offer-search"
+            placeholder="Поиск офферов..."
+            value={offerSearch}
+            onChange={(e) => setOfferSearch(e.target.value)}
+            className="w-64 h-9"
+          />
         </CardHeader>
         <CardContent>
           {isLoadingOffers ? (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : offers.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Нет офферов</p>
-          ) : (
+          ) : (() => {
+            const filteredOffers = offers.filter(o => o.name.toLowerCase().includes(offerSearch.toLowerCase()));
+            return offers.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Нет офферов</p>
+            ) : filteredOffers.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Ничего не найдено</p>
+            ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-muted border-b border-border">
@@ -539,7 +561,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {offers.map((offer) => (
+                  {filteredOffers.map((offer) => (
                     <tr key={offer.id} data-testid={`row-offer-${offer.id}`} className="hover:bg-muted/50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -772,7 +794,8 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
                 </tbody>
               </table>
             </div>
-          )}
+          );
+          })()}
         </CardContent>
       </Card>
 
