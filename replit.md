@@ -41,6 +41,15 @@ Preferred communication style: Simple, everyday language (Russian).
   - Offer cache: 60s TTL in-memory cache for offers, landings, publisherOffer (no negative cache for landings)
   - Antifraud optimization: parallelized velocity counter fetches and increments
   - Database indexes: idx_velocity_counters_lookup, idx_clicks_uniqueness for fast lookups
+- **"Отчёт по вебам":** Tab in Partners section with 14 columns (ID, Name, Email/Telegram, Status, Connection date, Activity days, Source, GEO, Traffic, Margin, AM%, AM Commission, Bonus, Notes). Inline editing with role-based permissions.
+
+## Planned Features (TODO)
+- **AM Partner Binding via Registration Link:**
+  1. In "Команда" section — show manager ID and "Copy link" button next to each manager (registration link with `am=ID` parameter)
+  2. On partner registration — if `am=ID` is present in the link, auto-bind partner to that manager
+  3. In "Отчёт по вебам" — add "AM" column (manager name)
+  4. For managers — auto-filter the table to show only their assigned partners
+- **Deployment command (VPS):** `cd /var/www/primetrack && git pull origin main && npm install && npm run build && pm2 restart primetrack` (without drizzle-kit — schema changes via direct SQL)
 
 ## External Dependencies
 - **Database:** PostgreSQL
