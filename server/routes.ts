@@ -245,10 +245,19 @@ async function setupAuth(app: Express) {
         connectionString: process.env.DATABASE_URL,
         ssl: isProduction ? { rejectUnauthorized: false } : false,
       });
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "session" (
+          "sid" varchar NOT NULL COLLATE "default",
+          "sess" json NOT NULL,
+          "expire" timestamp(6) NOT NULL,
+          CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+        ) WITH (OIDS=FALSE);
+        CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+      `);
       store = new PgSessionStore({
         pool,
         tableName: "session",
-        createTableIfMissing: true,
+        createTableIfMissing: false,
       });
       storeType = "postgresql";
       console.log("[session] Using PostgreSQL session store");

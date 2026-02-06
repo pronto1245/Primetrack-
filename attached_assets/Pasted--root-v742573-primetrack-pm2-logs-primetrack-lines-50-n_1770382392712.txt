@@ -1,0 +1,107 @@
+[root@v742573 primetrack]# pm2 logs primetrack --lines 50 --nostream
+[TAILING] Tailing last 50 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 50 lines:
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Bi.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetra | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetra |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetra |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Bi.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetra | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetra |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetra |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Bi.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetra | Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+0|primetra |     at ServerResponse.setHeader (node:_http_outgoing:655:11)
+0|primetra |     at Et.set.Et.header (/var/www/primetrack/dist/index.cjs:53:25029)
+0|primetra |     at Et.send (/var/www/primetrack/dist/index.cjs:53:20568)
+0|primetra |     at Et.json (/var/www/primetrack/dist/index.cjs:53:21698)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:314:1108
+0|primetra |     at Bi.handle_error (/var/www/primetrack/dist/index.cjs:38:3071)
+0|primetra |     at Q (/var/www/primetrack/dist/index.cjs:38:8401)
+0|primetra |     at /var/www/primetrack/dist/index.cjs:38:8002
+0|primetra |     at Ea.process_params (/var/www/primetrack/dist/index.cjs:38:8541)
+0|primetra |     at q (/var/www/primetrack/dist/index.cjs:38:7928)
+0|primetra | [auth] Login error: Error: ENOENT: no such file or directory, open '/var/www/primetrack/dist/table.sql'
+0|primetra |     at async open (node:internal/fs/promises:634:25)
+0|primetra |     at async Object.readFile (node:internal/fs/promises:1236:14)
+0|primetra |     at async s._rawEnsureSessionStoreTable (/var/www/primetrack/dist/index.cjs:188:6191)
+0|primetra |     at async s._asyncQuery (/var/www/primetrack/dist/index.cjs:188:7276) {
+0|primetra |   errno: -2,
+0|primetra |   code: 'ENOENT',
+0|primetra |   syscall: 'open',
+0|primetra |   path: '/var/www/primetrack/dist/table.sql'
+0|primetra | }
+
+/root/.pm2/logs/primetrack-out.log last 50 lines:
+0|primetra | 
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 12:42:24 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 12:42:24 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 12:42:24 PM [aggregation] Daily stats aggregation completed: 9 rows
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=71b829bd-bccc-4e73-96a0-3ac9cb57aa6f, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=71b829bd-bccc-4e73-96a0-3ac9cb57aa6f&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=71b829bd-bccc-4e73-96a0-3ac9cb57aa6f total=735ms offer=42ms parallel=430ms antifraud=214ms save=45ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=c063f48f-f7ba-43a5-bccf-aceada50dc64, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=c063f48f-f7ba-43a5-bccf-aceada50dc64&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=c063f48f-f7ba-43a5-bccf-aceada50dc64 total=730ms offer=45ms parallel=419ms antifraud=216ms save=49ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=14119ee5-c07f-43c8-adb9-9838ced23754, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=14119ee5-c07f-43c8-adb9-9838ced23754&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=14119ee5-c07f-43c8-adb9-9838ced23754 total=536ms offer=0ms parallel=300ms antifraud=185ms save=50ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=5c849f55-da9b-4620-8892-c75a5d5c6248, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=5c849f55-da9b-4620-8892-c75a5d5c6248&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=5c849f55-da9b-4620-8892-c75a5d5c6248 total=739ms offer=42ms parallel=428ms antifraud=222ms save=47ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=f85fa835-2103-46f0-b8ae-897530612869, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=f85fa835-2103-46f0-b8ae-897530612869&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=f85fa835-2103-46f0-b8ae-897530612869 total=585ms offer=0ms parallel=336ms antifraud=198ms save=50ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=f865d69b-f3e4-4a5d-a0de-ce12f7149309, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=f865d69b-f3e4-4a5d-a0de-ce12f7149309&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=f865d69b-f3e4-4a5d-a0de-ce12f7149309 total=721ms offer=38ms parallel=427ms antifraud=210ms save=45ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+
+[root@v742573 primetrack]# 
