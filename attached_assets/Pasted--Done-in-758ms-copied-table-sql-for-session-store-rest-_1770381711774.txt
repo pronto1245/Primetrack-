@@ -1,0 +1,44 @@
+⚡ Done in 758ms
+copied table.sql for session store
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/var/www/primetrack/drizzle.config.ts'
+(0 , import_drizzle_kit.defineConfig) is not a function
+[root@v742573 primetrack]# pm2 restart primetrack && pm2 logs primetrack --lines 5 --nostream
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 11   │ online    │ 0%       │ 17.6mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 5 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 5 lines:
+0|primetra |   errno: -2,
+0|primetra |   code: 'ENOENT',
+0|primetra |   syscall: 'open',
+0|primetra |   path: '/var/www/primetrack/dist/table.sql'
+0|primetra | }
+
+/root/.pm2/logs/primetrack-out.log last 5 lines:
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 12:39:19 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 12:39:20 PM [aggregation] Daily stats aggregation completed: 9 rows
+
+[root@v742573 primetrack]# ls -la /var/www/primetrack/dist/table.sql && pm2 restart primetrack --update-env
+-rw-r--r-- 1 root root 316 Feb  6 12:40 /var/www/primetrack/dist/table.sql
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 12   │ online    │ 0%       │ 22.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# cp /var/www/primetrack/node_modules/connect-pg-simple/table.sql /var/www/primetrack/dist/table.sql && pm2 restart primetrack --update-env
+cp: overwrite '/var/www/primetrack/dist/table.sql'? 
