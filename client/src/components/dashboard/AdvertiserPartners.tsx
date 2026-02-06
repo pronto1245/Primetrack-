@@ -228,7 +228,7 @@ export function AdvertiserPartners() {
           </TabsTrigger>
           <TabsTrigger value="team" data-testid="tab-team" className="data-[state=active]:bg-card">
             <UsersRound className="w-4 h-4 mr-2" />
-            Команда
+            Отчёт по вебам
           </TabsTrigger>
         </TabsList>
 
