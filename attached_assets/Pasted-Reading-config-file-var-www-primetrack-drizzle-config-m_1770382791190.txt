@@ -1,0 +1,39 @@
+Reading config file '/var/www/primetrack/drizzle.config.mjs'
+(0 , import_drizzle_kit.defineConfig) is not a function
+[root@v742573 primetrack]# pm2 restart primetrack && sleep 3 && pm2 logs primetrack --lines 10 --nostream
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetrack](ids: [ 0 ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 14   │ online    │ 0%       │ 9.6mb    │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 10 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 10 lines:
+0|primetra | [auth] Login error: Error: ENOENT: no such file or directory, open '/var/www/primetrack/dist/table.sql'
+0|primetra |     at async open (node:internal/fs/promises:634:25)
+0|primetra |     at async Object.readFile (node:internal/fs/promises:1236:14)
+0|primetra |     at async s._rawEnsureSessionStoreTable (/var/www/primetrack/dist/index.cjs:188:6191)
+0|primetra |     at async s._asyncQuery (/var/www/primetrack/dist/index.cjs:188:7276) {
+0|primetra |   errno: -2,
+0|primetra |   code: 'ENOENT',
+0|primetra |   syscall: 'open',
+0|primetra |   path: '/var/www/primetrack/dist/table.sql'
+0|primetra | }
+
+/root/.pm2/logs/primetrack-out.log last 10 lines:
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 12:59:34 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 12:59:34 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 12:59:35 PM [aggregation] Daily stats aggregation completed: 9 rows
+
+[root@v742573 primetrack]# node -v
+v20.20.0
+[root@v742573 primetrack]# 
