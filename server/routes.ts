@@ -204,6 +204,7 @@ declare module "express-session" {
     role: string;
     pending2FAUserId?: string;
     isStaff?: boolean;
+    staffId?: string;
     staffRole?: string;
     staffAdvertiserId?: string;
   }
@@ -601,6 +602,7 @@ export async function registerRoutes(
       req.session.userId = staff.id;
       req.session.role = "advertiser";
       req.session.isStaff = true;
+      req.session.staffId = staff.id;
       req.session.staffRole = staff.staffRole;
       req.session.staffAdvertiserId = staff.advertiserId;
       
