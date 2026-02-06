@@ -386,7 +386,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
         </h1>
         {partner?.shortId != null && (
           <Badge data-testid="text-partner-shortid" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-sm">
-            Партнер ID: {partner.shortId}
+            Партнер ID: {String(partner.shortId).padStart(3, '0')}
           </Badge>
         )}
       </div>
@@ -405,7 +405,7 @@ export function PartnerProfile({ publisherId }: PartnerProfileProps) {
               <div className="flex items-center gap-2">
                 <p className="text-sm text-muted-foreground" data-testid="text-partner-login">@{partner.username}</p>
                 {partner.shortId != null && (
-                  <Badge data-testid="text-partner-info-id" className="bg-muted text-muted-foreground text-xs">ID: {partner.shortId}</Badge>
+                  <Badge data-testid="text-partner-info-id" className="bg-muted text-muted-foreground text-xs">ID: {String(partner.shortId).padStart(3, '0')}</Badge>
                 )}
               </div>
             </div>
