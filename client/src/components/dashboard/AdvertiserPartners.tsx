@@ -18,6 +18,7 @@ import { formatCurrency } from "@/lib/utils";
 interface Partner {
   id: string;
   publisherId: string;
+  shortId?: number | null;
   username: string;
   email: string;
   telegram?: string | null;
@@ -76,10 +77,12 @@ export function AdvertiserPartners() {
     }
   };
 
-  const filteredPartners = partners.filter(p => 
-    p.username.toLowerCase().includes(search.toLowerCase()) ||
-    p.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPartners = partners.filter(p => {
+    const q = search.toLowerCase();
+    return p.username.toLowerCase().includes(q) ||
+      p.email.toLowerCase().includes(q) ||
+      (p.shortId != null && String(p.shortId).padStart(3, '0').includes(q));
+  });
 
   const statusBadge = (status: string) => {
     const config: Record<string, { color: string; icon: React.ReactNode }> = {
@@ -212,7 +215,14 @@ export function AdvertiserPartners() {
                     <tr key={partner.id} data-testid={`row-partner-${partner.id}`} className="hover:bg-muted">
                       <td className="px-4 py-3">
                         <div>
-                          <div className="text-foreground font-medium">{partner.companyName || partner.username}</div>
+                          <div className="text-foreground font-medium flex items-center gap-1.5">
+                            {partner.shortId != null && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 font-mono" data-testid={`badge-partner-id-${partner.id}`}>
+                                ID:{String(partner.shortId).padStart(3, '0')}
+                              </Badge>
+                            )}
+                            {partner.companyName || partner.username}
+                          </div>
                           <div className="text-muted-foreground text-xs">@{partner.username}</div>
                         </div>
                       </td>
