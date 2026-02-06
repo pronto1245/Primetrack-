@@ -9,6 +9,7 @@ export const STAFF_SECTIONS = [
   "postbacks",
   "news",
   "team",
+  "referrals",
   "settings",
 ] as const;
 
@@ -28,12 +29,13 @@ export const STAFF_PERMISSIONS: Record<StaffRole, Record<StaffSection, SectionPe
     partners: { canView: true, canWrite: true },
     requests: { canView: true, canWrite: true },
     reports: { canView: true, canWrite: true },
-    finance: { canView: true, canWrite: true },
+    finance: { canView: false, canWrite: false },
     antifraud: { canView: true, canWrite: true },
     postbacks: { canView: true, canWrite: true },
     news: { canView: true, canWrite: true },
-    team: { canView: true, canWrite: true },
-    settings: { canView: true, canWrite: true },
+    team: { canView: false, canWrite: false },
+    referrals: { canView: false, canWrite: false },
+    settings: { canView: false, canWrite: false },
   },
   analyst: {
     overview: { canView: true, canWrite: false },
@@ -46,6 +48,7 @@ export const STAFF_PERMISSIONS: Record<StaffRole, Record<StaffSection, SectionPe
     postbacks: { canView: true, canWrite: false },
     news: { canView: true, canWrite: false },
     team: { canView: false, canWrite: false },
+    referrals: { canView: false, canWrite: false },
     settings: { canView: false, canWrite: false },
   },
   support: {
@@ -59,6 +62,7 @@ export const STAFF_PERMISSIONS: Record<StaffRole, Record<StaffSection, SectionPe
     postbacks: { canView: true, canWrite: false },
     news: { canView: true, canWrite: false },
     team: { canView: false, canWrite: false },
+    referrals: { canView: false, canWrite: false },
     settings: { canView: false, canWrite: false },
   },
   finance: {
@@ -72,6 +76,7 @@ export const STAFF_PERMISSIONS: Record<StaffRole, Record<StaffSection, SectionPe
     postbacks: { canView: true, canWrite: false },
     news: { canView: true, canWrite: false },
     team: { canView: false, canWrite: false },
+    referrals: { canView: false, canWrite: false },
     settings: { canView: false, canWrite: false },
   },
 };
@@ -99,6 +104,7 @@ export const PATH_TO_SECTION: Record<string, StaffSection> = {
   "postbacks": "postbacks",
   "news": "news",
   "team": "team",
+  "referrals": "referrals",
   "settings": "settings",
 };
 

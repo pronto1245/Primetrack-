@@ -232,15 +232,13 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
     ]
   };
 
-  let currentMenu = menus[role as keyof typeof menus] || menus.publisher;
+  const currentMenu = menus[role as keyof typeof menus] || menus.publisher;
   
-  // Filter menu for staff roles (only for advertiser staff, wait for loading to complete)
-  if (!staffLoading && isStaff && role === "advertiser") {
-    currentMenu = currentMenu.filter(item => {
-      const section = getSectionFromPath(item.path);
-      return section ? canAccess(section) : true;
-    });
-  }
+  const isItemDisabled = (item: typeof currentMenu[0]): boolean => {
+    if (staffLoading || !isStaff || role !== "advertiser") return false;
+    const section = getSectionFromPath(item.path);
+    return section ? !canAccess(section) : false;
+  };
   
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
 
@@ -273,15 +271,21 @@ function MobileSidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: st
       <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
         {currentMenu.map((item, i) => {
           const isNewsItem = item.path.includes('/news');
+          const disabled = isItemDisabled(item);
           return (
             <button 
               key={i} 
-              onClick={() => handleNavClick(item.path)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={() => !disabled && handleNavClick(item.path)}
+              disabled={disabled}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-colors ${
+                disabled 
+                  ? 'text-muted-foreground/40 cursor-not-allowed opacity-50' 
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
             >
-              <item.icon className={`w-4 h-4 ${item.color}`} />
+              <item.icon className={`w-4 h-4 ${disabled ? 'text-muted-foreground/30' : item.color}`} />
               <span className="flex-1 text-left">{item.label}</span>
-              {isNewsItem && unreadNewsCount > 0 && (
+              {isNewsItem && unreadNewsCount > 0 && !disabled && (
                 <span className="min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full">
                   {unreadNewsCount > 99 ? '99+' : unreadNewsCount}
                 </span>
@@ -448,15 +452,13 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
     ]
   };
 
-  let currentMenu = menus[role as keyof typeof menus] || menus.publisher;
+  const currentMenu = menus[role as keyof typeof menus] || menus.publisher;
   
-  // Filter menu for staff roles (only for advertiser staff, wait for loading to complete)
-  if (!staffLoading && isStaff && role === "advertiser") {
-    currentMenu = currentMenu.filter(item => {
-      const section = getSectionFromPath(item.path);
-      return section ? canAccess(section) : true;
-    });
-  }
+  const isItemDisabled = (item: typeof currentMenu[0]): boolean => {
+    if (staffLoading || !isStaff || role !== "advertiser") return false;
+    const section = getSectionFromPath(item.path);
+    return section ? !canAccess(section) : false;
+  };
   
   const roleColor = role === 'admin' ? 'bg-red-500' : role === 'advertiser' ? 'bg-blue-500' : 'bg-emerald-500';
 
@@ -485,9 +487,22 @@ function Sidebar({ role, t, onNavigate, onLogout, loggingOut }: { role: string, 
       <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
         {currentMenu.map((item, i) => {
           const isNewsItem = item.path.includes('/news');
+          const disabled = isItemDisabled(item);
+          if (disabled) {
+            return (
+              <button 
+                key={i}
+                disabled
+                className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-muted-foreground/40 cursor-not-allowed opacity-50"
+              >
+                <item.icon className="w-4 h-4 text-muted-foreground/30" />
+                <span className="flex-1 text-left">{item.label}</span>
+              </button>
+            );
+          }
           return (
             <Link key={i} href={item.path}>
-              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors ${i === -1 ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground`}>
                 <item.icon className={`w-4 h-4 ${item.color}`} />
                 <span className="flex-1 text-left">{item.label}</span>
                 {isNewsItem && unreadNewsCount > 0 && (
@@ -636,6 +651,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
         if (matchAntifraud && !canAccess("antifraud")) return false;
         if (matchPostbacks && !canAccess("postbacks")) return false;
         if ((matchNews || matchNewsCreate || matchNewsEdit) && !canAccess("news")) return false;
+        if (matchReferrals && !canAccess("referrals")) return false;
         return true;
       };
       
@@ -643,7 +659,7 @@ function MainContent({ role, t }: { role: string, t: any }) {
         setLocation(`/dashboard/${role}`);
       }
     }
-  }, [staffLoading, isStaff, role, canAccess, setLocation, matchTeam, matchSettings, matchPartners, matchPartnerProfile, matchRequests, matchFinance, matchOffers, matchArchivedOffers, matchCreateOffer, matchOfferDetail, matchReports, matchAntifraud, matchPostbacks, matchNews, matchNewsCreate, matchNewsEdit]);
+  }, [staffLoading, isStaff, role, canAccess, setLocation, matchTeam, matchSettings, matchPartners, matchPartnerProfile, matchRequests, matchFinance, matchOffers, matchArchivedOffers, matchCreateOffer, matchOfferDetail, matchReports, matchAntifraud, matchPostbacks, matchNews, matchNewsCreate, matchNewsEdit, matchReferrals]);
 
   // Check if user needs to setup 2FA
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<any>({
