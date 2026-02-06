@@ -1,0 +1,102 @@
+active',
+    cnt: '1'
+  },
+  {
+    id: 'be7f0ede-2b3e-466e-b288-23ecfef09d64',
+    status: 'active',
+    cnt: '1'
+  },
+  {
+    id: 'cdb6e924-d39c-4777-9bf0-6d1a9370c860',
+    status: 'active',
+    cnt: '1'
+  }
+]
+[root@v742573 primetrack]# DATABASE_URL="postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require" node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query(\"SELECT column_name FROM information_schema.columns WHERE table_name = 'publisher_advertisers' ORDER BY ordinal_position\").then(r => {
+  console.log('Columns:', r.rows.map(c => c.column_name));
+  pool.end();
+}).catch(e => { console.error(e); pool.end(); });
+"
+Columns: [
+  'id',
+  'publisher_id',
+  'advertiser_id',
+  'status',
+  'created_at',
+  'referral_enabled',
+  'referral_rate',
+  'traffic_source',
+  'am_percent',
+  'bonus',
+  'notes'
+]
+[root@v742573 primetrack]# DATABASE_URL="postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require" node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('ALTER TABLE publisher_advertisers ADD COLUMN IF NOT EXISTS \"managerStaffId\" varchar REFERENCES advertiser_staff(id)').then(r => {
+  console.log('Column added successfully');
+  pool.end();
+}).catch(e => { console.error(e); pool.end(); });
+"
+Column added successfully
+[root@v742573 primetrack]# DATABASE_URL="postgresql://neondb_owner:npg_vraWd8FOT9Lh@ep-late-smoke-agsrbh2u.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require" node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('ALTER TABLE publisher_advertisers DROP COLUMN IF EXISTS \"managerStaffId\"').then(() => {
+  return pool.query('ALTER TABLE publisher_advertisers ADD COLUMN IF NOT EXISTS manager_staff_id varchar REFERENCES advertiser_staff(id)');
+}).then(r => {
+  console.log('Column manager_staff_id added successfully');
+  pool.end();
+}).catch(e => { console.error(e); pool.end(); });
+"
+Column manager_staff_id added successfully
+[root@v742573 primetrack]# pm2 restart 0
+
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [0](ids: [ '0' ])
+[PM2] [primetrack](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 20   │ online    │ 0%       │ 11.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# 
+[root@v742573 primetrack]# pm2 logs 0 --lines 30
+[TAILING] Tailing last 30 lines for [0] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-error.log last 30 lines:
+/root/.pm2/logs/primetrack-out.log last 30 lines:
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 1:57:53 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 1:57:53 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 1:57:53 PM [aggregation] Daily stats aggregation completed: 9 rows
+0|primetra | 
+0|primetra | > rest-express@1.0.0 start
+0|primetra | > NODE_ENV=production node dist/index.cjs
+0|primetra | 
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 2:04:18 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-06
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 2:04:18 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 2:04:19 PM [aggregation] Daily stats aggregation completed: 9 rows
+
+
