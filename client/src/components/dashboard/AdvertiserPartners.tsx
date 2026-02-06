@@ -222,11 +222,11 @@ export function AdvertiserPartners() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted border border-border">
-          <TabsTrigger value="partners" data-testid="tab-partners" className="data-[state=active]:bg-card">
+          <TabsTrigger value="partners" data-testid="tab-partners" className="data-[state=active]:bg-card data-[state=active]:text-blue-400">
             <Users className="w-4 h-4 mr-2" />
             Партнёры
           </TabsTrigger>
-          <TabsTrigger value="team" data-testid="tab-team" className="data-[state=active]:bg-card">
+          <TabsTrigger value="team" data-testid="tab-team" className="data-[state=active]:bg-card data-[state=active]:text-emerald-400">
             <UsersRound className="w-4 h-4 mr-2" />
             Отчёт по вебам
           </TabsTrigger>
