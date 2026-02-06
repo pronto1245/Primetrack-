@@ -14,6 +14,7 @@ export { getSectionFromPath };
 interface StaffContextType {
   isStaff: boolean;
   staffRole: StaffRole | null;
+  staffId: string | null;
   staffAdvertiserId: string | null;
   advertiserName: string | null;
   staffLoading: boolean;
@@ -24,6 +25,7 @@ interface StaffContextType {
 const StaffContext = createContext<StaffContextType>({
   isStaff: false,
   staffRole: null,
+  staffId: null,
   staffAdvertiserId: null,
   advertiserName: null,
   staffLoading: true,
@@ -33,6 +35,7 @@ const StaffContext = createContext<StaffContextType>({
 
 export function StaffProvider({ children }: { children: ReactNode }) {
   const { data: userData, isLoading } = useQuery<{
+    id?: string;
     isStaff?: boolean;
     staffRole?: StaffRole;
     staffAdvertiserId?: string;
@@ -44,6 +47,7 @@ export function StaffProvider({ children }: { children: ReactNode }) {
   const staffLoading = isLoading;
   const isStaff = userData?.isStaff || false;
   const staffRole: StaffRole | null = (userData?.staffRole as StaffRole) || null;
+  const staffId = isStaff ? (userData?.id || null) : null;
   const staffAdvertiserId = userData?.staffAdvertiserId || null;
   const advertiserName = userData?.advertiserName || null;
 
@@ -66,6 +70,7 @@ export function StaffProvider({ children }: { children: ReactNode }) {
       value={{
         isStaff,
         staffRole,
+        staffId,
         staffAdvertiserId,
         advertiserName,
         staffLoading,

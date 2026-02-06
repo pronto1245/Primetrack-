@@ -58,7 +58,7 @@ interface TeamPartner {
 
 export function AdvertiserPartners() {
   const queryClient = useQueryClient();
-  const { isStaff } = useStaff();
+  const { isStaff, staffRole, staffId } = useStaff();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [linkModalOpen, setLinkModalOpen] = useState(false);
@@ -131,9 +131,20 @@ export function AdvertiserPartners() {
     },
   });
 
+  const getEffectiveLink = () => {
+    if (!linkData?.registrationLink) return "";
+    if (isStaff && staffRole === "manager" && staffId) {
+      const url = new URL(linkData.registrationLink);
+      url.searchParams.set("am", staffId);
+      return url.toString();
+    }
+    return linkData.registrationLink;
+  };
+
   const copyLink = () => {
-    if (linkData?.registrationLink) {
-      navigator.clipboard.writeText(linkData.registrationLink);
+    const link = getEffectiveLink();
+    if (link) {
+      navigator.clipboard.writeText(link);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -206,7 +217,7 @@ export function AdvertiserPartners() {
               <div className="flex gap-2">
                 <Input 
                   data-testid="input-registration-link"
-                  value={linkData?.registrationLink || ""} 
+                  value={getEffectiveLink()} 
                   readOnly 
                   className="bg-input border-border text-foreground font-mono text-sm"
                 />
