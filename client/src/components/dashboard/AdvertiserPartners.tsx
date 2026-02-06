@@ -216,12 +216,12 @@ export function AdvertiserPartners() {
                       <td className="px-4 py-3">
                         <div>
                           <div className="text-foreground font-medium flex items-center gap-1.5">
+                            {partner.companyName || partner.username}
                             {partner.shortId != null && (
-                              <Badge variant="outline" className="text-[10px] px-1 py-0 font-mono" data-testid={`badge-partner-id-${partner.id}`}>
+                              <Badge className="text-[10px] px-1.5 py-0 font-mono bg-blue-500/15 text-blue-400 border-blue-500/30" data-testid={`badge-partner-id-${partner.id}`}>
                                 ID:{String(partner.shortId).padStart(3, '0')}
                               </Badge>
                             )}
-                            {partner.companyName || partner.username}
                           </div>
                           <div className="text-muted-foreground text-xs">@{partner.username}</div>
                         </div>
