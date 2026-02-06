@@ -718,6 +718,9 @@ export async function registerRoutes(
       if (!staff) {
         return res.status(401).json({ message: "Staff not found" });
       }
+      if (!req.session.staffId) {
+        req.session.staffId = staff.id;
+      }
       return res.json({
         id: staff.id,
         username: staff.email,
@@ -914,6 +917,9 @@ export async function registerRoutes(
       const staff = await storage.getAdvertiserStaffById(req.session.userId);
       if (!staff) {
         return res.status(401).json({ message: "Staff not found" });
+      }
+      if (!req.session.staffId) {
+        req.session.staffId = staff.id;
       }
       
       // Get advertiser info for display
