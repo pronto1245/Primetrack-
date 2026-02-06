@@ -25,7 +25,7 @@ export interface SectionPermission {
 export const STAFF_PERMISSIONS: Record<StaffRole, Record<StaffSection, SectionPermission>> = {
   manager: {
     overview: { canView: true, canWrite: true },
-    offers: { canView: true, canWrite: true },
+    offers: { canView: true, canWrite: false },
     partners: { canView: true, canWrite: true },
     requests: { canView: true, canWrite: true },
     reports: { canView: true, canWrite: true },
