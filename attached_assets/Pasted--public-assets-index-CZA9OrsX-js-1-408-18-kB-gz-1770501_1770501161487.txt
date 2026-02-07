@@ -1,0 +1,65 @@
+/public/assets/index-CZA9OrsX.js                                                    1,408.18 kB │ gzip: 449.20 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.16s
+building server...
+
+  dist/index.cjs  827.0kb
+
+⚡ Done in 111ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetraff](ids: [ 1 ])
+[PM2] [primetraff](1) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 261.7mb  │
+│ 1  │ primetraff         │ fork     │ 2    │ online    │ 0%       │ 21.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetraff.com]# cat > /etc/nginx/conf.d/optimization.conf << 'EOF'
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+
+proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=static_cache:10m max_size=100m inactive=60m;
+EOF
+[root@v742573 primetraff.com]# cat > /etc/nginx/conf.d/primetraff.conf << 'EOF'
+server {
+    listen 80;
+    server_name primetraff.com www.primetraff.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name primetraff.com www.primetraff.com;
+
+    ssl_certificate /etc/letsencrypt/live/primetraff.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/primetraff.com/privkey.pem;
+
+    location /assets/ {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
+[root@v742573 primetraff.com]# nginx -t && systemctl reload nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@v742573 primetraff.com]# 
