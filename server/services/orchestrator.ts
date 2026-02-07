@@ -149,8 +149,12 @@ export class Orchestrator {
       }
     }
     
-    // Increment offer caps stats
-    await storage.incrementOfferCapsStats(click.offerId);
+    // Increment offer caps stats (non-critical, don't break conversion flow)
+    try {
+      await storage.incrementOfferCapsStats(click.offerId);
+    } catch (capsError) {
+      console.error(`[Orchestrator] Failed to increment caps stats for offer ${click.offerId}:`, capsError);
+    }
     
     postbackSender.sendPostback(conversion.id).catch((error) => {
       console.error(`[Orchestrator] Postback send failed for conversion ${conversion.id}:`, error);
