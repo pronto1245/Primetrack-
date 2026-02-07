@@ -1,0 +1,100 @@
+ listen 443 ssl default_server;
+    server_name _;
+    
+    ssl_certificate /etc/ssl/cloudflare/origin.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/origin.key;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $http_x_forwarded_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $http_x_forwarded_host;
+    }
+}
+[root@v742573 primetrack]# pm2 logs primetrack --lines 20 --nostream
+[TAILING] Tailing last 20 lines for [primetrack] process (change the value with --lines option)
+[root@v742573 primetrack]# ss -tlnp | grep -E '3000|4000'
+[root@v742573 primetrack]# pm2 status
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetrack]# cd /var/www/primetrack && pm2 start dist/index.cjs --name primetrack && pm2 save
+[PM2] Starting /var/www/primetrack/dist/index.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 12.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[root@v742573 primetrack]# sleep 3 && ss -tlnp | grep 3000
+[root@v742573 primetrack]# pm2 logs primetrack --lines 30 --nostream
+[TAILING] Tailing last 30 lines for [primetrack] process (change the value with --lines option)
+/root/.pm2/logs/primetrack-out.log last 30 lines:
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=d8d88e46-2fb3-4f74-b300-7f3971554cfe, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=d8d88e46-2fb3-4f74-b300-7f3971554cfe&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=d8d88e46-2fb3-4f74-b300-7f3971554cfe total=862ms offer=49ms parallel=514ms antifraud=244ms save=53ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | [CLICK DEBUG] rawOfferId=0062, rawLandingId=0202, rawPartnerId=019
+0|primetra | [CLICK DEBUG] resolved offerId=f1e23a1f-91dd-4326-93ba-fa0ceb362835, landingId=2be3946b-fcec-4806-a6bb-9e470116ce12, partnerId=717d0475-2e1d-417c-9ac3-d16d3ba6aad6
+0|primetra | [buildRedirectUrl] INPUT: baseUrl=https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg, clickId=90600410-6946-4069-8433-1d104224a375, clickIdParam=external_id
+0|primetra | [buildRedirectUrl] OUTPUT: https://cashmoney.beauty/ypHtBFwz?offer=escorgibetreg&external_id=90600410-6946-4069-8433-1d104224a375&sub6=%7Bsub6%7D&sub9=%7Bsub9%7D&sub10=%7Bsub10%7D, clickIdReplaced=false
+0|primetra | [CLICK-TIMING] clickId=90600410-6946-4069-8433-1d104224a375 total=522ms offer=0ms parallel=291ms antifraud=180ms save=50ms ipIntel=hit
+0|primetra | [CLICK-METRIC] status=valid geo=CN
+0|primetra | 7:54:45 PM [aggregation] Hourly aggregation: 7 rows updated
+0|primetra | 
+0|primetra | > rest-express@1.0.0 start
+0|primetra | > NODE_ENV=production node dist/index.cjs
+0|primetra | 
+0|primetra | [WorkerAuth] Worker secret loaded from environment variable
+0|primetra | [session] Using PostgreSQL session store
+0|primetra | [session] Cookie config: secure=true, sameSite=lax, isReplit=false
+0|primetra | [shortId] Initializing short ID sequences and backfilling data...
+0|primetra | [shortId] Short ID initialization complete
+0|primetra | [seed] Subscription plans already exist, skipping
+0|primetra | 7:58:58 PM [express] serving on port 3000
+0|primetra | [HoldReleaseJob] Starting with interval 300000ms
+0|primetra | [CapsResetService] Checking daily reset for 2026-02-07
+0|primetra | [CapsResetService] Started, checking every minute
+0|primetra | 7:58:59 PM [crypto] Crypto payout service ready (per-advertiser keys)
+0|primetra | [CapsResetService] New month detected: 2026-02
+0|primetra | 7:58:59 PM [aggregation] Daily stats aggregation completed: 7 rows
+0|primetra | 8:19:48 PM [express] serving on port 5000
+
+/root/.pm2/logs/primetrack-error.log last 30 lines:
+0|primetra |     at doListen (node:net:2139:7)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+0|primetra |   code: 'EADDRINUSE',
+0|primetra |   errno: -98,
+0|primetra |   syscall: 'listen',
+0|primetra |   address: '0.0.0.0',
+0|primetra |   port: 4000
+0|primetra | }
+0|primetra | Error: listen EADDRINUSE: address already in use 0.0.0.0:4000
+0|primetra |     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+0|primetra |     at listenInCluster (node:net:1965:12)
+0|primetra |     at doListen (node:net:2139:7)
+0|primetra |     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+0|primetra |   code: 'EADDRINUSE',
+0|primetra |   errno: -98,
+0|primetra |   syscall: 'listen',
+0|primetra |   address: '0.0.0.0',
+0|primetra |   port: 4000
+0|primetra | }
+0|primetra | Error: DATABASE_URL environment variable is not set
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:31567
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at /var/www/primetrack/dist/index.cjs:70:36265
+0|primetra |     at /var/www/primetrack/dist/index.cjs:1:225
+0|primetra |     at Object.<anonymous> (/var/www/primetrack/dist/index.cjs:259:4420)
+0|primetra |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|primetra |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|primetra |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|primetra |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|primetra |     at cjsLoader (node:internal/modules/esm/translators:298:15)
+
+[root@v742573 primetrack]# 
