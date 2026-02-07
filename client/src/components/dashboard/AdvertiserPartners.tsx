@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { 
   Users, Search, Link as LinkIcon, Copy, Check, UserPlus, 
   Ban, Play, Pause, Clock, Loader2, Filter, Send, Mail, Phone, Eye, UsersRound
@@ -62,9 +63,22 @@ export function AdvertiserPartners() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("partners");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const [createForm, setCreateForm] = useState({
+    fullName: "",
+    username: "",
+    email: "",
+    phone: "",
+    contactType: "",
+    contactValue: "",
+    password: "",
+    confirmPassword: "",
+    managerStaffId: "",
+  });
+  const [createError, setCreateError] = useState("");
 
   const { data: partners = [], isLoading } = useQuery<Partner[]>({
     queryKey: ["advertiser-partners", statusFilter],
@@ -128,6 +142,48 @@ export function AdvertiserPartners() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["advertiser-partners-team"] });
+    },
+  });
+
+  const { data: staffList = [] } = useQuery<Array<{ id: string; fullName: string; staffRole: string; status: string }>>({
+    queryKey: ["advertiser-staff"],
+    queryFn: async () => {
+      const res = await fetch("/api/advertiser/staff", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !isStaff || staffRole !== "manager",
+  });
+
+  const managers = staffList.filter(s => s.staffRole === "manager" && s.status === "active");
+
+  const createPartnerMutation = useMutation({
+    mutationFn: async (data: typeof createForm) => {
+      const res = await apiRequest("POST", "/api/advertiser/partners/create", {
+        fullName: data.fullName,
+        username: data.username,
+        email: data.email,
+        phone: data.phone || undefined,
+        contactType: data.contactType || undefined,
+        contactValue: data.contactValue || undefined,
+        password: data.password,
+        managerStaffId: data.managerStaffId || undefined,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Ошибка создания");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["advertiser-partners"] });
+      queryClient.invalidateQueries({ queryKey: ["advertiser-partners-team"] });
+      setCreateModalOpen(false);
+      setCreateForm({ fullName: "", username: "", email: "", phone: "", contactType: "", contactValue: "", password: "", confirmPassword: "", managerStaffId: "" });
+      setCreateError("");
+    },
+    onError: (err: Error) => {
+      setCreateError(err.message);
     },
   });
 
@@ -204,43 +260,202 @@ export function AdvertiserPartners() {
           <p className="text-muted-foreground mt-1">Управление партнёрами и их доступом</p>
         </div>
 
-        <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-get-link" className="bg-emerald-600 hover:bg-emerald-700">
-              <LinkIcon className="w-4 h-4 mr-2" />
-              Получить ссылку
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card border-border">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Ссылка для регистрации партнёров</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <p className="text-muted-foreground text-sm">
-                Поделитесь этой ссылкой с партнёрами. После регистрации они появятся в списке со статусом "pending".
-              </p>
-              <div className="flex gap-2">
-                <Input 
-                  data-testid="input-registration-link"
-                  value={getEffectiveLink()} 
-                  readOnly 
-                  className="bg-input border-border text-foreground font-mono text-sm"
-                />
-                <Button 
-                  data-testid="button-copy-link"
-                  variant="outline" 
-                  onClick={copyLink}
-                  className="border-border"
+        <div className="flex flex-col gap-2">
+          <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-get-link" className="bg-emerald-600 hover:bg-emerald-700">
+                <LinkIcon className="w-4 h-4 mr-2" />
+                Получить ссылку
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="text-foreground">Ссылка для регистрации партнёров</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <p className="text-muted-foreground text-sm">
+                  Поделитесь этой ссылкой с партнёрами. После регистрации они появятся в списке со статусом "pending".
+                </p>
+                <div className="flex gap-2">
+                  <Input 
+                    data-testid="input-registration-link"
+                    value={getEffectiveLink()} 
+                    readOnly 
+                    className="bg-input border-border text-foreground font-mono text-sm"
+                  />
+                  <Button 
+                    data-testid="button-copy-link"
+                    variant="outline" 
+                    onClick={copyLink}
+                    className="border-border"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Реферальный код: <code className="text-emerald-400">{linkData?.referralCode}</code>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={createModalOpen} onOpenChange={(open) => { setCreateModalOpen(open); if (!open) { setCreateError(""); } }}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-partner" variant="outline" className="border-emerald-600 text-emerald-400 hover:bg-emerald-600/10">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Добавить партнёра
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-foreground">Добавить партнёра вручную</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                setCreateError("");
+                if (!createForm.username || !createForm.email || !createForm.password) {
+                  setCreateError("Логин, email и пароль обязательны");
+                  return;
+                }
+                if (createForm.password !== createForm.confirmPassword) {
+                  setCreateError("Пароли не совпадают");
+                  return;
+                }
+                if (createForm.password.length < 6) {
+                  setCreateError("Пароль должен быть не менее 6 символов");
+                  return;
+                }
+                createPartnerMutation.mutate(createForm);
+              }} className="space-y-4 pt-2">
+                {createError && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-md p-3 text-red-400 text-sm">
+                    {createError}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label className="text-foreground">Полное имя</Label>
+                  <Input
+                    data-testid="input-create-fullname"
+                    value={createForm.fullName}
+                    onChange={(e) => setCreateForm(f => ({ ...f, fullName: e.target.value }))}
+                    placeholder="Иван Иванов"
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Логин *</Label>
+                  <Input
+                    data-testid="input-create-username"
+                    value={createForm.username}
+                    onChange={(e) => setCreateForm(f => ({ ...f, username: e.target.value }))}
+                    placeholder="partner_login"
+                    required
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Email *</Label>
+                  <Input
+                    data-testid="input-create-email"
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="partner@example.com"
+                    required
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Телефон</Label>
+                  <Input
+                    data-testid="input-create-phone"
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm(f => ({ ...f, phone: e.target.value }))}
+                    placeholder="+7 999 123 45 67"
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Мессенджер</Label>
+                    <Select value={createForm.contactType} onValueChange={(val) => setCreateForm(f => ({ ...f, contactType: val }))}>
+                      <SelectTrigger data-testid="select-create-contact-type" className="bg-input border-border text-foreground">
+                        <SelectValue placeholder="Выберите" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="telegram">Telegram</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                        <SelectItem value="viber">Viber</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Контакт</Label>
+                    <Input
+                      data-testid="input-create-contact-value"
+                      value={createForm.contactValue}
+                      onChange={(e) => setCreateForm(f => ({ ...f, contactValue: e.target.value }))}
+                      placeholder="@username"
+                      className="bg-input border-border text-foreground"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Пароль *</Label>
+                    <Input
+                      data-testid="input-create-password"
+                      type="password"
+                      value={createForm.password}
+                      onChange={(e) => setCreateForm(f => ({ ...f, password: e.target.value }))}
+                      required
+                      className="bg-input border-border text-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Повторите *</Label>
+                    <Input
+                      data-testid="input-create-confirm-password"
+                      type="password"
+                      value={createForm.confirmPassword}
+                      onChange={(e) => setCreateForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                      required
+                      className="bg-input border-border text-foreground"
+                    />
+                  </div>
+                </div>
+                {(!isStaff || staffRole !== "manager") && managers.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Менеджер</Label>
+                    <Select value={createForm.managerStaffId} onValueChange={(val) => setCreateForm(f => ({ ...f, managerStaffId: val === "none" ? "" : val }))}>
+                      <SelectTrigger data-testid="select-create-manager" className="bg-input border-border text-foreground">
+                        <SelectValue placeholder="Без менеджера" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Без менеджера</SelectItem>
+                        {managers.map(m => (
+                          <SelectItem key={m.id} value={m.id}>{m.fullName}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button
+                  data-testid="button-create-partner-submit"
+                  type="submit"
+                  disabled={createPartnerMutation.isPending}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {createPartnerMutation.isPending ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Создание...</>
+                  ) : (
+                    <><UserPlus className="w-4 h-4 mr-2" /> Создать партнёра</>
+                  )}
                 </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Реферальный код: <code className="text-emerald-400">{linkData?.referralCode}</code>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

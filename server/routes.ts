@@ -4473,6 +4473,90 @@ export async function registerRoutes(
     }
   });
 
+  // Manually create a partner (publisher) by advertiser or manager
+  app.post("/api/advertiser/partners/create", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
+    try {
+      const advertiserId = getEffectiveAdvertiserId(req);
+      if (!advertiserId) {
+        return res.status(401).json({ message: "Not authorized as advertiser" });
+      }
+
+      const { username, password, email, fullName, phone, contactType, contactValue, managerStaffId: requestedManagerId } = req.body;
+
+      if (!username || !password || !email) {
+        return res.status(400).json({ message: "Username, password и email обязательны" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        if (existingEmail.role === "publisher") {
+          const existingRelation = await storage.getPublisherAdvertiserRelation(existingEmail.id, advertiserId);
+          if (existingRelation) {
+            return res.status(400).json({ message: "Этот партнёр уже привязан к вам" });
+          }
+          let managerStaffId: string | null = null;
+          if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+            managerStaffId = req.session.staffId;
+          } else if (requestedManagerId) {
+            const staffMember = await storage.getAdvertiserStaffById(requestedManagerId);
+            if (staffMember && staffMember.advertiserId === advertiserId && staffMember.staffRole === "manager" && staffMember.status === "active") {
+              managerStaffId = staffMember.id;
+            }
+          }
+          await storage.addPublisherToAdvertiser(existingEmail.id, advertiserId, "active", managerStaffId);
+          return res.json({
+            id: existingEmail.id,
+            username: existingEmail.username,
+            email: existingEmail.email,
+            linked: true,
+            message: "Существующий партнёр привязан к вам",
+          });
+        }
+        return res.status(400).json({ message: "Email уже используется" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ message: "Логин уже занят" });
+      }
+
+      let managerStaffId: string | null = null;
+      if (req.session.isStaff && req.session.staffRole === "manager" && req.session.staffId) {
+        managerStaffId = req.session.staffId;
+      } else if (requestedManagerId) {
+        const staffMember = await storage.getAdvertiserStaffById(requestedManagerId);
+        if (staffMember && staffMember.advertiserId === advertiserId && staffMember.staffRole === "manager" && staffMember.status === "active") {
+          managerStaffId = staffMember.id;
+        }
+      }
+
+      const newUser = await storage.createUser({
+        username,
+        password,
+        email,
+        role: "publisher",
+        fullName: fullName || null,
+        phone: phone || null,
+        contactType: contactType || null,
+        contactValue: contactValue || null,
+        telegram: contactType === "telegram" ? contactValue : null,
+      });
+
+      await storage.addPublisherToAdvertiser(newUser.id, advertiserId, "active", managerStaffId);
+
+      res.json({
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        linked: false,
+        message: "Партнёр успешно создан",
+      });
+    } catch (error) {
+      console.error("Manual partner creation error:", error);
+      res.status(500).json({ message: "Ошибка при создании партнёра" });
+    }
+  });
+
   // Update partner status (approve, block, pause)
   app.put("/api/advertiser/partners/:id/status", requireAuth, requireRole("advertiser"), requireStaffWriteAccess("partners"), async (req: Request, res: Response) => {
     try {
