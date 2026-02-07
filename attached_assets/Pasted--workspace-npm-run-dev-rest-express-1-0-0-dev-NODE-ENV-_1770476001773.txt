@@ -1,0 +1,54 @@
+~/workspace$ npm run dev
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[WorkerAuth] Worker secret loaded from environment variable
+[session] Using PostgreSQL session store
+[session] Cookie config: secure=true, sameSite=none, isReplit=true
+[shortId] Initializing short ID sequences and backfilling data...
+[shortId] Short ID initialization complete
+[seed] Subscription plans already exist, skipping
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at doListen (node:net:2139:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1944:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 5000
+}
+
+Node.js v20.20.0
+~/workspace$ git add . && git commit -m "Add manual partner creation feature" && git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 4 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git add . && git commit -m "Add manual partner creation feature" && git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 4 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git push origin main
+Enumerating objects: 32, done.
+Counting objects: 100% (32/32), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (21/21), done.
+Writing objects: 100% (21/21), 62.37 KiB | 20.79 MiB/s, done.
+Total 21 (delta 14), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (14/14), completed with 9 local objects.
+To https://github.com/pronto1245/Primetrack-.git
+   e2a66eb..f113fe3  main -> main
+~/workspace$ 
