@@ -1,0 +1,63 @@
+un `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.3.0 building client environment for production...
+✓ 0 modules transformed.
+✗ Build failed in 288ms
+Could not resolve entry module "client/index.html".
+    at getRollupError (file:///var/www/primetraff.com/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///var/www/primetraff.com/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (/var/www/primetraff.com/node_modules/rollup/dist/es/shared/node-entry.js:21654:20)
+    at async Promise.all (index 0) {
+  code: 'UNRESOLVED_ENTRY'
+}
+[root@v742573 primetraff.com]# ls /var/www/primetraff.com/client/ && cat /var/www/primetraff.com/vite.config.ts
+attached_assets       drizzle.config.ts  replit.md           tsconfig.json
+client                node_modules       script              vite.config.ts
+components.json       package.json       server
+design_guidelines.md  package-lock.json  shared
+dist                  postcss.config.js  tailwind.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+export default defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+          await import("@replit/vite-plugin-dev-banner").then((m) =>
+            m.devBanner(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
+  },
+});
+[root@v742573 primetraff.com]# 
