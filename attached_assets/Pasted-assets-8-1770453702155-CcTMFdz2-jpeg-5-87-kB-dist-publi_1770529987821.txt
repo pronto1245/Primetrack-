@@ -1,0 +1,35 @@
+assets/Без_названия_(8)_1770453702155-CcTMFdz2.jpeg                           5.87 kB
+../dist/public/assets/Без_названия_(5)_1770453702154-CWh5JaRZ.png                            6.18 kB
+../dist/public/assets/Без_названия_(20)_1770453425635-BuDWvmxp.jpeg                          7.75 kB
+../dist/public/assets/Без_названия_(19)_1770453425635-B0gP6ZWH.jpeg                          8.15 kB
+../dist/public/index.html                                                                    8.68 kB │ gzip:   3.10 kB
+../dist/public/assets/Без_названия_(7)_1770453702155-DiE6h6Jz.png                           12.81 kB
+../dist/public/assets/zQAzTcUzmpmD09fPheuQwWO7Jqm0FxinQatFQkwy_1770453920459-C8Ki0llq.jpg   17.36 kB
+../dist/public/assets/img69525e9bc7f63_1770453425635-DT41vIiw.png                           47.56 kB
+../dist/public/assets/img695261fc58a0d_1770453425636-DMB0U3ji.png                           99.03 kB
+../dist/public/assets/img69380f65d567f_1770453920456-b7nd5KvK.png                          123.07 kB
+../dist/public/assets/IMG_9022_1770529061025-BiMRff1h.png                                  160.06 kB
+../dist/public/assets/index-CLD-ZYfJ.css                                                    88.06 kB │ gzip:  14.99 kB
+../dist/public/assets/index-Bl8tS6Os.js                                                    559.80 kB │ gzip: 220.36 kB
+../dist/public/assets/CrystalScene-CMJQxerA.js                                             856.82 kB │ gzip: 232.05 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.18s
+building server...
+
+  dist/index.cjs  827.0kb
+
+⚡ Done in 128ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [primetraff](ids: [ 1 ])
+[PM2] [primetraff](1) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ primetrack         │ fork     │ 0    │ online    │ 0%       │ 266.0mb  │
+│ 1  │ primetraff         │ fork     │ 6    │ online    │ 0%       │ 12.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@v742573 primetraff.com]# 
