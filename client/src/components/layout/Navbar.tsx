@@ -42,7 +42,7 @@ export function Navbar() {
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center group">
-          <img src={primetrackLogo} alt={platformName} className="h-10 object-contain" />
+          <img src={primetrackLogo} alt={platformName} className="h-20 object-contain" />
         </Link>
 
         {/* Desktop Menu - Minimal */}
