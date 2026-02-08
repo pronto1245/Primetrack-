@@ -33,16 +33,16 @@ export function Navbar() {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b overflow-visible ${
       scrolled 
-        ? 'bg-background/90 backdrop-blur-md border-border py-3' 
-        : 'bg-background border-transparent py-4'
-    }`}>
-      <div className="container mx-auto px-4 flex items-center justify-between">
+        ? 'bg-background/90 backdrop-blur-md border-border' 
+        : 'bg-background border-transparent'
+    }`} style={{ height: scrolled ? '56px' : '64px' }}>
+      <div className="container mx-auto px-4 flex items-center justify-between h-full">
         
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center group overflow-visible" style={{ marginTop: '-12px', marginBottom: '-12px' }}>
-          <img src={primetrackLogo} alt={platformName} style={{ height: '56px' }} className="object-contain" />
+        <Link href="/" className="flex items-center group">
+          <img src={primetrackLogo} alt={platformName} style={{ height: '64px' }} className="object-contain" />
         </Link>
 
         {/* Desktop Menu - Minimal */}
