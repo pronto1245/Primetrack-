@@ -1664,7 +1664,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div>
-              <img src={primetrackLogo} alt={platformName} className="h-16 w-auto object-contain object-left mb-4" />
+              <img src={primetrackLogo} alt={platformName} style={{ height: '64px', width: 'auto', marginBottom: '16px' }} className="object-contain" />
               <p className="text-sm text-muted-foreground mb-4">
                 {t('landing.description.tagline')}
               </p>
