@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useQuery } from "@tanstack/react-query";
+import primetrackLogo from "@/assets/primetrack-logo.png";
 
 export function Navbar() {
   const { t, i18n } = useTranslation();
@@ -39,18 +40,9 @@ export function Navbar() {
     }`}>
       <div className="container mx-auto px-4 flex items-center justify-between">
         
-        {/* Brand - Tech/Terminal Style */}
-        <Link href="/" className="flex items-center gap-2 group">
-          {platformSettings?.platformLogoUrl ? (
-            <img src={platformSettings.platformLogoUrl} alt={platformName} className="w-8 h-8 rounded object-cover" />
-          ) : (
-            <div className="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center text-foreground font-bold font-mono text-sm shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500 transition-colors">
-              {platformName.substring(0, 2).toUpperCase()}
-            </div>
-          )}
-          <span className="font-bold text-lg tracking-tight text-foreground group-hover:text-emerald-400 transition-colors font-mono">
-            {platformName}_
-          </span>
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center group">
+          <img src={primetrackLogo} alt={platformName} className="h-10 object-contain" />
         </Link>
 
         {/* Desktop Menu - Minimal */}

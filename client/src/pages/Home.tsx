@@ -73,6 +73,7 @@ import { useToast } from "@/hooks/use-toast";
 import screenshot1 from "@assets/Снимок_09.01.2026_в_21.12_1767983590330.png";
 import screenshot2 from "@assets/Снимок_09.01.2026_в_21.12_1767983590340.png";
 import screenshot3 from "@assets/Снимок_09.01.2026_в_21.11_1767983590341.png";
+import primetrackLogo from "@/assets/primetrack-logo.png";
 
 const heroImages = [screenshot1, screenshot2, screenshot3];
 
@@ -1663,7 +1664,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div>
-              <div className="text-xl font-bold text-foreground mb-4">{platformName}</div>
+              <img src={primetrackLogo} alt={platformName} className="h-12 object-contain mb-4" />
               <p className="text-sm text-muted-foreground mb-4">
                 {t('landing.description.tagline')}
               </p>
