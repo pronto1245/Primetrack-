@@ -1662,9 +1662,11 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-16 border-t border-border bg-background">
         <div className="container px-4 mx-auto">
+          <div className="mb-8">
+            <img src={primetrackLogo} alt={platformName} style={{ height: '128px', width: 'auto' }} className="object-contain" />
+          </div>
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div>
-              <img src={primetrackLogo} alt={platformName} style={{ height: '48px', width: 'auto', marginBottom: '16px' }} className="object-contain" />
               <p className="text-sm text-muted-foreground mb-4">
                 {t('landing.description.tagline')}
               </p>
