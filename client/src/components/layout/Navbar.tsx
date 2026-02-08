@@ -41,8 +41,8 @@ export function Navbar() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center group">
-          <img src={primetrackLogo} alt={platformName} className="h-20 object-contain" />
+        <Link href="/" className="flex items-center group -my-4">
+          <img src={primetrackLogo} alt={platformName} className="h-20 object-contain max-w-[200px]" />
         </Link>
 
         {/* Desktop Menu - Minimal */}
